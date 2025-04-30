@@ -1,12 +1,8 @@
 package ink.snowland.wkuwku.interfaces;
 
-import java.net.URL;
-
 public interface Emulator{
-    void powerOn();
-    void powerOff();
+    boolean load(String path);
+    void run();
     void reset();
-    boolean loadGame(byte[] data);
-    void next();
-    int getVersion();
+    void suspend();
 }

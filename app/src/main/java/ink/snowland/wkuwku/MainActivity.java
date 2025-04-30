@@ -19,11 +19,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Emulator emulator = EmulatorManager.getEmulator(EmulatorManager.NES);
-        emulator.powerOn();
-        boolean status = emulator.loadGame(null);
-        if (status) {
-            emulator.next();
+        boolean loaded = emulator.load("/sdcard/Android/data/ink.snowland.wkuwku/cache/Super Mario USA (J) [!].nes");
+        System.out.println(loaded);
+        if (loaded) {
+            emulator.run();
         }
+        emulator.suspend();
     }
 
     @Override
