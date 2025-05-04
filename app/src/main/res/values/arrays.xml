@@ -9,4 +9,16 @@
         <item>J</item>
         <item>E</item>
     </string-array>
+    <string-array name="play_fragment_exit_items">
+        <item>Emulator Reset</item>
+        <item>Exit</item>
+    </string-array>
+    <string-array name="video_ratio_entries">
+        <item>Covered</item>
+        <item>Keep aspect ratio</item>
+    </string-array>
+    <string-array name="video_ratio_values">
+        <item>covered</item>
+        <item>keep aspect ratio</item>
+    </string-array>
 </resources>

@@ -10,9 +10,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentCoreBinding;
 
-public class CoreFragment extends Fragment {
+public class CoreFragment extends BaseFragment {
 
     private FragmentCoreBinding binding;
 
@@ -20,6 +21,7 @@ public class CoreFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentCoreBinding.inflate(inflater);
+        mParentActivity.setActionbarSubTitle(R.string.core_options);
         return binding.getRoot();
     }
 }

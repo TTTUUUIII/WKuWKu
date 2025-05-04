@@ -18,6 +18,7 @@ import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHistoryBinding;
 import ink.snowland.wkuwku.databinding.ItemHistoryBinding;
 import ink.snowland.wkuwku.db.entity.Game;
@@ -29,7 +30,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class HistoryFragment extends Fragment {
+public class HistoryFragment extends BaseFragment {
 
     private FragmentHistoryBinding binding;
     private HistoryViewModel mViewModel;
@@ -53,6 +54,7 @@ public class HistoryFragment extends Fragment {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
+        mParentActivity.setActionbarSubTitle(R.string.recent_played);
         return binding.getRoot();
     }
 

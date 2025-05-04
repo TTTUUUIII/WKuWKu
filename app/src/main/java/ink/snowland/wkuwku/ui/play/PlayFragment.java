@@ -203,8 +203,8 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
     private void showExitGameDialog() {
         if (mExitDialog == null) {
             mExitDialog = new MaterialAlertDialogBuilder(requireActivity())
-                    .setIcon(R.drawable.app_icon)
-                    .setTitle(R.string.please_select)
+                    .setIcon(R.mipmap.ic_launcher_round)
+                    .setTitle(R.string.options)
                     .setItems(R.array.play_fragment_exit_items, (DialogInterface.OnClickListener) (dialog, which) -> {
                         if (which == 0) {
                             if (mEmulator == null) return;

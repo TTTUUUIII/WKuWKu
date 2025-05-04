@@ -19,8 +19,10 @@ import javax.microedition.khronos.opengles.GL10;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.interfaces.EmVideoDevice;
+import ink.snowland.wkuwku.util.SettingsManager;
 
 public class GLVideoDevice implements EmVideoDevice {
+    private static final String VIDEO_RATIO = "app_video_ratio";
     private final byte[] mLock = new byte[0];
     private int mVideoWidth;
     private int mVideoHeight;
@@ -93,16 +95,20 @@ public class GLVideoDevice implements EmVideoDevice {
         public void onSurfaceChanged(GL10 gl10, int width, int height) {
             glViewport(0, 0, width, height);
 
-            // this projection matrix is applied to object coordinates
-            // in the onDrawFrame() method
-//            float ratio = (float) width / height;
-//            if (height > width) {
-//                ratio = (float) height / width;
-//                Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -ratio, ratio, 3, 7);
-//            } else {
-//                Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
-//            }
-            Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3, 7);
+            String v = SettingsManager.getString(VIDEO_RATIO);
+            if (v.equals("covered")) {
+                Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3, 7);
+            } else {
+                // this projection matrix is applied to object coordinates
+                // in the onDrawFrame() method
+                float ratio = (float) width / height;
+                if (height > width) {
+                    ratio = (float) height / width;
+                    Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -ratio, ratio, 3, 7);
+                } else {
+                    Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+                }
+            }
         }
 
         @Override

@@ -16,4 +16,8 @@
         android:name="ink.snowland.wkuwku.ui.play.PlayFragment"
         android:label="fragment_play"
         tools:layout="@layout/fragment_play" />
+
+    <fragment android:id="@+id/settings_fragment"
+        android:name="ink.snowland.wkuwku.ui.settings.SettingsFragment"
+        android:label="fragment_settings" />
 </navigation>

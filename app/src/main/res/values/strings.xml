@@ -16,7 +16,8 @@
     <string name="add_game">Add Game</string>
     <string name="history">History</string>
     <string name="game_library">Games</string>
-    <string name="core_options">Core</string>
+    <string name="core">Core</string>
+    <string name="core_options">Core options</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
     <string name="last_played_t">Last played:</string>
@@ -34,15 +35,30 @@
     <string name="fmt_operation_failed">ERROR: %s</string>
     <string name="operation_failed">ERROR: Operation failed!</string>
     <string name="successful">successful</string>
-    <string name="please_select">Please Select</string>
+    <string name="options">Options</string>
     <string name="never_played">Never</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="detail">Detail</string>
-    <string-array name="play_fragment_exit_items">
-        <item>Emulator Reset</item>
-        <item>Exit</item>
-    </string-array>
     <string name="emergency">Emergency</string>
     <string name="delete_confirm">Are you sure you want to delete \"%s\"? \n\nps: may not be possible to restore!</string>
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+    <string name="videos">Videos</string>
+    <string name="video_ratio">Video Ratio</string>
+    <string name="all_games">All games</string>
+    <string name="recent_played">Recent played</string>
+    <string name="app_settings">App settings</string>
 </resources>

@@ -7,7 +7,8 @@
     <string name="add_game_rom">添加新游戏</string>
     <string name="history">历史</string>
     <string name="game_library">游戏库</string>
-    <string name="core_options">核心</string>
+    <string name="core">核心</string>
+    <string name="core_options">核心选项</string>
     <string name="search">搜索</string>
     <string name="settings">设置</string>
     <string name="last_played_t">上一次玩：</string>
@@ -23,15 +24,16 @@
     <string name="no_title">无标题</string>
     <string name="please_input_title">请输入标题</string>
     <string name="successful">成功！</string>
-    <string name="please_select">请选择</string>
+    <string name="options">选项</string>
     <string name="never_played">还没玩过</string>
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="detail">Detail</string>
-    <string-array name="play_fragment_exit_items">
-        <item>模拟器重置</item>
-        <item>退出</item>
-    </string-array>
     <string name="emergency">紧急情况</string>
     <string name="delete_confirm">确定要删除 “%s” 吗？\n\n提醒：删除之后可能无法恢复！</string>
+    <string name="videos">视频选项</string>
+    <string name="video_ratio">画面比例</string>
+    <string name="all_games">所有游戏</string>
+    <string name="recent_played">最近玩过</string>
+    <string name="app_settings">应用设置</string>
 </resources>

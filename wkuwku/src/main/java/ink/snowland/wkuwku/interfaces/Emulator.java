@@ -3,7 +3,7 @@ package ink.snowland.wkuwku.interfaces;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-;import java.io.File;
+import java.io.File;
 
 public interface Emulator {
 

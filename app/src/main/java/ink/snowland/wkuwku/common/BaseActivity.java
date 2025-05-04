@@ -7,6 +7,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
@@ -44,6 +45,24 @@ public abstract class BaseActivity extends AppCompatActivity {
             actionBar.show();
         } else {
             actionBar.hide();
+        }
+    }
+
+    public void setActionbarSubTitle(@StringRes int resId) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.setSubtitle(resId);
+        }
+    }
+
+    public void clearActionbarSubTitle(@StringRes int resId) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            CharSequence subtitle = actionBar.getSubtitle();
+            if (subtitle == null) return;
+            if (subtitle.equals(getString(resId))) {
+                actionBar.setSubtitle("");
+            }
         }
     }
 

@@ -30,7 +30,7 @@ public class GameEditDialog {
         mParent = activity;
         binding = LayoutAddGameBinding.inflate(LayoutInflater.from(activity));
         mDialog = new MaterialAlertDialogBuilder(activity)
-                .setIcon(R.drawable.app_icon)
+                .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.add_game)
                 .setView(binding.getRoot())
                 .setPositiveButton(R.string.confirm, null)

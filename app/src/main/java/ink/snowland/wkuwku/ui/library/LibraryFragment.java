@@ -22,6 +22,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
+import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentLibraryBinding;
 import ink.snowland.wkuwku.databinding.ItemGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
@@ -33,7 +34,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LibraryFragment extends Fragment implements View.OnClickListener {
+public class LibraryFragment extends BaseFragment implements View.OnClickListener {
     private FragmentLibraryBinding binding;
     private LibraryViewModel mViewModel;
     private final ViewAdapter mAdapter = new ViewAdapter();
@@ -47,7 +48,7 @@ public class LibraryFragment extends Fragment implements View.OnClickListener {
         mDisposable = mViewModel.getGameInfos().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(mAdapter::submitList);
-        mAddGameDialog = new GameEditDialog((BaseActivity) requireActivity());
+        mAddGameDialog = new GameEditDialog(mParentActivity);
     }
 
     @Override
@@ -59,6 +60,7 @@ public class LibraryFragment extends Fragment implements View.OnClickListener {
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
         binding.fab.setOnClickListener(this);
+        mParentActivity.setActionbarSubTitle(R.string.all_games);
         return binding.getRoot();
     }
 
@@ -96,7 +98,7 @@ public class LibraryFragment extends Fragment implements View.OnClickListener {
             mViewModel.deleteGame(game);
         } else {
             new MaterialAlertDialogBuilder(requireActivity())
-                    .setIcon(R.drawable.app_icon)
+                    .setIcon(R.mipmap.ic_launcher_round)
                     .setTitle(R.string.emergency)
                     .setMessage(getString(R.string.delete_confirm, game.title))
                     .setPositiveButton(R.string.confirm, (dialog, which) -> {
