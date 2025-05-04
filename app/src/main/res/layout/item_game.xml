@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
+        <import type="ink.snowland.wkuwku.util.TimeUtils" />
+    </data>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceContainerHigh"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:paddingHorizontal="15dp"
+        android:paddingVertical="8dp"
+        android:orientation="horizontal"
+        xmlns:tools="http://schemas.android.com/tools">
+        <ink.snowland.wkuwku.view.AutoMarqueeTextView
+            android:id="@+id/title"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@{game.title}"
+            android:textSize="18sp"
+            tools:text="Super Mario Bros." />
+        <TextView
+            android:id="@+id/system"
+            android:layout_marginStart="8dp"
+            android:minWidth="34dp"
+            android:gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            android:text="@{game.system}"/>
+        <TextView
+            android:id="@+id/region"
+            android:minWidth="34dp"
+            android:gravity="center_horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSecondary"
+            tools:text="@{game.region}" />
+        <Button
+            android:id="@+id/button_launch"
+            android:layout_marginStart="8dp"
+            style="@style/Theme.WKuWKu.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_rocket_launch" />
+        <Button
+            android:id="@+id/button_more"
+            style="@style/Theme.WKuWKu.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_more_vert" />
+    </LinearLayout>
+</layout>

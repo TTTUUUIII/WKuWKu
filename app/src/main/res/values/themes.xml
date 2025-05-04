@@ -1,9 +1,38 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+         <item name="colorPrimary">@color/primary</item>
+        <item name="colorSurface">@color/primary_500</item>
+        <item name="colorSurfaceContainer">@color/primary_300</item>
+        <item name="colorSecondaryContainer">@color/primary_700</item>
+        <item name="colorSurfaceContainerHigh">@color/primary_100</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="popupMenuBackground">@color/primary_500</item>
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
+    <style name="Theme.WKuWKu.TextInputLayout.OutlinedBox" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+
+    </style>
+    <style name="Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+    </style>
+    <style name="Theme.WKuWKu.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="backgroundTint">@color/outlined_button_tint</item>
+    </style>
+    <style name="Theme.WKuWKu.Button.IconButton" parent="Widget.Material3.Button.IconButton">
+
+    </style>
+    <style name="Theme.WKuWKu.GPButton" parent="Theme.WKuWKu.Button.OutlinedButton">
+        <item name="cornerRadius">37dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:paddingLeft">0dp</item>
+        <item name="android:paddingRight">0dp</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">24sp</item>
+    </style>
 </resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/home_navigation"
+    app:startDestination="@id/library_fragment">
+
+    <fragment
+        android:id="@+id/history_fragment"
+        android:name="ink.snowland.wkuwku.ui.history.HistoryFragment"
+        android:label="@string/history"
+        tools:layout="@layout/fragment_history" />
+
+    <fragment
+        android:id="@+id/library_fragment"
+        android:name="ink.snowland.wkuwku.ui.library.LibraryFragment"
+        android:label="@string/game_library"
+        tools:layout="@layout/fragment_library" />
+
+    <fragment
+        android:id="@+id/core_fragment"
+        android:name="ink.snowland.wkuwku.ui.core.CoreFragment"
+        android:label="@string/core_options"
+        tools:layout="@layout/fragment_core" />
+</navigation>

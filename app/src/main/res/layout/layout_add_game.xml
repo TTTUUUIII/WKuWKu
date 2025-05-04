@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
+    </data>
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="15dp"
+        android:orientation="vertical">
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/title_layout"
+            style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox"
+            android:hint="@string/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.google.android.material.textfield.TextInputEditText
+                android:text="@={game.title}"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <LinearLayout
+            android:id="@+id/platform_info_layout"
+            android:layout_below="@id/title_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <com.google.android.material.textfield.TextInputLayout
+                android:hint="@string/system"
+                android:layout_marginTop="15dp"
+                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/system_text_view"
+                    android:inputType="none"
+                    android:text="@={game.system}"
+                    style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputLayout
+                android:hint="@string/region"
+                android:layout_marginTop="15dp"
+                android:layout_marginStart="15dp"
+                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/region_text_view"
+                    android:inputType="none"
+                    android:text="@={game.region}"
+                    style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/select_file_layout"
+            android:layout_below="@id/platform_info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:orientation="horizontal">
+            <EditText
+                android:enabled="false"
+                android:maxLines="1"
+                android:inputType="text"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:hint="@string/please_select_file"
+                android:layout_height="match_parent"
+                android:text="@={game.filepath}"/>
+            <Button
+                android:id="@+id/button_select_file"
+                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/select_file" />
+        </LinearLayout>
+        <EditText
+            android:id="@+id/remark_edit_text"
+            android:layout_marginTop="15dp"
+            android:hint="@string/input_remark_info"
+            android:text="@={game.remark}"
+            android:layout_below="@id/select_file_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/error_text_view"
+            android:textStyle="bold"
+            android:textColor="@color/error"
+            android:layout_below="@id/remark_edit_text"
+            android:layout_marginTop="15dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </RelativeLayout>
+</layout>

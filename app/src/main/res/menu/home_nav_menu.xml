@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/library_fragment"
+        android:icon="@drawable/ic_database"
+        android:title="@string/game_library" />
+
+    <item
+        android:id="@+id/history_fragment"
+        android:icon="@drawable/ic_history"
+        android:title="@string/history" />
+
+    <item
+        android:id="@+id/core_fragment"
+        android:icon="@drawable/ic_memory"
+        android:title="@string/core_options" />
+</menu>

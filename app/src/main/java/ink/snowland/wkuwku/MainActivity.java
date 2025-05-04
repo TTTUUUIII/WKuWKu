@@ -1,34 +1,28 @@
 package ink.snowland.wkuwku;
 
 import android.os.Bundle;
+import android.view.Menu;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
+import ink.snowland.wkuwku.common.BaseActivity;
+import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 
-import ink.snowland.wkuwku.interfaces.Emulator;
-
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Emulator emulator = EmulatorManager.getEmulator(EmulatorManager.NES);
-        boolean loaded = emulator.load("/sdcard/Android/data/ink.snowland.wkuwku/cache/Super Mario USA (J) [!].nes");
-        System.out.println(loaded);
-        if (loaded) {
-            emulator.run();
-        }
-        emulator.suspend();
+        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.main);
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
     }
 }

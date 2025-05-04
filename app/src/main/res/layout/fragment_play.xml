@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pattern_zigzag_sm_landscape"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".ui.play.PlayFragment">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".ui.play.PlayFragment"
+        android:orientation="horizontal">
+        <View
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+        <android.opengl.GLSurfaceView
+            android:id="@+id/gl_surface_view"
+            android:layout_weight="3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+        <View
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+    <FrameLayout
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <RelativeLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent">
+            <Button
+                android:id="@+id/button_l2"
+                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                android:minWidth="100dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/l2" />
+            <Button
+                android:id="@+id/button_l"
+                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                android:layout_below="@id/button_l2"
+                android:layout_width="wrap_content"
+                android:minWidth="100dp"
+                android:layout_height="wrap_content"
+                android:text="@string/l" />
+            <ink.snowland.wkuwku.view.JoystickView
+                android:id="@+id/joystick_view"
+                app:JV_borderWidth="2dp"
+                app:JV_backgroundSizeRatio="70%"
+                android:layout_alignParentBottom="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_gravity="end"
+            android:layout_width="200dp"
+            android:layout_height="match_parent">
+            <Button
+                android:id="@+id/button_r2"
+                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                android:layout_alignParentEnd="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="100dp"
+                android:text="@string/r2" />
+            <Button
+                android:id="@+id/button_r"
+                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@id/button_r2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="100dp"
+                android:text="@string/r" />
+            <RelativeLayout
+                android:layout_alignParentBottom="true"
+                android:layout_width="match_parent"
+                android:layout_height="200dp">
+                <Button
+                    android:id="@+id/button_a"
+                    style="@style/Theme.WKuWKu.GPButton"
+                    android:layout_centerHorizontal="true"
+                    android:layout_alignParentBottom="true"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:text="@string/a"/>
+                <Button
+                    android:id="@+id/button_b"
+                    style="@style/Theme.WKuWKu.GPButton"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentEnd="true"
+                    android:text="@string/b"/>
+                <Button
+                    android:id="@+id/button_x"
+                    style="@style/Theme.WKuWKu.GPButton"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:layout_centerVertical="true"
+                    android:text="@string/x"/>
+                <Button
+                    android:id="@+id/button_y"
+                    style="@style/Theme.WKuWKu.GPButton"
+                    android:layout_centerHorizontal="true"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:text="@string/y"/>
+            </RelativeLayout>
+        </RelativeLayout>
+    </FrameLayout>
+    <RelativeLayout
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/button_select"
+            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            android:layout_width="110dp"
+            android:layout_height="wrap_content"
+            android:text="@string/select" />
+        <Button
+            android:id="@+id/button_start"
+            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            android:layout_toEndOf="@id/button_select"
+            android:layout_marginStart="8dp"
+            android:layout_width="110dp"
+            android:layout_height="wrap_content"
+            android:text="@string/start" />
+    </RelativeLayout>
+</FrameLayout>

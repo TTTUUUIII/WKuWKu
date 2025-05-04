@@ -1,3 +1,47 @@
 <resources>
-    <string name="app_name">WKuWKu</string>
+    <string name="app_name" translatable="false">WKuWKu</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="start" translatable="false">START</string>
+    <string name="select" translatable="false">SELECT</string>
+    <string name="a" translatable="false">A</string>
+    <string name="y" translatable="false">Y</string>
+    <string name="x" translatable="false">X</string>
+    <string name="b" translatable="false">B</string>
+    <string name="l2" translatable="false">L2</string>
+    <string name="l" translatable="false">L</string>
+    <string name="r2" translatable="false">R2</string>
+    <string name="r" translatable="false">R</string>
+    <string name="load_game_failed">ERROR: failed to load game!</string>
+    <string name="add_game_rom">Add a new game</string>
+    <string name="add_game">Add Game</string>
+    <string name="history">History</string>
+    <string name="game_library">Games</string>
+    <string name="core_options">Core</string>
+    <string name="search">Search</string>
+    <string name="settings">Settings</string>
+    <string name="last_played_t">Last played:</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="title">Title</string>
+    <string name="select_file">Select</string>
+    <string name="please_select_file">Please select a file.</string>
+    <string name="input_remark_info">Remarks (Optional)</string>
+    <string name="system">System</string>
+    <string name="region">Region</string>
+    <string name="no_title">No Title</string>
+    <string name="please_input_title">Please input a title!</string>
+    <string name="copy_file_failed">ERROR: Falied to copy file!</string>
+    <string name="operation_failed">ERROR: %s</string>
+    <string name="successful">successful</string>
+    <string name="please_select">Please Select</string>
+    <string name="never_played">Never</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="detail">Detail</string>
+    <string-array name="play_fragment_exit_items">
+        <item>Emulator Reset</item>
+        <item>Exit</item>
+    </string-array>
+    <string name="emergency">Emergency</string>
+    <string name="delete_confirm">Are you sure you want to delete \"%s\"? \n\nps: may not be possible to restore!</string>
 </resources>

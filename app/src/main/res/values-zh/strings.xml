@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="load_game_failed">错误: 加载游戏失败！</string>
+    <string name="copy_file_failed">错误：无法复制文件！</string>
+    <string name="operation_failed">错误: %s</string>
+    <string name="add_game_rom">添加新游戏</string>
+    <string name="history">历史</string>
+    <string name="game_library">游戏库</string>
+    <string name="core_options">核心</string>
+    <string name="search">搜索</string>
+    <string name="settings">设置</string>
+    <string name="last_played_t">上一次玩：</string>
+    <string name="add_game">添加游戏</string>
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
+    <string name="title">标题</string>
+    <string name="select_file">选择</string>
+    <string name="please_select_file">请选择一个文件</string>
+    <string name="input_remark_info">备注信息（可选）</string>
+    <string name="system">系统</string>
+    <string name="region">区域</string>
+    <string name="no_title">无标题</string>
+    <string name="please_input_title">请输入标题</string>
+    <string name="successful">成功！</string>
+    <string name="please_select">请选择</string>
+    <string name="never_played">还没玩过</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="detail">Detail</string>
+    <string-array name="play_fragment_exit_items">
+        <item>模拟器重置</item>
+        <item>退出</item>
+    </string-array>
+    <string name="emergency">紧急情况</string>
+    <string name="delete_confirm">确定要删除 “%s” 吗？\n\n提醒：删除之后可能无法恢复！</string>
+</resources>
