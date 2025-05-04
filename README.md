@@ -1,6 +1,6 @@
 # WKuWKu ![Application icon](app/src/main/res/mipmap-mdpi/ic_launcher.png)
 
-| <img src="SC_001.png" style="zoom:30%;" /> | <img src="sc_002.png" style="zoom:30%;" /> | <img src="sc_003.png" style="zoom:30%;" /> |
+| <img src="sc_001.png" style="zoom:30%;" /> | <img src="sc_002.png" style="zoom:30%;" /> | <img src="sc_003.png" style="zoom:30%;" /> |
 | ------------------------------------------ | ------------------------------------------ | ------------------------------------------ |
 
 
