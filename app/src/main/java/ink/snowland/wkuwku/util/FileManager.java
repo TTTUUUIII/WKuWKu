@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Build;
 import android.os.FileUtils;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -17,6 +18,18 @@ public class FileManager {
     private static Context sApplicationContext;
     public static File getFile(String type, String filename) {
         return new File(sApplicationContext.getExternalFilesDir(type), filename);
+    }
+
+
+    public static void delete(String type, String filename) {
+        File file = new File(sApplicationContext.getExternalFilesDir(type), filename);
+        delete(file);
+    }
+
+    public static void delete(File file) {
+        if (file.exists() && !file.delete()) {
+            Log.e(TAG, "ERROR: failed to delete file \"" + file + "\"");
+        }
     }
 
     public static boolean copy(String type, String filename, Uri uri) {
@@ -47,4 +60,6 @@ public class FileManager {
     public static void initialize(Context context) {
         sApplicationContext = context;
     }
+
+    private static final String TAG = FileManager.class.getSimpleName();
 }

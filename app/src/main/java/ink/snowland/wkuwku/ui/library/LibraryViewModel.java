@@ -70,6 +70,7 @@ public class LibraryViewModel extends AndroidViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> {
+                    FileManager.delete(file);
                     Toast.makeText(getApplication(), getApplication().getString(R.string.operation_failed, error.getMessage()), Toast.LENGTH_SHORT).show();
                 })
                 .subscribe(() -> {
