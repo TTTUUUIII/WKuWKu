@@ -2,7 +2,8 @@
 <resources>
     <string name="load_game_failed">错误: 加载游戏失败！</string>
     <string name="copy_file_failed">错误：无法复制文件！</string>
-    <string name="operation_failed">错误: %s</string>
+    <string name="fmt_operation_failed">错误：%s</string>
+    <string name="operation_failed">错误：操作失败！</string>
     <string name="add_game_rom">添加新游戏</string>
     <string name="history">历史</string>
     <string name="game_library">游戏库</string>

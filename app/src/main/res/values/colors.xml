@@ -7,7 +7,11 @@
     <color name="primary_500">#E89E89</color>
     <color name="primary_300">#F4C5B0</color>
     <color name="primary_100">#F9E8D9</color>
-    <color name="primary_dark">#932317</color>
+    <color name="primary_dark">@color/black</color>
     <color name="secondary">#A0C878</color>
+    <color name="secondary_500">#C9DDB6</color>
+    <color name="info">#3D90D7</color>
     <color name="error">#E52020</color>
+    <color name="error_700">#E96262</color>
+    <color name="ic_launcher_background">#FE8E37</color>
 </resources>

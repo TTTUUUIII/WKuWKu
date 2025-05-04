@@ -20,8 +20,6 @@ import android.widget.PopupMenu;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.io.File;
-
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.databinding.FragmentLibraryBinding;
@@ -29,7 +27,6 @@ import ink.snowland.wkuwku.databinding.ItemGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.play.PlayFragment;
-import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.widget.GameEditDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -95,17 +92,21 @@ public class LibraryFragment extends Fragment implements View.OnClickListener {
         popupMenu.show();
     }
     private void showDeleteDialog(@NonNull Game game) {
-        new MaterialAlertDialogBuilder(requireActivity())
-                .setIcon(R.drawable.app_icon)
-                .setTitle(R.string.emergency)
-                .setMessage(getString(R.string.delete_confirm, game.title))
-                .setPositiveButton(R.string.confirm, (dialog, which) -> {
-                    game.state = Game.STATE_DELETED;
-                    mViewModel.updateGame(game);
-                })
-                .setNegativeButton(R.string.cancel, null)
-                .setCancelable(false)
-                .show();
+        if (game.state == Game.STATE_BROKEN) {
+            mViewModel.deleteGame(game);
+        } else {
+            new MaterialAlertDialogBuilder(requireActivity())
+                    .setIcon(R.drawable.app_icon)
+                    .setTitle(R.string.emergency)
+                    .setMessage(getString(R.string.delete_confirm, game.title))
+                    .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                        game.state = Game.STATE_DELETED;
+                        mViewModel.updateGame(game);
+                    })
+                    .setNegativeButton(R.string.cancel, null)
+                    .setCancelable(false)
+                    .show();
+        }
     }
     private void showAddGameDialog() {
         mAddGameDialog.show((game, uri) -> {

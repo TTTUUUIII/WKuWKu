@@ -174,7 +174,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
 
     private void startGame() {
         boolean success = false;
-        if (mGame != null) {
+        if (mGame != null && mGame.state == Game.STATE_VALID) {
             mEmulator = EmulatorManager.getEmulator(mGame.system);
             if (mEmulator != null) {
                 mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
@@ -188,6 +188,13 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
             }
         }
         if (!success) {
+            if (mGame != null && mGame.state != Game.STATE_BROKEN) {
+                mGame.state = Game.STATE_BROKEN;
+                Disposable disposable = mViewModel.update(mGame)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();
+            }
             Toast.makeText(mParent.getApplicationContext(), R.string.load_game_failed, Toast.LENGTH_SHORT).show();
         }
     }

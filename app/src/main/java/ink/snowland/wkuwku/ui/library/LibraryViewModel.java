@@ -6,12 +6,12 @@ import android.os.SystemClock;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.AndroidViewModel;
 
 import java.io.File;
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.FileManager;
@@ -20,7 +20,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LibraryViewModel extends AndroidViewModel {
+public class LibraryViewModel extends BaseViewModel {
     public LibraryViewModel(@NonNull Application application) {
         super(application);
     }
@@ -71,21 +71,35 @@ public class LibraryViewModel extends AndroidViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> {
                     FileManager.delete(file);
-                    Toast.makeText(getApplication(), getApplication().getString(R.string.operation_failed, error.getMessage()), Toast.LENGTH_SHORT).show();
+                    showErrorToast(error);
                 })
                 .subscribe(() -> {
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
                 });
     }
-    public void updateGame(Game game) {
+    public void updateGame(@NonNull Game game) {
         Disposable disposable = AppDatabase.db.gameInfoDao().update(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> {
-                    Toast.makeText(getApplication(), R.string.operation_failed, Toast.LENGTH_SHORT).show();
+                    showErrorToast(error);
                     error.printStackTrace(System.err);
                 })
                 .subscribe(() -> {
+                    Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    public void deleteGame(@NonNull Game game) {
+        Disposable disposable = AppDatabase.db.gameInfoDao().delete(game)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(error -> {
+                    showErrorToast(error);
+                    error.printStackTrace(System.err);
+                })
+                .subscribe(() -> {
+                    FileManager.delete(game.filepath);
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
                 });
     }

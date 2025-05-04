@@ -4,6 +4,7 @@
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Customize your dark theme here. -->
         <!--         <item name="colorPrimary">@color/primary_dark</item>-->
+        <item name="android:statusBarColor">@color/primary_dark</item>
         <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 </resources>

@@ -26,6 +26,10 @@ public class FileManager {
         delete(file);
     }
 
+    public static void delete(String filepath) {
+        delete(new File(filepath));
+    }
+
     public static void delete(File file) {
         if (file.exists() && !file.delete()) {
             Log.e(TAG, "ERROR: failed to delete file \"" + file + "\"");

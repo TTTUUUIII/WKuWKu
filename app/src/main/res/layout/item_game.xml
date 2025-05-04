@@ -5,6 +5,7 @@
             name="game"
             type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
+        <import type="ink.snowland.wkuwku.db.entity.Game" />
     </data>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -39,10 +40,11 @@
             android:gravity="center_horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="?attr/colorSecondary"
+            android:background="?attr/colorSecondaryContainer"
             tools:text="@{game.region}" />
         <Button
             android:id="@+id/button_launch"
+            android:enabled="@{game.state == Game.STATE_VALID ? true : false}"
             android:layout_marginStart="8dp"
             style="@style/Theme.WKuWKu.Button.IconButton"
             android:layout_width="wrap_content"
