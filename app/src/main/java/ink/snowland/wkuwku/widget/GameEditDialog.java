@@ -34,6 +34,8 @@ public class GameEditDialog {
                 .setTitle(R.string.add_game)
                 .setView(binding.getRoot())
                 .setPositiveButton(R.string.confirm, null)
+                .setNegativeButton(R.string.cancel, null)
+                .setCancelable(false)
                 .create();
         String[] supportedPlatforms = activity.getResources().getStringArray(R.array.supported_platforms);
         mDefaultPlatform = supportedPlatforms[0];

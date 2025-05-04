@@ -50,6 +50,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
     private MainActivity mParent;
     private GLVideoDevice mVideoDevice;
     private EmInputDevice mInputDevice;
+    private AudioDevice mAudioDevice;
     private PlayViewModel mViewModel;
     private Game mGame;
 
@@ -61,6 +62,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
         mParent.setActionBarVisibility(false);
         mParent.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mViewModel = new ViewModelProvider(this).get(PlayViewModel.class);
+        mAudioDevice = new AudioDevice();
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
             public void refresh(byte[] data, int width, int height, int pitch) {
@@ -175,7 +177,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
         if (mGame != null) {
             mEmulator = EmulatorManager.getEmulator(mGame.system);
             if (mEmulator != null) {
-                mEmulator.attachDevice(AUDIO_DEVICE, new AudioDevice());
+                mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
                 mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
                 mEmulator.attachDevice(INPUT_DEVICE, mInputDevice);
                 mEmulator.setSystemDirectory(Objects.requireNonNull(mParent.getExternalCacheDir()));
