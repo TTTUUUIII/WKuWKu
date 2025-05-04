@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight">
+    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Customize your light theme here. -->
          <item name="colorPrimary">@color/primary</item>
         <item name="colorSurface">@color/primary_500</item>
@@ -9,6 +9,7 @@
         <item name="colorSurfaceContainerHigh">@color/primary_100</item>
         <item name="colorSecondary">@color/secondary</item>
         <item name="popupMenuBackground">@color/primary_500</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />

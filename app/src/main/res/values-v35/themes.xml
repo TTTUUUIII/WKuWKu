@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DynamicColors.DayNight">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorSurface">@color/primary_500</item>
+        <item name="colorSurfaceContainer">@color/primary_300</item>
+        <item name="colorSecondaryContainer">@color/primary_700</item>
+        <item name="colorSurfaceContainerHigh">@color/primary_100</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="popupMenuBackground">@color/primary_500</item>
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>
