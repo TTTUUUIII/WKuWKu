@@ -20,7 +20,7 @@
     <string name="core_options">Core options</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
-    <string name="last_played_t">Last played:</string>
+    <string name="last_played_t">Last played</string>
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="title">Title</string>
@@ -57,9 +57,11 @@
     <string name="filepath">File path</string>
     <string name="modified">Modified</string>
     <string name="added_date">Added date</string>
-    <string name="md5sum">MD5Sum</string>
+    <string name="md5sum" translatable="false">MD5</string>
 
     <string name="game_detail">Game detail</string>
     <string name="close">Close</string>
     <string name="list_is_empty">👾The list is empty</string>
+    <string name="please_select_core">Please select core</string>
+    <string name="values">Values</string>
 </resources>

@@ -117,9 +117,9 @@ public class HistoryFragment extends BaseFragment {
                 showMorePopupMenu(v, game);
             });
             if (game.lastPlayedTime == 0) {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + getString(R.string.never_played));
+                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + getString(R.string.never_played));
             } else {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
+                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
             }
             itemBinding.buttonLaunch.setOnClickListener(v -> {
                 launch(game);

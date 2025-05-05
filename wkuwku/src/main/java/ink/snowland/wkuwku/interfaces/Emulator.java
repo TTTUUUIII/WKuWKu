@@ -4,6 +4,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
+
+import ink.snowland.wkuwku.common.EmOption;
 
 public interface Emulator {
 
@@ -1591,5 +1595,7 @@ public interface Emulator {
 
     void attachDevice(int target, @Nullable EmulatorDevice device);
 
-    void configure(String k, String v);
+    void setOption(@NonNull EmOption option);
+
+    Collection<EmOption> getSupportedOptions();
 }

@@ -162,9 +162,9 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
             if (game.lastPlayedTime == 0) {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + getString(R.string.never_played));
+                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + getString(R.string.never_played));
             } else {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
+                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
             }
             itemBinding.buttonMore.setOnClickListener(v -> {
                 showMorePopupMenu(game, v);

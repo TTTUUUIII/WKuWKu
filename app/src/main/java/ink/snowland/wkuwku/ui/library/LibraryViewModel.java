@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.ui.library;
 
 import android.app.Application;
+import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.widget.Toast;
@@ -88,7 +89,7 @@ public class LibraryViewModel extends BaseViewModel {
                     game.lastModifiedTime = game.addedTime;
                     game.state = Game.STATE_VALID;
                     addGameToDatabase(game);
-                });
+                }, error -> {/*Ignored*/});
     }
 
     private void addNewGame(@NonNull Game game, Uri uri) {
@@ -115,7 +116,7 @@ public class LibraryViewModel extends BaseViewModel {
                 })
                 .subscribe(() -> {
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
-                });
+                }, error -> {/*Ignored*/});
     }
 
     public void deleteGame(@NonNull Game game) {
@@ -129,7 +130,7 @@ public class LibraryViewModel extends BaseViewModel {
                 .subscribe(() -> {
                     FileManager.delete(game.filepath);
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
-                });
+                }, error -> {/*Ignored*/});
     }
 
     private void addGameToDatabase(@NonNull Game game) {
@@ -138,11 +139,13 @@ public class LibraryViewModel extends BaseViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> {
-                    FileManager.delete(new File(game.filepath));
+                    if (!(error instanceof SQLiteConstraintException)) {
+                        FileManager.delete(new File(game.filepath));
+                    }
                     showErrorToast(error);
                 })
                 .subscribe(() -> {
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
-                });
+                }, error -> {/*Ignored*/});
     }
 }

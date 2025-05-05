@@ -7,9 +7,14 @@ import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
@@ -44,8 +49,10 @@ public class Fceumm implements Emulator {
         switch (cmd) {
             case RETRO_ENVIRONMENT_GET_VARIABLE:
                 entry = (VariableEntry) data;
-                entry.value = CONFIGURATION.get(entry.key);
-                if (entry.value == null) {
+                EmOption setting = OPTIONS.get(entry.key);
+                if (setting != null) {
+                    entry.value =  setting.val;
+                } else {
                     Log.d(TAG, entry.key);
                 }
                 break;
@@ -236,8 +243,18 @@ public class Fceumm implements Emulator {
     }
 
     @Override
-    public void configure(String k, String v) {
+    public void setOption(@NonNull EmOption option) {
+        EmOption opt = OPTIONS.get(option.key);
+        if (opt != null) {
+            opt.val = option.val;
+        }
+    }
 
+    @Override
+    public Collection<EmOption> getSupportedOptions() {
+        return OPTIONS.values().stream()
+                .map(it -> it.clone())
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -246,7 +263,7 @@ public class Fceumm implements Emulator {
     }
 
     private static final String TAG = Fceumm.class.getSimpleName();
-    private static final Map<String, String> CONFIGURATION = new HashMap<>();
+    private static final Map<String, EmOption> OPTIONS = new HashMap<>();
 
     static {
         System.loadLibrary("nes");
@@ -266,41 +283,146 @@ public class Fceumm implements Emulator {
     }
 
     private static void initialize() {
-        CONFIGURATION.put("fceumm_game_genie", "disabled");
-        CONFIGURATION.put("fceumm_ramstate", "random");
-        CONFIGURATION.put("fceumm_ntsc_filter", "disabled");
-        CONFIGURATION.put("fceumm_palette", "default");
-        CONFIGURATION.put("fceumm_up_down_allowed", "enabled");
-        CONFIGURATION.put("fceumm_nospritelimit", "enabled");
-        CONFIGURATION.put("fceumm_overclocking", "disabled");
-        CONFIGURATION.put("fceumm_zapper_mode", "default");
-        CONFIGURATION.put("fceumm_arkanoid_mode", "default");
-        CONFIGURATION.put("fceumm_zapper_tolerance", "4");
-        CONFIGURATION.put("fceumm_mouse_sensitivity", "100");
-        CONFIGURATION.put("fceumm_show_crosshair", "disabled");
-        CONFIGURATION.put("fceumm_zapper_trigger", "disabled");
-        CONFIGURATION.put("fceumm_zapper_sensor", "disabled");
-        CONFIGURATION.put("fceumm_overscan", "disabled");
-        CONFIGURATION.put("fceumm_overscan_h_left", "8");
-        CONFIGURATION.put("fceumm_overscan_h_right", "8");
-        CONFIGURATION.put("fceumm_overscan_v_top", "8");
-        CONFIGURATION.put("fceumm_overscan_v_bottom", "8");
-        CONFIGURATION.put("fceumm_aspect", "8:7 PAR");
-        CONFIGURATION.put("fceumm_turbo_enable", "Both");
-        CONFIGURATION.put("fceumm_turbo_delay", "300");
-        CONFIGURATION.put("fceumm_region", "Auto");
-        CONFIGURATION.put("fceumm_sndquality", "High");
-        CONFIGURATION.put("fceumm_sndlowpass", "enabled");
-        CONFIGURATION.put("fceumm_sndstereodelay", "disabled");
-        CONFIGURATION.put("fceumm_sndvolume", "1.0");
-        CONFIGURATION.put("fceumm_swapduty", "disabled");
-        CONFIGURATION.put("fceumm_apu_1", "enabled");
-        CONFIGURATION.put("fceumm_apu_2", "enabled");
-        CONFIGURATION.put("fceumm_apu_3", "enabled");
-        CONFIGURATION.put("fceumm_apu_4", "enabled");
-        CONFIGURATION.put("fceumm_apu_5", "enabled");
-        CONFIGURATION.put("fceumm_apu_6", "enabled");
-        CONFIGURATION.put("fceumm_show_adv_system_options", "disabled");
-        CONFIGURATION.put("fceumm_show_adv_sound_options", "disabled");
+        OPTIONS.put(
+                "fceumm_game_genie",
+                EmOption.create("fceumm_game_genie", "disabled", null, "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_ramstate",
+                EmOption.create("fceumm_ramstate", "random", "RAM power up state", "random", "fill $00"));
+        OPTIONS.put(
+                "fceumm_ntsc_filter",
+                EmOption.create("fceumm_ntsc_filter", "disabled", "NTSC Filter", "disabled", "composite", "svideo", "rgb", "monochrome"));
+        OPTIONS.put(
+                "fceumm_palette",
+                EmOption.create("fceumm_palette", "default", "Color Palette", "default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw"/*, "custom"*/));
+        OPTIONS.put(
+                "fceumm_up_down_allowed",
+                EmOption.create("fceumm_up_down_allowed", "disabled", "Allow Opposing Directions", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_nospritelimit",
+                EmOption.create("fceumm_nospritelimit", "enabled", "No Sprite Limit", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_overclocking",
+                EmOption.create("fceumm_overclocking", "disabled", "Overclocking", "disabled", "2x-Postrender", "2x-VBlank")
+        );
+        OPTIONS.put(
+                "fceumm_zapper_mode",
+                EmOption.create("fceumm_zapper_mode", "touchscreen", "Zapper Mode", "lightgun", "touchscreen", "mouse")
+        );
+        OPTIONS.put(
+                "fceumm_arkanoid_mode",
+                EmOption.create("fceumm_arkanoid_mode", "touchscreen", "Arkanoid Mode", "touchscreen", "abs_mouse", "stelladaptor")
+        );
+        OPTIONS.put(
+                "fceumm_zapper_tolerance",
+                EmOption.create("fceumm_zapper_tolerance", "4", "Zapper Tolerance")
+        );
+        OPTIONS.put(
+                "fceumm_mouse_sensitivity",
+                EmOption.create("fceumm_mouse_sensitivity", "100", "Mouse Sensitivity")
+        );
+        OPTIONS.put(
+                "fceumm_show_crosshair",
+                EmOption.create("fceumm_show_crosshair", "disabled", "Show Crosshair", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_zapper_trigger",
+                EmOption.create("fceumm_zapper_trigger", "disabled", "Zapper Trigger", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_zapper_sensor",
+                EmOption.create("fceumm_zapper_sensor", "disabled", "Zapper Sensor", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_overscan",
+                EmOption.create("fceumm_overscan", "disabled", "Crop Overscan", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_overscan_h_left",
+                EmOption.create("fceumm_overscan_h_left", "8", "Crop Overscan HL")
+        );
+        OPTIONS.put(
+                "fceumm_overscan_h_right",
+                EmOption.create("fceumm_overscan_h_right", "8", "Crop Overscan HR")
+                );
+        OPTIONS.put(
+                "fceumm_overscan_v_top",
+                EmOption.create("fceumm_overscan_v_top", "8", "Crop Overscan VT")
+                );
+        OPTIONS.put(
+                "fceumm_overscan_v_bottom",
+                EmOption.create("fceumm_overscan_v_bottom", "8", "Crop Overscan VB")
+        );
+        OPTIONS.put(
+                "fceumm_aspect",
+                EmOption.create("fceumm_aspect", "8:7 PAR", "Preferred aspect ratio", "8:7 PAR", "4:3")
+        );
+        OPTIONS.put(
+                "fceumm_turbo_enable",
+                EmOption.create("fceumm_turbo_enable", "None", "Turbo enable", "None", "Player 1", "Player 2", "Both")
+        );
+        OPTIONS.put(
+                "fceumm_turbo_delay",
+                EmOption.create("fceumm_turbo_delay", "3", "Turbo delay (in frames)")
+        );
+        OPTIONS.put(
+                "fceumm_region",
+                EmOption.create("fceumm_region", "Auto", "Region", "Auto", "NTSC", "PAL", "Dendy")
+        );
+        OPTIONS.put(
+                "fceumm_sndquality",
+                EmOption.create("fceumm_sndquality", "High", "Sound Quality", "Low", "High", "Very High")
+        );
+        OPTIONS.put(
+                "fceumm_sndlowpass",
+                EmOption.create("fceumm_sndlowpass", "enabled", "Sound low pass", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_sndstereodelay",
+                EmOption.create("fceumm_sndstereodelay", "disabled", "Sound stereo delay", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_sndvolume",
+                EmOption.create("fceumm_sndvolume", "10", "Sound volume (0 - 10)")
+        );
+        OPTIONS.put(
+                "fceumm_swapduty",
+                EmOption.create("fceumm_swapduty", "disabled", "Swap Duty Cycles", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_apu_1",
+                EmOption.create("fceumm_apu_1", "enabled", "APU 1", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_apu_2",
+                EmOption.create("fceumm_apu_2", "enabled", "APU 2", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_apu_3",
+                EmOption.create("fceumm_apu_3", "enabled", "APU 3", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_apu_4",
+                EmOption.create("fceumm_apu_4", "enabled", "APU 4", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_apu_5",
+                EmOption.create("fceumm_apu_5", "enabled", "APU 5", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_apu_6",
+                EmOption.create("fceumm_apu_6", "enabled", "APU 6", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_show_adv_system_options",
+                EmOption.create("fceumm_show_adv_system_options", "disabled", "Show Advanced System Options", "disabled", "enabled")
+        );
+        OPTIONS.put(
+                "fceumm_show_adv_sound_options",
+                EmOption.create("fceumm_show_adv_sound_options", "Show Advanced Sound Options", "disabled", "enabled")
+        );
     }
 }
