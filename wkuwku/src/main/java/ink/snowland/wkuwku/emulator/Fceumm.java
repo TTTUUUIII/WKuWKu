@@ -253,7 +253,7 @@ public class Fceumm implements Emulator {
     @Override
     public Collection<EmOption> getSupportedOptions() {
         return OPTIONS.values().stream()
-                .map(it -> it.clone())
+                .map(EmOption::clone)
                 .collect(Collectors.toList());
     }
 

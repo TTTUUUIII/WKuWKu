@@ -12,6 +12,7 @@
         android:layout_height="wrap_content">
         <com.google.android.material.textfield.MaterialAutoCompleteTextView
             android:id="@+id/core_selector"
+            android:inputType="none"
             android:hint="@string/please_select_core"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />

@@ -2,10 +2,12 @@ package ink.snowland.wkuwku;
 
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Optional;
 
 import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.interfaces.Emulator;
@@ -31,5 +33,13 @@ public final class EmulatorManager {
             system = NES;
         }
         return EMULATORS.get(system);
+    }
+
+    public static Emulator getEmulatorByTag(@NonNull String tag) {
+        Optional<Emulator> emulator = EMULATORS.values()
+                .stream()
+                .filter(it -> it.getTag().equals(tag))
+                .findFirst();
+        return emulator.orElse(null);
     }
 }
