@@ -13,7 +13,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +20,8 @@ import android.widget.PopupMenu;
 
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.List;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
@@ -181,6 +182,14 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             ItemGameBinding itemBinding = ItemGameBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new ViewHolder(itemBinding);
+        }
+
+        @Override
+        public void submitList(@Nullable List<Game> list) {
+            super.submitList(list);
+            if (list != null) {
+                mViewModel.setEmptyListIndicator(list.isEmpty());
+            }
         }
     }
 }

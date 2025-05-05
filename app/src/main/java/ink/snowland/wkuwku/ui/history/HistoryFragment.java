@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -17,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
+import java.util.List;
+
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHistoryBinding;
@@ -26,7 +29,6 @@ import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.play.PlayFragment;
 import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
-import ink.snowland.wkuwku.widget.GameEditDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -59,6 +61,8 @@ public class HistoryFragment extends BaseFragment {
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
         mParentActivity.setActionbarSubTitle(R.string.recent_played);
+        binding.setViewModel(mViewModel);
+        binding.setLifecycleOwner(this);
         return binding.getRoot();
     }
 
@@ -130,6 +134,14 @@ public class HistoryFragment extends BaseFragment {
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             ItemHistoryBinding itemBinding = ItemHistoryBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new ViewHolder(itemBinding);
+        }
+
+        @Override
+        public void submitList(@Nullable List<Game> list) {
+            super.submitList(list);
+            if (list != null) {
+                mViewModel.setEmptyListIndicator(list.isEmpty());
+            }
         }
     }
 }

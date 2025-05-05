@@ -27,7 +27,7 @@
             android:layout_marginVertical="46dp"
             android:layout_marginHorizontal="16dp" />
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:visibility="@{viewModel.pending ? View.VISIBLE : View.GONE}"
+            android:visibility="@{viewModel.pendingIndicator ? View.VISIBLE : View.GONE}"
             android:background="@color/modal_mask"
             android:clickable="true"
             android:focusable="true"
@@ -47,7 +47,7 @@
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:indeterminate="@{viewModel.pending}"
+                android:indeterminate="@{viewModel.pendingIndicator}"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.498"
@@ -55,5 +55,12 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.42" />
         </androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:visibility="@{viewModel.emptyListIndicator ? View.VISIBLE : View.GONE}"
+            android:text="@string/list_is_empty"
+            android:layout_gravity="center"
+            android:textSize="18sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </FrameLayout>
 </layout>

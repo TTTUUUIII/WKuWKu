@@ -6,8 +6,6 @@ import android.os.SystemClock;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,12 +25,9 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LibraryViewModel extends BaseViewModel {
-    private final MutableLiveData<Boolean> mPending = new MutableLiveData<>(false);
-    private final MutableLiveData<String> mPendingMessage = new MutableLiveData<>("");
     public LibraryViewModel(@NonNull Application application) {
         super(application);
     }
-
     public Observable<List<Game>> getGameInfos() {
         return AppDatabase.db.gameInfoDao().getAll();
     }
@@ -67,8 +62,8 @@ public class LibraryViewModel extends BaseViewModel {
     }
 
     private void addGameFormNetwork(@NonNull Game game, @NonNull Uri uri) {
-        mPending.postValue(true);
-        mPendingMessage.postValue(getString(R.string.downloading));
+        pendingIndicator.postValue(true);
+        pendingMessage.postValue(getString(R.string.downloading));
         Disposable disposable = RxUtils.newCompletable(() -> {
                     try {
                         URL url = new URL(uri.toString());
@@ -82,8 +77,8 @@ public class LibraryViewModel extends BaseViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::showErrorToast)
                 .doFinally(() -> {
-                    mPending.postValue(false);
-                    mPendingMessage.postValue("");
+                    pendingIndicator.postValue(false);
+                    pendingMessage.postValue("");
                 })
                 .subscribe(() -> {
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
@@ -135,14 +130,6 @@ public class LibraryViewModel extends BaseViewModel {
                     FileManager.delete(game.filepath);
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
                 });
-    }
-
-    public LiveData<Boolean> getPending() {
-        return mPending;
-    }
-
-    public LiveData<String> getPendingMessage() {
-        return mPendingMessage;
     }
 
     private void addGameToDatabase(@NonNull Game game) {

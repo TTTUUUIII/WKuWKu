@@ -50,4 +50,5 @@
 
     <string name="game_detail">游戏详细</string>
     <string name="close">关闭</string>
+    <string name="list_is_empty">👾列表竟然是空的</string>
 </resources>
