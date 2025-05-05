@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.util.Locale;
 import java.util.Objects;
 
 import ink.snowland.wkuwku.EmulatorManager;
@@ -201,7 +202,7 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
     private void startGame() {
         boolean success = false;
         if (mGame != null && mGame.state == Game.STATE_VALID) {
-            mEmulator = EmulatorManager.getEmulator(mGame.system);
+            mEmulator = getEmulatorForGame(mGame);
             if (mEmulator != null) {
                 mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
                 mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
@@ -291,4 +292,15 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
     }
 
     public static final String ARG_GAME = "game";
+
+    private static Emulator getEmulatorForGame(@NonNull Game game) {
+        String system = game.system.toLowerCase(Locale.ROOT);
+        String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", system));
+        if (tag.isEmpty()) {
+            if (system.equals("nes")) {
+                tag = "fceumm";
+            }
+        }
+        return EmulatorManager.getEmulator(tag);
+    }
 }

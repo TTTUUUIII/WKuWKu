@@ -56,7 +56,7 @@ public class CoreFragment extends BaseFragment {
 
         @Override
         public void onTextChanged(CharSequence newCoreTag, int start, int before, int count) {
-            Emulator emulator = EmulatorManager.getEmulatorByTag(newCoreTag.toString());
+            Emulator emulator = EmulatorManager.getEmulator(newCoreTag.toString());
             if (mEmulator != emulator) {
                 mEmulator = emulator;
                 if (mEmulator == null) return;

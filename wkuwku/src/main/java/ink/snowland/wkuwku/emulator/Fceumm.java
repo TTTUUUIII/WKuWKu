@@ -14,7 +14,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.common.EmThread;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
@@ -38,7 +40,7 @@ public class Fceumm implements Emulator {
     private static WeakReference<EmInputDevice> mInputDevice1Ref;
     private static WeakReference<EmInputDevice> mInputDevice2Ref;
     private static WeakReference<EmInputDevice> mInputDevice3Ref;
-    private MainThread mMainThread;
+    private EmThread mMainThread;
     @CallFromJni
     private static boolean onEnvironment(int cmd, Object data) {
         if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
@@ -158,7 +160,16 @@ public class Fceumm implements Emulator {
                     device.open(EmAudioDevice.PCM_16BIT, 48000, 2);
                 }
             }
-            mMainThread = new MainThread();
+            mMainThread = new EmThread() {
+                @Override
+                protected void next() {
+                    if (mState == STATE_RUNNING) {
+                        nativeRun();
+                    } else if (mState == STATE_INVALID) {
+                        interrupt();
+                    }
+                }
+            };
             mMainThread.start();
             mState = STATE_RUNNING;
         }
@@ -202,6 +213,7 @@ public class Fceumm implements Emulator {
                 if (device != null) {
                     device.close();
                 }
+                mAudioDeviceRef = null;
             }
         }
         mState = STATE_INVALID;
@@ -259,7 +271,7 @@ public class Fceumm implements Emulator {
 
     @Override
     public String getTag() {
-        return "fceumm (nes)";
+        return "fceumm";
     }
 
     @Override
@@ -273,18 +285,6 @@ public class Fceumm implements Emulator {
     static {
         System.loadLibrary("nes");
         initialize();
-    }
-
-    private class MainThread extends Thread {
-        @Override
-        public void run() {
-            super.run();
-            while (!isInterrupted() && mState != STATE_INVALID) {
-                if (mState == STATE_RUNNING) {
-                    nativeRun();
-                }
-            }
-        }
     }
 
     private static void initialize() {
@@ -429,5 +429,10 @@ public class Fceumm implements Emulator {
                 "fceumm_show_adv_sound_options",
                 EmOption.create("fceumm_show_adv_sound_options", "Show Advanced Sound Options", "disabled", "enabled")
         );
+    }
+
+    private static final Fceumm INSTANCE = new Fceumm();
+    public static void registerAsEmulator() {
+        EmulatorManager.registerEmulator(INSTANCE);
     }
 }

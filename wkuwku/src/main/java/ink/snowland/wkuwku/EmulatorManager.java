@@ -2,7 +2,6 @@ package ink.snowland.wkuwku;
 
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.interfaces.Emulator;
 
 public final class EmulatorManager {
-    public static final String NES = "fceumm";
     private EmulatorManager() {
         throw new RuntimeException();
     }
@@ -21,25 +19,18 @@ public final class EmulatorManager {
     private static final HashMap<String, Emulator> EMULATORS = new HashMap<>();
 
     static {
-        EMULATORS.put(NES, new Fceumm());
+        Fceumm.registerAsEmulator();
     }
 
     public static Collection<Emulator> getEmulators() {
         return EMULATORS.values();
     }
 
-    public static Emulator getEmulator(@NonNull String system) {
-        if (system.toLowerCase(Locale.ROOT).equals("nes")) {
-            system = NES;
-        }
-        return EMULATORS.get(system);
+    public static Emulator getEmulator(@NonNull String tag) {
+        return EMULATORS.get(tag);
     }
 
-    public static Emulator getEmulatorByTag(@NonNull String tag) {
-        Optional<Emulator> emulator = EMULATORS.values()
-                .stream()
-                .filter(it -> it.getTag().equals(tag))
-                .findFirst();
-        return emulator.orElse(null);
+    public static void registerEmulator(@NonNull Emulator emulator) {
+        EMULATORS.put(emulator.getTag(), emulator);
     }
 }

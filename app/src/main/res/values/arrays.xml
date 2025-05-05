@@ -21,4 +21,11 @@
         <item>covered</item>
         <item>keep aspect ratio</item>
     </string-array>
+
+    <string-array name="nes_core_entries">
+        <item>Fceumm</item>
+    </string-array>
+    <string-array name="nes_core_values">
+        <item>fceumm</item>
+    </string-array>
 </resources>

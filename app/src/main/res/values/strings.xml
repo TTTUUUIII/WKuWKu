@@ -64,4 +64,6 @@
     <string name="list_is_empty">👾The list is empty</string>
     <string name="please_select_core">Please select core</string>
     <string name="values">Values</string>
+    <string name="core_preference">Core preference</string>
+    <string name="famicom">Famicon</string>
 </resources>

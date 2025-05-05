@@ -52,4 +52,6 @@
     <string name="list_is_empty">👾列表竟然是空的</string>
     <string name="please_select_core">请选择核心</string>
     <string name="values">可选值</string>
+    <string name="core_preference">核心偏好</string>
+    <string name="famicom">红白机</string>
 </resources>
