@@ -146,7 +146,16 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
         v.performClick();
         int viewId = v.getId();
         int id;
-        if (viewId == R.id.button_select) {
+        if (viewId == R.id.button_a_b) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_A, EmInputDevice.KEY_DOWN);
+                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_B, EmInputDevice.KEY_DOWN);
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_A, EmInputDevice.KEY_UP);
+                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_B, EmInputDevice.KEY_UP);
+            }
+            return true;
+        } else if (viewId == R.id.button_select) {
             id = RETRO_DEVICE_ID_JOYPAD_SELECT;
         } else if (viewId == R.id.button_start) {
             id = RETRO_DEVICE_ID_JOYPAD_START;
@@ -264,6 +273,7 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
         binding.buttonL2.setOnTouchListener(this);
         binding.buttonR.setOnTouchListener(this);
         binding.buttonR2.setOnTouchListener(this);
+        binding.buttonAB.setOnTouchListener(this);
         binding.joystickView.setOnMoveListener((angle, strength) -> {
             double rad = Math.toRadians(angle);
             double dist = strength / 100.0;

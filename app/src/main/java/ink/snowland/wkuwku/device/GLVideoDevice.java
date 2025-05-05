@@ -96,7 +96,7 @@ public class GLVideoDevice implements EmVideoDevice {
             glViewport(0, 0, width, height);
 
             String v = SettingsManager.getString(VIDEO_RATIO);
-            if (v.equals("covered")) {
+            if (v.isEmpty() || v.equals("covered")) {
                 Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3, 7);
             } else {
                 // this projection matrix is applied to object coordinates

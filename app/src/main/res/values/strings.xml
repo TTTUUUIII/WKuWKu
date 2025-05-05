@@ -10,6 +10,7 @@
     <string name="l" translatable="false">L</string>
     <string name="r2" translatable="false">R2</string>
     <string name="r" translatable="false">R</string>
+    <string name="a_b" translatable="false">A + B</string>
     <string name="load_game_failed">ERROR: failed to load game!</string>
     <string name="add_game_rom">Add a new game</string>
     <string name="add_game">Add game</string>
