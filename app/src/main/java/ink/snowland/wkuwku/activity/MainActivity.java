@@ -4,9 +4,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
 import ink.snowland.wkuwku.R;
@@ -37,11 +39,21 @@ public class MainActivity extends BaseActivity {
         super.onOptionsItemSelected(item);
         int itemId = item.getItemId();
         if (itemId == R.id.action_settings) {
-            NavDestination destination = mNavController.getCurrentDestination();
-            if (destination != null && destination.getId() != R.id.settings_fragment) {
-                mNavController.navigate(R.id.settings_fragment);
+            if (isNavigateAble(R.id.settings_fragment)) {
+                NavOptions navOptions = new NavOptions.Builder()
+                        .setEnterAnim(R.anim.slide_in_right)
+                        .setExitAnim(R.anim.slide_out_left)
+                        .setPopEnterAnim(R.anim.slide_in_left)
+                        .setPopExitAnim(R.anim.slide_out_right)
+                        .build();
+                mNavController.navigate(R.id.settings_fragment, null, navOptions);
             }
         }
         return true;
+    }
+
+    private boolean isNavigateAble(@IdRes int id) {
+        NavDestination destination = mNavController.getCurrentDestination();
+        return destination != null && destination.getId() != id;
     }
 }

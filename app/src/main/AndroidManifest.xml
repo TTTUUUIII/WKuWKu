@@ -26,6 +26,7 @@
         android:theme="@style/Theme.WKuWKu">
         <activity
             android:name=".activity.QRScannerActivity"
+            android:launchMode="singleInstance"
             android:exported="false" />
         <activity
             android:name=".activity.MainActivity"

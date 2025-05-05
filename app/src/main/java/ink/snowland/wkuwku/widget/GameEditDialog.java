@@ -8,6 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.documentfile.provider.DocumentFile;
 
@@ -103,7 +104,8 @@ public class GameEditDialog {
         });
     }
 
-    private void parseFromUrl(@NonNull String url) {
+    private void parseFromUrl(@Nullable String url) {
+        if (url == null) return;
         Uri uri = Uri.parse(url);
         url = Uri.decode(url);
         int start = url.lastIndexOf("/");
