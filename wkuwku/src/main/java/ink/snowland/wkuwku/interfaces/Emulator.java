@@ -1598,4 +1598,6 @@ public interface Emulator {
     void setOption(@NonNull EmOption option);
 
     Collection<EmOption> getSupportedOptions();
+
+    String getTag();
 }

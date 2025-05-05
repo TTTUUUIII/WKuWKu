@@ -258,6 +258,11 @@ public class Fceumm implements Emulator {
     }
 
     @Override
+    public String getTag() {
+        return "fceumm (nes)";
+    }
+
+    @Override
     public void setSystemDirectory(@NonNull File systemDirectory) {
         sSystemDirectory = systemDirectory.getAbsolutePath();
     }
