@@ -263,7 +263,7 @@ public class Fceumm implements Emulator {
     }
 
     @Override
-    public Collection<EmOption> getSupportedOptions() {
+    public Collection<EmOption> getOptions() {
         return OPTIONS.values().stream()
                 .map(EmOption::clone)
                 .collect(Collectors.toList());
@@ -427,7 +427,7 @@ public class Fceumm implements Emulator {
         );
         OPTIONS.put(
                 "fceumm_show_adv_sound_options",
-                EmOption.create("fceumm_show_adv_sound_options", "Show Advanced Sound Options", "disabled", "enabled")
+                EmOption.create("fceumm_show_adv_sound_options", "disabled", "Show Advanced Sound Options", "enabled")
         );
     }
 

@@ -63,7 +63,8 @@
     <string name="close">Close</string>
     <string name="list_is_empty">👾The list is empty</string>
     <string name="please_select_core">Please select core</string>
-    <string name="values">Values</string>
+    <string name="value">Value</string>
     <string name="core_preference">Core preference</string>
     <string name="famicom">Famicon</string>
+    <string name="apply">Apply</string>
 </resources>

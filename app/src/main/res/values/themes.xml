@@ -21,6 +21,17 @@
     <style name="Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
     </style>
+    <style name="Theme.WKuWKu.TextInputEditText.OutlinedBox" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:paddingTop">13dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    <style name="Theme.WKuWKu.AutoCompleteTextView.OutlinedBox" parent="ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox">
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+    <style name="Theme.WKuWKu.Button" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/button_tint</item>
+    </style>
     <style name="Theme.WKuWKu.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
         <item name="backgroundTint">@color/outlined_button_tint</item>
     </style>

@@ -8,15 +8,16 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingHorizontal="15dp"
         android:paddingVertical="8dp">
         <LinearLayout
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:orientation="vertical">
             <TextView
                 android:text="@{option.title}"
+                android:textStyle="bold"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <TextView
@@ -29,12 +30,18 @@
             android:layout_width="0dp"
             style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_height="wrap_content"
+            android:enabled="@{option.supported}"
             android:layout_weight="1">
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                 android:id="@+id/auto_complete"
-                android:hint="@string/values"
+                android:hint="@string/value"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_margin="0dp"
+                android:text="@={option.val}"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="match_parent" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 </layout>

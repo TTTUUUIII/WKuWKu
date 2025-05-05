@@ -19,6 +19,7 @@
             android:layout_height="wrap_content">
             <com.google.android.material.textfield.TextInputEditText
                 android:text="@={game.title}"
+                style="@style/Theme.WKuWKu.TextInputEditText.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </com.google.android.material.textfield.TextInputLayout>
@@ -39,7 +40,7 @@
                     android:id="@+id/system_text_view"
                     android:inputType="none"
                     android:text="@={game.system}"
-                    style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox"
+                    style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -55,7 +56,7 @@
                     android:id="@+id/region_text_view"
                     android:inputType="none"
                     android:text="@={game.region}"
-                    style="@style/Widget.Material3.AutoCompleteTextView.OutlinedBox"
+                    style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
             </com.google.android.material.textfield.TextInputLayout>
