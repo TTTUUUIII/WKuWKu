@@ -8,9 +8,7 @@ import androidx.annotation.Nullable;
 import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -290,24 +288,24 @@ public class Fceumm implements Emulator {
     private static void initialize() {
         OPTIONS.put(
                 "fceumm_game_genie",
-                EmOption.create("fceumm_game_genie", "disabled", null, "disabled", "enabled")
+                EmOption.create("fceumm_game_genie", "disabled", "Genie enable", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_ramstate",
                 EmOption.create("fceumm_ramstate", "random", "RAM power up state", "random", "fill $00"));
         OPTIONS.put(
                 "fceumm_ntsc_filter",
-                EmOption.create("fceumm_ntsc_filter", "disabled", "NTSC Filter", "disabled", "composite", "svideo", "rgb", "monochrome"));
+                EmOption.create("fceumm_ntsc_filter", "disabled", "NTSC filter", "disabled", "composite", "svideo", "rgb", "monochrome"));
         OPTIONS.put(
                 "fceumm_palette",
-                EmOption.create("fceumm_palette", "default", "Color Palette", "default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw"/*, "custom"*/));
+                EmOption.create("fceumm_palette", "default", "Color palette", "default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw"/*, "custom"*/));
         OPTIONS.put(
                 "fceumm_up_down_allowed",
-                EmOption.create("fceumm_up_down_allowed", "disabled", "Allow Opposing Directions", "disabled", "enabled")
+                EmOption.create("fceumm_up_down_allowed", "disabled", "Allow opposing directions", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_nospritelimit",
-                EmOption.create("fceumm_nospritelimit", "enabled", "No Sprite Limit", "disabled", "enabled")
+                EmOption.create("fceumm_nospritelimit", "enabled", "No sprite limit", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_overclocking",
@@ -315,51 +313,51 @@ public class Fceumm implements Emulator {
         );
         OPTIONS.put(
                 "fceumm_zapper_mode",
-                EmOption.create("fceumm_zapper_mode", "touchscreen", "Zapper Mode", "lightgun", "touchscreen", "mouse")
+                EmOption.create("fceumm_zapper_mode", "touchscreen", "Zapper mode", "lightgun", "touchscreen", "mouse")
         );
         OPTIONS.put(
                 "fceumm_arkanoid_mode",
-                EmOption.create("fceumm_arkanoid_mode", "touchscreen", "Arkanoid Mode", "touchscreen", "abs_mouse", "stelladaptor")
+                EmOption.create("fceumm_arkanoid_mode", "touchscreen", "Arkanoid mode", "touchscreen", "abs_mouse", "stelladaptor")
         );
         OPTIONS.put(
                 "fceumm_zapper_tolerance",
-                EmOption.create("fceumm_zapper_tolerance", "4", "Zapper Tolerance")
+                EmOption.create("fceumm_zapper_tolerance", "4", "Zapper tolerance")
         );
         OPTIONS.put(
                 "fceumm_mouse_sensitivity",
-                EmOption.create("fceumm_mouse_sensitivity", "100", "Mouse Sensitivity")
+                EmOption.create("fceumm_mouse_sensitivity", "100", "Mouse sensitivity")
         );
         OPTIONS.put(
                 "fceumm_show_crosshair",
-                EmOption.create("fceumm_show_crosshair", "disabled", "Show Crosshair", "disabled", "enabled")
+                EmOption.create("fceumm_show_crosshair", "disabled", "Show crosshair", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_zapper_trigger",
-                EmOption.create("fceumm_zapper_trigger", "disabled", "Zapper Trigger", "disabled", "enabled")
+                EmOption.create("fceumm_zapper_trigger", "disabled", "Zapper trigger", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_zapper_sensor",
-                EmOption.create("fceumm_zapper_sensor", "disabled", "Zapper Sensor", "disabled", "enabled")
+                EmOption.create("fceumm_zapper_sensor", "disabled", "Zapper sensor", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_overscan",
-                EmOption.create("fceumm_overscan", "disabled", "Crop Overscan", "disabled", "enabled")
+                EmOption.create("fceumm_overscan", "disabled", "Crop overscan", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_overscan_h_left",
-                EmOption.create("fceumm_overscan_h_left", "8", "Crop Overscan HL")
+                EmOption.create("fceumm_overscan_h_left", "8", "Crop overscan HL")
         );
         OPTIONS.put(
                 "fceumm_overscan_h_right",
-                EmOption.create("fceumm_overscan_h_right", "8", "Crop Overscan HR")
+                EmOption.create("fceumm_overscan_h_right", "8", "Crop overscan HR")
                 );
         OPTIONS.put(
                 "fceumm_overscan_v_top",
-                EmOption.create("fceumm_overscan_v_top", "8", "Crop Overscan VT")
+                EmOption.create("fceumm_overscan_v_top", "8", "Crop overscan VT")
                 );
         OPTIONS.put(
                 "fceumm_overscan_v_bottom",
-                EmOption.create("fceumm_overscan_v_bottom", "8", "Crop Overscan VB")
+                EmOption.create("fceumm_overscan_v_bottom", "8", "Crop overscan VB")
         );
         OPTIONS.put(
                 "fceumm_aspect",
@@ -379,7 +377,7 @@ public class Fceumm implements Emulator {
         );
         OPTIONS.put(
                 "fceumm_sndquality",
-                EmOption.create("fceumm_sndquality", "High", "Sound Quality", "Low", "High", "Very High")
+                EmOption.create("fceumm_sndquality", "High", "Sound quality", "Low", "High", "Very High")
         );
         OPTIONS.put(
                 "fceumm_sndlowpass",
@@ -395,7 +393,7 @@ public class Fceumm implements Emulator {
         );
         OPTIONS.put(
                 "fceumm_swapduty",
-                EmOption.create("fceumm_swapduty", "disabled", "Swap Duty Cycles", "disabled", "enabled")
+                EmOption.create("fceumm_swapduty", "disabled", "Swap duty cycles", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_apu_1",
@@ -423,11 +421,11 @@ public class Fceumm implements Emulator {
         );
         OPTIONS.put(
                 "fceumm_show_adv_system_options",
-                EmOption.create("fceumm_show_adv_system_options", "disabled", "Show Advanced System Options", "disabled", "enabled")
+                EmOption.create("fceumm_show_adv_system_options", "disabled", "Show advanced system options", "disabled", "enabled")
         );
         OPTIONS.put(
                 "fceumm_show_adv_sound_options",
-                EmOption.create("fceumm_show_adv_sound_options", "disabled", "Show Advanced Sound Options", "enabled")
+                EmOption.create("fceumm_show_adv_sound_options", "disabled", "Show advanced sound options", "enabled")
         );
     }
 

@@ -10,7 +10,6 @@
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurfaceContainerHigh"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:paddingHorizontal="15dp"
         android:paddingVertical="8dp"

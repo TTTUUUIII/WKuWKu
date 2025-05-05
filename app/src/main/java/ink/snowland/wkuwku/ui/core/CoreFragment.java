@@ -27,10 +27,12 @@ import ink.snowland.wkuwku.databinding.FragmentCoreBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreEnumOptionBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreOptionBinding;
 import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 
 public class CoreFragment extends BaseFragment {
 
+    private static final String SELECTED_CORE = "app_selected_core";
     private FragmentCoreBinding binding;
     private Emulator mEmulator;
     private final ViewAdapter mAdapter = new ViewAdapter();
@@ -53,10 +55,12 @@ public class CoreFragment extends BaseFragment {
                 .toArray(String[]::new);
         binding.coreSelector.setAdapter(new NoFilterArrayAdapter<String>(requireActivity(), R.layout.layout_simple_text, tags));
         binding.coreSelector.addTextChangedListener(new CoreChangedCallback());
+        binding.coreSelector.setText(SettingsManager.getString(SELECTED_CORE, tags[0]));
     }
 
     private void onReloadOptions() {
         assert mEmulator != null;
+        SettingsManager.putString(SELECTED_CORE, mEmulator.getTag());
         mAdapter.submitList(new ArrayList<>(mEmulator.getOptions()));
     }
 

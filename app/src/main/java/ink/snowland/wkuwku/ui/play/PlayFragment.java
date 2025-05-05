@@ -155,41 +155,42 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
                 mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_A, EmInputDevice.KEY_UP);
                 mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_B, EmInputDevice.KEY_UP);
             }
-            return true;
-        } else if (viewId == R.id.button_select) {
-            id = RETRO_DEVICE_ID_JOYPAD_SELECT;
-        } else if (viewId == R.id.button_start) {
-            id = RETRO_DEVICE_ID_JOYPAD_START;
-        } else if (viewId == R.id.button_a) {
-            id = RETRO_DEVICE_ID_JOYPAD_A;
-        } else if (viewId == R.id.button_b) {
-            id = RETRO_DEVICE_ID_JOYPAD_B;
-        } else if (viewId == R.id.button_x) {
-            id = RETRO_DEVICE_ID_JOYPAD_X;
-        } else if (viewId == R.id.button_y) {
-            id = RETRO_DEVICE_ID_JOYPAD_Y;
-        } else if (viewId == R.id.button_l) {
-            id = RETRO_DEVICE_ID_JOYPAD_L;
-        } else if (viewId == R.id.button_l2) {
-            id = RETRO_DEVICE_ID_JOYPAD_L2;
-        } else if (viewId == R.id.button_r) {
-            id = RETRO_DEVICE_ID_JOYPAD_R;
-        } else if (viewId == R.id.button_r2) {
-            id = RETRO_DEVICE_ID_JOYPAD_R2;
         } else {
-            return false;
+            if (viewId == R.id.button_select) {
+                id = RETRO_DEVICE_ID_JOYPAD_SELECT;
+            } else if (viewId == R.id.button_start) {
+                id = RETRO_DEVICE_ID_JOYPAD_START;
+            } else if (viewId == R.id.button_a) {
+                id = RETRO_DEVICE_ID_JOYPAD_A;
+            } else if (viewId == R.id.button_b) {
+                id = RETRO_DEVICE_ID_JOYPAD_B;
+            } else if (viewId == R.id.button_x) {
+                id = RETRO_DEVICE_ID_JOYPAD_X;
+            } else if (viewId == R.id.button_y) {
+                id = RETRO_DEVICE_ID_JOYPAD_Y;
+            } else if (viewId == R.id.button_l) {
+                id = RETRO_DEVICE_ID_JOYPAD_L;
+            } else if (viewId == R.id.button_l2) {
+                id = RETRO_DEVICE_ID_JOYPAD_L2;
+            } else if (viewId == R.id.button_r) {
+                id = RETRO_DEVICE_ID_JOYPAD_R;
+            } else if (viewId == R.id.button_r2) {
+                id = RETRO_DEVICE_ID_JOYPAD_R2;
+            } else {
+                return false;
+            }
+            int state;
+            int action = event.getAction();
+            if (action == MotionEvent.ACTION_DOWN) {
+                state = EmInputDevice.KEY_DOWN;
+            } else if (action == MotionEvent.ACTION_UP) {
+                state = EmInputDevice.KEY_UP;
+            } else {
+                return false;
+            }
+            mInputDevice.setState(id, state);
         }
-        int state;
-        int action = event.getAction();
-        if (action == MotionEvent.ACTION_DOWN) {
-            state = EmInputDevice.KEY_DOWN;
-        } else if (action == MotionEvent.ACTION_UP) {
-            state = EmInputDevice.KEY_UP;
-        } else {
-            return false;
-        }
-        mInputDevice.setState(id, state);
-        if (mVibrator != null) {
+        if (mVibrator != null && event.getAction() == MotionEvent.ACTION_DOWN) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
             } else {

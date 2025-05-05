@@ -24,6 +24,12 @@ public final class SettingsManager {
         return sSettings.getString(key, defaultValue);
     }
 
+    public static void putString(@NonNull String key, @NonNull String value) {
+        sSettings.edit()
+                .putString(key, value)
+                .apply();
+    }
+
     public static boolean getBoolean(@NonNull String key) {
         return getBoolean(key, false);
     }

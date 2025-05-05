@@ -26,7 +26,7 @@ public class EmOption implements Cloneable {
     }
 
     public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, @Nullable String ...allowVals) {
-        return new EmOption(key, val, title, true, allowVals);
+        return new EmOption(key, val, title, false, allowVals);
     }
 
     @NonNull
