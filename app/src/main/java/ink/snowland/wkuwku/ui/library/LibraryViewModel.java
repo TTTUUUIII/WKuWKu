@@ -6,8 +6,13 @@ import android.os.SystemClock;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -15,12 +20,15 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.RxUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LibraryViewModel extends BaseViewModel {
+    private final MutableLiveData<Boolean> mPending = new MutableLiveData<>(false);
+    private final MutableLiveData<String> mPendingMessage = new MutableLiveData<>("");
     public LibraryViewModel(@NonNull Application application) {
         super(application);
     }
@@ -30,6 +38,10 @@ public class LibraryViewModel extends BaseViewModel {
     }
 
     public void addGame(@NonNull Game game, @NonNull Uri uri) {
+        if (uri.getScheme() != null && uri.getScheme().equals("https")) {
+            addGameFormNetwork(game, uri);
+            return;
+        }
         File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
         if (file.exists()) {
             Disposable disposable = AppDatabase.db.gameInfoDao().findByPathAndState(file.getAbsolutePath(), Game.STATE_DELETED)
@@ -54,6 +66,36 @@ public class LibraryViewModel extends BaseViewModel {
         }
     }
 
+    private void addGameFormNetwork(@NonNull Game game, @NonNull Uri uri) {
+        mPending.postValue(true);
+        mPendingMessage.postValue(getString(R.string.downloading));
+        Disposable disposable = RxUtils.newCompletable(() -> {
+                    try {
+                        URL url = new URL(uri.toString());
+                        try (InputStream from = url.openStream()){
+                            FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(this::showErrorToast)
+                .doFinally(() -> {
+                    mPending.postValue(false);
+                    mPendingMessage.postValue("");
+                })
+                .subscribe(() -> {
+                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
+                    assert file.exists() && file.isFile() && file.canRead();
+                    game.filepath = file.getAbsolutePath();
+                    game.addedTime = System.currentTimeMillis();
+                    game.lastModifiedTime = game.addedTime;
+                    game.state = Game.STATE_VALID;
+                    addGameToDatabase(game);
+                });
+    }
+
     private void addNewGame(@NonNull Game game, Uri uri) {
         if (!FileManager.copy(FileManager.ROM_DIRECTORY, game.filepath, uri)) {
             Toast.makeText(getApplication(), R.string.copy_file_failed, Toast.LENGTH_SHORT).show();
@@ -65,18 +107,9 @@ public class LibraryViewModel extends BaseViewModel {
         game.addedTime = System.currentTimeMillis();
         game.lastModifiedTime = game.addedTime;
         game.state = Game.STATE_VALID;
-        Disposable disposable = AppDatabase.db.gameInfoDao()
-                .insert(game)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(error -> {
-                    FileManager.delete(file);
-                    showErrorToast(error);
-                })
-                .subscribe(() -> {
-                    Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
-                });
+        addGameToDatabase(game);
     }
+
     public void updateGame(@NonNull Game game) {
         Disposable disposable = AppDatabase.db.gameInfoDao().update(game)
                 .subscribeOn(Schedulers.io())
@@ -100,6 +133,28 @@ public class LibraryViewModel extends BaseViewModel {
                 })
                 .subscribe(() -> {
                     FileManager.delete(game.filepath);
+                    Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    public LiveData<Boolean> getPending() {
+        return mPending;
+    }
+
+    public LiveData<String> getPendingMessage() {
+        return mPendingMessage;
+    }
+
+    private void addGameToDatabase(@NonNull Game game) {
+        Disposable disposable = AppDatabase.db.gameInfoDao()
+                .insert(game)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(error -> {
+                    FileManager.delete(new File(game.filepath));
+                    showErrorToast(error);
+                })
+                .subscribe(() -> {
                     Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
                 });
     }

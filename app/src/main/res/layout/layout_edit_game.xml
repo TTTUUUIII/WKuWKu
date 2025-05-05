@@ -91,13 +91,24 @@
             android:layout_below="@id/select_file_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
-        <TextView
-            android:id="@+id/error_text_view"
-            android:textStyle="bold"
-            android:textColor="@color/error"
+        <LinearLayout
             android:layout_below="@id/remark_edit_text"
-            android:layout_marginTop="15dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/error_text_view"
+                android:textStyle="bold"
+                android:textColor="@color/error"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content" />
+            <Button
+                android:id="@+id/button_qr_code"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/via_qr_code" />
+        </LinearLayout>
     </RelativeLayout>
 </layout>

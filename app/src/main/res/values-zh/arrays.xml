@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="play_fragment_exit_items">
-        <item>模拟器重置</item>
+        <item>重置模拟器</item>
         <item>退出</item>
     </string-array>
 

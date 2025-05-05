@@ -3,6 +3,7 @@
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DynamicColors.DayNight">
         <!-- Customize your light theme here. -->
          <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryContainer">@color/primary_700</item>
         <item name="colorSurface">@color/primary_500</item>
         <item name="colorContainer">@color/primary_500</item>
         <item name="colorSurfaceContainer">@color/primary_300</item>

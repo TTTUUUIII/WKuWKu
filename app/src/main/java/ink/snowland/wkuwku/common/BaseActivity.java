@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.common;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -14,15 +15,31 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import java.util.Objects;
+
+import ink.snowland.wkuwku.activity.QRScannerActivity;
+
 public abstract class BaseActivity extends AppCompatActivity {
+    private ActivityResultLauncher<Intent> mQRCodeScannerLauncher;
     private ActivityResultLauncher<String[]> mOpenDocumentLauncher;
     private OnResultCallback<Uri> mOpenDocumentCallback;
+    private OnResultCallback<String> mOnQRScanResultCallback;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mOpenDocumentLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
             if (mOpenDocumentCallback != null) {
                 mOpenDocumentCallback.onResult(uri);
+                mOpenDocumentCallback = null;
+            }
+        });
+        mQRCodeScannerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (mOnQRScanResultCallback != null) {
+                if (result.getResultCode() != RESULT_OK) {
+                    mOnQRScanResultCallback.onResult(null);
+                } else {
+                    mOnQRScanResultCallback.onResult(Objects.requireNonNull(result.getData()).getStringExtra(QRScannerActivity.EXTRA_QR_RESULT));
+                }
             }
         });
     }
@@ -64,6 +81,12 @@ public abstract class BaseActivity extends AppCompatActivity {
                 actionBar.setSubtitle("");
             }
         }
+    }
+
+    public void scanQrCode(OnResultCallback<String> callback) {
+        mOnQRScanResultCallback = callback;
+        Intent intent = new Intent(getApplicationContext(), QRScannerActivity.class);
+        mQRCodeScannerLauncher.launch(intent);
     }
 
     public void openDocument(@NonNull String type, @NonNull OnResultCallback<Uri> callback) {

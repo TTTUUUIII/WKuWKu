@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">WKuWKu</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="start" translatable="false">START</string>
     <string name="select" translatable="false">SELECT</string>
     <string name="a" translatable="false">A</string>
@@ -13,7 +12,7 @@
     <string name="r" translatable="false">R</string>
     <string name="load_game_failed">ERROR: failed to load game!</string>
     <string name="add_game_rom">Add a new game</string>
-    <string name="add_game">Add Game</string>
+    <string name="add_game">Add game</string>
     <string name="history">History</string>
     <string name="game_library">Games</string>
     <string name="core">Core</string>
@@ -42,23 +41,23 @@
     <string name="detail">Detail</string>
     <string name="emergency">Emergency</string>
     <string name="delete_confirm">Are you sure you want to delete \"%s\"? \n\nps: may not be possible to restore!</string>
-    <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
-    <string name="sync_header">Sync</string>
-
-    <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
-
-    <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
-    <string name="videos">Videos</string>
+    <string name="video_options">Video Options</string>
+    <string name="input_options">Input Options</string>
     <string name="video_ratio">Video Ratio</string>
     <string name="all_games">All games</string>
     <string name="recent_played">Recent played</string>
     <string name="app_settings">App settings</string>
+    <string name="virbration_feedback">vibration feedback</string>
+    <string name="via_qr_code">Via QR code</string>
+    <string name="invalid_url">Invalid url</string>
+    <string name="downloading">Downloading</string>
+    <string name="emulator">Emulator</string>
+    <string name="restore_last_state">Restore last state</string>
+    <string name="filepath">File path</string>
+    <string name="modified">Modified</string>
+    <string name="added_date">Added date</string>
+    <string name="md5sum">MD5Sum</string>
+
+    <string name="game_detail">Game detail</string>
+    <string name="close">Close</string>
 </resources>

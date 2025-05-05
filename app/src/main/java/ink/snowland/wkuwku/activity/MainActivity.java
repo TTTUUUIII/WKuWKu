@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku;
+package ink.snowland.wkuwku.activity;
 
 import android.os.Bundle;
 import android.view.Menu;
@@ -9,6 +9,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
 
+import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 

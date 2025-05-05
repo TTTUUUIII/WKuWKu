@@ -21,4 +21,8 @@ public class BaseViewModel extends AndroidViewModel {
             Toast.makeText(getApplication(), R.string.operation_failed, Toast.LENGTH_SHORT).show();
         }
     }
+
+    protected String getString(@StringRes int resId) {
+        return getApplication().getString(resId);
+    }
 }

@@ -12,7 +12,7 @@ import androidx.room.PrimaryKey;
 import java.util.Objects;
 
 @Entity(tableName = "tb_game", indices = @Index(value = "filepath", unique = true))
-public class Game implements Parcelable {
+public class Game implements Parcelable, Cloneable {
     public static final int STATE_VALID = 1;
     public static final int STATE_BROKEN = 2;
     public static final int STATE_DELETED = 3;
@@ -96,5 +96,27 @@ public class Game implements Parcelable {
         dest.writeLong(lastModifiedTime);
         dest.writeLong(lastPlayedTime);
         dest.writeString(remark);
+    }
+
+    @Override
+    public String toString() {
+        return "Game{" +
+                "title='" + title + '\'' +
+                ", filepath='" + filepath + '\'' +
+                ", system='" + system + '\'' +
+                ", state=" + state +
+                ", region='" + region + '\'' +
+                ", remark='" + remark + '\'' +
+                '}';
+    }
+
+    @NonNull
+    @Override
+    public Game clone() {
+        try {
+            return (Game) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

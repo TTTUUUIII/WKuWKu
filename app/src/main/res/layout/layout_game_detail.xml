@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
+        <import type="ink.snowland.wkuwku.util.TimeUtils" />
+        <import type="ink.snowland.wkuwku.util.FileManager" />
+    </data>
+    <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:padding="15dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
+                android:text="@string/title" />
+            <TextView
+                android:layout_weight="1"
+                android:text="@{game.title}" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
+                android:text="@string/filepath" />
+            <TextView
+                android:layout_weight="1"
+                android:text="@{game.filepath}" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
+                android:text="@string/last_played_t" />
+            <TextView
+                android:id="@+id/last_played_time"
+                android:layout_weight="1"
+                android:text="@string/never_played" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
+                android:text="@string/modified" />
+            <TextView
+                android:layout_weight="1"
+                android:text="@{TimeUtils.toString(game.lastModifiedTime)}" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
+                android:text="@string/added_date" />
+            <TextView
+                android:layout_weight="1"
+                android:text="@{TimeUtils.toString(game.addedTime)}" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
+                android:text="@string/md5sum" />
+            <TextView
+                android:layout_weight="1"
+                android:text="@{FileManager.calculateMD5Sum(game.filepath)}" />
+        </TableRow>
+    </TableLayout>
+</layout>

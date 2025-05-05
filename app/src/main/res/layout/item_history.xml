@@ -26,7 +26,7 @@
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
                 android:text="@{game.title}"
-                android:textSize="18sp"
+                android:textSize="15sp"
                 tools:text="Super Mario Bros." />
             <TextView
                 android:id="@+id/last_played_time"

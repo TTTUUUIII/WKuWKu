@@ -25,6 +25,8 @@ import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.play.PlayFragment;
 import ink.snowland.wkuwku.util.TimeUtils;
+import ink.snowland.wkuwku.widget.GameDetailDialog;
+import ink.snowland.wkuwku.widget.GameEditDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -36,6 +38,7 @@ public class HistoryFragment extends BaseFragment {
     private HistoryViewModel mViewModel;
     private Disposable mDisposable;
     private final ViewAdapter mAdapter = new ViewAdapter();
+    private GameDetailDialog mDetailDialog;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,7 @@ public class HistoryFragment extends BaseFragment {
         mDisposable = mViewModel.getHistory().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(mAdapter::submitList);
+        mDetailDialog = new GameDetailDialog(mParentActivity);
     }
 
     @Override
@@ -74,13 +78,24 @@ public class HistoryFragment extends BaseFragment {
         navController.navigate(R.id.play_fragment, args);
     }
 
-    private void showMorePopupMenu(@NonNull View view) {
+    private void showMorePopupMenu(@NonNull View view, @NonNull Game game) {
         PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             popupMenu.setForceShowIcon(true);
         }
         popupMenu.getMenuInflater().inflate(R.menu.more_history_menu, popupMenu.getMenu());
+        popupMenu.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_detail) {
+                showDetailDialog(game);
+            }
+            return true;
+        });
         popupMenu.show();
+    }
+
+    private void showDetailDialog(@NonNull Game game) {
+        mDetailDialog.show(game);
     }
 
     private class ViewHolder extends GameViewAdapter.GameViewHolder {
@@ -94,7 +109,9 @@ public class HistoryFragment extends BaseFragment {
         @SuppressLint("SetTextI18n")
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
-            itemBinding.buttonMore.setOnClickListener(HistoryFragment.this::showMorePopupMenu);
+            itemBinding.buttonMore.setOnClickListener(v -> {
+                showMorePopupMenu(v, game);
+            });
             if (game.lastPlayedTime == 0) {
                 itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + getString(R.string.never_played));
             } else {

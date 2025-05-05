@@ -6,11 +6,16 @@ import android.os.Build;
 import android.os.FileUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
 
 public class FileManager {
     public static final String ROM_DIRECTORY = "rom";
@@ -49,16 +54,50 @@ public class FileManager {
         return false;
     }
 
+    public static void copy(InputStream from, String type, String filename) throws IOException {
+        try (FileOutputStream to = new FileOutputStream(new File(sApplicationContext.getExternalFilesDir(type), filename))){
+            copy(from, to);
+        }
+    }
     public static void copy(InputStream from, OutputStream to) throws IOException {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             FileUtils.copy(from, to);
         } else {
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[2048];
             int readNumInBytes;
             while ((readNumInBytes = from.read(buffer)) != -1) {
                 to.write(buffer, 0, readNumInBytes);
             }
         }
+    }
+
+    public static String calculateMD5Sum(@NonNull String path) {
+        return calculateMD5Sum(new File(path));
+    }
+    public static String calculateMD5Sum(@NonNull File file) {
+        if (!file.exists() || !file.isFile() || !file.canRead()) return "";
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            FileInputStream fis = new FileInputStream(file);
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                md.update(buffer, 0, bytesRead);
+            }
+
+            byte[] digest = md.digest();
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : digest) {
+                hexString.append(String.format("%02x", b));
+            }
+
+            fis.close();
+            return hexString.toString();
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+        }
+        return "";
     }
 
     public static void initialize(Context context) {

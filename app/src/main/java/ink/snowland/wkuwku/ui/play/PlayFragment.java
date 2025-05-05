@@ -2,21 +2,24 @@ package ink.snowland.wkuwku.ui.play;
 
 import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,8 +32,8 @@ import java.io.File;
 import java.util.Objects;
 
 import ink.snowland.wkuwku.EmulatorManager;
-import ink.snowland.wkuwku.MainActivity;
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentPlayBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.AudioDevice;
@@ -38,29 +41,30 @@ import ink.snowland.wkuwku.device.JoyPad;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.interfaces.EmInputDevice;
 import ink.snowland.wkuwku.device.GLVideoDevice;
+import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class PlayFragment extends Fragment implements View.OnTouchListener {
+public class PlayFragment extends BaseFragment implements View.OnTouchListener {
 
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
+    private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     private FragmentPlayBinding binding;
     private Emulator mEmulator;
-    private MainActivity mParent;
     private GLVideoDevice mVideoDevice;
     private EmInputDevice mInputDevice;
     private AudioDevice mAudioDevice;
     private PlayViewModel mViewModel;
     private Game mGame;
+    private Vibrator mVibrator;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mParent = (MainActivity) requireActivity();
-        mParent.setStatusBarVisibility(false);
-        mParent.setActionBarVisibility(false);
-        mParent.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        mParentActivity.setStatusBarVisibility(false);
+        mParentActivity.setActionBarVisibility(false);
+        mParentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mViewModel = new ViewModelProvider(this).get(PlayViewModel.class);
         mAudioDevice = new AudioDevice();
         mVideoDevice = new GLVideoDevice(requireContext()) {
@@ -74,6 +78,12 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
         Bundle arguments = getArguments();
         if (arguments != null) {
             mGame = arguments.getParcelable(ARG_GAME);
+        }
+        if (SettingsManager.getBoolean(VIBRATION_FEEDBACK, true)) {
+            mVibrator = (Vibrator) mParentActivity.getSystemService(Context.VIBRATOR_SERVICE);
+            if (!mVibrator.hasVibrator()) {
+                mVibrator = null;
+            }
         }
     }
 
@@ -93,7 +103,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
         binding.glSurfaceView.setEGLContextClientVersion(3);
         binding.glSurfaceView.setRenderer(mVideoDevice.getRenderer());
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-        mParent.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
+        mParentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
     }
 
@@ -123,9 +133,9 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mParent.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_BEHIND);
-        mParent.setStatusBarVisibility(true);
-        mParent.setActionBarVisibility(true);
+        mParentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_BEHIND);
+        mParentActivity.setStatusBarVisibility(true);
+        mParentActivity.setActionBarVisibility(true);
         if (mEmulator != null) {
             mEmulator.suspend();
         }
@@ -169,6 +179,13 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
             return false;
         }
         mInputDevice.setState(id, state);
+        if (mVibrator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
+            } else {
+                mVibrator.vibrate(20);
+            }
+        }
         return false;
     }
 
@@ -180,7 +197,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
                 mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
                 mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
                 mEmulator.attachDevice(INPUT_DEVICE, mInputDevice);
-                mEmulator.setSystemDirectory(Objects.requireNonNull(mParent.getExternalCacheDir()));
+                mEmulator.setSystemDirectory(Objects.requireNonNull(mParentActivity.getExternalCacheDir()));
                 if (mEmulator.run(new File(mGame.filepath))) {
                     bindEvents();
                     success = true;
@@ -195,7 +212,7 @@ public class PlayFragment extends Fragment implements View.OnTouchListener {
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe();
             }
-            Toast.makeText(mParent.getApplicationContext(), R.string.load_game_failed, Toast.LENGTH_SHORT).show();
+            Toast.makeText(mParentActivity.getApplicationContext(), R.string.load_game_failed, Toast.LENGTH_SHORT).show();
         }
     }
 

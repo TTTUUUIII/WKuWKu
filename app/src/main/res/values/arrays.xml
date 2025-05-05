@@ -10,7 +10,7 @@
         <item>E</item>
     </string-array>
     <string-array name="play_fragment_exit_items">
-        <item>Emulator Reset</item>
+        <item>Reset emulator</item>
         <item>Exit</item>
     </string-array>
     <string-array name="video_ratio_entries">

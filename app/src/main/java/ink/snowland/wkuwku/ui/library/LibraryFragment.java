@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.ui.library;
 
+import android.annotation.SuppressLint;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -12,6 +13,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +23,14 @@ import android.widget.PopupMenu;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentLibraryBinding;
 import ink.snowland.wkuwku.databinding.ItemGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.play.PlayFragment;
+import ink.snowland.wkuwku.util.TimeUtils;
+import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -39,7 +42,8 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
     private LibraryViewModel mViewModel;
     private final ViewAdapter mAdapter = new ViewAdapter();
     private Disposable mDisposable;
-    private GameEditDialog mAddGameDialog;
+    private GameEditDialog mEditGameDialog;
+    private GameDetailDialog mGameDetailDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -48,7 +52,8 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         mDisposable = mViewModel.getGameInfos().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(mAdapter::submitList);
-        mAddGameDialog = new GameEditDialog(mParentActivity);
+        mEditGameDialog = new GameEditDialog(mParentActivity);
+        mGameDetailDialog = new GameDetailDialog(mParentActivity);
     }
 
     @Override
@@ -60,6 +65,8 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
         binding.fab.setOnClickListener(this);
+        binding.setViewModel(mViewModel);
+        binding.setLifecycleOwner(this);
         mParentActivity.setActionbarSubTitle(R.string.all_games);
         return binding.getRoot();
     }
@@ -88,11 +95,27 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
             int itemId = item.getItemId();
             if (itemId == R.id.action_delete) {
                 showDeleteDialog(game);
+            } else if (itemId == R.id.action_edit) {
+                showEditDialog(game);
+            } else if (itemId == R.id.action_detail) {
+                showDetailDialog(game);
             }
             return true;
         });
         popupMenu.show();
     }
+
+    private void showDetailDialog(@NonNull Game game) {
+        mGameDetailDialog.show(game);
+    }
+
+    private void showEditDialog(@NonNull Game base) {
+        mEditGameDialog.show((game, uri) -> {
+            game.lastModifiedTime = System.currentTimeMillis();
+            mViewModel.updateGame(game);
+        }, base);
+    }
+
     private void showDeleteDialog(@NonNull Game game) {
         if (game.state == Game.STATE_BROKEN) {
             mViewModel.deleteGame(game);
@@ -111,7 +134,7 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         }
     }
     private void showAddGameDialog() {
-        mAddGameDialog.show((game, uri) -> {
+        mEditGameDialog.show((game, uri) -> {
             mViewModel.addGame(game, uri);
         });
     }
@@ -134,8 +157,14 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
             this.itemBinding = itemBinding;
         }
 
+        @SuppressLint("SetTextI18n")
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
+            if (game.lastPlayedTime == 0) {
+                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + getString(R.string.never_played));
+            } else {
+                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
+            }
             itemBinding.buttonMore.setOnClickListener(v -> {
                 showMorePopupMenu(game, v);
             });

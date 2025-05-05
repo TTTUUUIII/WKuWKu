@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
-        app:title="@string/videos">
+        app:title="@string/video_options">
 
 <!--        <EditTextPreference-->
 <!--            app:key="signature"-->
@@ -18,19 +18,22 @@
 
     </PreferenceCategory>
 
-<!--    <PreferenceCategory app:title="@string/sync_header">-->
+    <PreferenceCategory app:title="@string/input_options">
 
-<!--        <SwitchPreferenceCompat-->
-<!--            app:key="sync"-->
-<!--            app:title="@string/sync_title" />-->
+        <SwitchPreferenceCompat
+            app:defaultValue="true"
+            app:key="app_input_vibration_feedback"
+            app:title="@string/virbration_feedback" />
 
-<!--        <SwitchPreferenceCompat-->
-<!--            app:dependency="sync"-->
-<!--            app:key="attachment"-->
-<!--            app:summaryOff="@string/attachment_summary_off"-->
-<!--            app:summaryOn="@string/attachment_summary_on"-->
-<!--            app:title="@string/attachment_title" />-->
+    </PreferenceCategory>
 
-<!--    </PreferenceCategory>-->
+    <PreferenceCategory app:title="@string/emulator">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:enabled="false"
+            app:key="app_emulator_restore_last_state"
+            app:title="@string/restore_last_state" />
+    </PreferenceCategory>
 
 </PreferenceScreen>
