@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
@@ -68,7 +70,10 @@ public class LibraryViewModel extends BaseViewModel {
         Disposable disposable = RxUtils.newCompletable(() -> {
                     try {
                         URL url = new URL(uri.toString());
-                        try (InputStream from = url.openStream()){
+                        URLConnection conn = url.openConnection();
+                        conn.setConnectTimeout(1000 * 8);
+                        conn.setReadTimeout(1000 * 10);
+                        try (InputStream from = conn.getInputStream()){
                             FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
                         }
                     } catch (IOException e) {

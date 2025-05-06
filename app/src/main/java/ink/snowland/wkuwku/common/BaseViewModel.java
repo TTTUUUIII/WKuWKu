@@ -9,6 +9,9 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeoutException;
+
 import ink.snowland.wkuwku.R;
 
 public class BaseViewModel extends AndroidViewModel {
@@ -20,6 +23,11 @@ public class BaseViewModel extends AndroidViewModel {
     }
 
     protected void showErrorToast(@NonNull Throwable error) {
+        if (error.getCause() instanceof SocketTimeoutException) {
+            Toast.makeText(getApplication(), R.string.network_timeout, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (error.getMessage() != null) {
             Toast.makeText(getApplication(), getApplication().getString(R.string.fmt_operation_failed, error.getMessage()), Toast.LENGTH_SHORT).show();
         } else {

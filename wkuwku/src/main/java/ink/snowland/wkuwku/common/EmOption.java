@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class EmOption implements Cloneable {
+public class EmOption implements Cloneable , Comparable<EmOption>{
     public final String key;
     public String val;
     public final String title;
@@ -21,13 +21,54 @@ public class EmOption implements Cloneable {
         this.supported = supported;
     }
 
-    public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, boolean supported, @Nullable String ...allowVals) {
-        return new EmOption(key, val, title, supported, allowVals);
+    @Override
+    public int compareTo(EmOption o) {
+        return key.compareTo(o.key);
     }
 
-    public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, @Nullable String ...allowVals) {
-        return new EmOption(key, val, title, false, allowVals);
+    public static class Builder {
+        private final String key;
+        private final String val;
+        private String title;
+        private String[] allowVals = null;
+        private boolean supported = false;
+
+        public Builder(@NonNull String key, @NonNull String val) {
+            this.key = key;
+            this.val = val;
+        }
+
+        public Builder setTitle(@NonNull String title) {
+            this.title = title;
+            return this;
+        }
+
+        public Builder setAllowVals(@Nullable String ...allowVals) {
+            this.allowVals = allowVals;
+            return this;
+        }
+
+        public Builder setSupported(boolean supported) {
+            this.supported = supported;
+            return this;
+        }
+
+        public EmOption build() {
+            return new EmOption(key, val, title, supported, allowVals);
+        }
     }
+
+    public static Builder builder(@NonNull String key, @NonNull String val) {
+        return new Builder(key, val);
+    }
+
+//    public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, boolean supported, @Nullable String ...allowVals) {
+//        return new EmOption(key, val, title, supported, allowVals);
+//    }
+//
+//    public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, @Nullable String ...allowVals) {
+//        return new EmOption(key, val, title, false, allowVals);
+//    }
 
     @NonNull
     @Override

@@ -351,3 +351,22 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) {
     env->DeleteGlobalRef(variable_entry_object);
     ctx.jvm = nullptr;
 }
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeGetSystemAvInfo(JNIEnv *env, jclass clazz) {
+    struct retro_system_av_info av_info = {0};
+    retro_get_system_av_info(&av_info);
+    jclass _clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
+    jmethodID constructor = env->GetMethodID(_clazz, "<init>", "(DD)V");
+    jobject o0 = env->NewObject(_clazz, constructor, av_info.timing.fps,
+                                av_info.timing.sample_rate);
+    _clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
+    constructor = env->GetMethodID(_clazz, "<init>", "(IIIIF)V");
+    jobject o1 = env->NewObject(_clazz, constructor, (jint) av_info.geometry.base_width,
+                                (jint) av_info.geometry.base_height, (jint) av_info.geometry.max_width,
+                                (jint) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
+    _clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
+    constructor = env->GetMethodID(_clazz, "<init>", "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
+    return env->NewObject(_clazz, constructor, o1, o0);
+}
+    

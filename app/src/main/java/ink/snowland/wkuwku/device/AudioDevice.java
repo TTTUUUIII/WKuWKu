@@ -34,6 +34,7 @@ public class AudioDevice implements EmAudioDevice {
                         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                         .setSampleRate(sampleRate)
                         .build())
+                .setTransferMode(AudioTrack.MODE_STREAM)
                 .setBufferSizeInBytes(minBufferSize)
                 .build();
     }

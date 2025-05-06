@@ -29,12 +29,14 @@ import android.widget.Toast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.Objects;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
+import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.databinding.FragmentPlayBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.AudioDevice;
@@ -205,6 +207,7 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
         if (mGame != null && mGame.state == Game.STATE_VALID) {
             mEmulator = getEmulatorForGame(mGame);
             if (mEmulator != null) {
+                applyOptions();
                 mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
                 mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
                 mEmulator.attachDevice(INPUT_DEVICE, mInputDevice);
@@ -224,6 +227,18 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
                         .subscribe();
             }
             Toast.makeText(mParentActivity.getApplicationContext(), R.string.load_game_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void applyOptions() {
+        assert mEmulator != null;
+        Collection<EmOption> options = mEmulator.getOptions();
+        for (EmOption option: options) {
+            if (!option.supported) continue;
+            String val = SettingsManager.getString(option.key);
+            if (val.isEmpty()) continue;
+            option.val = val;
+            mEmulator.setOption(option);
         }
     }
 

@@ -31,7 +31,7 @@ add_library(nes SHARED
         ink_snowland_wkuwku_NESEmulator.cpp)
 
 add_library(fceumm SHARED IMPORTED)
-set_target_properties(fceumm PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/arm64-v8a/libfceumm.so)
+set_target_properties(fceumm PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libfceumm.so)
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.

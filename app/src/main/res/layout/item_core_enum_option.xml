@@ -35,6 +35,7 @@
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                 android:id="@+id/auto_complete"
+                android:inputType="none"
                 android:hint="@string/value"
                 android:maxLines="1"
                 android:ellipsize="end"

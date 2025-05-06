@@ -6,32 +6,18 @@
     tools:context=".ui.core.CoreFragment"
     android:padding="15dp"
     android:orientation="vertical">
-   <LinearLayout
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-       android:orientation="horizontal">
-       <com.google.android.material.textfield.TextInputLayout
-           style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-           android:layout_width="0dp"
-           android:layout_weight="1"
-           android:layout_height="wrap_content">
-           <com.google.android.material.textfield.MaterialAutoCompleteTextView
-               android:id="@+id/core_selector"
-               style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
-               android:inputType="none"
-               android:hint="@string/please_select_core"
-               android:layout_width="match_parent"
-               android:layout_height="match_parent" />
-       </com.google.android.material.textfield.TextInputLayout>
-       <Button
-           android:id="@+id/button_apply"
-           style="@style/Theme.WKuWKu.Button"
-           android:layout_marginStart="15dp"
-           android:enabled="false"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="@string/apply" />
-   </LinearLayout>
+    <com.google.android.material.textfield.TextInputLayout
+        style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/core_selector"
+            style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
+            android:inputType="none"
+            android:hint="@string/please_select_core"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </com.google.android.material.textfield.TextInputLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"

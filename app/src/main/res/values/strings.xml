@@ -67,4 +67,5 @@
     <string name="core_preference">Core preference</string>
     <string name="famicom">Famicon</string>
     <string name="apply">Apply</string>
+    <string name="network_timeout">ERROR: network timeout!</string>
 </resources>

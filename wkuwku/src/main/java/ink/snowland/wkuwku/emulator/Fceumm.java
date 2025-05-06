@@ -1,6 +1,10 @@
 package ink.snowland.wkuwku.emulator;
 
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Process;
 import android.util.Log;
+import android.view.Choreographer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -10,11 +14,12 @@ import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.common.EmThread;
+import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
@@ -31,14 +36,17 @@ public class Fceumm implements Emulator {
     private static final int STATE_PAUSED = 2;
 
     private static String sSystemDirectory = "";
+    private static final EmSystemAvInfo sSystemAvInfo;
     private volatile int mState = STATE_INVALID;
-    private static WeakReference<EmVideoDevice> mVideoDeviceRef;
-    private static WeakReference<EmAudioDevice> mAudioDeviceRef;
-    private static WeakReference<EmInputDevice> mInputDevice0Ref;
-    private static WeakReference<EmInputDevice> mInputDevice1Ref;
-    private static WeakReference<EmInputDevice> mInputDevice2Ref;
-    private static WeakReference<EmInputDevice> mInputDevice3Ref;
-    private EmThread mMainThread;
+    private static EmVideoDevice mVideoDevice;
+    private static EmAudioDevice mAudioDevice;
+    private static EmInputDevice mInputDevice0;
+    private static EmInputDevice mInputDevice1;
+    private static EmInputDevice mInputDevice2;
+    private static EmInputDevice mInputDevice3;
+    private Handler mAudioHandler;
+    private Handler mVideoHandler;
+
     @CallFromJni
     private static boolean onEnvironment(int cmd, Object data) {
         if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
@@ -51,7 +59,7 @@ public class Fceumm implements Emulator {
                 entry = (VariableEntry) data;
                 EmOption setting = OPTIONS.get(entry.key);
                 if (setting != null) {
-                    entry.value =  setting.val;
+                    entry.value = setting.val;
                 } else {
                     Log.d(TAG, entry.key);
                 }
@@ -84,41 +92,25 @@ public class Fceumm implements Emulator {
 
     @CallFromJni
     private static void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
-        if (mVideoDeviceRef == null) return;
-        EmVideoDevice device = mVideoDeviceRef.get();
-        if (device != null) {
-            device.refresh(data, width, height, pitch);
-        }
+        INSTANCE.submitVideoData(data, width, height, pitch);
     }
 
     @CallFromJni
     private static void onAudioSampleBatch(final short[] data, int frames) {
-        if (mAudioDeviceRef == null) return;
-        EmAudioDevice device = mAudioDeviceRef.get();
-        if (device != null && device.isOpen()) {
-            device.play(data, frames);
-        }
+        INSTANCE.submitAudioData(data, frames);
     }
 
     @CallFromJni
     private static int onInputState(int port, int device, int index, int id) {
         EmInputDevice it = null;
         if (port == 0) {
-            if (mInputDevice0Ref != null) {
-                it = mInputDevice0Ref.get();
-            }
+            it = mInputDevice0;
         } else if (port == 1) {
-            if (mInputDevice1Ref != null) {
-                it = mInputDevice1Ref.get();
-            }
+            it = mInputDevice1;
         } else if (port == 2) {
-            if (mInputDevice2Ref != null) {
-                it = mInputDevice2Ref.get();
-            }
+            it = mInputDevice2;
         } else if (port == 3) {
-            if (mInputDevice3Ref != null) {
-                it = mInputDevice3Ref.get();
-            }
+            it = mInputDevice3;
         }
         if (it != null && it.device == device) {
             return it.getState(id);
@@ -141,34 +133,30 @@ public class Fceumm implements Emulator {
 
     private static native void nativeRun();
 
+    private static native EmSystemAvInfo nativeGetSystemAvInfo();
+
     @Override
     public boolean run(@NonNull File rom) {
         if (!rom.exists() || !rom.canRead()) return false;
         if (mState == STATE_INVALID) {
             nativePowerOn();
-        }
-        if (mState == STATE_RUNNING || mState == STATE_PAUSED) {
-            mMainThread.interrupt();
-            mMainThread = null;
+            createMediaHandler();
+        } else if (mState == STATE_RUNNING || mState == STATE_PAUSED) {
+//            mMainFuture.cancel(false);
+//            mMainFuture = null;
+            nativeReset();
         }
         if (nativeLoad(rom.getAbsolutePath())) {
-            if (mAudioDeviceRef != null) {
-                EmAudioDevice device = mAudioDeviceRef.get();
-                if (device != null) {
-                    device.open(EmAudioDevice.PCM_16BIT, 48000, 2);
-                }
+            if (mAudioDevice != null) {
+                mAudioDevice.open(EmAudioDevice.PCM_16BIT, 48000, 2);
             }
-            mMainThread = new EmThread() {
-                @Override
-                protected void next() {
-                    if (mState == STATE_RUNNING) {
-                        nativeRun();
-                    } else if (mState == STATE_INVALID) {
-                        interrupt();
-                    }
-                }
-            };
-            mMainThread.start();
+//            mMainFuture = mMainExecutor.scheduleWithFixedDelay(() -> {
+//                if (mState == STATE_RUNNING) {
+//                    nativeRun();
+//                }
+//            }, 0, /*(int) Math.floor(1000 / sSystemAvInfo.timing.fps)*/ 16, TimeUnit.MILLISECONDS);
+
+            start();
             mState = STATE_RUNNING;
         }
         return true;
@@ -178,11 +166,8 @@ public class Fceumm implements Emulator {
     public void pause() {
         if (mState != STATE_RUNNING) return;
         mState = STATE_PAUSED;
-        if (mAudioDeviceRef != null) {
-            EmAudioDevice device = mAudioDeviceRef.get();
-            if (device != null) {
-                device.pause();
-            }
+        if (mAudioDevice != null) {
+            mAudioDevice.pause();
         }
     }
 
@@ -201,18 +186,19 @@ public class Fceumm implements Emulator {
     @Override
     public void suspend() {
         if (mState != STATE_INVALID) {
-            if (mMainThread != null) {
-                mMainThread.interrupt();
-                mMainThread = null;
-            }
+//            mMainFuture.cancel(false);
+//            mMainFuture = null;
+//            mMainExecutor.shutdown();
+//            mMainExecutor = null;
+            clearMediaHandler();
             nativePowerOff();
-            if (mAudioDeviceRef != null) {
-                EmAudioDevice device = mAudioDeviceRef.get();
-                if (device != null) {
-                    device.close();
-                }
-                mAudioDeviceRef = null;
-            }
+        }
+        if (mAudioDevice != null) {
+            mAudioDevice.close();
+            mAudioDevice = null;
+        }
+        if (mVideoDevice != null) {
+            mVideoDevice = null;
         }
         mState = STATE_INVALID;
     }
@@ -221,30 +207,22 @@ public class Fceumm implements Emulator {
     public void attachDevice(int target, @Nullable EmulatorDevice device) {
         switch (target) {
             case AUDIO_DEVICE:
-                if (device instanceof EmAudioDevice) {
-                    mAudioDeviceRef = new WeakReference<>((EmAudioDevice) device);
-                } else {
-                    mAudioDeviceRef = null;
-                }
+                mAudioDevice = (EmAudioDevice) device;
                 break;
             case VIDEO_DEVICE:
-                if (device instanceof EmVideoDevice) {
-                    mVideoDeviceRef = new WeakReference<>((EmVideoDevice) device);
-                } else {
-                    mVideoDeviceRef = null;
-                }
+                mVideoDevice = (EmVideoDevice) device;
                 break;
             case INPUT_DEVICE:
                 if (device instanceof EmInputDevice) {
                     EmInputDevice it = (EmInputDevice) device;
                     if (it.port == 1) {
-                        mInputDevice1Ref = new WeakReference<>(it);
+                        mInputDevice1 = it;
                     } else if (it.port == 2) {
-                        mInputDevice2Ref = new WeakReference<>(it);
+                        mInputDevice2 = it;
                     } else if (it.port == 3) {
-                        mInputDevice3Ref = new WeakReference<>(it);
+                        mInputDevice3 = it;
                     } else {
-                        mInputDevice0Ref = new WeakReference<>(it);
+                        mInputDevice0 = it;
                     }
                 }
                 break;
@@ -254,6 +232,7 @@ public class Fceumm implements Emulator {
 
     @Override
     public void setOption(@NonNull EmOption option) {
+        if (!option.supported) return;
         EmOption opt = OPTIONS.get(option.key);
         if (opt != null) {
             opt.val = option.val;
@@ -277,159 +256,350 @@ public class Fceumm implements Emulator {
         sSystemDirectory = systemDirectory.getAbsolutePath();
     }
 
+    private final Choreographer.FrameCallback mFrameCallback = new Choreographer.FrameCallback() {
+        @Override
+        public void doFrame(long frameTimeNanos) {
+            if (mState == STATE_RUNNING) {
+                nativeRun();
+            }
+            if (mState != STATE_INVALID) {
+                Choreographer.getInstance().postFrameCallbackDelayed(mFrameCallback, 1000 / 60);
+            }
+        }
+    };
+
+    private void start() {
+        Choreographer.getInstance().postFrameCallbackDelayed(mFrameCallback, 1000 / 60);
+    }
+
+    private void createMediaHandler() {
+        new HandlerThread("fceumm-video") {
+            @Override
+            protected void onLooperPrepared() {
+                mVideoHandler = new Handler(getLooper());
+            }
+        }.start();
+
+        new HandlerThread("fceumm-audio") {
+            @Override
+            protected void onLooperPrepared() {
+                super.onLooperPrepared();
+                mAudioHandler = new Handler(getLooper());
+            }
+        }.start();
+    }
+
+    private void clearMediaHandler() {
+        if (mAudioHandler != null) {
+            mAudioHandler.getLooper().quitSafely();
+            mAudioHandler = null;
+        }
+        if (mVideoHandler != null) {
+            mVideoHandler.getLooper().quitSafely();
+            mVideoHandler = null;
+        }
+    }
+
+    private void writeAudioData(final short[] data, int frames) {
+        if (mAudioDevice == null) return;
+        mAudioDevice.play(data, frames);
+    }
+
+    private void writeVideoData(final byte[] data, int width, int height, int pitch) {
+        if (mVideoDevice == null) return;
+        mVideoDevice.refresh(data, width, height, pitch);
+    }
+
+    private void submitAudioData(final short[] data, int frames) {
+        if (mAudioDevice == null) return;
+        mAudioHandler.post(() -> {
+            writeAudioData(data, frames);
+        });
+    }
+
+    private void submitVideoData(final byte[] data, int width, int height, int pitch) {
+        if (mVideoHandler == null) return;
+        mVideoHandler.post(() -> {
+            writeVideoData(data, width, height, pitch);
+        });
+    }
+
     private static final String TAG = Fceumm.class.getSimpleName();
     private static final Map<String, EmOption> OPTIONS = new HashMap<>();
 
     static {
         System.loadLibrary("nes");
         initialize();
+        sSystemAvInfo = nativeGetSystemAvInfo();
     }
 
     private static void initialize() {
         OPTIONS.put(
                 "fceumm_game_genie",
-                EmOption.create("fceumm_game_genie", "disabled", "Genie enable", "disabled", "enabled")
+                EmOption.builder("fceumm_game_genie", "disabled")
+                        .setTitle("Genie enable")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_ramstate",
-                EmOption.create("fceumm_ramstate", "random", "RAM power up state", "random", "fill $00"));
+                EmOption.builder("fceumm_ramstate", "random")
+                        .setTitle("RAM power up state")
+                        .setAllowVals("random", "fill $00", "fill $FF")
+                        .build()
+        );
         OPTIONS.put(
                 "fceumm_ntsc_filter",
-                EmOption.create("fceumm_ntsc_filter", "disabled", "NTSC filter", "disabled", "composite", "svideo", "rgb", "monochrome"));
+                EmOption.builder("fceumm_ntsc_filter", "disabled")
+                        .setTitle("NTSC filter")
+                        .setAllowVals("disabled", "composite", "svideo", "rgb", "monochrome")
+                        .setSupported(true)
+                        .build()
+        );
         OPTIONS.put(
                 "fceumm_palette",
-                EmOption.create("fceumm_palette", "default", "Color palette", "default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw"/*, "custom"*/));
+                EmOption.builder("fceumm_palette", "default")
+                        .setTitle("Color palette")
+                        .setAllowVals("default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw"/*, "custom"*/)
+                        .setSupported(true)
+                        .build()
+        );
         OPTIONS.put(
                 "fceumm_up_down_allowed",
-                EmOption.create("fceumm_up_down_allowed", "disabled", "Allow opposing directions", "disabled", "enabled")
+                EmOption.builder("fceumm_up_down_allowed", "disabled")
+                        .setTitle("Allow opposing directions")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_nospritelimit",
-                EmOption.create("fceumm_nospritelimit", "enabled", "No sprite limit", "disabled", "enabled")
+                EmOption.builder("fceumm_nospritelimit", "enabled")
+                        .setTitle("No sprite limit")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_overclocking",
-                EmOption.create("fceumm_overclocking", "disabled", "Overclocking", "disabled", "2x-Postrender", "2x-VBlank")
+                EmOption.builder("fceumm_overclocking", "disabled")
+                        .setTitle("Overclocking")
+                        .setAllowVals("disabled", "2x-Postrender", "2x-VBlank")
+                        .setSupported(true)
+                        .build()
+
         );
         OPTIONS.put(
                 "fceumm_zapper_mode",
-                EmOption.create("fceumm_zapper_mode", "touchscreen", "Zapper mode", "lightgun", "touchscreen", "mouse")
+                EmOption.builder("fceumm_zapper_mode", "touchscreen")
+                        .setTitle("Zapper mode")
+                        .setAllowVals("lightgun", "touchscreen", "mouse")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_arkanoid_mode",
-                EmOption.create("fceumm_arkanoid_mode", "touchscreen", "Arkanoid mode", "touchscreen", "abs_mouse", "stelladaptor")
+                EmOption.builder("fceumm_arkanoid_mode", "touchscreen")
+                        .setTitle("Arkanoid mode")
+                        .setAllowVals("touchscreen", "abs_mouse", "stelladaptor")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_zapper_tolerance",
-                EmOption.create("fceumm_zapper_tolerance", "4", "Zapper tolerance")
+                EmOption.builder("fceumm_zapper_tolerance", "4")
+                        .setTitle("Zapper tolerance")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_mouse_sensitivity",
-                EmOption.create("fceumm_mouse_sensitivity", "100", "Mouse sensitivity")
+                EmOption.builder("fceumm_mouse_sensitivity", "100")
+                        .setTitle("Mouse sensitivity")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_show_crosshair",
-                EmOption.create("fceumm_show_crosshair", "disabled", "Show crosshair", "disabled", "enabled")
+                EmOption.builder("fceumm_show_crosshair", "disabled")
+                        .setTitle("Show crosshair")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_zapper_trigger",
-                EmOption.create("fceumm_zapper_trigger", "disabled", "Zapper trigger", "disabled", "enabled")
+                EmOption.builder("fceumm_zapper_trigger", "disabled")
+                        .setTitle("Zapper trigger")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_zapper_sensor",
-                EmOption.create("fceumm_zapper_sensor", "disabled", "Zapper sensor", "disabled", "enabled")
+                EmOption.builder("fceumm_zapper_sensor", "disabled")
+                        .setTitle("Zapper sensor")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_overscan",
-                EmOption.create("fceumm_overscan", "disabled", "Crop overscan", "disabled", "enabled")
+                EmOption.builder("fceumm_overscan", "disabled")
+                        .setTitle("Crop overscan")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_overscan_h_left",
-                EmOption.create("fceumm_overscan_h_left", "8", "Crop overscan HL")
+                EmOption.builder("fceumm_overscan_h_left", "8")
+                        .setTitle("Crop overscan HL")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_overscan_h_right",
-                EmOption.create("fceumm_overscan_h_right", "8", "Crop overscan HR")
-                );
+                EmOption.builder("fceumm_overscan_h_right", "8")
+                        .setTitle("Crop overscan HR")
+                        .build()
+        );
         OPTIONS.put(
                 "fceumm_overscan_v_top",
-                EmOption.create("fceumm_overscan_v_top", "8", "Crop overscan VT")
-                );
+                EmOption.builder("fceumm_overscan_v_top", "8")
+                        .setTitle("Crop overscan VT")
+                        .build()
+        );
         OPTIONS.put(
                 "fceumm_overscan_v_bottom",
-                EmOption.create("fceumm_overscan_v_bottom", "8", "Crop overscan VB")
+                EmOption.builder("fceumm_overscan_v_bottom", "8")
+                        .setTitle("Crop overscan VB")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_aspect",
-                EmOption.create("fceumm_aspect", "8:7 PAR", "Preferred aspect ratio", "8:7 PAR", "4:3")
+                EmOption.builder("fceumm_aspect", "8:7 PAR")
+                        .setTitle("Preferred aspect ratio")
+                        .setAllowVals("8:7 PAR", "4:3")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_turbo_enable",
-                EmOption.create("fceumm_turbo_enable", "None", "Turbo enable", "None", "Player 1", "Player 2", "Both")
+                EmOption.builder("fceumm_turbo_enable", "None")
+                        .setTitle("Turbo enable")
+                        .setAllowVals("None", "Player 1", "Player 2", "Both")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_turbo_delay",
-                EmOption.create("fceumm_turbo_delay", "3", "Turbo delay (in frames)")
+                EmOption.builder("fceumm_turbo_delay", "3")
+                        .setTitle("Turbo delay (in frames)")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_region",
-                EmOption.create("fceumm_region", "Auto", "Region", "Auto", "NTSC", "PAL", "Dendy")
+                EmOption.builder("fceumm_region", "Auto")
+                        .setTitle("Region")
+                        .setAllowVals("Auto", "NTSC", "PAL", "Dendy")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_sndquality",
-                EmOption.create("fceumm_sndquality", "High", "Sound quality", "Low", "High", "Very High")
+                EmOption.builder("fceumm_sndquality", "High")
+                        .setTitle("Sound quality")
+                        .setAllowVals("Low", "High", "Very High")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_sndlowpass",
-                EmOption.create("fceumm_sndlowpass", "enabled", "Sound low pass", "disabled", "enabled")
+                EmOption.builder("fceumm_sndlowpass", "enabled")
+                        .setTitle("Sound low pass")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_sndstereodelay",
-                EmOption.create("fceumm_sndstereodelay", "disabled", "Sound stereo delay", "disabled", "enabled")
+                EmOption.builder("fceumm_sndstereodelay", "disabled")
+                        .setTitle("Sound stereo delay")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_sndvolume",
-                EmOption.create("fceumm_sndvolume", "10", "Sound volume (0 - 10)")
+                EmOption.builder("fceumm_sndvolume", "10")
+                        .setTitle("Sound volume (0 - 10)")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_swapduty",
-                EmOption.create("fceumm_swapduty", "disabled", "Swap duty cycles", "disabled", "enabled")
+                EmOption.builder("fceumm_swapduty", "disabled")
+                        .setTitle("Swap duty cycles")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_apu_1",
-                EmOption.create("fceumm_apu_1", "enabled", "APU 1", "disabled", "enabled")
+                EmOption.builder("fceumm_apu_1", "enabled")
+                        .setTitle("APU 1")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_apu_2",
-                EmOption.create("fceumm_apu_2", "enabled", "APU 2", "disabled", "enabled")
+                EmOption.builder("fceumm_apu_2", "enabled")
+                        .setTitle("APU 2")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_apu_3",
-                EmOption.create("fceumm_apu_3", "enabled", "APU 3", "disabled", "enabled")
+                EmOption.builder("fceumm_apu_3", "enabled")
+                        .setTitle("APU 3")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_apu_4",
-                EmOption.create("fceumm_apu_4", "enabled", "APU 4", "disabled", "enabled")
+                EmOption.builder("fceumm_apu_4", "enabled")
+                        .setTitle("APU 4")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_apu_5",
-                EmOption.create("fceumm_apu_5", "enabled", "APU 5", "disabled", "enabled")
+                EmOption.builder("fceumm_apu_5", "enabled")
+                        .setTitle("APU 5")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_apu_6",
-                EmOption.create("fceumm_apu_6", "enabled", "APU 6", "disabled", "enabled")
+                EmOption.builder("fceumm_apu_6", "enabled")
+                        .setTitle("APU 6")
+                        .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_show_adv_system_options",
-                EmOption.create("fceumm_show_adv_system_options", "disabled", "Show advanced system options", "disabled", "enabled")
+                EmOption.builder("fceumm_show_adv_system_options", "disabled")
+                        .setTitle("Show advanced system options")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
         OPTIONS.put(
                 "fceumm_show_adv_sound_options",
-                EmOption.create("fceumm_show_adv_sound_options", "disabled", "Show advanced sound options", "enabled")
+                EmOption.builder("fceumm_show_adv_sound_options", "disabled")
+                        .setTitle("Show advanced sound options")
+                        .setAllowVals("disabled", "enabled")
+                        .build()
         );
     }
 
     private static final Fceumm INSTANCE = new Fceumm();
+
     public static void registerAsEmulator() {
         EmulatorManager.registerEmulator(INSTANCE);
     }
