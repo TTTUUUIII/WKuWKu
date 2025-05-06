@@ -47,10 +47,10 @@ public abstract class BaseActivity extends AppCompatActivity {
     public void setStatusBarVisibility(boolean visibility) {
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         if (!visibility) {
-            controller.hide(WindowInsetsCompat.Type.statusBars());
+            controller.hide(WindowInsetsCompat.Type.systemBars());
             controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         } else {
-            controller.show(WindowInsetsCompat.Type.statusBars());
+            controller.show(WindowInsetsCompat.Type.systemBars());
             controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_DEFAULT);
         }
     }

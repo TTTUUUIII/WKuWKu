@@ -34,8 +34,7 @@ public class AudioDevice implements EmAudioDevice {
                         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                         .setSampleRate(sampleRate)
                         .build())
-                .setTransferMode(AudioTrack.MODE_STREAM)
-                .setBufferSizeInBytes(minBufferSize)
+                .setBufferSizeInBytes(minBufferSize * 2)
                 .build();
     }
 
@@ -46,7 +45,7 @@ public class AudioDevice implements EmAudioDevice {
             mAudioTrack.play();
             mPlaying = true;
         }
-        mAudioTrack.write(data, 0, data.length);
+        mAudioTrack.write(data, 0, data.length, AudioTrack.WRITE_NON_BLOCKING);
     }
 
     @Override

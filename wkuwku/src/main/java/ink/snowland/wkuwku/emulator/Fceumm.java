@@ -1,25 +1,24 @@
 package ink.snowland.wkuwku.emulator;
 
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.Process;
+import android.os.SystemClock;
 import android.util.Log;
-import android.view.Choreographer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
+import ink.snowland.wkuwku.common.EmTimer;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
@@ -44,8 +43,8 @@ public class Fceumm implements Emulator {
     private static EmInputDevice mInputDevice1;
     private static EmInputDevice mInputDevice2;
     private static EmInputDevice mInputDevice3;
-    private Handler mAudioHandler;
-    private Handler mVideoHandler;
+    private EmTimer mTimer;
+    private static Executor executor = Executors.newSingleThreadExecutor();
 
     @CallFromJni
     private static boolean onEnvironment(int cmd, Object data) {
@@ -92,12 +91,16 @@ public class Fceumm implements Emulator {
 
     @CallFromJni
     private static void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
-        INSTANCE.submitVideoData(data, width, height, pitch);
+        executor.execute(() -> {
+            if (mVideoDevice == null) return;
+            mVideoDevice.refresh(data, width, height, pitch);
+        });
     }
 
     @CallFromJni
     private static void onAudioSampleBatch(final short[] data, int frames) {
-        INSTANCE.submitAudioData(data, frames);
+        if (mAudioDevice == null) return;
+        mAudioDevice.play(data, frames);
     }
 
     @CallFromJni
@@ -134,30 +137,23 @@ public class Fceumm implements Emulator {
     private static native void nativeRun();
 
     private static native EmSystemAvInfo nativeGetSystemAvInfo();
-
     @Override
     public boolean run(@NonNull File rom) {
         if (!rom.exists() || !rom.canRead()) return false;
         if (mState == STATE_INVALID) {
             nativePowerOn();
-            createMediaHandler();
-        } else if (mState == STATE_RUNNING || mState == STATE_PAUSED) {
-//            mMainFuture.cancel(false);
-//            mMainFuture = null;
-            nativeReset();
+        }
+        if (mTimer == null) {
+            mTimer = new EmTimer();
         }
         if (nativeLoad(rom.getAbsolutePath())) {
             if (mAudioDevice != null) {
                 mAudioDevice.open(EmAudioDevice.PCM_16BIT, 48000, 2);
             }
-//            mMainFuture = mMainExecutor.scheduleWithFixedDelay(() -> {
-//                if (mState == STATE_RUNNING) {
-//                    nativeRun();
-//                }
-//            }, 0, /*(int) Math.floor(1000 / sSystemAvInfo.timing.fps)*/ 16, TimeUnit.MILLISECONDS);
-
-            start();
             mState = STATE_RUNNING;
+            t0 = SystemClock.uptimeMillis();
+            System.out.println();
+            mTimer.schedule(this::run, fps);
         }
         return true;
     }
@@ -185,14 +181,7 @@ public class Fceumm implements Emulator {
 
     @Override
     public void suspend() {
-        if (mState != STATE_INVALID) {
-//            mMainFuture.cancel(false);
-//            mMainFuture = null;
-//            mMainExecutor.shutdown();
-//            mMainExecutor = null;
-            clearMediaHandler();
-            nativePowerOff();
-        }
+        mTimer.cancel();
         if (mAudioDevice != null) {
             mAudioDevice.close();
             mAudioDevice = null;
@@ -200,7 +189,23 @@ public class Fceumm implements Emulator {
         if (mVideoDevice != null) {
             mVideoDevice = null;
         }
+        nativePowerOff();
         mState = STATE_INVALID;
+    }
+
+    private long t0;
+    private int fps = 0;
+    private void run() {
+        if (mState == STATE_RUNNING) {
+            nativeRun();
+        }
+        long t1 = SystemClock.uptimeMillis();
+        if (t1 - t0 >= 1000) {
+            System.out.println(fps);
+            fps = 0;
+            t0 = t1;
+        }
+        fps++;
     }
 
     @Override
@@ -254,74 +259,6 @@ public class Fceumm implements Emulator {
     @Override
     public void setSystemDirectory(@NonNull File systemDirectory) {
         sSystemDirectory = systemDirectory.getAbsolutePath();
-    }
-
-    private final Choreographer.FrameCallback mFrameCallback = new Choreographer.FrameCallback() {
-        @Override
-        public void doFrame(long frameTimeNanos) {
-            if (mState == STATE_RUNNING) {
-                nativeRun();
-            }
-            if (mState != STATE_INVALID) {
-                Choreographer.getInstance().postFrameCallbackDelayed(mFrameCallback, 1000 / 60);
-            }
-        }
-    };
-
-    private void start() {
-        Choreographer.getInstance().postFrameCallbackDelayed(mFrameCallback, 1000 / 60);
-    }
-
-    private void createMediaHandler() {
-        new HandlerThread("fceumm-video") {
-            @Override
-            protected void onLooperPrepared() {
-                mVideoHandler = new Handler(getLooper());
-            }
-        }.start();
-
-        new HandlerThread("fceumm-audio") {
-            @Override
-            protected void onLooperPrepared() {
-                super.onLooperPrepared();
-                mAudioHandler = new Handler(getLooper());
-            }
-        }.start();
-    }
-
-    private void clearMediaHandler() {
-        if (mAudioHandler != null) {
-            mAudioHandler.getLooper().quitSafely();
-            mAudioHandler = null;
-        }
-        if (mVideoHandler != null) {
-            mVideoHandler.getLooper().quitSafely();
-            mVideoHandler = null;
-        }
-    }
-
-    private void writeAudioData(final short[] data, int frames) {
-        if (mAudioDevice == null) return;
-        mAudioDevice.play(data, frames);
-    }
-
-    private void writeVideoData(final byte[] data, int width, int height, int pitch) {
-        if (mVideoDevice == null) return;
-        mVideoDevice.refresh(data, width, height, pitch);
-    }
-
-    private void submitAudioData(final short[] data, int frames) {
-        if (mAudioDevice == null) return;
-        mAudioHandler.post(() -> {
-            writeAudioData(data, frames);
-        });
-    }
-
-    private void submitVideoData(final byte[] data, int width, int height, int pitch) {
-        if (mVideoHandler == null) return;
-        mVideoHandler.post(() -> {
-            writeVideoData(data, width, height, pitch);
-        });
     }
 
     private static final String TAG = Fceumm.class.getSimpleName();

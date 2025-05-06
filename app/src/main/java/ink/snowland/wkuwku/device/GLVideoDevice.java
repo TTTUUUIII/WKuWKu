@@ -26,8 +26,8 @@ public class GLVideoDevice implements EmVideoDevice {
     private final byte[] mLock = new byte[0];
     private int mVideoWidth;
     private int mVideoHeight;
-    private ByteBuffer mFrameBuffer = null;
-    private GLSurfaceView.Renderer mRender;
+    private volatile ByteBuffer mFrameBuffer = null;
+    private RenderImpl mRender = new RenderImpl();
     private final String mVertexShaderSource;
     private final String mFragmentShaderSource;
 
@@ -47,9 +47,6 @@ public class GLVideoDevice implements EmVideoDevice {
     }
 
     public GLSurfaceView.Renderer getRenderer() {
-        if (mRender == null) {
-            mRender = new RenderImpl();
-        }
         return mRender;
     }
 
@@ -65,8 +62,7 @@ public class GLVideoDevice implements EmVideoDevice {
 
         /*[VAO, VBO, Texture1]*/
         private final int[] mBuffers = new int[3];
-        private boolean mFirstRender = true;
-
+        private volatile boolean mFirstRender = true;
         @Override
         public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -119,7 +115,7 @@ public class GLVideoDevice implements EmVideoDevice {
             synchronized (mLock) {
                 if (mFirstRender) {
                     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, mVideoWidth, mVideoHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mFrameBuffer);
-                    mFirstRender = false;
+                    mFirstRender = true;
                 } else {
                     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mVideoWidth, mVideoHeight, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mFrameBuffer);
                 }
