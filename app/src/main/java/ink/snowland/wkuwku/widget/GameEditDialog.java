@@ -91,6 +91,8 @@ public class GameEditDialog {
         binding.setGame(mGame);
         binding.invalidateAll();
         mCallback = callback;
+        binding.buttonQrCode.setVisibility(View.VISIBLE);
+        binding.selectFileLayout.setVisibility(View.VISIBLE);
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             if (checkValid()) {
