@@ -10,14 +10,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmScheduledThread;
+import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
@@ -28,25 +27,29 @@ import ink.snowland.wkuwku.interfaces.EmInputDevice;
 import ink.snowland.wkuwku.interfaces.EmVideoDevice;
 
 public class Fceumm implements Emulator {
-
+    private final byte[] mLock = new byte[0];
+    private static final String TAG = "Fceumm";
     private static final int STATE_INVALID = 0;
     private static final int STATE_RUNNING = 1;
     private static final int STATE_PAUSED = 2;
 
-    private static String sSystemDirectory = "";
-    private static final EmSystemAvInfo sSystemAvInfo;
+    private final EmSystemAvInfo AV_IFNO;
+    private String sSystemDirectory = "";
     private volatile int mState = STATE_INVALID;
-    private static EmVideoDevice mVideoDevice;
-    private static EmAudioDevice mAudioDevice;
-    private static EmInputDevice mInputDevice0;
-    private static EmInputDevice mInputDevice1;
-    private static EmInputDevice mInputDevice2;
-    private static EmInputDevice mInputDevice3;
+    private EmVideoDevice mVideoDevice;
+    private EmAudioDevice mAudioDevice;
+    private EmInputDevice mInputDevice0;
+    private EmInputDevice mInputDevice1;
+    private EmInputDevice mInputDevice2;
+    private EmInputDevice mInputDevice3;
     private EmScheduledThread mMainThread;
-    private static final Executor executor = Executors.newFixedThreadPool(1);
+
+    private Fceumm() {
+        AV_IFNO = nativeGetSystemAvInfo();
+    }
 
     @CallFromJni
-    private static boolean onEnvironment(int cmd, Object data) {
+    private boolean onEnvironment(int cmd, Object data) {
         if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
             return false;
         }
@@ -89,19 +92,24 @@ public class Fceumm implements Emulator {
     }
 
     @CallFromJni
-    private static void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
+    private void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
         if (mVideoDevice == null) return;
         mVideoDevice.refresh(data, width, height, pitch);
     }
 
     @CallFromJni
-    private static void onAudioSampleBatch(final short[] data, int frames) {
+    private void onAudioSampleBatch(final short[] data, int frames) {
         if (mAudioDevice == null) return;
-        mAudioDevice.play(data, frames);
+        if (!mAudioDevice.isOpen()) {
+            mAudioDevice.open(EmAudioDevice.PCM_16BIT, 48000, 2);
+        }
+        if (mAudioDevice.isOpen()) {
+            mAudioDevice.play(data, frames);
+        }
     }
 
     @CallFromJni
-    private static int onInputState(int port, int device, int index, int id) {
+    private int onInputState(int port, int device, int index, int id) {
         EmInputDevice it = null;
         if (port == 0) {
             it = mInputDevice0;
@@ -119,46 +127,54 @@ public class Fceumm implements Emulator {
     }
 
     @CallFromJni
-    private static void onInputPoll() {
+    private void onInputPoll() {
 
     }
 
-    private static native void nativePowerOn();
+    private native void nativePowerOn();
 
-    private static native void nativePowerOff();
+    private native void nativePowerOff();
 
-    private static native void nativeReset();
+    private native void nativeReset();
 
-    private static native boolean nativeLoad(@NonNull String path);
+    private native boolean nativeLoad(@NonNull String path);
 
-    private static native void nativeRun();
+    private native void nativeRun();
 
-    private static native EmSystemAvInfo nativeGetSystemAvInfo();
+    private native EmSystemAvInfo nativeGetSystemAvInfo();
+    private native EmSystemInfo nativeGetSystemInfo();
+
     @Override
     public boolean run(@NonNull File rom) {
         if (!rom.exists() || !rom.canRead()) return false;
         if (mState == STATE_INVALID) {
             nativePowerOn();
         }
-        if (mMainThread == null) {
-            mMainThread = new EmScheduledThread() {
-                @Override
-                public void next() {
-                    if (mState == STATE_INVALID) {
-                        interrupt();
-                    } else if (mState == STATE_RUNNING) {
+        if (!nativeLoad(rom.getAbsolutePath())) {
+            nativePowerOff();
+            return false;
+        }
+        assert mMainThread == null;
+        mMainThread = new EmScheduledThread() {
+            @Override
+            public void next() {
+                synchronized (mLock) {
+                    if (mState == STATE_RUNNING) {
                         nativeRun();
+                    } else if (mState == STATE_PAUSED) {
+                        try {
+                            mLock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace(System.err);
+                        }
+                    } else {
+                        interrupt();
                     }
                 }
-            };
-        }
-        if (nativeLoad(rom.getAbsolutePath())) {
-            if (mAudioDevice != null) {
-                mAudioDevice.open(EmAudioDevice.PCM_16BIT, 48000, 2);
             }
-            mState = STATE_RUNNING;
-            mMainThread.schedule(sSystemAvInfo.timing.fps);
-        }
+        };
+        mState = STATE_RUNNING;
+        mMainThread.schedule(AV_IFNO.timing.fps);
         return true;
     }
 
@@ -174,7 +190,10 @@ public class Fceumm implements Emulator {
     @Override
     public void resume() {
         if (mState != STATE_PAUSED) return;
-        mState = STATE_RUNNING;
+        synchronized (mLock) {
+            mState = STATE_RUNNING;
+            mLock.notify();
+        }
     }
 
     @Override
@@ -185,6 +204,7 @@ public class Fceumm implements Emulator {
 
     @Override
     public void suspend() {
+        mState = STATE_INVALID;
         if (mMainThread != null) {
             mMainThread.cancel();
             mMainThread = null;
@@ -197,7 +217,6 @@ public class Fceumm implements Emulator {
             mVideoDevice = null;
         }
         nativePowerOff();
-        mState = STATE_INVALID;
     }
 
     @Override
@@ -253,16 +272,17 @@ public class Fceumm implements Emulator {
         sSystemDirectory = systemDirectory.getAbsolutePath();
     }
 
-    private static final String TAG = Fceumm.class.getSimpleName();
     private static final Map<String, EmOption> OPTIONS = new HashMap<>();
+
+    public static void registerAsEmulator() {
+        EmulatorManager.registerEmulator(SHARED_INSTANCE);
+    }
+
+    private final static Fceumm SHARED_INSTANCE;
 
     static {
         System.loadLibrary("nes");
-        initialize();
-        sSystemAvInfo = nativeGetSystemAvInfo();
-    }
-
-    private static void initialize() {
+        SHARED_INSTANCE = new Fceumm();
         OPTIONS.put(
                 "fceumm_game_genie",
                 EmOption.builder("fceumm_game_genie", "disabled")
@@ -525,11 +545,5 @@ public class Fceumm implements Emulator {
                         .setAllowVals("disabled", "enabled")
                         .build()
         );
-    }
-
-    private static final Fceumm INSTANCE = new Fceumm();
-
-    public static void registerAsEmulator() {
-        EmulatorManager.registerEmulator(INSTANCE);
     }
 }

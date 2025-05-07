@@ -68,4 +68,5 @@
     <string name="famicom">Famicon</string>
     <string name="apply">Apply</string>
     <string name="network_timeout">ERROR: network timeout!</string>
+    <string name="trash">Trash</string>
 </resources>

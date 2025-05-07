@@ -56,4 +56,5 @@
     <string name="famicom">红白机</string>
     <string name="apply">应用</string>
     <string name="network_timeout">错误：网络超时！</string>
+    <string name="trash">回收站</string>
 </resources>

@@ -12,4 +12,9 @@
         android:icon="@drawable/ic_settings"
         android:title="@string/settings"
         app:showAsAction="collapseActionView" />
+    <item
+        android:id="@+id/action_trash"
+        android:icon="@drawable/ic_recycling"
+        android:title="@string/trash"
+        app:showAsAction="collapseActionView" />
 </menu>
