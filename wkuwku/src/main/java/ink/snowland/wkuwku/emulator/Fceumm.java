@@ -1,6 +1,5 @@
 package ink.snowland.wkuwku.emulator;
 
-import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
-import ink.snowland.wkuwku.common.EmTimer;
+import ink.snowland.wkuwku.common.EmScheduledThread;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
@@ -43,8 +42,8 @@ public class Fceumm implements Emulator {
     private static EmInputDevice mInputDevice1;
     private static EmInputDevice mInputDevice2;
     private static EmInputDevice mInputDevice3;
-    private EmTimer mTimer;
-    private static Executor executor = Executors.newSingleThreadExecutor();
+    private EmScheduledThread mMainThread;
+    private static final Executor executor = Executors.newFixedThreadPool(1);
 
     @CallFromJni
     private static boolean onEnvironment(int cmd, Object data) {
@@ -91,10 +90,8 @@ public class Fceumm implements Emulator {
 
     @CallFromJni
     private static void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
-        executor.execute(() -> {
-            if (mVideoDevice == null) return;
-            mVideoDevice.refresh(data, width, height, pitch);
-        });
+        if (mVideoDevice == null) return;
+        mVideoDevice.refresh(data, width, height, pitch);
     }
 
     @CallFromJni
@@ -143,17 +140,24 @@ public class Fceumm implements Emulator {
         if (mState == STATE_INVALID) {
             nativePowerOn();
         }
-        if (mTimer == null) {
-            mTimer = new EmTimer();
+        if (mMainThread == null) {
+            mMainThread = new EmScheduledThread() {
+                @Override
+                public void next() {
+                    if (mState == STATE_INVALID) {
+                        interrupt();
+                    } else if (mState == STATE_RUNNING) {
+                        nativeRun();
+                    }
+                }
+            };
         }
         if (nativeLoad(rom.getAbsolutePath())) {
             if (mAudioDevice != null) {
                 mAudioDevice.open(EmAudioDevice.PCM_16BIT, 48000, 2);
             }
             mState = STATE_RUNNING;
-            t0 = SystemClock.uptimeMillis();
-            System.out.println();
-            mTimer.schedule(this::run, fps);
+            mMainThread.schedule(sSystemAvInfo.timing.fps);
         }
         return true;
     }
@@ -181,7 +185,10 @@ public class Fceumm implements Emulator {
 
     @Override
     public void suspend() {
-        mTimer.cancel();
+        if (mMainThread != null) {
+            mMainThread.cancel();
+            mMainThread = null;
+        }
         if (mAudioDevice != null) {
             mAudioDevice.close();
             mAudioDevice = null;
@@ -191,21 +198,6 @@ public class Fceumm implements Emulator {
         }
         nativePowerOff();
         mState = STATE_INVALID;
-    }
-
-    private long t0;
-    private int fps = 0;
-    private void run() {
-        if (mState == STATE_RUNNING) {
-            nativeRun();
-        }
-        long t1 = SystemClock.uptimeMillis();
-        if (t1 - t0 >= 1000) {
-            System.out.println(fps);
-            fps = 0;
-            t0 = t1;
-        }
-        fps++;
     }
 
     @Override
