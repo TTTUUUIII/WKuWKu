@@ -49,7 +49,7 @@ public class HistoryFragment extends BaseFragment {
         mDisposable = mViewModel.getHistory().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(mAdapter::submitList);
-        mDetailDialog = new GameDetailDialog(mParentActivity);
+        mDetailDialog = new GameDetailDialog(parentActivity);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class HistoryFragment extends BaseFragment {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
-        mParentActivity.setActionbarSubTitle(R.string.recent_played);
+        parentActivity.setActionbarSubTitle(R.string.recent_played);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
         return binding.getRoot();

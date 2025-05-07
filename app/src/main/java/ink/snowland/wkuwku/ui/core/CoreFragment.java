@@ -4,12 +4,14 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
+import android.os.SystemClock;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -41,15 +43,23 @@ public class CoreFragment extends BaseFragment {
     private Emulator mEmulator;
     private final ViewAdapter mAdapter = new ViewAdapter();
     private List<EmOption> mCurrentOptions;
+    private CoreViewModel mViewModel;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mViewModel = new ViewModelProvider(this).get(CoreViewModel.class);
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentCoreBinding.inflate(inflater);
-        mParentActivity.setActionbarSubTitle(R.string.core_options);
+        parentActivity.setActionbarSubTitle(R.string.core_options);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
-        binding.recyclerView.setHasFixedSize(true);
+        binding.pendingIndicator.setDataModel(mViewModel);
+        binding.pendingIndicator.setLifecycleOwner(this);
         return binding.getRoot();
     }
 
@@ -72,6 +82,7 @@ public class CoreFragment extends BaseFragment {
 
     private void onReloadOptions() {
         assert mEmulator != null;
+        mViewModel.setPendingIndicator(true, R.string.loading);
         SettingsManager.putString(SELECTED_CORE, mEmulator.getTag());
         RxUtils.newSingle((RxUtils.SingleFunction<List<EmOption>>) observer -> {
                     List<EmOption> options = mEmulator.getOptions().stream()
@@ -87,7 +98,10 @@ public class CoreFragment extends BaseFragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSuccess(options -> {
                     mCurrentOptions = options;
-                    mAdapter.submitList(mCurrentOptions);
+                    runAtTime(() -> {
+                        mAdapter.submitList(mCurrentOptions);
+                        mViewModel.setPendingIndicator(false);
+                    }, SystemClock.uptimeMillis() + 800);
                 })
                 .subscribe();
     }
@@ -138,7 +152,7 @@ public class CoreFragment extends BaseFragment {
                 ((ItemCoreOptionBinding) _binding).setOption(option);
             } else {
                 ItemCoreEnumOptionBinding itemBinding = (ItemCoreEnumOptionBinding) _binding;
-                NoFilterArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(mParentActivity, R.layout.layout_simple_text, option.allowVals);
+                NoFilterArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, option.allowVals);
                 itemBinding.autoComplete.setAdapter(adapter);
                 itemBinding.setOption(option);
             }

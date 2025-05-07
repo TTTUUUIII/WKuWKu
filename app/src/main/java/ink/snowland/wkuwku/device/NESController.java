@@ -4,10 +4,10 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import ink.snowland.wkuwku.interfaces.EmInputDevice;
 
-public class JoyPad extends EmInputDevice {
+public class NESController extends EmInputDevice {
     private short mState = 0;
 
-    public JoyPad(int port) {
+    public NESController(int port) {
         super(port, RETRO_DEVICE_JOYPAD);
     }
     @Override

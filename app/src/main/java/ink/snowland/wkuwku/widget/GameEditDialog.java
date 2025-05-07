@@ -55,7 +55,7 @@ public class GameEditDialog {
                     String filename = file.getName();
                     assert mGame != null;
                     mGame.filepath = filename;
-                    if (mGame.title == null && filename != null) {
+                    if ((mGame.title == null || mGame.title.isEmpty()) && filename != null) {
                         mGame.title = filename.substring(0, filename.lastIndexOf("."));
                     }
                     binding.invalidateAll();

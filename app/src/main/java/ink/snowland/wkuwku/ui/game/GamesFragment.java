@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.ui.library;
+package ink.snowland.wkuwku.ui.game;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
@@ -25,12 +25,11 @@ import java.util.List;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
-import ink.snowland.wkuwku.databinding.FragmentLibraryBinding;
+import ink.snowland.wkuwku.databinding.FragmentGameBinding;
 import ink.snowland.wkuwku.databinding.ItemGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.play.PlayFragment;
-import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
@@ -38,9 +37,9 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LibraryFragment extends BaseFragment implements View.OnClickListener {
-    private FragmentLibraryBinding binding;
-    private LibraryViewModel mViewModel;
+public class GamesFragment extends BaseFragment implements View.OnClickListener {
+    private FragmentGameBinding binding;
+    private GamesViewModel mViewModel;
     private final ViewAdapter mAdapter = new ViewAdapter();
     private Disposable mDisposable;
     private GameEditDialog mEditGameDialog;
@@ -49,18 +48,18 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(GamesViewModel.class);
         mDisposable = mViewModel.getGameInfos().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(mAdapter::submitList);
-        mEditGameDialog = new GameEditDialog(mParentActivity);
-        mGameDetailDialog = new GameDetailDialog(mParentActivity);
+        mEditGameDialog = new GameEditDialog(parentActivity);
+        mGameDetailDialog = new GameDetailDialog(parentActivity);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentLibraryBinding.inflate(inflater);
+        binding = FragmentGameBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
@@ -68,7 +67,9 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         binding.fab.setOnClickListener(this);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
-        mParentActivity.setActionbarSubTitle(R.string.all_games);
+        binding.pendingIndicator.setDataModel(mViewModel);
+        binding.pendingIndicator.setLifecycleOwner(this);
+        parentActivity.setActionbarSubTitle(R.string.all_games);
         return binding.getRoot();
     }
 
@@ -161,11 +162,6 @@ public class LibraryFragment extends BaseFragment implements View.OnClickListene
         @SuppressLint("SetTextI18n")
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
-            if (game.lastPlayedTime == 0) {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + getString(R.string.never_played));
-            } else {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
-            }
             itemBinding.buttonMore.setOnClickListener(v -> {
                 showMorePopupMenu(game, v);
             });

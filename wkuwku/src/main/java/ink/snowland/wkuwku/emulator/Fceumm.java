@@ -368,6 +368,7 @@ public class Fceumm implements Emulator {
                 EmOption.builder("fceumm_show_crosshair", "disabled")
                         .setTitle("Show crosshair")
                         .setAllowVals("disabled", "enabled")
+                        .setSupported(true)
                         .build()
         );
         OPTIONS.put(

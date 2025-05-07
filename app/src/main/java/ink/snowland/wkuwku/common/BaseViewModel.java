@@ -10,11 +10,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.net.SocketTimeoutException;
-import java.util.concurrent.TimeoutException;
 
 import ink.snowland.wkuwku.R;
 
-public class BaseViewModel extends AndroidViewModel {
+public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorDataModel{
     protected final MutableLiveData<Boolean> emptyListIndicator = new MutableLiveData<>(false);
     protected final MutableLiveData<Boolean> pendingIndicator = new MutableLiveData<>(false);
     protected final MutableLiveData<String> pendingMessage = new MutableLiveData<>("");
@@ -53,5 +52,21 @@ public class BaseViewModel extends AndroidViewModel {
 
     public LiveData<String> getPendingMessage() {
         return pendingMessage;
+    }
+
+    @Override
+    public void setPendingIndicator(boolean pending) {
+        setPendingIndicator(pending, "");
+    }
+
+    @Override
+    public void setPendingIndicator(boolean pending, String message) {
+        pendingIndicator.postValue(pending);
+        pendingMessage.postValue(message);
+    }
+
+    @Override
+    public void setPendingIndicator(boolean pending, int resId) {
+        setPendingIndicator(pending, getApplication().getString(resId));
     }
 }

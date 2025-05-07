@@ -64,7 +64,7 @@
 
             <ink.snowland.wkuwku.view.JoystickView
                 android:id="@+id/joystick_view"
-                android:layout_width="170dp"
+                android:layout_width="180dp"
                 android:layout_height="wrap_content"
                 app:JV_backgroundSizeRatio="70%"
                 app:JV_borderWidth="2dp"

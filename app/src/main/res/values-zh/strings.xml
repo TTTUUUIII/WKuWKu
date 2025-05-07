@@ -57,4 +57,5 @@
     <string name="apply">应用</string>
     <string name="network_timeout">错误：网络超时！</string>
     <string name="trash">回收站</string>
+    <string name="loading">加载中</string>
 </resources>

@@ -6,17 +6,20 @@
             type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
         <import type="ink.snowland.wkuwku.db.entity.Game" />
+        <import type="ink.snowland.wkuwku.util.FlagUtils" />
     </data>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:paddingHorizontal="15dp"
-        android:paddingVertical="8dp"
+        android:paddingVertical="4dp"
+        tools:background="?attr/colorSurfaceContainerHigh"
         android:orientation="horizontal"
         xmlns:tools="http://schemas.android.com/tools">
         <LinearLayout
             android:layout_width="0dp"
+            android:layout_gravity="center_vertical"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
@@ -29,29 +32,12 @@
                 android:textSize="15sp"
                 tools:text="Super Mario Bros." />
             <TextView
-                android:id="@+id/last_played_time"
-                android:layout_marginTop="8dp"
-                android:textStyle="italic"
+                android:layout_gravity="bottom"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                tools:text="NES"
+                android:text="@{String.format(`%s | %s`, game.system, FlagUtils.flag(game.region))}" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/system"
-            android:layout_marginStart="8dp"
-            android:minWidth="34dp"
-            android:gravity="center_horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            android:text="@{game.system}"/>
-        <TextView
-            android:id="@+id/region"
-            android:minWidth="34dp"
-            android:gravity="center_horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSecondaryContainer"
-            tools:text="@{game.region}" />
         <Button
             android:id="@+id/button_launch"
             android:enabled="@{game.state == Game.STATE_VALID ? true : false}"

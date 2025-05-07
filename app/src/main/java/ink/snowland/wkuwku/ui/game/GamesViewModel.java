@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.ui.library;
+package ink.snowland.wkuwku.ui.game;
 
 import android.app.Application;
 import android.database.sqlite.SQLiteConstraintException;
@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
@@ -27,8 +26,8 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LibraryViewModel extends BaseViewModel {
-    public LibraryViewModel(@NonNull Application application) {
+public class GamesViewModel extends BaseViewModel {
+    public GamesViewModel(@NonNull Application application) {
         super(application);
     }
     public Observable<List<Game>> getGameInfos() {
