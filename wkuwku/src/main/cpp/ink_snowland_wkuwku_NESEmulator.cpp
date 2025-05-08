@@ -65,13 +65,15 @@ static jobject get_variable_value(JNIEnv *env) {
     return env->GetObjectField(variable_object, ctx.variable_value_field);
 }
 
-static void set_variable_entry(JNIEnv *env, const char* key , jobject value) {
-    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field, env->NewStringUTF(key));
+static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
+    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
+                        env->NewStringUTF(key));
     env->SetObjectField(variable_entry_object, ctx.variable_entry_value_field, value);
 }
 
-static void set_variable_entry(JNIEnv *env, const char* key , jint value) {
-    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field, env->NewStringUTF(key));
+static void set_variable_entry(JNIEnv *env, const char *key, jint value) {
+    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
+                        env->NewStringUTF(key));
     jclass clazz = env->FindClass("java/lang/Integer");
     jmethodID value_of_method = env->GetStaticMethodID(clazz, "valueOf", "(I)Ljava/lang/Integer;");
     jobject val = env->CallStaticObjectMethod(clazz, value_of_method, value);
@@ -82,36 +84,37 @@ static jobject get_variable_entry_value(JNIEnv *env) {
     return env->GetObjectField(variable_entry_object, ctx.variable_entry_value_field);
 }
 
-static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
-{
+static void log_print_callback(enum retro_log_level level, const char *fmt, ...) {
+    char buffer[512];  // 缓冲区存储格式化日志
     va_list args;
     va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
     switch (level) {
         case RETRO_LOG_ERROR:
-            LOGE(TAG, fmt, args);
+            LOGE(TAG, "%s", buffer);
             break;
         case RETRO_LOG_INFO:
-            LOGI(TAG, fmt, args);
+            LOGI(TAG, "%s", buffer);
             break;
         case RETRO_LOG_WARN:
-            LOGW(TAG, fmt, args);
+            LOGW(TAG, "%s", buffer);
             break;
         default:
-            LOGD(TAG, fmt, args);
+            LOGD(TAG, "%s", buffer);
     }
-    va_end(args);
 }
 
 static bool environment_callback(unsigned cmd, void *data) {
     JNIEnv *env;
-    if (ctx.jvm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "ERROR: unable attach env thread!");
         return false;
     }
-    switch (cmd)
-    {
+    switch (cmd) {
         case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
-            *(bool*)data = env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, nullptr);
+            *(bool *) data = env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd,
+                                                    nullptr);
             break;
         case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
 //            LOGD(TAG, "RETRO_ENVIRONMENT_SET_MEMORY_MAPS");
@@ -122,35 +125,35 @@ static bool environment_callback(unsigned cmd, void *data) {
             return env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, nullptr);
         case RETRO_ENVIRONMENT_GET_VARIABLE: {
             struct retro_variable *variable;
-            variable = (struct retro_variable*)data;
+            variable = (struct retro_variable *) data;
             set_variable_entry(env, variable->key, nullptr);
-            env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, variable_entry_object);
+            env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd,
+                                   variable_entry_object);
             jstring value = (jstring) get_variable_entry_value(env);
             variable->value = env->GetStringUTFChars(value, JNI_FALSE);
-            }
+        }
             break;
         case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
-            LOGD(TAG, "RETRO_ENVIRONMENT_GET_LOG_INTERFACE");
             struct retro_log_callback *log_cb;
-            log_cb = (struct retro_log_callback*) data;
+            log_cb = (struct retro_log_callback *) data;
             log_cb->log = log_print_callback;
             break;
         case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
             return env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, nullptr);
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-            set_variable_value(env, *((jint *)data));
-            return env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, variable_object);
+            set_variable_value(env, *((jint *) data));
+            return env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd,
+                                          variable_object);
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: {
-            set_variable_value(env, "sss");
             env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, variable_object);
-            jstring path = (jstring) get_variable_value(env);
-            *((const char**)data) = env->GetStringUTFChars(path, JNI_FALSE);
-            }
+            auto path = (jstring) get_variable_value(env);
+            *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
+        }
             break;
         case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: {
             jint index = 0;
-            struct retro_input_descriptor* desc;
-            desc = (struct retro_input_descriptor*) data;
+            struct retro_input_descriptor *desc;
+            desc = (struct retro_input_descriptor *) data;
             jobject array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
             while (desc->description != nullptr) {
                 jobject it = env->NewObject(
@@ -165,31 +168,8 @@ static bool environment_callback(unsigned cmd, void *data) {
                 desc++;
                 index++;
             }
-            env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method,cmd, array_list);
-            }
-            break;
-        case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
-        case RETRO_ENVIRONMENT_SET_HW_RENDER | RETRO_ENVIRONMENT_EXPERIMENTAL:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_MESSAGE_EXT");
-            break;
-        case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK");
-            break;
-        case RETRO_ENVIRONMENT_SET_HW_RENDER:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_HW_RENDER");
-            break;
-        case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE");
-            break;
-        case RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK");
-            break;
-        case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
-            break;
-        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
-            break;
-        case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK");
+            env->CallBooleanMethod(ctx.fceumm_obj, ctx.environment_method, cmd, array_list);
+        }
             break;
         case RETRO_ENVIRONMENT_GET_LANGUAGE: {
             set_variable_value(env, RETRO_LANGUAGE_DUMMY);
@@ -197,11 +177,19 @@ static bool environment_callback(unsigned cmd, void *data) {
             jobject language = (jobject) get_variable_value(env);
             jclass integer_clazz = env->FindClass("java/lang/Integer");
             jmethodID int_value_method = env->GetMethodID(integer_clazz, "intValue", "()I");
-            *(unsigned*) data = (unsigned int) env->CallIntMethod(language, int_value_method);
+            *(unsigned *) data = (unsigned int) env->CallIntMethod(language, int_value_method);
         }
             break;
+        case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
+        case RETRO_ENVIRONMENT_SET_HW_RENDER | RETRO_ENVIRONMENT_EXPERIMENTAL:
+        case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
+        case RETRO_ENVIRONMENT_SET_HW_RENDER:
+        case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE:
+        case RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK:
+        case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
+        case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK");
             break;
         default:
 //            LOGW(TAG, "WARN: cmd %d ignored!", cmd);
@@ -210,22 +198,22 @@ static bool environment_callback(unsigned cmd, void *data) {
     return true;
 }
 
-static void video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch)
-{
+static void
+video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch) {
     JNIEnv *env;
-    if (ctx.jvm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "ERROR: unable attach env thread!");
         return;
     }
     jbyteArray framebuffer = env->NewByteArray(height * pitch);
-    env->SetByteArrayRegion(framebuffer, 0, height * pitch, (jbyte*) data);
-    env->CallVoidMethod(ctx.fceumm_obj, ctx.video_refresh_method, framebuffer, (jint) width, (jint) height, (jint) pitch);
+    env->SetByteArrayRegion(framebuffer, 0, height * pitch, (jbyte *) data);
+    env->CallVoidMethod(ctx.fceumm_obj, ctx.video_refresh_method, framebuffer, (jint) width,
+                        (jint) height, (jint) pitch);
 }
 
-static size_t audio_sample_batch_callback(const int16_t *data, size_t frames)
-{
+static size_t audio_sample_batch_callback(const int16_t *data, size_t frames) {
     JNIEnv *env;
-    if (ctx.jvm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "ERROR: unable attach env thread!");
         return frames;
     }
@@ -235,22 +223,21 @@ static size_t audio_sample_batch_callback(const int16_t *data, size_t frames)
     return frames;
 }
 
-static int16_t input_state_callback(unsigned port, unsigned device, unsigned index, unsigned id)
-{
+static int16_t input_state_callback(unsigned port, unsigned device, unsigned index, unsigned id) {
     JNIEnv *env;
-    if (ctx.jvm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "ERROR: unable attach env thread!");
         return 0;
     }
-    auto state = (int16_t) env->CallIntMethod(ctx.fceumm_obj, ctx.input_state_method, port, device, index,
-                                          id);
+    auto state = (int16_t) env->CallIntMethod(ctx.fceumm_obj, ctx.input_state_method, port, device,
+                                              index,
+                                              id);
     return state;
 }
 
-static void input_poll_callback()
-{
+static void input_poll_callback() {
     JNIEnv *env;
-    if (ctx.jvm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "ERROR: unable attach env thread!");
         return;
     }
@@ -266,6 +253,7 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeReset(JNIEnv *env, jobject thiz) 
 extern "C"
 JNIEXPORT void JNICALL
 Java_ink_snowland_wkuwku_emulator_Fceumm_nativePowerOn(JNIEnv *env, jobject thiz) {
+    LOGD(TAG, "poweron");
     ctx.fceumm_obj = env->NewGlobalRef(thiz);
     retro_set_environment(environment_callback);
     retro_init();
@@ -286,7 +274,7 @@ extern "C"
 JNIEXPORT jboolean JNICALL
 Java_ink_snowland_wkuwku_emulator_Fceumm_nativeLoad(JNIEnv *env, jobject thiz, jstring jpath) {
     const char *path = env->GetStringUTFChars(jpath, JNI_FALSE);
-    struct retro_game_info info = { path, nullptr, 0, nullptr };
+    struct retro_game_info info = {path, nullptr, 0, nullptr};
     bool state = retro_load_game(&info);
     env->ReleaseStringUTFChars(jpath, path);
     return state;
@@ -299,9 +287,9 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeRun(JNIEnv *env, jobject thiz) {
 }
 
 extern "C"
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void* reserved) {
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env;
-    if (vm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "ERROR: jni load failed!");
         return JNI_ERR;
     }
@@ -334,12 +322,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void* reserved) {
 }
 
 extern "C"
-JNIEXPORT void JNICALL JNI_OnUnload(JavaVM* vm, void* reserved) {
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     JNIEnv *env;
-    if (vm->GetEnv((void**) &env, JNI_VERSION_1_6) != JNI_OK) {
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return;
     }
-    env->DeleteGlobalRef(ctx.fceumm_obj);
     env->DeleteGlobalRef(ctx.input_descriptor_clazz);
     env->DeleteGlobalRef(ctx.array_list_clazz);
     env->DeleteGlobalRef(variable_object);
@@ -358,10 +345,12 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeGetSystemAvInfo(JNIEnv *env, jobj
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
     constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
     jobject o1 = env->NewObject(clazz, constructor, (jint) av_info.geometry.base_width,
-                                (jint) av_info.geometry.base_height, (jint) av_info.geometry.max_width,
+                                (jint) av_info.geometry.base_height,
+                                (jint) av_info.geometry.max_width,
                                 (jint) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
-    constructor = env->GetMethodID(clazz, "<init>", "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
+    constructor = env->GetMethodID(clazz, "<init>",
+                                   "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
     return env->NewObject(clazz, constructor, o1, o0);
 }
 
@@ -384,7 +373,8 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeGetSystemInfo(JNIEnv *env, jobjec
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveMemoryRam(JNIEnv *env, jobject thiz, jstring path) {
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveMemoryRam(JNIEnv *env, jobject thiz,
+                                                             jstring path) {
     size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
     if (len == 0) return false;
     void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
@@ -392,7 +382,7 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveMemoryRam(JNIEnv *env, jobjec
     const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
     std::ofstream fp(_path, std::ios::out | std::ios::binary);
     if (!fp.is_open()) return false;
-    fp.write(reinterpret_cast<char*>(mem), (int) len).flush();
+    fp.write(reinterpret_cast<char *>(mem), (int) len).flush();
     fp.close();
     env->ReleaseStringUTFChars(path, _path);
     return true;
@@ -403,7 +393,7 @@ JNIEXPORT jboolean JNICALL
 Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveState(JNIEnv *env, jobject thiz, jstring path) {
     size_t len = retro_serialize_size();
     if (len == 0) return false;
-    void* mem = calloc(1, len);
+    void *mem = calloc(1, len);
     if (mem == nullptr) return false;
     if (!retro_serialize(mem, len)) {
         free(mem);
@@ -417,23 +407,24 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveState(JNIEnv *env, jobject th
         return false;
     }
     env->ReleaseStringUTFChars(path, _path);
-    fp.write(reinterpret_cast<char*>(mem), (int) len).flush();
+    fp.write(reinterpret_cast<char *>(mem), (int) len).flush();
     fp.close();
-    
+
     return true;
 }
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_emulator_Fceumm_nativeLoadMemoryRam(JNIEnv *env, jobject thiz, jstring path) {
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeLoadMemoryRam(JNIEnv *env, jobject thiz,
+                                                             jstring path) {
     bool no_error = false;
     const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
-    std::ifstream fp(_path, std::ios::in|std::ios::binary);
+    std::ifstream fp(_path, std::ios::in | std::ios::binary);
     if (fp.is_open()) {
         size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
         void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
         if (mem != nullptr && len != 0) {
-            fp.read(reinterpret_cast<char*>(mem), (int) len);
+            fp.read(reinterpret_cast<char *>(mem), (int) len);
             no_error = true;
         }
         fp.close();

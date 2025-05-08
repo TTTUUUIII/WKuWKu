@@ -50,6 +50,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class PlayFragment extends BaseFragment {
     private static final String TAG = "PlayFragment";
     private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
+    private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
     private FragmentPlayBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
@@ -156,11 +157,13 @@ public class PlayFragment extends BaseFragment {
         }
         if (!success) {
             if (mGame != null && mGame.state != Game.STATE_BROKEN) {
-                mGame.state = Game.STATE_BROKEN;
-                Disposable disposable = mViewModel.update(mGame)
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe();
+                if (SettingsManager.getBoolean(AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED)) {
+                    mGame.state = Game.STATE_BROKEN;
+                    Disposable disposable = mViewModel.update(mGame)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                }
             }
             Toast.makeText(parentActivity.getApplicationContext(), R.string.load_game_failed, Toast.LENGTH_SHORT).show();
         }

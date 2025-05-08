@@ -156,6 +156,7 @@ public class Fceumm implements Emulator {
         }
         if (!nativeLoad(rom.getAbsolutePath())) {
             nativePowerOff();
+            mState = STATE_INVALID;
             return false;
         }
         assert mMainThread == null;
@@ -208,7 +209,6 @@ public class Fceumm implements Emulator {
 
     @Override
     public void suspend() {
-        mState = STATE_INVALID;
         if (mMainThread != null) {
             mMainThread.cancel();
             mMainThread = null;
@@ -220,7 +220,9 @@ public class Fceumm implements Emulator {
         if (mVideoDevice != null) {
             mVideoDevice = null;
         }
+        if (mState == STATE_INVALID) return;
         nativePowerOff();
+        mState = STATE_INVALID;
     }
 
     @Override
@@ -332,7 +334,7 @@ public class Fceumm implements Emulator {
                 "fceumm_palette",
                 EmOption.builder("fceumm_palette", "default")
                         .setTitle("Color palette")
-                        .setAllowVals("default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw"/*, "custom"*/)
+                        .setAllowVals("default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw", "custom")
                         .setSupported(true)
                         .build()
         );
