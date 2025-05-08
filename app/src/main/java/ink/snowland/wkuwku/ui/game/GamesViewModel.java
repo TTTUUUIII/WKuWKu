@@ -74,10 +74,11 @@ public class GamesViewModel extends BaseViewModel {
                         conn.setReadTimeout(1000 * 8);
                         try (InputStream from = conn.getInputStream()) {
                             FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
-                        };
-                        observer.onSuccess(FileManager.calculateMD5Sum(FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath)));
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                        }
+                        File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
+                        observer.onSuccess(FileManager.calculateMD5Sum(file));
+                    } catch (Exception e) {
+                        observer.onError(e);
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

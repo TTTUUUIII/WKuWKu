@@ -22,7 +22,7 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
     }
 
     protected void showErrorToast(@NonNull Throwable error) {
-        if (error.getCause() instanceof SocketTimeoutException) {
+        if (error instanceof SocketTimeoutException || error.getCause() instanceof SocketTimeoutException) {
             Toast.makeText(getApplication(), R.string.network_timeout, Toast.LENGTH_SHORT).show();
             return;
         }
