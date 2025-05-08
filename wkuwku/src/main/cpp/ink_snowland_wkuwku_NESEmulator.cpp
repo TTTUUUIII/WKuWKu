@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <libretro/libretro.h>
 #include <string>
+#include <fstream>
 #include "log.h"
 
 #define TAG "FceummEmulator_Native"
@@ -152,7 +153,6 @@ static bool environment_callback(unsigned cmd, void *data) {
             desc = (struct retro_input_descriptor*) data;
             jobject array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
             while (desc->description != nullptr) {
-                LOGD(TAG, "%s", desc->description);
                 jobject it = env->NewObject(
                         ctx.input_descriptor_clazz,
                         ctx.input_descriptor_constructor,
@@ -381,4 +381,82 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeGetSystemInfo(JNIEnv *env, jobjec
     jfieldID block_extract = env->GetFieldID(clazz, "blockExtract", "Z");
     env->SetBooleanField(obj, block_extract, system_info.block_extract);
     return obj;
+}
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveMemoryRam(JNIEnv *env, jobject thiz, jstring path) {
+    size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    if (len == 0) return false;
+    void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+    if (mem == nullptr) return false;
+    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
+    std::ofstream fp(_path, std::ios::out | std::ios::binary);
+    if (!fp.is_open()) return false;
+    fp.write(reinterpret_cast<char*>(mem), (int) len).flush();
+    fp.close();
+    env->ReleaseStringUTFChars(path, _path);
+    return true;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeSaveState(JNIEnv *env, jobject thiz, jstring path) {
+    size_t len = retro_serialize_size();
+    if (len == 0) return false;
+    void* mem = calloc(1, len);
+    if (mem == nullptr) return false;
+    if (!retro_serialize(mem, len)) {
+        free(mem);
+        return false;
+    }
+    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
+    std::ofstream fp(_path, std::ios::out | std::ios::binary);
+    if (!fp.is_open()) {
+        free(mem);
+        env->ReleaseStringUTFChars(path, _path);
+        return false;
+    }
+    env->ReleaseStringUTFChars(path, _path);
+    fp.write(reinterpret_cast<char*>(mem), (int) len).flush();
+    fp.close();
+    
+    return true;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeLoadMemoryRam(JNIEnv *env, jobject thiz, jstring path) {
+    bool no_error = false;
+    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
+    std::ifstream fp(_path, std::ios::in|std::ios::binary);
+    if (fp.is_open()) {
+        size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+        void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+        if (mem != nullptr && len != 0) {
+            fp.read(reinterpret_cast<char*>(mem), (int) len);
+            no_error = true;
+        }
+        fp.close();
+    }
+    env->ReleaseStringUTFChars(path, _path);
+    return no_error;
+}
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_ink_snowland_wkuwku_emulator_Fceumm_nativeLoadState(JNIEnv *env, jobject thiz, jstring path) {
+    bool no_error = false;
+    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
+    size_t len = retro_serialize_size();
+    std::ifstream fp(_path);
+    if (fp.is_open() && len != 0) {
+        void *mem = calloc(1, len);
+        if (mem != nullptr) {
+            fp.read(static_cast<char *>(mem), (int) len);
+            retro_unserialize(mem, len);
+            free(mem);
+            no_error = true;
+        }
+        fp.close();
+    }
+    return no_error;
 }

@@ -1581,6 +1581,11 @@ public interface Emulator {
     int AUDIO_DEVICE = 2;
     int INPUT_DEVICE = 3;
 
+    int SAVE_MEMORY_RAM = 1;
+    int SAVE_STATE = 2;
+
+    int LOAD_STATE = 2;
+
     boolean run(@NonNull File rom);
 
     void pause();
@@ -1600,4 +1605,8 @@ public interface Emulator {
     Collection<EmOption> getOptions();
 
     String getTag();
+
+    boolean save(int type, @NonNull File file);
+
+    boolean load(int type, @Nullable File file);
 }

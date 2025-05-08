@@ -11,7 +11,7 @@ import androidx.room.PrimaryKey;
 
 import java.util.Objects;
 
-@Entity(tableName = "tb_game", indices = @Index(value = "filepath", unique = true))
+@Entity(tableName = "tb_game", indices = {@Index(value = "filepath", unique = true), @Index(value = "md5", unique = true)})
 public class Game implements Parcelable, Cloneable {
     public static final int STATE_VALID = 1;
     public static final int STATE_BROKEN = 2;
@@ -37,6 +37,8 @@ public class Game implements Parcelable, Cloneable {
     public long lastPlayedTime;
     @ColumnInfo(name = "remark", defaultValue = "")
     public String remark;
+    @ColumnInfo(name = "md5")
+    public String md5;
 
     public Game() {
 
@@ -53,6 +55,7 @@ public class Game implements Parcelable, Cloneable {
         lastModifiedTime = in.readLong();
         lastPlayedTime = in.readLong();
         remark = in.readString();
+        md5 = in.readString();
     }
 
     public static final Creator<Game> CREATOR = new Creator<Game>() {
@@ -71,12 +74,12 @@ public class Game implements Parcelable, Cloneable {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Game game = (Game) o;
-        return id == game.id && state == game.state && addedTime == game.addedTime && lastModifiedTime == game.lastModifiedTime && lastPlayedTime == game.lastPlayedTime && Objects.equals(title, game.title) && Objects.equals(filepath, game.filepath) && Objects.equals(system, game.system) && Objects.equals(region, game.region) && Objects.equals(remark, game.remark);
+        return id == game.id && state == game.state && addedTime == game.addedTime && lastModifiedTime == game.lastModifiedTime && lastPlayedTime == game.lastPlayedTime && Objects.equals(title, game.title) && Objects.equals(filepath, game.filepath) && Objects.equals(system, game.system) && Objects.equals(region, game.region) && Objects.equals(remark, game.remark) && Objects.equals(md5, game.md5);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, filepath, system, state, region, addedTime, lastModifiedTime, lastPlayedTime, remark);
+        return Objects.hash(id, title, filepath, system, state, region, addedTime, lastModifiedTime, lastPlayedTime, remark, md5);
     }
 
     @Override
@@ -96,6 +99,7 @@ public class Game implements Parcelable, Cloneable {
         dest.writeLong(lastModifiedTime);
         dest.writeLong(lastPlayedTime);
         dest.writeString(remark);
+        dest.writeString(md5);
     }
 
     @Override
@@ -107,6 +111,7 @@ public class Game implements Parcelable, Cloneable {
                 ", state=" + state +
                 ", region='" + region + '\'' +
                 ", remark='" + remark + '\'' +
+                ", md5='" + md5 + '\'' +
                 '}';
     }
 

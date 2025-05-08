@@ -66,15 +66,16 @@ public class GamesViewModel extends BaseViewModel {
     private void addGameFormNetwork(@NonNull Game game, @NonNull Uri uri) {
         pendingIndicator.postValue(true);
         pendingMessage.postValue(getString(R.string.downloading));
-        Disposable disposable = RxUtils.newCompletable(() -> {
+        Disposable disposable = RxUtils.newSingle((RxUtils.SingleFunction<String>) observer -> {
                     try {
                         URL url = new URL(uri.toString());
                         URLConnection conn = url.openConnection();
-                        conn.setConnectTimeout(1000 * 8);
-                        conn.setReadTimeout(1000 * 10);
-                        try (InputStream from = conn.getInputStream()){
+                        conn.setConnectTimeout(1000 * 5);
+                        conn.setReadTimeout(1000 * 8);
+                        try (InputStream from = conn.getInputStream()) {
                             FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
-                        }
+                        };
+                        observer.onSuccess(FileManager.calculateMD5Sum(FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath)));
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -85,13 +86,14 @@ public class GamesViewModel extends BaseViewModel {
                     pendingIndicator.postValue(false);
                     pendingMessage.postValue("");
                 })
-                .subscribe(() -> {
+                .subscribe(md5 -> {
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
                     assert file.exists() && file.isFile() && file.canRead();
                     game.filepath = file.getAbsolutePath();
                     game.addedTime = System.currentTimeMillis();
                     game.lastModifiedTime = game.addedTime;
                     game.state = Game.STATE_VALID;
+                    game.md5 = md5;
                     addGameToDatabase(game);
                 }, error -> {/*Ignored*/});
     }
@@ -107,6 +109,7 @@ public class GamesViewModel extends BaseViewModel {
         game.addedTime = System.currentTimeMillis();
         game.lastModifiedTime = game.addedTime;
         game.state = Game.STATE_VALID;
+        game.md5 = FileManager.calculateMD5Sum(file);
         addGameToDatabase(game);
     }
 

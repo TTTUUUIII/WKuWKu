@@ -5,7 +5,6 @@
             name="game"
             type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
-        <import type="ink.snowland.wkuwku.util.FileManager" />
     </data>
     <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:padding="15dp"
@@ -58,7 +57,7 @@
                 android:text="@string/md5sum" />
             <TextView
                 android:layout_weight="1"
-                android:text="@{FileManager.calculateMD5Sum(game.filepath)}" />
+                android:text="@{game.md5}" />
         </TableRow>
     </TableLayout>
 </layout>

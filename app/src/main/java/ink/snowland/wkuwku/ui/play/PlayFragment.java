@@ -1,13 +1,12 @@
 package ink.snowland.wkuwku.ui.play;
 
 import static ink.snowland.wkuwku.interfaces.Emulator.*;
+
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -18,10 +17,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import android.os.VibrationEffect;
-import android.os.Vibrator;
+import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -36,31 +33,30 @@ import java.util.Objects;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
+import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.databinding.FragmentPlayBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.AudioDevice;
 import ink.snowland.wkuwku.device.NESController;
 import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.interfaces.EmInputDevice;
 import ink.snowland.wkuwku.device.GLVideoDevice;
+import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class PlayFragment extends BaseFragment implements View.OnTouchListener {
-
-    private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
-    private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
+public class PlayFragment extends BaseFragment {
+    private static final String TAG = "PlayFragment";
+    private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private FragmentPlayBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
-    private EmInputDevice mInputDevice;
+    private BaseController mController;
     private AudioDevice mAudioDevice;
     private PlayViewModel mViewModel;
     private Game mGame;
-    private Vibrator mVibrator;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,16 +73,9 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
                 binding.glSurfaceView.requestRender();
             }
         };
-        mInputDevice = new NESController(0);
         Bundle arguments = getArguments();
         if (arguments != null) {
             mGame = arguments.getParcelable(ARG_GAME);
-        }
-        if (SettingsManager.getBoolean(VIBRATION_FEEDBACK, true)) {
-            mVibrator = (Vibrator) parentActivity.getSystemService(Context.VIBRATOR_SERVICE);
-            if (!mVibrator.hasVibrator()) {
-                mVibrator = null;
-            }
         }
     }
 
@@ -144,63 +133,7 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
         }
     }
 
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        v.performClick();
-        int viewId = v.getId();
-        int id;
-        if (viewId == R.id.button_a_b) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_A, EmInputDevice.KEY_DOWN);
-                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_B, EmInputDevice.KEY_DOWN);
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_A, EmInputDevice.KEY_UP);
-                mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_B, EmInputDevice.KEY_UP);
-            }
-        } else {
-            if (viewId == R.id.button_select) {
-                id = RETRO_DEVICE_ID_JOYPAD_SELECT;
-            } else if (viewId == R.id.button_start) {
-                id = RETRO_DEVICE_ID_JOYPAD_START;
-            } else if (viewId == R.id.button_a) {
-                id = RETRO_DEVICE_ID_JOYPAD_A;
-            } else if (viewId == R.id.button_b) {
-                id = RETRO_DEVICE_ID_JOYPAD_B;
-            } else if (viewId == R.id.button_x) {
-                id = RETRO_DEVICE_ID_JOYPAD_X;
-            } else if (viewId == R.id.button_y) {
-                id = RETRO_DEVICE_ID_JOYPAD_Y;
-            } else if (viewId == R.id.button_l) {
-                id = RETRO_DEVICE_ID_JOYPAD_L;
-            } else if (viewId == R.id.button_l2) {
-                id = RETRO_DEVICE_ID_JOYPAD_L2;
-            } else if (viewId == R.id.button_r) {
-                id = RETRO_DEVICE_ID_JOYPAD_R;
-            } else if (viewId == R.id.button_r2) {
-                id = RETRO_DEVICE_ID_JOYPAD_R2;
-            } else {
-                return false;
-            }
-            int state;
-            int action = event.getAction();
-            if (action == MotionEvent.ACTION_DOWN) {
-                state = EmInputDevice.KEY_DOWN;
-            } else if (action == MotionEvent.ACTION_UP) {
-                state = EmInputDevice.KEY_UP;
-            } else {
-                return false;
-            }
-            mInputDevice.setState(id, state);
-        }
-        if (mVibrator != null && event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
-            } else {
-                mVibrator.vibrate(20);
-            }
-        }
-        return false;
-    }
+
 
     private void startGame() {
         boolean success = false;
@@ -208,12 +141,15 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
             mEmulator = getEmulatorForGame(mGame);
             if (mEmulator != null) {
                 applyOptions();
+                prepareController();
                 mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
                 mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
-                mEmulator.attachDevice(INPUT_DEVICE, mInputDevice);
+                mEmulator.attachDevice(INPUT_DEVICE, mController);
                 mEmulator.setSystemDirectory(Objects.requireNonNull(parentActivity.getExternalCacheDir()));
                 if (mEmulator.run(new File(mGame.filepath))) {
-                    bindEvents();
+                    if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
+                        loadCurrentState(true);
+                    }
                     success = true;
                 }
             }
@@ -230,10 +166,36 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
         }
     }
 
+    private void prepareController() {
+        assert mGame != null;
+        if (mGame.system.toLowerCase(Locale.ROOT).equals("nes")) {
+            mController = new NESController(0, parentActivity);
+            binding.getRoot().addView(mController.getView());
+        } else {
+            /*Not supported yet.*/
+            Log.w(TAG, "No controller for system \"" + mGame.system + "\"");
+        }
+    }
+
+    private void saveCurrentState(boolean auto) {
+        if (mEmulator == null) return;
+        final String ext = auto ? ".ast" : ".st";
+        mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, mGame.md5 + ext));
+    }
+
+    private void loadCurrentState(boolean auto) {
+        if (mEmulator == null) return;
+        final String ext = auto ? ".ast" : ".st";
+        File file = FileManager.getFile(FileManager.STATE_DIRECTORY, mGame.md5 + ext);
+        if (file.exists()) {
+            mEmulator.load(LOAD_STATE, file);
+        }
+    }
+
     private void applyOptions() {
         assert mEmulator != null;
         Collection<EmOption> options = mEmulator.getOptions();
-        for (EmOption option: options) {
+        for (EmOption option : options) {
             if (!option.supported) continue;
             String val = SettingsManager.getString(option.key);
             if (val.isEmpty()) continue;
@@ -243,6 +205,7 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
     }
 
     private AlertDialog mExitDialog;
+
     private void showExitGameDialog() {
         if (mExitDialog == null) {
             mExitDialog = new MaterialAlertDialogBuilder(requireActivity())
@@ -264,6 +227,12 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
     }
 
     private void exit() {
+        if (mEmulator == null) {
+            NavController navController = NavHostFragment.findNavController(this);
+            navController.popBackStack();
+            return;
+        }
+        assert mGame != null;
         mGame.lastPlayedTime = System.currentTimeMillis();
         Disposable disposable = mViewModel.update(mGame)
                 .subscribeOn(Schedulers.io())
@@ -272,39 +241,13 @@ public class PlayFragment extends BaseFragment implements View.OnTouchListener {
                     error.printStackTrace(System.err);
                 })
                 .doOnComplete(() -> {
+                    if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
+                        saveCurrentState(true);
+                    }
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.popBackStack();
                 })
                 .subscribe();
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private void bindEvents() {
-        binding.buttonSelect.setOnTouchListener(this);
-        binding.buttonStart.setOnTouchListener(this);
-        binding.buttonA.setOnTouchListener(this);
-        binding.buttonB.setOnTouchListener(this);
-        binding.buttonX.setOnTouchListener(this);
-        binding.buttonY.setOnTouchListener(this);
-        binding.buttonL.setOnTouchListener(this);
-        binding.buttonL2.setOnTouchListener(this);
-        binding.buttonR.setOnTouchListener(this);
-        binding.buttonR2.setOnTouchListener(this);
-        binding.buttonAB.setOnTouchListener(this);
-        binding.joystickView.setOnMoveListener((angle, strength) -> {
-            double rad = Math.toRadians(angle);
-            double dist = strength / 100.0;
-            int xpos = (int) (dist * Math.cos(rad) * 127);
-            int ypos = (int) (dist * Math.sin(rad) * 127);
-            int left = xpos < -JOYSTICK_TRIGGER_THRESHOLD ? EmInputDevice.KEY_DOWN : EmInputDevice.KEY_UP;
-            int right = xpos > JOYSTICK_TRIGGER_THRESHOLD ? EmInputDevice.KEY_DOWN : EmInputDevice.KEY_UP;
-            int up = ypos > JOYSTICK_TRIGGER_THRESHOLD ? EmInputDevice.KEY_DOWN : EmInputDevice.KEY_UP;
-            int down = ypos < -JOYSTICK_TRIGGER_THRESHOLD ? EmInputDevice.KEY_DOWN : EmInputDevice.KEY_UP;
-            mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_DOWN, down);
-            mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_UP, up);
-            mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_LEFT, left);
-            mInputDevice.setState(RETRO_DEVICE_ID_JOYPAD_RIGHT, right);
-        });
     }
 
     public static final String ARG_GAME = "game";

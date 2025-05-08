@@ -31,7 +31,7 @@
 
         <SwitchPreferenceCompat
             app:defaultValue="false"
-            app:enabled="false"
+            app:enabled="true"
             app:key="app_emulator_restore_last_state"
             app:title="@string/restore_last_state" />
     </PreferenceCategory>

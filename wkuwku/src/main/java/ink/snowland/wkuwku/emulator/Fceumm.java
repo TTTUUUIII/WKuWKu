@@ -143,6 +143,10 @@ public class Fceumm implements Emulator {
 
     private native EmSystemAvInfo nativeGetSystemAvInfo();
     private native EmSystemInfo nativeGetSystemInfo();
+    private native boolean nativeSaveMemoryRam(@NonNull String path);
+    private native boolean nativeSaveState(@NonNull String path);
+    private native boolean nativeLoadMemoryRam(@NonNull String path);
+    private native boolean nativeLoadState(@NonNull String path);
 
     @Override
     public boolean run(@NonNull File rom) {
@@ -265,6 +269,25 @@ public class Fceumm implements Emulator {
     @Override
     public String getTag() {
         return "fceumm";
+    }
+
+    @Override
+    public boolean save(int type, @NonNull File file) {
+        if (type == SAVE_MEMORY_RAM) {
+            return nativeSaveMemoryRam(file.getAbsolutePath());
+        } else if (type == SAVE_STATE) {
+            return nativeSaveState(file.getAbsolutePath());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean load(int type, @Nullable File file) {
+        if (file == null) return true;
+        if (type == LOAD_STATE) {
+            nativeLoadState(file.getAbsolutePath());
+        }
+        return false;
     }
 
     @Override

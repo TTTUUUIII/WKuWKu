@@ -19,6 +19,7 @@ import java.security.MessageDigest;
 
 public class FileManager {
     public static final String ROM_DIRECTORY = "rom";
+    public static final String STATE_DIRECTORY = "state";
     private FileManager() {}
     private static Context sApplicationContext;
     public static File getFile(String type, String filename) {
