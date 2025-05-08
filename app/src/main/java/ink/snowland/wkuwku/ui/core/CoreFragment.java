@@ -54,7 +54,7 @@ public class CoreFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentCoreBinding.inflate(inflater);
+        binding = FragmentCoreBinding.inflate(inflater, container, false);
         parentActivity.setActionbarSubTitle(R.string.core_options);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
@@ -70,8 +70,11 @@ public class CoreFragment extends BaseFragment {
         String[] tags = emulators.stream().map(Emulator::getTag)
                 .toArray(String[]::new);
         binding.coreSelector.setAdapter(new NoFilterArrayAdapter<String>(requireActivity(), R.layout.layout_simple_text, tags));
-        binding.coreSelector.addTextChangedListener(new CoreChangedCallback());
-        binding.coreSelector.setText(SettingsManager.getString(SELECTED_CORE, tags[0]));
+        mViewModel.setPendingIndicator(true, R.string.loading);
+        handler.postAtTime(() -> {
+            binding.coreSelector.addTextChangedListener(new CoreChangedCallback());
+            binding.coreSelector.setText(SettingsManager.getString(SELECTED_CORE, tags[0]));
+        }, SystemClock.uptimeMillis() + 400);
     }
 
     @Override
@@ -82,28 +85,31 @@ public class CoreFragment extends BaseFragment {
 
     private void onReloadOptions() {
         assert mEmulator != null;
-        mViewModel.setPendingIndicator(true, R.string.loading);
         SettingsManager.putString(SELECTED_CORE, mEmulator.getTag());
-        RxUtils.newSingle((RxUtils.SingleFunction<List<EmOption>>) observer -> {
-                    List<EmOption> options = mEmulator.getOptions().stream()
-                            .sorted()
-                            .collect(Collectors.toList());
-                    for (EmOption option : options) {
-                        String val = SettingsManager.getString(option.key);
-                        if (val.isEmpty()) continue;
-                        option.val = val;
-                    }
-                    observer.onSuccess(options);
-                }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(options -> {
-                    mCurrentOptions = options;
-                    runAtTime(() -> {
-                        mAdapter.submitList(mCurrentOptions);
+        mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
+        if (mCurrentOptions != null) {
+            mAdapter.submitList(mCurrentOptions);
+            mViewModel.setPendingIndicator(false);
+        } else {
+            RxUtils.newSingle((RxUtils.SingleFunction<List<EmOption>>) observer -> {
+                        List<EmOption> options = mEmulator.getOptions().stream()
+                                .sorted()
+                                .collect(Collectors.toList());
+                        for (EmOption option : options) {
+                            String val = SettingsManager.getString(option.key);
+                            if (val.isEmpty()) continue;
+                            option.val = val;
+                        }
+                        observer.onSuccess(options);
+                    }).subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSuccess(options -> {
+                        mViewModel.putEmulatorOptions(mEmulator, options);
+                        mAdapter.submitList(options);
                         mViewModel.setPendingIndicator(false);
-                    }, SystemClock.uptimeMillis() + 800);
-                })
-                .subscribe();
+                    })
+                    .subscribe();
+        }
     }
 
     private class CoreChangedCallback implements TextWatcher {
