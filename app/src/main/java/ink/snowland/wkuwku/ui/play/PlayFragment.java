@@ -182,6 +182,7 @@ public class PlayFragment extends BaseFragment {
 
     private void saveCurrentState(boolean auto) {
         if (mEmulator == null) return;
+        if (mGame.filepath.endsWith("fds")) return;
         final String ext = auto ? ".ast" : ".st";
         mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, mGame.md5 + ext));
     }
