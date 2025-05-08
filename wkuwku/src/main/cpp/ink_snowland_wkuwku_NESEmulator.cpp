@@ -253,7 +253,6 @@ Java_ink_snowland_wkuwku_emulator_Fceumm_nativeReset(JNIEnv *env, jobject thiz) 
 extern "C"
 JNIEXPORT void JNICALL
 Java_ink_snowland_wkuwku_emulator_Fceumm_nativePowerOn(JNIEnv *env, jobject thiz) {
-    LOGD(TAG, "poweron");
     ctx.fceumm_obj = env->NewGlobalRef(thiz);
     retro_set_environment(environment_callback);
     retro_init();
