@@ -21,12 +21,11 @@ import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.EmAudioDevice;
 import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.annotations.CallFromJni;
 import ink.snowland.wkuwku.interfaces.EmulatorDevice;
 import ink.snowland.wkuwku.interfaces.EmInputDevice;
 import ink.snowland.wkuwku.interfaces.EmVideoDevice;
 
-public class Fceumm implements Emulator {
+public class Fceumm extends Emulator {
     private final byte[] mLock = new byte[0];
     private static final String TAG = "Fceumm";
     private static final int STATE_INVALID = 0;
@@ -48,8 +47,8 @@ public class Fceumm implements Emulator {
         AV_IFNO = nativeGetSystemAvInfo();
     }
 
-    @CallFromJni
-    private boolean onEnvironment(int cmd, Object data) {
+    @Override
+    protected boolean onEnvironment(int cmd, Object data) {
         if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
             return false;
         }
@@ -91,14 +90,15 @@ public class Fceumm implements Emulator {
         return true;
     }
 
-    @CallFromJni
-    private void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
+
+    @Override
+    protected void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
         if (mVideoDevice == null) return;
         mVideoDevice.refresh(data, width, height, pitch);
     }
 
-    @CallFromJni
-    private void onAudioSampleBatch(final short[] data, int frames) {
+    @Override
+    protected void onAudioSampleBatch(final short[] data, int frames) {
         if (mAudioDevice == null) return;
         if (!mAudioDevice.isOpen()) {
             mAudioDevice.open(EmAudioDevice.PCM_16BIT, 48000, 2);
@@ -108,8 +108,8 @@ public class Fceumm implements Emulator {
         }
     }
 
-    @CallFromJni
-    private int onInputState(int port, int device, int index, int id) {
+    @Override
+    protected int onInputState(int port, int device, int index, int id) {
         EmInputDevice it = null;
         if (port == 0) {
             it = mInputDevice0;
@@ -126,27 +126,10 @@ public class Fceumm implements Emulator {
         return 0;
     }
 
-    @CallFromJni
-    private void onInputPoll() {
+    @Override
+    protected void onInputPoll() {
 
     }
-
-    private native void nativePowerOn();
-
-    private native void nativePowerOff();
-
-    private native void nativeReset();
-
-    private native boolean nativeLoad(@NonNull String path);
-
-    private native void nativeRun();
-
-    private native EmSystemAvInfo nativeGetSystemAvInfo();
-    private native EmSystemInfo nativeGetSystemInfo();
-    private native boolean nativeSaveMemoryRam(@NonNull String path);
-    private native boolean nativeSaveState(@NonNull String path);
-    private native boolean nativeLoadMemoryRam(@NonNull String path);
-    private native boolean nativeLoadState(@NonNull String path);
 
     @Override
     public boolean run(@NonNull File rom) {
@@ -293,6 +276,11 @@ public class Fceumm implements Emulator {
     }
 
     @Override
+    public EmSystemInfo getSystemInfo() {
+        return nativeGetSystemInfo();
+    }
+
+    @Override
     public void setSystemDirectory(@NonNull File systemDirectory) {
         sSystemDirectory = systemDirectory.getAbsolutePath();
     }
@@ -306,7 +294,7 @@ public class Fceumm implements Emulator {
     private final static Fceumm SHARED_INSTANCE;
 
     static {
-        System.loadLibrary("nes");
+        System.loadLibrary("fceumm-bridge");
         SHARED_INSTANCE = new Fceumm();
         OPTIONS.put(
                 "fceumm_game_genie",
@@ -572,4 +560,16 @@ public class Fceumm implements Emulator {
                         .build()
         );
     }
+
+    protected native void nativePowerOn();
+    protected native void nativePowerOff();
+    protected native void nativeReset();
+    protected native boolean nativeLoad(@NonNull String path);
+    protected native void nativeRun();
+    protected native EmSystemAvInfo nativeGetSystemAvInfo();
+    protected native EmSystemInfo nativeGetSystemInfo();
+    protected native boolean nativeSaveMemoryRam(@NonNull String path);
+    protected native boolean nativeLoadMemoryRam(@NonNull String path);
+    protected native boolean nativeSaveState(@NonNull String path);
+    protected native boolean nativeLoadState(@NonNull String path);
 }

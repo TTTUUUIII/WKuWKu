@@ -26,19 +26,32 @@ project("wkuwku")
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include_directories(include)
-add_library(nes SHARED
+add_library(fceumm-bridge SHARED
     # List C/C++ source files with relative paths to this CMakeLists.txt.
-        ink_snowland_wkuwku_NESEmulator.cpp)
+        universal.cpp
+        ink_snowland_wkuwku_fceumm_bridge.cpp)
 
 add_library(fceumm SHARED IMPORTED)
 set_target_properties(fceumm PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libfceumm.so)
-add_library(swappy SHARED IMPORTED)
-set_target_properties(swappy PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libswappy.so)
+
+add_library(genesis-plus-gx-bridge SHARED
+        universal.cpp
+        ink_snowland_wkuwku_genesis_bridge.cpp)
+
+add_library(genesis-plus-gx SHARED IMPORTED)
+set_target_properties(genesis-plus-gx PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libgenesis-plus-gx.so)
+
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.
-target_link_libraries(nes
+target_link_libraries(fceumm-bridge
     # List libraries link to the target library
     android
     log
     fceumm)
+
+target_link_libraries(genesis-plus-gx-bridge
+        android
+        log
+        genesis-plus-gx
+)

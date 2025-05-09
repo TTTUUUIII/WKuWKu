@@ -1,24 +1,27 @@
 package ink.snowland.wkuwku.interfaces;
 
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.List;
 
+import ink.snowland.wkuwku.annotations.CallFromJni;
 import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.common.EmSystemAvInfo;
+import ink.snowland.wkuwku.common.EmSystemInfo;
 
-public interface Emulator {
+public abstract class Emulator {
 
-    int RETRO_ENVIRONMENT_EXPERIMENTAL = 0x10000;
-    int RETRO_ENVIRONMENT_SET_ROTATION = 1;
+    public static final int RETRO_ENVIRONMENT_EXPERIMENTAL = 0x10000;
+    public static final int RETRO_ENVIRONMENT_SET_ROTATION = 1;
     /* const unsigned * --
      * Sets screen rotation of graphics.
      * Valid values are 0, 1, 2, 3, which rotates screen by 0, 90, 180,
      * 270 degrees counter-clockwise respectively.
      */
-    int RETRO_ENVIRONMENT_GET_OVERSCAN = 2;
+    public static final int RETRO_ENVIRONMENT_GET_OVERSCAN = 2;
     /* bool * --
      * NOTE: As of 2019 this callback is considered deprecated in favor of
      * using core options to manage overscan in a more nuanced, core-specific way.
@@ -26,7 +29,7 @@ public interface Emulator {
      * Boolean value whether or not the implementation should use overscan,
      * or crop away overscan.
      */
-    int RETRO_ENVIRONMENT_GET_CAN_DUPE = 3;
+    public static final int RETRO_ENVIRONMENT_GET_CAN_DUPE = 3;
     /* bool * --
      * Boolean value whether or not frontend supports frame duping,
      * passing NULL to video frame callback.
@@ -36,7 +39,7 @@ public interface Emulator {
      * and reserved to avoid possible ABI clash.
      */
 
-    int RETRO_ENVIRONMENT_SET_MESSAGE = 6;
+    public static final int RETRO_ENVIRONMENT_SET_MESSAGE = 6;
     /* const struct retro_message * --
      * Sets a message to be displayed in implementation-specific manner
      * for a certain amount of 'frames'.
@@ -44,15 +47,15 @@ public interface Emulator {
      * logged via RETRO_ENVIRONMENT_GET_LOG_INTERFACE (or as a
      * fallback, stderr).
      */
-    int RETRO_ENVIRONMENT_SHUTDOWN = 7;
+    public static final int RETRO_ENVIRONMENT_SHUTDOWN = 7;
     /* N/A (NULL) --
      * Requests the frontend to shutdown.
      * Should only be used if game has a specific
      * way to shutdown the game from a menu item or similar.
      */
-    int RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL = 8;
+    public static final int RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL = 8;
     /* const unsigned * --
-     * Gives a hint to the frontend how demanding this implementation
+     * Gives a hpublic static final int to the frontend how demanding this implementation
      * is on a system. E.g. reporting a level of 2 means
      * this implementation should run decently on all frontends
      * of level 2 and up.
@@ -67,7 +70,7 @@ public interface Emulator {
      * particularly demanding.
      * If called, it should be called in retro_load_game().
      */
-    int RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY = 9;
+    public static final int RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY = 9;
     /* const char ** --
      * Returns the "system" directory of the frontend.
      * This directory can be used to store system specific
@@ -81,7 +84,7 @@ public interface Emulator {
      * This is now discouraged, and if possible, cores should try to
      * use the new GET_SAVE_DIRECTORY.
      */
-    int RETRO_ENVIRONMENT_SET_PIXEL_FORMAT = 10;
+    public static final int RETRO_ENVIRONMENT_SET_PIXEL_FORMAT = 10;
     /* const enum retro_pixel_format * --
      * Sets the internal pixel format used by the implementation.
      * The default pixel format is RETRO_PIXEL_FORMAT_0RGB1555.
@@ -92,7 +95,7 @@ public interface Emulator {
      * This function should be called inside retro_load_game() or
      * retro_get_system_av_info().
      */
-    int RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS = 11;
+    public static final int RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS = 11;
     /* const struct retro_input_descriptor * --
      * Sets an array of retro_input_descriptors.
      * It is up to the frontend to present this in a usable way.
@@ -101,18 +104,18 @@ public interface Emulator {
      * This function can be called at any time, but it is recommended
      * to call it as early as possible.
      */
-    int RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK = 12;
+    public static final int RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK = 12;
     /* const struct retro_keyboard_callback * --
      * Sets a callback function used to notify core about keyboard events.
      */
-    int RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE = 13;
+    public static final int RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE = 13;
     /* const struct retro_disk_control_callback * --
      * Sets an interface which frontend can use to eject and insert
      * disk images.
      * This is used for games which consist of multiple images and
      * must be manually swapped out by the user (e.g. PSX).
      */
-    int RETRO_ENVIRONMENT_SET_HW_RENDER = 14;
+    public static final int RETRO_ENVIRONMENT_SET_HW_RENDER = 14;
     /* struct retro_hw_render_callback * --
      * Sets an interface to let a libretro core render with
      * hardware acceleration.
@@ -124,7 +127,7 @@ public interface Emulator {
      * If HW rendering is used, pass only RETRO_HW_FRAME_BUFFER_VALID or
      * NULL to retro_video_refresh_t.
      */
-    int RETRO_ENVIRONMENT_GET_VARIABLE = 15;
+    public static final int RETRO_ENVIRONMENT_GET_VARIABLE = 15;
     /* struct retro_variable * --
      * Interface to acquire user-defined information from environment
      * that cannot feasibly be supported in a multi-system way.
@@ -132,7 +135,7 @@ public interface Emulator {
      * SET_VARIABLES.
      * 'data' will be set to a value or NULL.
      */
-    int RETRO_ENVIRONMENT_SET_VARIABLES = 16;
+    public static final int RETRO_ENVIRONMENT_SET_VARIABLES = 16;
     /* const struct retro_variable * --
      * Allows an implementation to signal the environment
      * which variables it might want to check for later using
@@ -170,20 +173,20 @@ public interface Emulator {
      * Only strings are operated on. The possible values will
      * generally be displayed and stored as-is by the frontend.
      */
-    int RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE = 17;
+    public static final int RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE = 17;
     /* bool * --
      * Result is set to true if some variables are updated by
      * frontend since last call to RETRO_ENVIRONMENT_GET_VARIABLE.
      * Variables should be queried with GET_VARIABLE.
      */
-    int RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME = 18;
+    public static final int RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME = 18;
     /* const bool * --
      * If true, the libretro implementation supports calls to
      * retro_load_game() with NULL as argument.
      * Used by cores which can run without particular game data.
      * This should be called within retro_set_environment() only.
      */
-    int RETRO_ENVIRONMENT_GET_LIBRETRO_PATH = 19;
+    public static final int RETRO_ENVIRONMENT_GET_LIBRETRO_PATH = 19;
     /* const char ** --
      * Retrieves the absolute path from where this libretro
      * implementation was loaded.
@@ -197,7 +200,7 @@ public interface Emulator {
     /* Environment 20 was an obsolete version of SET_AUDIO_CALLBACK.
      * It was not used by any known core at the time,
      * and was removed from the API. */
-    int RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK = 21;
+    public static final int RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK = 21;
     /* const struct retro_frame_time_callback * --
      * Lets the core know how much time has passed since last
      * invocation of retro_run().
@@ -206,7 +209,7 @@ public interface Emulator {
      * In this case the delta time will use the reference value
      * in frame_time_callback..
      */
-    int RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK = 22;
+    public static final int RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK = 22;
     /* const struct retro_audio_callback * --
      * Sets an interface which is used to notify a libretro core about audio
      * being available for writing.
@@ -232,7 +235,7 @@ public interface Emulator {
      * A libretro core using SET_AUDIO_CALLBACK should also make use of
      * SET_FRAME_TIME_CALLBACK.
      */
-    int RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE = 23;
+    public static final int RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE = 23;
     /* struct retro_rumble_interface * --
      * Gets an interface which is used by a libretro core to set
      * state of rumble motors in controllers.
@@ -242,7 +245,7 @@ public interface Emulator {
      * Should not be called from retro_set_environment().
      * Returns false if rumble functionality is unavailable.
      */
-    int RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES = 24;
+    public static final int RETRO_ENVIRONMENT_GET_INPUT_DEVICE_CAPABILITIES = 24;
     /* uint64_t * --
      * Gets a bitmask telling which device type are expected to be
      * handled properly in a call to retro_input_state_t.
@@ -251,7 +254,7 @@ public interface Emulator {
      * Example bitmask: caps = (1 << RETRO_DEVICE_JOYPAD) | (1 << RETRO_DEVICE_ANALOG).
      * Should only be called in retro_run().
      */
-    int RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE = (25 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_SENSOR_INTERFACE = (25 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_sensor_interface * --
      * Gets access to the sensor interface.
      * The purpose of this interface is to allow
@@ -260,7 +263,7 @@ public interface Emulator {
      * Reading sensor state is done via the normal
      * input_state_callback API.
      */
-    int RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE = (26 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_CAMERA_INTERFACE = (26 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_camera_callback * --
      * Gets an interface to a video camera driver.
      * A libretro core can use this interface to get access to a
@@ -285,7 +288,7 @@ public interface Emulator {
      * functions must be used to explicitly
      * start and stop the camera driver.
      */
-    int RETRO_ENVIRONMENT_GET_LOG_INTERFACE = 27;
+    public static final int RETRO_ENVIRONMENT_GET_LOG_INTERFACE = 27;
     /* struct retro_log_callback * --
      * Gets an interface for logging. This is useful for
      * logging in a cross-platform way
@@ -295,22 +298,22 @@ public interface Emulator {
      * If this interface is not used, libretro cores should
      * log to stderr as desired.
      */
-    int RETRO_ENVIRONMENT_GET_PERF_INTERFACE = 28;
+    public static final int RETRO_ENVIRONMENT_GET_PERF_INTERFACE = 28;
     /* struct retro_perf_callback * --
      * Gets an interface for performance counters. This is useful
      * for performance logging in a cross-platform way and for detecting
      * architecture-specific features, such as SIMD support.
      */
-    int RETRO_ENVIRONMENT_GET_LOCATION_INTERFACE = 29;
+    public static final int RETRO_ENVIRONMENT_GET_LOCATION_INTERFACE = 29;
     /* struct retro_location_callback * --
      * Gets access to the location interface.
      * The purpose of this interface is to be able to retrieve
      * location-based information from the host device,
      * such as current latitude / longitude.
      */
-    int RETRO_ENVIRONMENT_GET_CONTENT_DIRECTORY = 30;
+    public static final int RETRO_ENVIRONMENT_GET_CONTENT_DIRECTORY = 30;
     /* Old name, kept for compatibility. */
-    int RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY = 30;
+    public static final int RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY = 30;
     /* const char ** --
      * Returns the "core assets" directory of the frontend.
      * This directory can be used to store specific assets that the
@@ -320,7 +323,7 @@ public interface Emulator {
      * If so, no such directory is defined,
      * and it's up to the implementation to find a suitable directory.
      */
-    int RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY = 31;
+    public static final int RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY = 31;
     /* const char ** --
      * Returns the "save" directory of the frontend, unless there is no
      * save directory available. The save directory should be used to
@@ -335,7 +338,7 @@ public interface Emulator {
      * files. Cores that need to be backwards-compatible can still check
      * GET_SYSTEM_DIRECTORY.
      */
-    int RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO = 32;
+    public static final int RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO = 32;
     /* const struct retro_system_av_info * --
      * Sets a new av_info structure. This can only be called from
      * within retro_run().
@@ -368,7 +371,7 @@ public interface Emulator {
      * If this returns false, the frontend does not acknowledge a
      * changed av_info struct.
      */
-    int RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK = 33;
+    public static final int RETRO_ENVIRONMENT_SET_PROC_ADDRESS_CALLBACK = 33;
     /* const struct retro_get_proc_address_interface * --
      * Allows a libretro core to announce support for the
      * get_proc_address() interface.
@@ -379,7 +382,7 @@ public interface Emulator {
      * If a core wants to expose this interface, SET_PROC_ADDRESS_CALLBACK
      * **MUST** be called from within retro_set_environment().
      */
-    int RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO = 34;
+    public static final int RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO = 34;
     /* const struct retro_subsystem_info * --
      * This environment call introduces the concept of libretro "subsystems".
      * A subsystem is a variant of a libretro core which supports
@@ -398,7 +401,7 @@ public interface Emulator {
      * If a core wants to use this functionality, SET_SUBSYSTEM_INFO
      * **MUST** be called from within retro_set_environment().
      */
-    int RETRO_ENVIRONMENT_SET_CONTROLLER_INFO = 35;
+    public static final int RETRO_ENVIRONMENT_SET_CONTROLLER_INFO = 35;
     /* const struct retro_controller_info * --
      * This environment call lets a libretro core tell the frontend
      * which controller subclasses are recognized in calls to
@@ -436,7 +439,7 @@ public interface Emulator {
      * NOTE: Even if special device types are set in the libretro core,
      * libretro should only poll input based on the base input device types.
      */
-    int RETRO_ENVIRONMENT_SET_MEMORY_MAPS = (36 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_SET_MEMORY_MAPS = (36 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* const struct retro_memory_map * --
      * This environment call lets a libretro core tell the frontend
      * about the memory maps this core emulates.
@@ -447,7 +450,7 @@ public interface Emulator {
      * It is recommended to expose all relevant pointers through
      * retro_get_memory_* as well.
      */
-    int RETRO_ENVIRONMENT_SET_GEOMETRY = 37;
+    public static final int RETRO_ENVIRONMENT_SET_GEOMETRY = 37;
     /* const struct retro_game_geometry * --
      * This environment call is similar to SET_SYSTEM_AV_INFO for changing
      * video parameters, but provides a guarantee that drivers will not be
@@ -466,7 +469,7 @@ public interface Emulator {
      * A frontend must guarantee that this environment call completes in
      * constant time.
      */
-    int RETRO_ENVIRONMENT_GET_USERNAME = 38;
+    public static final int RETRO_ENVIRONMENT_GET_USERNAME = 38;
     /* const char **
      * Returns the specified username of the frontend, if specified by the user.
      * This username can be used as a nickname for a core that has online facilities
@@ -475,12 +478,12 @@ public interface Emulator {
      * If this environ callback is used by a core that requires a valid username,
      * a default username should be specified by the core.
      */
-    int RETRO_ENVIRONMENT_GET_LANGUAGE = 39;
+    public static final int RETRO_ENVIRONMENT_GET_LANGUAGE = 39;
     /* unsigned * --
      * Returns the specified language of the frontend, if specified by the user.
      * It can be used by the core for localization purposes.
      */
-    int RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER = (40 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER = (40 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_framebuffer * --
      * Returns a preallocated framebuffer which the core can use for rendering
      * the frame into when not using SET_HW_RENDER.
@@ -510,7 +513,7 @@ public interface Emulator {
      * A frontend must make sure that the pointer obtained from this function is
      * writeable (and readable).
      */
-    int RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE = (41 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE = (41 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* const struct retro_hw_render_interface ** --
      * Returns an API specific rendering interface for accessing API specific data.
      * Not all HW rendering APIs support or need this.
@@ -521,7 +524,7 @@ public interface Emulator {
      * Similarly, after context_destroyed callback returns,
      * the contents of the HW_RENDER_INTERFACE are invalidated.
      */
-    int RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS = (42 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS = (42 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* const bool * --
      * If true, the libretro implementation supports achievements
      * either via memory descriptors set with RETRO_ENVIRONMENT_SET_MEMORY_MAPS
@@ -529,19 +532,19 @@ public interface Emulator {
      *
      * This must be called before the first call to retro_run.
      */
-    int RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE = 43 | (RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE = 43 | (RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* const struct retro_hw_render_context_negotiation_interface * --
      * Sets an interface which lets the libretro core negotiate with frontend how a context is created.
      * The semantics of this interface depends on which API is used in SET_HW_RENDER earlier.
      * This interface will be used when the frontend is trying to create a HW rendering context,
      * so it will be used after SET_HW_RENDER, but before the context_reset callback.
      */
-    int RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS = 44;
+    public static final int RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS = 44;
     /* uint64_t * --
      * Sets quirk flags associated with serialization. The frontend will zero any flags it doesn't
      * recognize or support. Should be set in either retro_init or retro_load_game, but not both.
      */
-    int RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT = (44 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT = (44 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* N/A (null) * --
      * The frontend will try to use a 'shared' hardware context (mostly applicable
      * to OpenGL) when a hardware context is being set up.
@@ -552,7 +555,7 @@ public interface Emulator {
      * This will do nothing on its own until SET_HW_RENDER env callbacks are
      * being used.
      */
-    int RETRO_ENVIRONMENT_GET_VFS_INTERFACE = (45 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_VFS_INTERFACE = (45 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_vfs_interface_info * --
      * Gets access to the VFS interface.
      * VFS presence needs to be queried prior to load_game or any
@@ -560,13 +563,13 @@ public interface Emulator {
      * core supports VFS before it starts handing out paths.
      * It is recomended to do so in retro_set_environment
      */
-    int RETRO_ENVIRONMENT_GET_LED_INTERFACE = (46 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_LED_INTERFACE = (46 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_led_interface * --
      * Gets an interface which is used by a libretro core to set
      * state of LEDs.
      */
-    int RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE = (47 | RETRO_ENVIRONMENT_EXPERIMENTAL);
-    /* int * --
+    public static final int RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE = (47 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    /* public static final int * --
      * Tells the core if the frontend wants audio or video.
      * If disabled, the frontend will discard the audio or video,
      * so the core may decide to skip generating a frame or generating audio.
@@ -606,18 +609,18 @@ public interface Emulator {
      *   never need an accurate audio state in the future.
      * * State will never be saved when using Hard Disable Audio.
      */
-    int RETRO_ENVIRONMENT_GET_MIDI_INTERFACE = (48 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_MIDI_INTERFACE = (48 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_midi_interface ** --
      * Returns a MIDI interface that can be used for raw data I/O.
      */
 
-    int RETRO_ENVIRONMENT_GET_FASTFORWARDING = (49 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_FASTFORWARDING = (49 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* bool * --
      * Boolean value that indicates whether or not the frontend is in
      * fastforwarding mode.
      */
 
-    int RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE = (50 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_TARGET_REFRESH_RATE = (50 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* float * --
      * Float value that lets us know what target refresh rate
      * is curently in use by the frontend.
@@ -626,7 +629,7 @@ public interface Emulator {
      * refresh rate/framerate.
      */
 
-    int RETRO_ENVIRONMENT_GET_INPUT_BITMASKS = (51 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_INPUT_BITMASKS = (51 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* bool * --
      * Boolean value that indicates whether or not the frontend supports
      * input bitmasks being returned by retro_input_state_t. The advantage
@@ -638,7 +641,7 @@ public interface Emulator {
      * It will return a bitmask of all the digital buttons.
      */
 
-    int RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION = 52;
+    public static final int RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION = 52;
     /* unsigned * --
      * Unsigned value is the API version number of the core options
      * interface supported by the frontend. If callback return false,
@@ -664,7 +667,7 @@ public interface Emulator {
      * for frontends with core option category support.
      */
 
-    int RETRO_ENVIRONMENT_SET_CORE_OPTIONS = 53;
+    public static final int RETRO_ENVIRONMENT_SET_CORE_OPTIONS = 53;
     /* const struct retro_core_option_definition ** --
      * Allows an implementation to signal the environment
      * which variables it might want to check for later using
@@ -726,7 +729,7 @@ public interface Emulator {
      * generally be displayed and stored as-is by the frontend.
      */
 
-    int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL = 54;
+    public static final int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL = 54;
     /* const struct retro_core_options_intl * --
      * Allows an implementation to signal the environment
      * which variables it might want to check for later using
@@ -752,7 +755,7 @@ public interface Emulator {
      *
      * retro_core_options_intl::us is a pointer to an array of
      * retro_core_option_definition structs defining the US English
-     * core options implementation. It must point to a valid array.
+     * core options implementation. It must popublic static final int to a valid array.
      *
      * retro_core_options_intl::local is a pointer to an array of
      * retro_core_option_definition structs defining core options for
@@ -766,7 +769,7 @@ public interface Emulator {
      * retro_core_options_intl::local array will be ignored.
      */
 
-    int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY = 55;
+    public static final int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY = 55;
     /* struct retro_core_option_display * --
      *
      * Allows an implementation to signal the environment to show
@@ -786,7 +789,7 @@ public interface Emulator {
      * default when calling SET_VARIABLES/SET_CORE_OPTIONS.
      */
 
-    int RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER = 56;
+    public static final int RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER = 56;
     /* unsigned * --
      *
      * Allows an implementation to ask frontend preferred hardware
@@ -796,7 +799,7 @@ public interface Emulator {
      * 'data' points to an unsigned variable
      */
 
-    int RETRO_ENVIRONMENT_GET_DISK_CONTROL_INTERFACE_VERSION = 57;
+    public static final int RETRO_ENVIRONMENT_GET_DISK_CONTROL_INTERFACE_VERSION = 57;
     /* unsigned * --
      * Unsigned value is the API version number of the disk control
      * interface supported by the frontend. If callback return false,
@@ -817,7 +820,7 @@ public interface Emulator {
      * disk control functionality by the frontend.
      */
 
-    int RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE = 58;
+    public static final int RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE = 58;
     /* const struct retro_disk_control_ext_callback * --
      * Sets an interface which frontend can use to eject and insert
      * disk images, and also obtain information about individual
@@ -827,7 +830,7 @@ public interface Emulator {
      * based systems).
      */
 
-    int RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION = 59;
+    public static final int RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION = 59;
     /* unsigned * --
      * Unsigned value is the API version number of the message
      * interface supported by the frontend. If callback returns
@@ -846,7 +849,7 @@ public interface Emulator {
      * destination (OSD, logging interface or both).
      */
 
-    int RETRO_ENVIRONMENT_SET_MESSAGE_EXT = 60;
+    public static final int RETRO_ENVIRONMENT_SET_MESSAGE_EXT = 60;
     /* const struct retro_message_ext * --
      * Sets a message to be displayed in an implementation-specific
      * manner for a certain amount of 'frames'. Additionally allows
@@ -857,7 +860,7 @@ public interface Emulator {
      * fallback, stderr).
      */
 
-    int RETRO_ENVIRONMENT_GET_INPUT_MAX_USERS = 61;
+    public static final int RETRO_ENVIRONMENT_GET_INPUT_MAX_USERS = 61;
     /* unsigned * --
      * Unsigned value is the number of active input devices
      * provided by the frontend. This may change between
@@ -871,7 +874,7 @@ public interface Emulator {
      * should be considered active.
      */
 
-    int RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK = 62;
+    public static final int RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK = 62;
     /* const struct retro_audio_buffer_status_callback * --
      * Lets the core know the occupancy level of the frontend
      * audio buffer. Can be used by a core to attempt frame
@@ -880,7 +883,7 @@ public interface Emulator {
      * in the frontend.
      */
 
-    int RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY = 63;
+    public static final int RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY = 63;
     /* const unsigned * --
      * Sets minimum frontend audio latency in milliseconds.
      * Resultant audio latency may be larger than set value,
@@ -910,7 +913,7 @@ public interface Emulator {
      * call will target the newly initialized driver.
      */
 
-    int RETRO_ENVIRONMENT_SET_FASTFORWARDING_OVERRIDE = 64;
+    public static final int RETRO_ENVIRONMENT_SET_FASTFORWARDING_OVERRIDE = 64;
     /* const struct retro_fastforwarding_override * --
      * Used by a libretro core to override the current
      * fastforwarding mode of the frontend.
@@ -920,7 +923,7 @@ public interface Emulator {
      * fastforwarding state will occur in this case).
      */
 
-    int RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE = 65;
+    public static final int RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE = 65;
     /* const struct retro_system_content_info_override * --
      * Allows an implementation to override 'global' content
      * info parameters reported by retro_get_system_info().
@@ -990,7 +993,7 @@ public interface Emulator {
      * structs, only the first instance will be registered
      */
 
-    int RETRO_ENVIRONMENT_GET_GAME_INFO_EXT = 66;
+    public static final int RETRO_ENVIRONMENT_GET_GAME_INFO_EXT = 66;
     /* const struct retro_game_info_ext ** --
      * Allows an implementation to fetch extended game
      * information, providing additional content path
@@ -1025,7 +1028,7 @@ public interface Emulator {
      *   retro_load_game_special()
      */
 
-    int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2 = 67;
+    public static final int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2 = 67;
     /* const struct retro_core_options_v2 * --
      * Allows an implementation to signal the environment
      * which variables it might want to check for later using
@@ -1187,7 +1190,7 @@ public interface Emulator {
      * generally be displayed and stored as-is by the frontend.
      */
 
-    int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL = 68;
+    public static final int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_V2_INTL = 68;
     /* const struct retro_core_options_v2_intl * --
      * Allows an implementation to signal the environment
      * which variables it might want to check for later using
@@ -1222,7 +1225,7 @@ public interface Emulator {
      *
      * - retro_core_options_v2_intl::us is a pointer to a
      *   retro_core_options_v2 struct defining the US English
-     *   core options implementation. It must point to a valid struct.
+     *   core options implementation. It must popublic static final int to a valid struct.
      *
      * - retro_core_options_v2_intl::local is a pointer to a
      *   retro_core_options_v2 struct defining core options for
@@ -1236,7 +1239,7 @@ public interface Emulator {
      * the retro_core_options_v2_intl::local struct will be ignored.
      */
 
-    int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK = 69;
+    public static final int RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK = 69;
     /* const struct retro_core_options_update_display_callback * --
      * Allows a frontend to signal that a core must update
      * the visibility of any dynamically hidden core options,
@@ -1246,7 +1249,7 @@ public interface Emulator {
      * Must be called in retro_set_environment().
      */
 
-    int RETRO_ENVIRONMENT_SET_VARIABLE = 70;
+    public static final int RETRO_ENVIRONMENT_SET_VARIABLE = 70;
     /* const struct retro_variable * --
      * Allows an implementation to notify the frontend
      * that a core option value has changed.
@@ -1271,19 +1274,19 @@ public interface Emulator {
      * to test whether the callback is supported.
      */
 
-    int RETRO_ENVIRONMENT_GET_THROTTLE_STATE = (71 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_THROTTLE_STATE = (71 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_throttle_state * --
      * Allows an implementation to get details on the actual rate
      * the frontend is attempting to call retro_run().
      */
 
-    int RETRO_ENVIRONMENT_GET_SAVESTATE_CONTEXT = (72 | RETRO_ENVIRONMENT_EXPERIMENTAL);
-    /* int * --
+    public static final int RETRO_ENVIRONMENT_GET_SAVESTATE_CONTEXT = (72 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    /* public static final int * --
      * Tells the core about the context the frontend is asking for savestate.
      * (see enum retro_savestate_context)
      */
 
-    int RETRO_ENVIRONMENT_GET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE_SUPPORT = (73 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE_SUPPORT = (73 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_hw_render_context_negotiation_interface * --
      * Before calling SET_HW_RNEDER_CONTEXT_NEGOTIATION_INTERFACE, a core can query
      * which version of the interface is supported.
@@ -1309,13 +1312,13 @@ public interface Emulator {
      * this environment call to query support.
      */
 
-    int RETRO_ENVIRONMENT_GET_JIT_CAPABLE = 74;
+    public static final int RETRO_ENVIRONMENT_GET_JIT_CAPABLE = 74;
     /* bool * --
      * Result is set to true if the frontend has already verified JIT can be
      * used, mainly for use iOS/tvOS. On other platforms the result is true.
      */
 
-    int RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE = (75 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_MICROPHONE_INTERFACE = (75 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_microphone_interface * --
      * Returns an interface that can be used to receive input from the microphone driver.
      *
@@ -1327,7 +1330,7 @@ public interface Emulator {
      * even before the microphone driver is ready.
      */
 
-    int RETRO_ENVIRONMENT_SET_NETPACKET_INTERFACE = 76;
+    public static final int RETRO_ENVIRONMENT_SET_NETPACKET_INTERFACE = 76;
     /* const struct retro_netpacket_callback * --
      * When set, a core gains control over network packets sent and
      * received during a multiplayer session. This can be used to
@@ -1351,7 +1354,7 @@ public interface Emulator {
      * input devices does not need to take any action on its own.
      */
 
-    int RETRO_ENVIRONMENT_GET_DEVICE_POWER = (77 | RETRO_ENVIRONMENT_EXPERIMENTAL);
+    public static final int RETRO_ENVIRONMENT_GET_DEVICE_POWER = (77 | RETRO_ENVIRONMENT_EXPERIMENTAL);
     /* struct retro_device_power * --
      * Returns the device's current power state as reported by the frontend.
      * This is useful for emulating the battery level in handheld consoles,
@@ -1371,11 +1374,11 @@ public interface Emulator {
      * 0 bit must be set to 0.
      * This pixel format is default for compatibility concerns only.
      * If a 15/16-bit pixel format is desired, consider using RGB565. */
-    int RETRO_PIXEL_FORMAT_0RGB1555 = 0;
+    public static final int RETRO_PIXEL_FORMAT_0RGB1555 = 0;
 
     /* XRGB8888, native endian.
      * X bits are ignored. */
-    int RETRO_PIXEL_FORMAT_XRGB8888 = 1;
+    public static final int RETRO_PIXEL_FORMAT_XRGB8888 = 1;
 
     /* RGB565, native endian.
      * This pixel format is the recommended format to use if a 15/16-bit
@@ -1383,56 +1386,56 @@ public interface Emulator {
      * available on a wide range of low-power devices.
      *
      * It is also natively supported in APIs like OpenGL ES. */
-    int RETRO_PIXEL_FORMAT_RGB565 = 2;
+    public static final int RETRO_PIXEL_FORMAT_RGB565 = 2;
 
     /* Ensure sizeof() == sizeof(int). */
-    int RETRO_PIXEL_FORMAT_UNKNOWN = Integer.MAX_VALUE;
+    public static final int RETRO_PIXEL_FORMAT_UNKNOWN = Integer.MAX_VALUE;
 
-    int RETRO_LANGUAGE_ENGLISH = 0;
-    int RETRO_LANGUAGE_JAPANESE = 1;
-    int RETRO_LANGUAGE_FRENCH = 2;
-    int RETRO_LANGUAGE_SPANISH = 3;
-    int RETRO_LANGUAGE_GERMAN = 4;
-    int RETRO_LANGUAGE_ITALIAN = 5;
-    int RETRO_LANGUAGE_DUTCH = 6;
-    int RETRO_LANGUAGE_PORTUGUESE_BRAZIL = 7;
-    int RETRO_LANGUAGE_PORTUGUESE_PORTUGAL = 8;
-    int RETRO_LANGUAGE_RUSSIAN = 9;
-    int RETRO_LANGUAGE_KOREAN = 10;
-    int RETRO_LANGUAGE_CHINESE_TRADITIONAL = 11;
-    int RETRO_LANGUAGE_CHINESE_SIMPLIFIED = 12;
-    int RETRO_LANGUAGE_ESPERANTO = 13;
-    int RETRO_LANGUAGE_POLISH = 14;
-    int RETRO_LANGUAGE_VIETNAMESE = 15;
-    int RETRO_LANGUAGE_ARABIC = 16;
-    int RETRO_LANGUAGE_GREEK = 17;
-    int RETRO_LANGUAGE_TURKISH = 18;
-    int RETRO_LANGUAGE_SLOVAK = 19;
-    int RETRO_LANGUAGE_PERSIAN = 20;
-    int RETRO_LANGUAGE_HEBREW = 21;
-    int RETRO_LANGUAGE_ASTURIAN = 22;
-    int RETRO_LANGUAGE_FINNISH = 23;
-    int RETRO_LANGUAGE_INDONESIAN = 24;
-    int RETRO_LANGUAGE_SWEDISH = 25;
-    int RETRO_LANGUAGE_UKRAINIAN = 26;
-    int RETRO_LANGUAGE_CZECH = 27;
-    int RETRO_LANGUAGE_CATALAN_VALENCIA = 28;
-    int RETRO_LANGUAGE_CATALAN = 29;
-    int RETRO_LANGUAGE_BRITISH_ENGLISH = 30;
-    int RETRO_LANGUAGE_HUNGARIAN = 31;
-    int RETRO_LANGUAGE_BELARUSIAN = 32;
-    int RETRO_LANGUAGE_LAST = 33;
+    public static final int RETRO_LANGUAGE_ENGLISH = 0;
+    public static final int RETRO_LANGUAGE_JAPANESE = 1;
+    public static final int RETRO_LANGUAGE_FRENCH = 2;
+    public static final int RETRO_LANGUAGE_SPANISH = 3;
+    public static final int RETRO_LANGUAGE_GERMAN = 4;
+    public static final int RETRO_LANGUAGE_ITALIAN = 5;
+    public static final int RETRO_LANGUAGE_DUTCH = 6;
+    public static final int RETRO_LANGUAGE_PORTUGUESE_BRAZIL = 7;
+    public static final int RETRO_LANGUAGE_PORTUGUESE_PORTUGAL = 8;
+    public static final int RETRO_LANGUAGE_RUSSIAN = 9;
+    public static final int RETRO_LANGUAGE_KOREAN = 10;
+    public static final int RETRO_LANGUAGE_CHINESE_TRADITIONAL = 11;
+    public static final int RETRO_LANGUAGE_CHINESE_SIMPLIFIED = 12;
+    public static final int RETRO_LANGUAGE_ESPERANTO = 13;
+    public static final int RETRO_LANGUAGE_POLISH = 14;
+    public static final int RETRO_LANGUAGE_VIETNAMESE = 15;
+    public static final int RETRO_LANGUAGE_ARABIC = 16;
+    public static final int RETRO_LANGUAGE_GREEK = 17;
+    public static final int RETRO_LANGUAGE_TURKISH = 18;
+    public static final int RETRO_LANGUAGE_SLOVAK = 19;
+    public static final int RETRO_LANGUAGE_PERSIAN = 20;
+    public static final int RETRO_LANGUAGE_HEBREW = 21;
+    public static final int RETRO_LANGUAGE_ASTURIAN = 22;
+    public static final int RETRO_LANGUAGE_FINNISH = 23;
+    public static final int RETRO_LANGUAGE_INDONESIAN = 24;
+    public static final int RETRO_LANGUAGE_SWEDISH = 25;
+    public static final int RETRO_LANGUAGE_UKRAINIAN = 26;
+    public static final int RETRO_LANGUAGE_CZECH = 27;
+    public static final int RETRO_LANGUAGE_CATALAN_VALENCIA = 28;
+    public static final int RETRO_LANGUAGE_CATALAN = 29;
+    public static final int RETRO_LANGUAGE_BRITISH_ENGLISH = 30;
+    public static final int RETRO_LANGUAGE_HUNGARIAN = 31;
+    public static final int RETRO_LANGUAGE_BELARUSIAN = 32;
+    public static final int RETRO_LANGUAGE_LAST = 33;
 
     /* Ensure sizeof(enum) == sizeof(int) */
-    int RETRO_LANGUAGE_DUMMY = Integer.MAX_VALUE;
+    public static final int RETRO_LANGUAGE_DUMMY = Integer.MAX_VALUE;
 
     /* Input disabled. */
-    int RETRO_DEVICE_NONE = 0;
+    public static final int RETRO_DEVICE_NONE = 0;
 
     /* The JOYPAD is called RetroPad. It is essentially a Super Nintendo
      * controller, but with additional L2/R2/L3/R3 buttons, similar to a
      * PS1 DualShock. */
-    int RETRO_DEVICE_JOYPAD = 1;
+    public static final int RETRO_DEVICE_JOYPAD = 1;
 
     /* The mouse is a simple mouse, similar to Super Nintendo's mouse.
      * X and Y coordinates are reported relatively to last poll (poll callback).
@@ -1441,7 +1444,7 @@ public interface Emulator {
      * The frontend must make sure not to interfere with its own hardware
      * mouse pointer.
      */
-    int RETRO_DEVICE_MOUSE = 2;
+    public static final int RETRO_DEVICE_MOUSE = 2;
 
     /* KEYBOARD device lets one poll for raw key pressed.
      * It is poll based, so input callback will return with the current
@@ -1449,7 +1452,7 @@ public interface Emulator {
      * For event/text based keyboard input, see
      * RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK.
      */
-    int RETRO_DEVICE_KEYBOARD = 3;
+    public static final int RETRO_DEVICE_KEYBOARD = 3;
 
     /* LIGHTGUN device is similar to Guncon-2 for PlayStation 2.
      * It reports X/Y coordinates in screen space (similar to the pointer)
@@ -1460,7 +1463,7 @@ public interface Emulator {
      * directional pad. A forced off-screen shot can be requested for
      * auto-reloading function in some games.
      */
-    int RETRO_DEVICE_LIGHTGUN = 4;
+    public static final int RETRO_DEVICE_LIGHTGUN = 4;
 
     /* The ANALOG device is an extension to JOYPAD (RetroPad).
      * Similar to DualShock2 it adds two analog sticks and all buttons can
@@ -1471,7 +1474,7 @@ public interface Emulator {
      * Buttons are returned in the range [0, 0x7fff].
      * Only use ANALOG type when polling for analog values.
      */
-    int RETRO_DEVICE_ANALOG = 5;
+    public static final int RETRO_DEVICE_ANALOG = 5;
 
     /* Abstracts the concept of a pointing mechanism, e.g. touch.
      * This allows libretro to query in absolute coordinates where on the
@@ -1503,110 +1506,128 @@ public interface Emulator {
      * index = 1, and so on.
      * Eventually _PRESSED will return false for an index. No further presses
      * are registered at this point. */
-    int RETRO_DEVICE_POINTER = 6;
+    public static final int RETRO_DEVICE_POINTER = 6;
 
     /* Buttons for the RetroPad (JOYPAD).
      * The placement of these is equivalent to placements on the
      * Super Nintendo controller.
      * L2/R2/L3/R3 buttons correspond to the PS1 DualShock.
      * Also used as id values for RETRO_DEVICE_INDEX_ANALOG_BUTTON */
-    int RETRO_DEVICE_ID_JOYPAD_B = 0;
-    int RETRO_DEVICE_ID_JOYPAD_Y = 1;
-    int RETRO_DEVICE_ID_JOYPAD_SELECT = 2;
-    int RETRO_DEVICE_ID_JOYPAD_START = 3;
-    int RETRO_DEVICE_ID_JOYPAD_UP = 4;
-    int RETRO_DEVICE_ID_JOYPAD_DOWN = 5;
-    int RETRO_DEVICE_ID_JOYPAD_LEFT = 6;
-    int RETRO_DEVICE_ID_JOYPAD_RIGHT = 7;
-    int RETRO_DEVICE_ID_JOYPAD_A = 8;
-    int RETRO_DEVICE_ID_JOYPAD_X = 9;
-    int RETRO_DEVICE_ID_JOYPAD_L = 10;
-    int RETRO_DEVICE_ID_JOYPAD_R = 11;
-    int RETRO_DEVICE_ID_JOYPAD_L2 = 12;
-    int RETRO_DEVICE_ID_JOYPAD_R2 = 13;
-    int RETRO_DEVICE_ID_JOYPAD_L3 = 14;
-    int RETRO_DEVICE_ID_JOYPAD_R3 = 15;
+    public static final int RETRO_DEVICE_ID_JOYPAD_B = 0;
+    public static final int RETRO_DEVICE_ID_JOYPAD_Y = 1;
+    public static final int RETRO_DEVICE_ID_JOYPAD_SELECT = 2;
+    public static final int RETRO_DEVICE_ID_JOYPAD_START = 3;
+    public static final int RETRO_DEVICE_ID_JOYPAD_UP = 4;
+    public static final int RETRO_DEVICE_ID_JOYPAD_DOWN = 5;
+    public static final int RETRO_DEVICE_ID_JOYPAD_LEFT = 6;
+    public static final int RETRO_DEVICE_ID_JOYPAD_RIGHT = 7;
+    public static final int RETRO_DEVICE_ID_JOYPAD_A = 8;
+    public static final int RETRO_DEVICE_ID_JOYPAD_X = 9;
+    public static final int RETRO_DEVICE_ID_JOYPAD_L = 10;
+    public static final int RETRO_DEVICE_ID_JOYPAD_R = 11;
+    public static final int RETRO_DEVICE_ID_JOYPAD_L2 = 12;
+    public static final int RETRO_DEVICE_ID_JOYPAD_R2 = 13;
+    public static final int RETRO_DEVICE_ID_JOYPAD_L3 = 14;
+    public static final int RETRO_DEVICE_ID_JOYPAD_R3 = 15;
 
-    int RETRO_DEVICE_ID_JOYPAD_MASK = 256;
+    public static final int RETRO_DEVICE_ID_JOYPAD_MASK = 256;
 
     /* Index / Id values for ANALOG device. */
-    int RETRO_DEVICE_INDEX_ANALOG_LEFT = 0;
-    int RETRO_DEVICE_INDEX_ANALOG_RIGHT = 1;
-    int RETRO_DEVICE_INDEX_ANALOG_BUTTON = 2;
-    int RETRO_DEVICE_ID_ANALOG_X = 0;
-    int RETRO_DEVICE_ID_ANALOG_Y = 1;
+    public static final int RETRO_DEVICE_INDEX_ANALOG_LEFT = 0;
+    public static final int RETRO_DEVICE_INDEX_ANALOG_RIGHT = 1;
+    public static final int RETRO_DEVICE_INDEX_ANALOG_BUTTON = 2;
+    public static final int RETRO_DEVICE_ID_ANALOG_X = 0;
+    public static final int RETRO_DEVICE_ID_ANALOG_Y = 1;
 
     /* Id values for MOUSE. */
-    int RETRO_DEVICE_ID_MOUSE_X = 0;
-    int RETRO_DEVICE_ID_MOUSE_Y = 1;
-    int RETRO_DEVICE_ID_MOUSE_LEFT = 2;
-    int RETRO_DEVICE_ID_MOUSE_RIGHT = 3;
-    int RETRO_DEVICE_ID_MOUSE_WHEELUP = 4;
-    int RETRO_DEVICE_ID_MOUSE_WHEELDOWN = 5;
-    int RETRO_DEVICE_ID_MOUSE_MIDDLE = 6;
-    int RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP = 7;
-    int RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN = 8;
-    int RETRO_DEVICE_ID_MOUSE_BUTTON_4 = 9;
-    int RETRO_DEVICE_ID_MOUSE_BUTTON_5 = 10;
+    public static final int RETRO_DEVICE_ID_MOUSE_X = 0;
+    public static final int RETRO_DEVICE_ID_MOUSE_Y = 1;
+    public static final int RETRO_DEVICE_ID_MOUSE_LEFT = 2;
+    public static final int RETRO_DEVICE_ID_MOUSE_RIGHT = 3;
+    public static final int RETRO_DEVICE_ID_MOUSE_WHEELUP = 4;
+    public static final int RETRO_DEVICE_ID_MOUSE_WHEELDOWN = 5;
+    public static final int RETRO_DEVICE_ID_MOUSE_MIDDLE = 6;
+    public static final int RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELUP = 7;
+    public static final int RETRO_DEVICE_ID_MOUSE_HORIZ_WHEELDOWN = 8;
+    public static final int RETRO_DEVICE_ID_MOUSE_BUTTON_4 = 9;
+    public static final int RETRO_DEVICE_ID_MOUSE_BUTTON_5 = 10;
 
     /* Id values for LIGHTGUN. */
-    int RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X = 13; /*Absolute Position*/
-    int RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y = 14; /*Absolute*/
-    int RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN = 15; /*Status Check*/
-    int RETRO_DEVICE_ID_LIGHTGUN_TRIGGER = 2;
-    int RETRO_DEVICE_ID_LIGHTGUN_RELOAD = 16; /*Forced off-screen shot*/
-    int RETRO_DEVICE_ID_LIGHTGUN_AUX_A = 3;
-    int RETRO_DEVICE_ID_LIGHTGUN_AUX_B = 4;
-    int RETRO_DEVICE_ID_LIGHTGUN_START = 6;
-    int RETRO_DEVICE_ID_LIGHTGUN_SELECT = 7;
-    int RETRO_DEVICE_ID_LIGHTGUN_AUX_C = 8;
-    int RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP = 9;
-    int RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN = 10;
-    int RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT = 11;
-    int RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT = 12;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X = 13; /*Absolute Position*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y = 14; /*Absolute*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN = 15; /*Status Check*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_TRIGGER = 2;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_RELOAD = 16; /*Forced off-screen shot*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_AUX_A = 3;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_AUX_B = 4;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_START = 6;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_SELECT = 7;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_AUX_C = 8;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_DPAD_UP = 9;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_DPAD_DOWN = 10;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_DPAD_LEFT = 11;
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_DPAD_RIGHT = 12;
     /* deprecated */
-    int RETRO_DEVICE_ID_LIGHTGUN_X = 0; /*Relative Position*/
-    int RETRO_DEVICE_ID_LIGHTGUN_Y = 1; /*Relative*/
-    int RETRO_DEVICE_ID_LIGHTGUN_CURSOR = 3; /*Use Aux:A*/
-    int RETRO_DEVICE_ID_LIGHTGUN_TURBO = 4; /*Use Aux:B*/
-    int RETRO_DEVICE_ID_LIGHTGUN_PAUSE = 5; /*Use Start*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_X = 0; /*Relative Position*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_Y = 1; /*Relative*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_CURSOR = 3; /*Use Aux:A*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_TURBO = 4; /*Use Aux:B*/
+    public static final int RETRO_DEVICE_ID_LIGHTGUN_PAUSE = 5; /*Use Start*/
 
     /* Id values for POINTER. */
-    int RETRO_DEVICE_ID_POINTER_X = 0;
-    int RETRO_DEVICE_ID_POINTER_Y = 1;
-    int RETRO_DEVICE_ID_POINTER_PRESSED = 2;
-    int RETRO_DEVICE_ID_POINTER_COUNT = 3;
+    public static final int RETRO_DEVICE_ID_POINTER_X = 0;
+    public static final int RETRO_DEVICE_ID_POINTER_Y = 1;
+    public static final int RETRO_DEVICE_ID_POINTER_PRESSED = 2;
+    public static final int RETRO_DEVICE_ID_POINTER_COUNT = 3;
 
-    int VIDEO_DEVICE = 1;
-    int AUDIO_DEVICE = 2;
-    int INPUT_DEVICE = 3;
+    public static final int VIDEO_DEVICE = 1;
+    public static final int AUDIO_DEVICE = 2;
+    public static final int INPUT_DEVICE = 3;
 
-    int SAVE_MEMORY_RAM = 1;
-    int SAVE_STATE = 2;
+    public static final int SAVE_MEMORY_RAM = 1;
+    public static final int SAVE_STATE = 2;
 
-    int LOAD_STATE = 2;
+    public static final int LOAD_STATE = 2;
 
-    boolean run(@NonNull File rom);
+    public abstract boolean run(@NonNull File rom);
 
-    void pause();
+    public abstract void pause();
 
-    void resume();
+    public abstract void resume();
 
-    void reset();
+    public abstract void reset();
 
-    void suspend();
+    public abstract void suspend();
 
-    void setSystemDirectory(@NonNull File systemDirectory);
+    public abstract void setSystemDirectory(@NonNull File systemDirectory);
 
-    void attachDevice(int target, @Nullable EmulatorDevice device);
+    public abstract void attachDevice(int target, @Nullable EmulatorDevice device);
 
-    void setOption(@NonNull EmOption option);
+    public abstract void setOption(@NonNull EmOption option);
 
-    Collection<EmOption> getOptions();
+    public abstract Collection<EmOption> getOptions();
 
-    String getTag();
+    public abstract String getTag();
 
-    boolean save(int type, @NonNull File file);
+    public abstract boolean save(int type, @NonNull File file);
 
-    boolean load(int type, @Nullable File file);
+    public abstract boolean load(int type, @Nullable File file);
+
+    public abstract EmSystemInfo getSystemInfo();
+
+    @CallFromJni
+    protected abstract boolean onEnvironment(int cmd, Object data);
+    @CallFromJni
+    protected abstract void onVideoRefresh(final byte[] data, int width, int height, int pitch);
+
+    @CallFromJni
+    protected abstract void onAudioSampleBatch(final short[] data, int frames);
+
+    @CallFromJni
+    protected abstract int onInputState(int port, int device, int index, int id);
+
+    @CallFromJni
+    protected abstract void onInputPoll();
+
+    protected static native void nativeRegisterNativeMethods(Class clazz);
 }

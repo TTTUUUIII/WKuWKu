@@ -32,8 +32,6 @@ import ink.snowland.wkuwku.databinding.ItemCoreOptionBinding;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class CoreFragment extends BaseFragment {
 
@@ -45,15 +43,10 @@ public class CoreFragment extends BaseFragment {
     private CoreViewModel mViewModel;
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mViewModel = new ViewModelProvider(this).get(CoreViewModel.class);
-    }
-
-    @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentCoreBinding.inflate(inflater, container, false);
+        mViewModel = new ViewModelProvider(this).get(CoreViewModel.class);
         parentActivity.setActionbarSubTitle(R.string.core_options);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
@@ -117,6 +110,8 @@ public class CoreFragment extends BaseFragment {
                 mEmulator = emulator;
                 if (mEmulator == null) return;
                 onReloadOptions();
+            } else {
+                mViewModel.setPendingIndicator(false);
             }
         }
 
