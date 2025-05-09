@@ -30,7 +30,6 @@ import ink.snowland.wkuwku.databinding.FragmentCoreBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreEnumOptionBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreOptionBinding;
 import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.util.RxUtils;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -87,29 +86,20 @@ public class CoreFragment extends BaseFragment {
         assert mEmulator != null;
         SettingsManager.putString(SELECTED_CORE, mEmulator.getTag());
         mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
-        if (mCurrentOptions != null) {
-            mAdapter.submitList(mCurrentOptions);
-            mViewModel.setPendingIndicator(false);
-        } else {
-            RxUtils.newSingle((RxUtils.SingleFunction<List<EmOption>>) observer -> {
-                        List<EmOption> options = mEmulator.getOptions().stream()
-                                .sorted()
-                                .collect(Collectors.toList());
-                        for (EmOption option : options) {
-                            String val = SettingsManager.getString(option.key);
-                            if (val.isEmpty()) continue;
-                            option.val = val;
-                        }
-                        observer.onSuccess(options);
-                    }).subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnSuccess(options -> {
-                        mViewModel.putEmulatorOptions(mEmulator, options);
-                        mAdapter.submitList(options);
-                        mViewModel.setPendingIndicator(false);
-                    })
-                    .subscribe();
+        if (mCurrentOptions == null) {
+            List<EmOption> options = mEmulator.getOptions().stream()
+                    .sorted()
+                    .collect(Collectors.toList());
+            for (EmOption option : options) {
+                String val = SettingsManager.getString(option.key);
+                if (val.isEmpty()) continue;
+                option.val = val;
+            }
+            mCurrentOptions = options;
+            mViewModel.putEmulatorOptions(mEmulator, options);
         }
+        mAdapter.submitList(mCurrentOptions);
+        mViewModel.setPendingIndicator(false);
     }
 
     private class CoreChangedCallback implements TextWatcher {

@@ -9,7 +9,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -20,9 +19,10 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.FileManager;
-import ink.snowland.wkuwku.util.RxUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleOnSubscribe;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -66,21 +66,21 @@ public class GamesViewModel extends BaseViewModel {
     private void addGameFormNetwork(@NonNull Game game, @NonNull Uri uri) {
         pendingIndicator.postValue(true);
         pendingMessage.postValue(getString(R.string.downloading));
-        Disposable disposable = RxUtils.newSingle((RxUtils.SingleFunction<String>) observer -> {
-                    try {
-                        URL url = new URL(uri.toString());
-                        URLConnection conn = url.openConnection();
-                        conn.setConnectTimeout(1000 * 5);
-                        conn.setReadTimeout(1000 * 8);
-                        try (InputStream from = conn.getInputStream()) {
-                            FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
-                        }
-                        File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-                        observer.onSuccess(FileManager.calculateMD5Sum(file));
-                    } catch (Exception e) {
-                        observer.onError(e);
-                    }
-                }).subscribeOn(Schedulers.io())
+        Disposable disposable = Single.create((SingleOnSubscribe<String>) emitter -> {
+            try {
+                URL url = new URL(uri.toString());
+                URLConnection conn = url.openConnection();
+                conn.setConnectTimeout(1000 * 5);
+                conn.setReadTimeout(1000 * 8);
+                try (InputStream from = conn.getInputStream()) {
+                    FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
+                }
+                File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
+                emitter.onSuccess(FileManager.calculateMD5Sum(file));
+            } catch (Exception e) {
+                emitter.onError(e);
+            }
+        }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::showErrorToast)
                 .doFinally(() -> {

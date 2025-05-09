@@ -71,4 +71,7 @@
     <string name="trash">Trash</string>
     <string name="loading">loading</string>
     <string name="mark_broken_when_start_game_failed">Mark broken games</string>
+    <string name="fmt_downloading">Downloading %s</string>
+    <string name="network_error">ERROR: Network error</string>
+    <string name="load_bios_failed">ERROR: Load bios failed!</string>
 </resources>

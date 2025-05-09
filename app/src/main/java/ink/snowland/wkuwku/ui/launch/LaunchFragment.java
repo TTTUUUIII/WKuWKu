@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.ui.play;
+package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
@@ -28,35 +28,35 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.io.File;
 import java.util.Collection;
 import java.util.Locale;
-import java.util.Objects;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.databinding.FragmentPlayBinding;
+import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.AudioDevice;
 import ink.snowland.wkuwku.device.NESController;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.device.GLVideoDevice;
+import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class PlayFragment extends BaseFragment {
+public class LaunchFragment extends BaseFragment {
     private static final String TAG = "PlayFragment";
     private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
-    private FragmentPlayBinding binding;
+    private FragmentLaunchBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
     private BaseController mController;
     private AudioDevice mAudioDevice;
-    private PlayViewModel mViewModel;
+    private LaunchViewModel mViewModel;
     private Game mGame;
 
     @Override
@@ -65,7 +65,7 @@ public class PlayFragment extends BaseFragment {
         parentActivity.setStatusBarVisibility(false);
         parentActivity.setActionBarVisibility(false);
         parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        mViewModel = new ViewModelProvider(this).get(PlayViewModel.class);
+        mViewModel = new ViewModelProvider(this).get(LaunchViewModel.class);
         mAudioDevice = new AudioDevice();
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
@@ -75,16 +75,30 @@ public class PlayFragment extends BaseFragment {
             }
         };
         Bundle arguments = getArguments();
-        if (arguments != null) {
-            mGame = arguments.getParcelable(ARG_GAME);
-        }
+        assert arguments != null;
+        mGame = arguments.getParcelable(ARG_GAME);
+        assert mGame != null;
+        mEmulator = getEmulatorForGame(mGame);
     }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            startGame();
+            if (mEmulator != null) {
+                mViewModel.setPendingIndicator(true, getString(R.string.fmt_downloading, "bios"));
+                Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getCacheDirectory())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .doOnError(error -> {
+                            error.printStackTrace(System.err);
+                            Toast.makeText(parentActivity, R.string.load_bios_failed, Toast.LENGTH_SHORT).show();
+                        })
+                        .doFinally(() -> {
+                            mViewModel.setPendingIndicator(false);
+                        })
+                        .subscribe(this::launch, error -> {/*Ignored*/});
+            }
         }
     }
 
@@ -92,10 +106,13 @@ public class PlayFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentPlayBinding.inflate(getLayoutInflater());
+        binding = FragmentLaunchBinding.inflate(getLayoutInflater());
         binding.glSurfaceView.setEGLContextClientVersion(3);
         binding.glSurfaceView.setRenderer(mVideoDevice.getRenderer());
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        binding.pendingIndicator.setDataModel(mViewModel);
+        binding.pendingIndicator.setLifecycleOwner(this);
+        prepareController();
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
     }
@@ -134,36 +151,28 @@ public class PlayFragment extends BaseFragment {
         }
     }
 
-
-
-    private void startGame() {
+    private void launch() {
         boolean success = false;
-        if (mGame != null && mGame.state == Game.STATE_VALID) {
-            mEmulator = getEmulatorForGame(mGame);
-            if (mEmulator != null) {
-                applyOptions();
-                prepareController();
-                mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
-                mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
-                mEmulator.attachDevice(INPUT_DEVICE, mController);
-                mEmulator.setSystemDirectory(Objects.requireNonNull(parentActivity.getExternalCacheDir()));
-                if (mEmulator.run(new File(mGame.filepath))) {
-                    if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
-                        loadCurrentState(true);
-                    }
-                    success = true;
+        if (mGame.state == Game.STATE_VALID && mEmulator != null) {
+            applyOptions();
+            mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
+            mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
+            mEmulator.attachDevice(INPUT_DEVICE, mController);
+            mEmulator.setSystemDirectory(FileManager.getCacheDirectory());
+            if (mEmulator.run(new File(mGame.filepath))) {
+                if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
+                    loadCurrentState(true);
                 }
+                success = true;
             }
         }
         if (!success) {
-            if (mGame != null && mGame.state != Game.STATE_BROKEN) {
-                if (SettingsManager.getBoolean(AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED)) {
-                    mGame.state = Game.STATE_BROKEN;
-                    Disposable disposable = mViewModel.update(mGame)
-                            .subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .subscribe();
-                }
+            if (mGame.state != Game.STATE_BROKEN && SettingsManager.getBoolean(AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED)) {
+                mGame.state = Game.STATE_BROKEN;
+                Disposable disposable = mViewModel.update(mGame)
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe();
             }
             Toast.makeText(parentActivity.getApplicationContext(), R.string.load_game_failed, Toast.LENGTH_SHORT).show();
         }
@@ -173,7 +182,7 @@ public class PlayFragment extends BaseFragment {
         assert mGame != null;
         if (mGame.system.toLowerCase(Locale.ROOT).equals("nes")) {
             mController = new NESController(0, parentActivity);
-            binding.getRoot().addView(mController.getView());
+            binding.controllerRoot.addView(mController.getView());
         } else {
             /*Not supported yet.*/
             Log.w(TAG, "No controller for system \"" + mGame.system + "\"");

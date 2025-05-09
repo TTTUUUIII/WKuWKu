@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/pattern_zigzag_sm_landscape"
-    tools:context=".ui.play.PlayFragment">
+    tools:context=".ui.launch.LaunchFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        tools:context=".ui.play.PlayFragment">
+        tools:context=".ui.launch.LaunchFragment">
 
         <View
             android:layout_width="0dp"
@@ -29,4 +29,11 @@
             android:layout_height="match_parent"
             android:layout_weight="1" />
     </LinearLayout>
+    <FrameLayout
+        android:id="@+id/controller_root"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <include
+        android:id="@+id/pending_indicator"
+        layout="@layout/layout_loading_indicator" />
 </FrameLayout>

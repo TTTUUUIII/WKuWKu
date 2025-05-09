@@ -10,6 +10,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 
 import ink.snowland.wkuwku.R;
 
@@ -24,6 +25,9 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
     protected void showErrorToast(@NonNull Throwable error) {
         if (error instanceof SocketTimeoutException || error.getCause() instanceof SocketTimeoutException) {
             Toast.makeText(getApplication(), R.string.network_timeout, Toast.LENGTH_SHORT).show();
+            return;
+        } else if (error instanceof UnknownHostException || error.getCause() instanceof UnknownHostException) {
+            Toast.makeText(getApplication(), R.string.network_error, Toast.LENGTH_SHORT).show();
             return;
         }
 

@@ -59,4 +59,7 @@
     <string name="trash">回收站</string>
     <string name="loading">加载中</string>
     <string name="mark_broken_when_start_game_failed">标记损坏的游戏</string>
+    <string name="fmt_downloading">正在下载 %s</string>
+    <string name="network_error">错误：网络不可用！</string>
+    <string name="load_bios_failed">错误：无法加载 bios！</string>
 </resources>

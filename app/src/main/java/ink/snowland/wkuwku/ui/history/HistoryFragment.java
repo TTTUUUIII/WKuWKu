@@ -26,7 +26,7 @@ import ink.snowland.wkuwku.databinding.FragmentHistoryBinding;
 import ink.snowland.wkuwku.databinding.ItemHistoryBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
-import ink.snowland.wkuwku.ui.play.PlayFragment;
+import ink.snowland.wkuwku.ui.launch.LaunchFragment;
 import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
@@ -78,8 +78,8 @@ public class HistoryFragment extends BaseFragment {
         assert parent instanceof HomeFragment;
         NavController navController = NavHostFragment.findNavController(parent);
         Bundle args = new Bundle();
-        args.putParcelable(PlayFragment.ARG_GAME, game);
-        navController.navigate(R.id.play_fragment, args);
+        args.putParcelable(LaunchFragment.ARG_GAME, game);
+        navController.navigate(R.id.launch_fragment, args);
     }
 
     private void showMorePopupMenu(@NonNull View view, @NonNull Game game) {
