@@ -62,4 +62,5 @@
     <string name="fmt_downloading">正在下载 %s</string>
     <string name="network_error">错误：网络不可用！</string>
     <string name="load_bios_failed">错误：无法加载 bios！</string>
+    <string name="please_select_system">请选择系统</string>
 </resources>

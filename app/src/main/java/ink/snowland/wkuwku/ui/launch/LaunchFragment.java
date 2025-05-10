@@ -81,27 +81,6 @@ public class LaunchFragment extends BaseFragment {
         mEmulator = getEmulatorForGame(mGame);
     }
 
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (mEmulator != null) {
-                mViewModel.setPendingIndicator(true, getString(R.string.fmt_downloading, "bios"));
-                Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getCacheDirectory())
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doOnError(error -> {
-                            error.printStackTrace(System.err);
-                            Toast.makeText(parentActivity, R.string.load_bios_failed, Toast.LENGTH_SHORT).show();
-                        })
-                        .doFinally(() -> {
-                            mViewModel.setPendingIndicator(false);
-                        })
-                        .subscribe(this::launch, error -> {/*Ignored*/});
-            }
-        }
-    }
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -115,6 +94,25 @@ public class LaunchFragment extends BaseFragment {
         prepareController();
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && mEmulator != null) {
+            mViewModel.setPendingIndicator(true, getString(R.string.fmt_downloading, "bios"));
+            Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getCacheDirectory())
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnError(error -> {
+                        error.printStackTrace(System.err);
+                        Toast.makeText(parentActivity, R.string.load_bios_failed, Toast.LENGTH_SHORT).show();
+                    })
+                    .doFinally(() -> {
+                        mViewModel.setPendingIndicator(false);
+                    })
+                    .subscribe(this::launch, error -> {/*Ignored*/});
+        }
     }
 
     private final OnBackPressedCallback mBackPressedCallback = new OnBackPressedCallback(true) {
@@ -158,7 +156,8 @@ public class LaunchFragment extends BaseFragment {
             mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
             mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
             mEmulator.attachDevice(INPUT_DEVICE, mController);
-            mEmulator.setSystemDirectory(FileManager.getCacheDirectory());
+            mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getCacheDirectory());
+            mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(mEmulator.getTag()));
             if (mEmulator.run(new File(mGame.filepath))) {
                 if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
                     loadCurrentState(true);
@@ -179,19 +178,22 @@ public class LaunchFragment extends BaseFragment {
     }
 
     private void prepareController() {
-        assert mGame != null;
-        if (mGame.system.toLowerCase(Locale.ROOT).equals("nes")) {
-            mController = new NESController(0, parentActivity);
-            binding.controllerRoot.addView(mController.getView());
-        } else {
-            /*Not supported yet.*/
-            Log.w(TAG, "No controller for system \"" + mGame.system + "\"");
-        }
+//        if (mGame.system.toLowerCase(Locale.ROOT).equals("nes")) {
+//            mController = new NESController(0, parentActivity);
+//            binding.controllerRoot.addView(mController.getView());
+//        } else {
+//            /*Not supported yet.*/
+//            mController = new NESController(0, parentActivity);
+//            binding.controllerRoot.addView(mController.getView());
+//            Log.w(TAG, "No controller for system \"" + mGame.system + "\"");
+//        }
+        mController = new NESController(0, parentActivity);
+        binding.controllerRoot.addView(mController.getView());
     }
 
     private void saveCurrentState(boolean auto) {
         if (mEmulator == null) return;
-        if (mGame.filepath.endsWith("fds")) return;
+        if (mGame.system.equals("famicom")) return;
         final String ext = auto ? ".ast" : ".st";
         mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, mGame.md5 + ext));
     }
@@ -209,7 +211,7 @@ public class LaunchFragment extends BaseFragment {
         assert mEmulator != null;
         Collection<EmOption> options = mEmulator.getOptions();
         for (EmOption option : options) {
-            if (!option.supported) continue;
+            if (!option.enable) continue;
             String val = SettingsManager.getString(option.key);
             if (val.isEmpty()) continue;
             option.val = val;
@@ -269,8 +271,21 @@ public class LaunchFragment extends BaseFragment {
         String system = game.system.toLowerCase(Locale.ROOT);
         String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", system));
         if (tag.isEmpty()) {
-            if (system.equals("nes")) {
-                tag = "fceumm";
+            switch (system) {
+                case "nes":
+                case "famicom":
+                    tag = "fceumm";
+                    break;
+                case "sega-game-gear":
+                case "sega-master-system":
+                case "sega-cd":
+                case "sega-mega-drive":
+                case "sega-pico":
+                case "sega-sg-1000":
+                    tag = "genesis-plus-gx";
+                    break;
+                default:
+                    /*Unknown system*/
             }
         }
         return EmulatorManager.getEmulator(tag);

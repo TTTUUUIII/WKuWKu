@@ -30,7 +30,7 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:text="@{option.val}"
-            android:enabled="@{option.supported}"
+            android:enabled="@{option.enable}"
             android:layout_height="wrap_content" />
     </LinearLayout>
 </layout>

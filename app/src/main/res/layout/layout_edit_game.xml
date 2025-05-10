@@ -23,47 +23,40 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </com.google.android.material.textfield.TextInputLayout>
-        <LinearLayout
-            android:id="@+id/platform_info_layout"
-            android:layout_below="@id/title_layout"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/system_layout"
+            android:hint="@string/system"
+            android:layout_marginTop="15dp"
+            style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <com.google.android.material.textfield.TextInputLayout
-                android:hint="@string/system"
-                android:layout_marginTop="15dp"
-                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content">
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/system_text_view"
-                    android:inputType="none"
-                    android:text="@={game.system}"
-                    style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </com.google.android.material.textfield.TextInputLayout>
-            <com.google.android.material.textfield.TextInputLayout
-                android:hint="@string/region"
-                android:layout_marginTop="15dp"
-                android:layout_marginStart="15dp"
-                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content">
-                <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/region_text_view"
-                    android:inputType="none"
-                    android:text="@={game.region}"
-                    style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </LinearLayout>
+            android:layout_below="@id/title_layout">
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/system_text_view"
+                android:inputType="none"
+                style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/region_layout"
+            android:hint="@string/region"
+            android:layout_marginTop="15dp"
+            style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/system_layout">
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/region_text_view"
+                android:inputType="none"
+                android:text="@={game.region}"
+                style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </com.google.android.material.textfield.TextInputLayout>
         <LinearLayout
             android:id="@+id/select_file_layout"
-            android:layout_below="@id/platform_info_layout"
+            android:layout_below="@id/region_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"

@@ -1,14 +1,27 @@
 package ink.snowland.wkuwku.interfaces;
 
 
+import android.content.res.Resources;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.XmlRes;
+
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
+import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.annotations.CallFromJni;
+import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 
@@ -1589,6 +1602,18 @@ public abstract class Emulator {
 
     public static final int LOAD_STATE = 2;
 
+    public static final int SYSTEM_DIR = 1;
+    public static final int SAVE_DIR = 2;
+
+
+    protected final EmConfig config;
+    protected final Map<String, EmOption> options = new HashMap<>();
+    protected final String tag;
+    protected final EmSystemAvInfo systemAvInfo;
+    protected final EmSystemInfo systemInfo;
+    protected String systemDir;
+    protected String saveDir;
+
     public abstract boolean run(@NonNull File rom);
 
     public abstract void pause();
@@ -1599,21 +1624,68 @@ public abstract class Emulator {
 
     public abstract void suspend();
 
-    public abstract void setSystemDirectory(@NonNull File systemDirectory);
+    public void setSystemDirectory(int type, @NonNull File dir) {
+        if (!dir.exists() || !dir.isDirectory())
+            throw new InvalidParameterException(dir + " not exists or not is a directory!");
+        switch (type) {
+            case SYSTEM_DIR:
+                systemDir = dir.getAbsolutePath();
+                break;
+            case SAVE_DIR:
+                saveDir = dir.getAbsolutePath();
+                break;
+            default:
+                /*ignored*/
+        }
+    }
 
     public abstract void attachDevice(int target, @Nullable EmulatorDevice device);
 
-    public abstract void setOption(@NonNull EmOption option);
+    public Emulator(@NonNull String tag, @NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
+        config = EmConfig.fromXmlConfig(res, configResId);
+        config.options.forEach(option -> options.put(option.key, option));
+        this.tag = tag;
+        systemAvInfo = getSystemAvInfo();
+        systemInfo = getSystemInfo();
+    }
 
-    public abstract Collection<EmOption> getOptions();
+    public void setOption(@NonNull EmOption option) {
+        if (!option.enable) return;
+        EmOption opt = options.get(option.key);
+        if (opt != null) {
+            opt.val = option.val;
+        }
+    }
 
-    public abstract String getTag();
+    public Collection<EmOption> getOptions() {
+        return config.options.stream()
+                .map(EmOption::clone)
+                .collect(Collectors.toList());
+    }
+
+
+    public String getTag() {
+        return tag;
+    }
+
+    public boolean isSupportedSystem(@NonNull String systemTag) {
+        for (EmSystem system : config.systems) {
+            if (system.tag.equals(systemTag)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public abstract boolean save(int type, @NonNull File file);
 
     public abstract boolean load(int type, @Nullable File file);
 
     public abstract EmSystemInfo getSystemInfo();
+    public abstract EmSystemAvInfo getSystemAvInfo();
+    public List<EmSystem> getSupportedSystems() {
+        return config.systems;
+    }
 
     @CallFromJni
     protected abstract boolean onEnvironment(int cmd, Object data);
@@ -1628,6 +1700,4 @@ public abstract class Emulator {
 
     @CallFromJni
     protected abstract void onInputPoll();
-
-    protected static native void nativeRegisterNativeMethods(Class clazz);
 }

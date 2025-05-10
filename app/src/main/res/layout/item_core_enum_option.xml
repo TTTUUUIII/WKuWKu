@@ -30,7 +30,7 @@
             android:layout_width="0dp"
             style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_height="wrap_content"
-            android:enabled="@{option.supported}"
+            android:enabled="@{option.enable}"
             android:layout_weight="1">
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"

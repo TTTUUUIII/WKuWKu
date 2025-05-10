@@ -39,13 +39,8 @@
             app:title="@string/mark_broken_when_start_game_failed" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/core_preference">
-        <ListPreference
-            app:defaultValue="fceumm"
-            app:entries="@array/nes_core_entries"
-            app:entryValues="@array/nes_core_values"
-            app:key="app_nes_core"
-            app:title="@string/famicom"
-            app:useSimpleSummaryProvider="true" />
+    <PreferenceCategory
+        app:key="core_preference_category"
+        app:title="@string/core_preference">
     </PreferenceCategory>
 </PreferenceScreen>

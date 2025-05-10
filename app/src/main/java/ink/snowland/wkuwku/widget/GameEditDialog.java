@@ -4,7 +4,6 @@ import android.content.DialogInterface;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,19 +13,27 @@ import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
+import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.databinding.LayoutEditGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
+import ink.snowland.wkuwku.interfaces.Emulator;
 
 public class GameEditDialog {
     private LayoutEditGameBinding binding;
     private final AlertDialog mDialog;
     private Game mGame = null;
     private final BaseActivity mParent;
-    private final String mDefaultPlatform;
-    private final String mDefaultRegion;
     private Uri mUri;
+    private final Map<String, EmSystem> mAllSupportedSystems = new HashMap<>();
+    private final String[] mAllSupportedRegions;
 
     public GameEditDialog(@NonNull BaseActivity activity) {
         mParent = activity;
@@ -39,17 +46,17 @@ public class GameEditDialog {
                 .setNegativeButton(R.string.cancel, null)
                 .setCancelable(false)
                 .create();
-        String[] supportedPlatforms = activity.getResources().getStringArray(R.array.supported_platforms);
-        mDefaultPlatform = supportedPlatforms[0];
-        ArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(activity, R.layout.layout_simple_text, supportedPlatforms);
-        binding.systemTextView.setAdapter(adapter);
-
-        String[] allRegions = activity.getResources().getStringArray(R.array.all_regions);
-        mDefaultRegion = allRegions[0];
-        adapter = new NoFilterArrayAdapter<>(activity, R.layout.layout_simple_text, allRegions);
-        binding.regionTextView.setAdapter(adapter);
+        List<EmSystem> systems = EmulatorManager.getSupportedSystems();
+        for (EmSystem system : systems) {
+            mAllSupportedSystems.put(system.name, system);
+        }
+        String[] allSupportedSystemNames = mAllSupportedSystems.keySet().toArray(new String[0]);
+        binding.systemTextView.setSimpleItems(allSupportedSystemNames);
+        binding.systemTextView.setText(allSupportedSystemNames[0], false);
+        mAllSupportedRegions = activity.getResources().getStringArray(R.array.all_regions);
+        binding.regionTextView.setSimpleItems(mAllSupportedRegions);
         binding.buttonSelectFile.setOnClickListener(v -> {
-            activity.openDocument("application/octet-stream", uri -> {
+            activity.openDocument("*/*"/*"application/octet-stream"*/, uri -> {
                 DocumentFile file = DocumentFile.fromSingleUri(activity, uri);
                 if (file != null && file.exists() && file.isFile()) {
                     String filename = file.getName();
@@ -86,8 +93,7 @@ public class GameEditDialog {
     public void show(@NonNull OnConfirmCallback callback) {
         if (mDialog.isShowing()) return;
         mGame = new Game();
-        mGame.system = mDefaultPlatform;
-        mGame.region = mDefaultRegion;
+        mGame.region = mAllSupportedRegions[0];
         binding.setGame(mGame);
         binding.invalidateAll();
         mCallback = callback;
@@ -95,8 +101,13 @@ public class GameEditDialog {
         binding.selectFileLayout.setVisibility(View.VISIBLE);
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            System.out.println(binding.systemTextView.getListSelection());
+            EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
+            if (system != null) {
+                mGame.system = system.tag;
+            }
             if (checkValid()) {
-                assert mUri != null && mGame != null;
+                assert mUri != null;
                 mCallback.onConfirm(mGame, mUri);
                 mDialog.dismiss();
             }
@@ -147,6 +158,9 @@ public class GameEditDialog {
             return false;
         } else if (mGame.filepath == null || mGame.filepath.trim().isEmpty()) {
             binding.errorTextView.setText(mParent.getString(R.string.please_select_file) + " !");
+            return false;
+        } else if (mGame.system == null || mGame.system.trim().isEmpty()) {
+            binding.errorTextView.setText(mParent.getString(R.string.please_select_system) + " !");
             return false;
         }
         binding.errorTextView.setText("");

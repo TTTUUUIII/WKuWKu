@@ -8,13 +8,11 @@ import androidx.annotation.NonNull;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -37,8 +35,7 @@ public class BiosProvider {
 
     public static Completable downloadBiosForGame(@NonNull Game game, @NonNull File systemDir) {
         return Completable.create(emitter -> {
-            String path = game.system.toLowerCase(Locale.ROOT) + "/" + FileManager.getExtension(game.filepath, false);
-            Bios bios = BIOS.get(path);
+            Bios bios = BIOS.get(game.system);
             if (bios == null) {
                 emitter.onComplete();
                 return;
@@ -83,10 +80,7 @@ public class BiosProvider {
         String url = null;
         String md5 = null;
         String filename = null;
-        StringBuilder path = new StringBuilder();
-        path.append(Objects.requireNonNull(parser.getAttributeValue(null, "system")))
-                .append("/")
-                .append(Objects.requireNonNull(parser.getAttributeValue(null, "for")));
+        String system = Objects.requireNonNull(parser.getAttributeValue(null, "system"));
         int event = parser.getEventType();
         while (event != XmlResourceParser.END_TAG || !"bios".equals(parser.getName())) {
             String name = parser.getName();
@@ -107,7 +101,7 @@ public class BiosProvider {
             event = parser.next();
         }
         if (url != null && md5 != null) {
-            BIOS.put(path.toString(), new Bios(title, url, md5, filename));
+            BIOS.put(system, new Bios(title, url, md5, filename));
         }
     }
 }

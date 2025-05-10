@@ -74,4 +74,5 @@
     <string name="fmt_downloading">Downloading %s</string>
     <string name="network_error">ERROR: Network error</string>
     <string name="load_bios_failed">ERROR: Load bios failed!</string>
+    <string name="please_select_system">Please select a system</string>
 </resources>

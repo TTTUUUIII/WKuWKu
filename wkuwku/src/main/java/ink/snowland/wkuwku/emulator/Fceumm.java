@@ -1,17 +1,17 @@
 package ink.snowland.wkuwku.emulator;
 
+import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.xmlpull.v1.XmlPullParserException;
+
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 
-import java.util.stream.Collectors;
-
+import ink.snowland.libwkuwku.R;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
@@ -31,9 +31,6 @@ public class Fceumm extends Emulator {
     private static final int STATE_INVALID = 0;
     private static final int STATE_RUNNING = 1;
     private static final int STATE_PAUSED = 2;
-
-    private final EmSystemAvInfo AV_IFNO;
-    private String sSystemDirectory = "";
     private volatile int mState = STATE_INVALID;
     private EmVideoDevice mVideoDevice;
     private EmAudioDevice mAudioDevice;
@@ -43,8 +40,8 @@ public class Fceumm extends Emulator {
     private EmInputDevice mInputDevice3;
     private EmScheduledThread mMainThread;
 
-    private Fceumm() {
-        AV_IFNO = nativeGetSystemAvInfo();
+    private Fceumm(@NonNull Context context) throws XmlPullParserException, IOException {
+        super("fceumm", context.getResources(), R.xml.fceumm_config);
     }
 
     @Override
@@ -57,9 +54,10 @@ public class Fceumm extends Emulator {
         switch (cmd) {
             case RETRO_ENVIRONMENT_GET_VARIABLE:
                 entry = (VariableEntry) data;
-                EmOption setting = OPTIONS.get(entry.key);
-                if (setting != null) {
-                    entry.value = setting.val;
+                EmOption option = options.get(entry.key);
+                Log.d(TAG, entry.key);
+                if (option != null) {
+                    entry.value = option.val;
                 } else {
                     Log.d(TAG, entry.key);
                 }
@@ -75,7 +73,7 @@ public class Fceumm extends Emulator {
                 break;
             case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
                 variable = (Variable) data;
-                variable.value = sSystemDirectory;
+                variable.value = systemDir;
                 break;
             case RETRO_ENVIRONMENT_GET_LANGUAGE:
                 variable = (Variable) data;
@@ -162,7 +160,7 @@ public class Fceumm extends Emulator {
             }
         };
         mState = STATE_RUNNING;
-        mMainThread.schedule(AV_IFNO.timing.fps);
+        mMainThread.schedule(systemAvInfo.timing.fps);
         return true;
     }
 
@@ -236,27 +234,6 @@ public class Fceumm extends Emulator {
     }
 
     @Override
-    public void setOption(@NonNull EmOption option) {
-        if (!option.supported) return;
-        EmOption opt = OPTIONS.get(option.key);
-        if (opt != null) {
-            opt.val = option.val;
-        }
-    }
-
-    @Override
-    public Collection<EmOption> getOptions() {
-        return OPTIONS.values().stream()
-                .map(EmOption::clone)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public String getTag() {
-        return "fceumm";
-    }
-
-    @Override
     public boolean save(int type, @NonNull File file) {
         if (type == SAVE_MEMORY_RAM) {
             return nativeSaveMemoryRam(file.getAbsolutePath());
@@ -281,284 +258,27 @@ public class Fceumm extends Emulator {
     }
 
     @Override
-    public void setSystemDirectory(@NonNull File systemDirectory) {
-        sSystemDirectory = systemDirectory.getAbsolutePath();
+    public EmSystemAvInfo getSystemAvInfo() {
+        return nativeGetSystemAvInfo();
     }
 
-    private static final Map<String, EmOption> OPTIONS = new HashMap<>();
-
-    public static void registerAsEmulator() {
-        EmulatorManager.registerEmulator(SHARED_INSTANCE);
+    public static void registerAsEmulator(@NonNull Context context) {
+        if (SHARED_INSTANCE == null) {
+            try {
+                SHARED_INSTANCE = new Fceumm(context);
+            } catch (XmlPullParserException | IOException e) {
+                e.printStackTrace(System.err);
+            }
+        }
+        if (SHARED_INSTANCE != null) {
+            EmulatorManager.registerEmulator(SHARED_INSTANCE);
+        }
     }
 
-    private final static Fceumm SHARED_INSTANCE;
+    private static Fceumm SHARED_INSTANCE;
 
     static {
         System.loadLibrary("fceumm-bridge");
-        SHARED_INSTANCE = new Fceumm();
-        OPTIONS.put(
-                "fceumm_game_genie",
-                EmOption.builder("fceumm_game_genie", "disabled")
-                        .setTitle("Genie enable")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_ramstate",
-                EmOption.builder("fceumm_ramstate", "random")
-                        .setTitle("RAM power up state")
-                        .setAllowVals("random", "fill $00", "fill $FF")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_ntsc_filter",
-                EmOption.builder("fceumm_ntsc_filter", "disabled")
-                        .setTitle("NTSC filter")
-                        .setAllowVals("disabled", "composite", "svideo", "rgb", "monochrome")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_palette",
-                EmOption.builder("fceumm_palette", "default")
-                        .setTitle("Color palette")
-                        .setAllowVals("default", "asqrealc", "nintendo-vc", "rgb", "yuv-v3", "unsaturated-final", "sony-cxa2025as-us", "pal", "bmf-final2", "bmf-final3", "smooth-fbx", "composite-direct-fbx", "pvm-style-d93-fbx", "ntsc-hardware-fbx", "nes-classic-fbx-fs", "nescap", "wavebeam", "raw", "custom")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_up_down_allowed",
-                EmOption.builder("fceumm_up_down_allowed", "disabled")
-                        .setTitle("Allow opposing directions")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_nospritelimit",
-                EmOption.builder("fceumm_nospritelimit", "enabled")
-                        .setTitle("No sprite limit")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_overclocking",
-                EmOption.builder("fceumm_overclocking", "disabled")
-                        .setTitle("Overclocking")
-                        .setAllowVals("disabled", "2x-Postrender", "2x-VBlank")
-                        .setSupported(true)
-                        .build()
-
-        );
-        OPTIONS.put(
-                "fceumm_zapper_mode",
-                EmOption.builder("fceumm_zapper_mode", "touchscreen")
-                        .setTitle("Zapper mode")
-                        .setAllowVals("lightgun", "touchscreen", "mouse")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_arkanoid_mode",
-                EmOption.builder("fceumm_arkanoid_mode", "touchscreen")
-                        .setTitle("Arkanoid mode")
-                        .setAllowVals("touchscreen", "abs_mouse", "stelladaptor")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_zapper_tolerance",
-                EmOption.builder("fceumm_zapper_tolerance", "4")
-                        .setTitle("Zapper tolerance")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_mouse_sensitivity",
-                EmOption.builder("fceumm_mouse_sensitivity", "100")
-                        .setTitle("Mouse sensitivity")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_show_crosshair",
-                EmOption.builder("fceumm_show_crosshair", "disabled")
-                        .setTitle("Show crosshair")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_zapper_trigger",
-                EmOption.builder("fceumm_zapper_trigger", "disabled")
-                        .setTitle("Zapper trigger")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_zapper_sensor",
-                EmOption.builder("fceumm_zapper_sensor", "disabled")
-                        .setTitle("Zapper sensor")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_overscan",
-                EmOption.builder("fceumm_overscan", "disabled")
-                        .setTitle("Crop overscan")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_overscan_h_left",
-                EmOption.builder("fceumm_overscan_h_left", "8")
-                        .setTitle("Crop overscan HL")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_overscan_h_right",
-                EmOption.builder("fceumm_overscan_h_right", "8")
-                        .setTitle("Crop overscan HR")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_overscan_v_top",
-                EmOption.builder("fceumm_overscan_v_top", "8")
-                        .setTitle("Crop overscan VT")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_overscan_v_bottom",
-                EmOption.builder("fceumm_overscan_v_bottom", "8")
-                        .setTitle("Crop overscan VB")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_aspect",
-                EmOption.builder("fceumm_aspect", "8:7 PAR")
-                        .setTitle("Preferred aspect ratio")
-                        .setAllowVals("8:7 PAR", "4:3")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_turbo_enable",
-                EmOption.builder("fceumm_turbo_enable", "None")
-                        .setTitle("Turbo enable")
-                        .setAllowVals("None", "Player 1", "Player 2", "Both")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_turbo_delay",
-                EmOption.builder("fceumm_turbo_delay", "3")
-                        .setTitle("Turbo delay (in frames)")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_region",
-                EmOption.builder("fceumm_region", "Auto")
-                        .setTitle("Region")
-                        .setAllowVals("Auto", "NTSC", "PAL", "Dendy")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_sndquality",
-                EmOption.builder("fceumm_sndquality", "High")
-                        .setTitle("Sound quality")
-                        .setAllowVals("Low", "High", "Very High")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_sndlowpass",
-                EmOption.builder("fceumm_sndlowpass", "enabled")
-                        .setTitle("Sound low pass")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_sndstereodelay",
-                EmOption.builder("fceumm_sndstereodelay", "disabled")
-                        .setTitle("Sound stereo delay")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_sndvolume",
-                EmOption.builder("fceumm_sndvolume", "10")
-                        .setTitle("Sound volume (0 - 10)")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_swapduty",
-                EmOption.builder("fceumm_swapduty", "disabled")
-                        .setTitle("Swap duty cycles")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_apu_1",
-                EmOption.builder("fceumm_apu_1", "enabled")
-                        .setTitle("APU 1")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_apu_2",
-                EmOption.builder("fceumm_apu_2", "enabled")
-                        .setTitle("APU 2")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_apu_3",
-                EmOption.builder("fceumm_apu_3", "enabled")
-                        .setTitle("APU 3")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_apu_4",
-                EmOption.builder("fceumm_apu_4", "enabled")
-                        .setTitle("APU 4")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_apu_5",
-                EmOption.builder("fceumm_apu_5", "enabled")
-                        .setTitle("APU 5")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_apu_6",
-                EmOption.builder("fceumm_apu_6", "enabled")
-                        .setTitle("APU 6")
-                        .setAllowVals("disabled", "enabled")
-                        .setSupported(true)
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_show_adv_system_options",
-                EmOption.builder("fceumm_show_adv_system_options", "disabled")
-                        .setTitle("Show advanced system options")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
-        OPTIONS.put(
-                "fceumm_show_adv_sound_options",
-                EmOption.builder("fceumm_show_adv_sound_options", "disabled")
-                        .setTitle("Show advanced sound options")
-                        .setAllowVals("disabled", "enabled")
-                        .build()
-        );
     }
 
     protected native void nativePowerOn();

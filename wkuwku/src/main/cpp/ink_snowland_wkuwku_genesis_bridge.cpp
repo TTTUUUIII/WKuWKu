@@ -3,7 +3,7 @@
 #include "log.h"
 #include "universal.h"
 
-#define TAG "FceummEmulator_Native"
+#define TAG "Genesis Plus GX"
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 
 // Write C++ code here.
@@ -104,6 +104,34 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
     }
 }
 
+static bool set_eject_state_t(bool ejected) {
+    return false;
+}
+
+static bool get_eject_state_t() {
+    return false;
+}
+
+static unsigned get_image_index_t() {
+    return 1;
+}
+
+static bool set_image_index_t(unsigned index) {
+    return false;
+}
+
+static unsigned get_num_images_t() {
+    return 1;
+}
+
+static bool replace_image_index_t(unsigned index, const struct retro_game_info *info) {
+    return false;
+}
+
+static bool add_image_index_t() {
+    return false;
+}
+
 static bool environment_callback(unsigned cmd, void *data) {
     JNIEnv *env;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
@@ -111,26 +139,7 @@ static bool environment_callback(unsigned cmd, void *data) {
         return false;
     }
     switch (cmd) {
-        case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
-            *(bool *) data = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                    nullptr);
-            break;
-        case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
-//            LOGD(TAG, "RETRO_ENVIRONMENT_SET_MEMORY_MAPS");
-            break;
-        case RETRO_ENVIRONMENT_SET_VARIABLE:
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
-        case RETRO_ENVIRONMENT_SET_VARIABLES:
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
-        case RETRO_ENVIRONMENT_GET_VARIABLE: {
-            struct retro_variable *variable;
-            variable = (struct retro_variable *) data;
-            set_variable_entry(env, variable->key, nullptr);
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                   variable_entry_object);
-            jstring value = (jstring) get_variable_entry_value(env);
-            variable->value = env->GetStringUTFChars(value, JNI_FALSE);
-        }
+        case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
             break;
         case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
             struct retro_log_callback *log_cb;
@@ -138,60 +147,36 @@ static bool environment_callback(unsigned cmd, void *data) {
             log_cb->log = log_print_callback;
             break;
         case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
+            break;
+        case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS:
+            break;
+        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE: {
+            if (data == nullptr) return true;
+            auto *disk_control = (struct retro_disk_control_callback *) data;
+            disk_control->set_image_index = set_image_index_t;
+            disk_control->add_image_index = add_image_index_t;
+            disk_control->replace_image_index = replace_image_index_t;
+            disk_control->get_eject_state = get_eject_state_t;
+            disk_control->set_eject_state = set_eject_state_t;
+            disk_control->get_image_index = get_image_index_t;
+            disk_control->get_num_images = get_num_images_t;
+        }
+            break;
+        case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
+            return false;
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-            set_variable_value(env, *((jint *) data));
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                          variable_object);
-        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: {
+//            set_variable_value(env, *((jint *) data));
+            return true;
+        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
             env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
             auto path = (jstring) get_variable_value(env);
             *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
         }
             break;
-        case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: {
-            jint index = 0;
-            struct retro_input_descriptor *desc;
-            desc = (struct retro_input_descriptor *) data;
-            jobject array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
-            while (desc->description != nullptr) {
-                jobject it = env->NewObject(
-                        ctx.input_descriptor_clazz,
-                        ctx.input_descriptor_constructor,
-                        desc->port,
-                        desc->device,
-                        desc->index,
-                        desc->id,
-                        env->NewStringUTF(desc->description));
-                env->CallVoidMethod(array_list, ctx.array_list_add_method, index, it);
-                desc++;
-                index++;
-            }
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
-        }
-            break;
-        case RETRO_ENVIRONMENT_GET_LANGUAGE: {
-            set_variable_value(env, RETRO_LANGUAGE_DUMMY);
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
-            jobject language = (jobject) get_variable_value(env);
-            jclass integer_clazz = env->FindClass("java/lang/Integer");
-            jmethodID int_value_method = env->GetMethodID(integer_clazz, "intValue", "()I");
-            *(unsigned *) data = (unsigned int) env->CallIntMethod(language, int_value_method);
-        }
-            break;
-        case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
-        case RETRO_ENVIRONMENT_SET_HW_RENDER | RETRO_ENVIRONMENT_EXPERIMENTAL:
-        case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
-        case RETRO_ENVIRONMENT_SET_HW_RENDER:
-        case RETRO_ENVIRONMENT_GET_HW_RENDER_INTERFACE:
-        case RETRO_ENVIRONMENT_SET_AUDIO_CALLBACK:
-        case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
-        case RETRO_ENVIRONMENT_SET_FRAME_TIME_CALLBACK:
-        case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
             break;
         default:
-//            LOGW(TAG, "WARN: cmd %d ignored!", cmd);
             return false;
     }
     return true;
@@ -246,11 +231,11 @@ static void input_poll_callback() {
 void em_power_on(JNIEnv *env, jobject thiz) {
     ctx.emulator_obj = env->NewGlobalRef(thiz);
     retro_set_environment(environment_callback);
-    retro_init();
     retro_set_video_refresh(video_refresh_callback);
     retro_set_audio_sample_batch(audio_sample_batch_callback);
     retro_set_input_state(input_state_callback);
     retro_set_input_poll(input_poll_callback);
+    retro_init();
 }
 
 void em_power_off(JNIEnv *env, jobject thiz) {

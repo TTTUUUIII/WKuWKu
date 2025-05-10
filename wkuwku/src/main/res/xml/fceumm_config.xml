@@ -1,0 +1,332 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="NES"
+            tag="nes" />
+        <system
+            name="Famicom"
+            tag="famicom" />
+    </systems>
+    <content-extensions>
+        <item>fds</item>
+        <item>nes</item>
+        <item>unif</item>
+        <item>unf</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="disabled"
+            key="fceumm_up_down_allowed"
+            title="Allow opposing directions">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_zapper_trigger"
+            title="Zapper trigger">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_overclocking"
+            title="Overclocking">
+            <allow-values>
+                <value>disabled</value>
+                <value>2x-Postrender</value>
+                <value>2x-VBlank</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto"
+            key="fceumm_region"
+            title="Region">
+            <allow-values>
+                <value>Auto</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+                <value>Dendy</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="random"
+            key="fceumm_ramstate"
+            title="RAM power up state">
+            <allow-values>
+                <value>random</value>
+                <value>fill $00</value>
+                <value>fill $FF</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="touchscreen"
+            key="fceumm_arkanoid_mode"
+            title="Arkanoid mode">
+            <allow-values>
+                <value>touchscreen</value>
+                <value>abs_mouse</value>
+                <value>stelladaptor</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="8"
+            key="fceumm_overscan_v_top"
+            title="Crop overscan VT" />
+        <option
+            defaultValue="4"
+            key="fceumm_zapper_tolerance"
+            title="Zapper tolerance" />
+        <option
+            defaultValue="8"
+            key="fceumm_overscan_h_right"
+            title="Crop overscan HR" />
+        <option
+            defaultValue="High"
+            key="fceumm_sndquality"
+            title="Sound quality">
+            <allow-values>
+                <value>Low</value>
+                <value>High</value>
+                <value>Very High</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_zapper_sensor"
+            title="Zapper sensor">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_show_crosshair"
+            title="Show crosshair">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="100"
+            key="fceumm_mouse_sensitivity"
+            title="Mouse sensitivity" />
+        <option
+            defaultValue="disabled"
+            key="fceumm_sndstereodelay"
+            title="Sound stereo delay">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_apu_3"
+            title="APU 3">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_apu_4"
+            title="APU 4">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_apu_5"
+            title="APU 5">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_apu_6"
+            title="APU 6">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="touchscreen"
+            key="fceumm_zapper_mode"
+            title="Zapper mode">
+            <allow-values>
+                <value>lightgun</value>
+                <value>touchscreen</value>
+                <value>mouse</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_game_genie"
+            title="Genie enable">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="8"
+            key="fceumm_overscan_v_bottom"
+            title="Crop overscan VB" />
+        <option
+            defaultValue="10"
+            key="fceumm_sndvolume"
+            title="Sound volume (0 - 10)" />
+        <option
+            defaultValue="disabled"
+            key="fceumm_show_adv_system_options"
+            title="Show advanced system options">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_ntsc_filter"
+            title="NTSC filter">
+            <allow-values>
+                <value>disabled</value>
+                <value>composite</value>
+                <value>svideo</value>
+                <value>rgb</value>
+                <value>monochrome</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_apu_1"
+            title="APU 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_apu_2"
+            title="APU 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_swapduty"
+            title="Swap duty cycles">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="default"
+            key="fceumm_palette"
+            title="Color palette">
+            <allow-values>
+                <value>default</value>
+                <value>asqrealc</value>
+                <value>nintendo-vc</value>
+                <value>rgb</value>
+                <value>yuv-v3</value>
+                <value>unsaturated-final</value>
+                <value>sony-cxa2025as-us</value>
+                <value>pal</value>
+                <value>bmf-final2</value>
+                <value>bmf-final3</value>
+                <value>smooth-fbx</value>
+                <value>composite-direct-fbx</value>
+                <value>pvm-style-d93-fbx</value>
+                <value>ntsc-hardware-fbx</value>
+                <value>nes-classic-fbx-fs</value>
+                <value>nescap</value>
+                <value>wavebeam</value>
+                <value>raw</value>
+                <value>custom</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_overscan"
+            title="Crop overscan">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="8"
+            key="fceumm_overscan_h_left"
+            title="Crop overscan HL" />
+        <option
+            defaultValue="enabled"
+            key="fceumm_sndlowpass"
+            title="Sound low pass">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fceumm_show_adv_sound_options"
+            title="Show advanced sound options">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fceumm_nospritelimit"
+            title="No sprite limit">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="3"
+            key="fceumm_turbo_delay"
+            title="Turbo delay (in frames)" />
+        <option
+            defaultValue="8:7 PAR"
+            key="fceumm_aspect"
+            title="Preferred aspect ratio">
+            <allow-values>
+                <value>8:7 PAR</value>
+                <value>4:3</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="None"
+            key="fceumm_turbo_enable"
+            title="Turbo enable">
+            <allow-values>
+                <value>None</value>
+                <value>Player 1</value>
+                <value>Player 2</value>
+                <value>Both</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>

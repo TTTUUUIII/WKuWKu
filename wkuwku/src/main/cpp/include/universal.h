@@ -7,6 +7,7 @@
 #include <jni.h>
 #include <libretro/libretro.h>
 #include <fstream>
+#include "log.h"
 
 #ifdef __cplusplus
 extern "C" {

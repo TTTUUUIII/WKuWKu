@@ -11,14 +11,14 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
     public String val;
     public final String title;
     public final String[] allowVals;
-    public final boolean supported;
+    public final boolean enable;
 
-    private EmOption(@NonNull String key, @NonNull String val, @Nullable String title, boolean supported, @Nullable String ...allowVals) {
+    private EmOption(@NonNull String key, @NonNull String val, @Nullable String title, boolean enable, @Nullable String ...allowVals) {
         this.key = key;
         this.val = val;
         this.title = title;
         this.allowVals = allowVals;
-        this.supported = supported;
+        this.enable = enable;
     }
 
     @Override
@@ -31,7 +31,7 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
         private final String val;
         private String title;
         private String[] allowVals = null;
-        private boolean supported = false;
+        private boolean enable = true;
 
         public Builder(@NonNull String key, @NonNull String val) {
             this.key = key;
@@ -48,27 +48,19 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
             return this;
         }
 
-        public Builder setSupported(boolean supported) {
-            this.supported = supported;
+        public Builder setEnable(boolean enable) {
+            this.enable = enable;
             return this;
         }
 
         public EmOption build() {
-            return new EmOption(key, val, title, supported, allowVals);
+            return new EmOption(key, val, title, enable, allowVals);
         }
     }
 
     public static Builder builder(@NonNull String key, @NonNull String val) {
         return new Builder(key, val);
     }
-
-//    public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, boolean supported, @Nullable String ...allowVals) {
-//        return new EmOption(key, val, title, supported, allowVals);
-//    }
-//
-//    public static EmOption create(@NonNull String key, @NonNull String val, @Nullable String title, @Nullable String ...allowVals) {
-//        return new EmOption(key, val, title, false, allowVals);
-//    }
 
     @NonNull
     @Override
@@ -91,5 +83,13 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
     @Override
     public int hashCode() {
         return Objects.hashCode(key);
+    }
+
+    @Override
+    public String toString() {
+        return "EmOption{" +
+                "val='" + val + '\'' +
+                ", key='" + key + '\'' +
+                '}';
     }
 }

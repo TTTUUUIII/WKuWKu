@@ -24,7 +24,9 @@ public class FileManager {
     public static File getCacheDirectory() {
         return sApplicationContext.getExternalCacheDir();
     }
-
+    public static File getFileDirectory(String type) {
+        return sApplicationContext.getExternalFilesDir(type);
+    }
     public static File getFile(String type, String filename) {
         return new File(sApplicationContext.getExternalFilesDir(type), filename);
     }

@@ -124,7 +124,7 @@ public class CoreFragment extends BaseFragment {
     private void onSaveOptions() {
         if (mCurrentOptions == null || mEmulator == null) return;
         for (EmOption option : mCurrentOptions) {
-            if (!option.supported) continue;
+            if (!option.enable) continue;
             SettingsManager.putString(option.key, option.val);
         }
     }

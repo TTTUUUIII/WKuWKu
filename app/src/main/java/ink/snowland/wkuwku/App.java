@@ -18,6 +18,7 @@ public class App extends Application {
         FileManager.initialize(this);
         AppDatabase.initialize(this);
         SettingsManager.initialize(this);
+        EmulatorManager.initialize(this);
         try {
             BiosProvider.initialize(this);
         } catch (XmlPullParserException | IOException e) {

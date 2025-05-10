@@ -27,7 +27,7 @@ public class GLVideoDevice implements EmVideoDevice {
     private int mVideoWidth;
     private int mVideoHeight;
     private volatile ByteBuffer mFrameBuffer = null;
-    private RenderImpl mRender = new RenderImpl();
+    private RenderImpl mRender;
     private final String mVertexShaderSource;
     private final String mFragmentShaderSource;
 
@@ -38,15 +38,15 @@ public class GLVideoDevice implements EmVideoDevice {
 
     @Override
     public void refresh(byte[] data, int width, int height, int pitch) {
-        if (mFrameBuffer == null) {
-            createFrameBuffer(height * pitch);
-            mVideoWidth = width;
-            mVideoHeight = height;
-        }
-        swapFrameBuffer(data);
+        mVideoWidth = width;
+        mVideoHeight = height;
+        allocFrameBuffer();
+        fillFrameBuffer(data, pitch);
     }
 
     public GLSurfaceView.Renderer getRenderer() {
+        if (mRender == null)
+            mRender = new RenderImpl();
         return mRender;
     }
 
@@ -63,6 +63,7 @@ public class GLVideoDevice implements EmVideoDevice {
         /*[VAO, VBO, Texture1]*/
         private final int[] mBuffers = new int[3];
         private volatile boolean mFirstRender = true;
+
         @Override
         public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -145,18 +146,23 @@ public class GLVideoDevice implements EmVideoDevice {
         }
     }
 
-    private void swapFrameBuffer(final byte[] data) {
+    private void fillFrameBuffer(final byte[] data, final int pitch) {
         synchronized (mLock) {
             mFrameBuffer.rewind();
-            mFrameBuffer.put(data);
+            for (int i = 0; i < mVideoHeight; ++i) {
+                mFrameBuffer.put(data, i * pitch, mVideoWidth * 2);
+            }
             mFrameBuffer.flip();
         }
     }
 
-    private void createFrameBuffer(int sizeInByes) {
-        mFrameBuffer = ByteBuffer.allocateDirect(sizeInByes)
-                .order(ByteOrder.nativeOrder());
-        mFrameBuffer.position(0);
+    private void allocFrameBuffer() {
+        int size = mVideoWidth * mVideoHeight * 2;
+        if (mFrameBuffer == null || mFrameBuffer.capacity() < size) {
+            mFrameBuffer = ByteBuffer.allocateDirect(size)
+                    .order(ByteOrder.nativeOrder());
+            mFrameBuffer.position(0);
+        }
     }
 
     private static final float[] VERTEXES = new float[]{

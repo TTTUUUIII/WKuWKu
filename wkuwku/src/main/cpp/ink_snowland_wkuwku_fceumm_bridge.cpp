@@ -111,6 +111,7 @@ static bool environment_callback(unsigned cmd, void *data) {
         LOGE(TAG, "ERROR: unable attach env thread!");
         return false;
     }
+
     switch (cmd) {
         case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
             *(bool *) data = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
@@ -146,7 +147,7 @@ static bool environment_callback(unsigned cmd, void *data) {
                                           variable_object);
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: {
             env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
-            auto path = (jstring) get_variable_value(env);
+            jstring path = (jstring) get_variable_value(env);
             *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
         }
             break;

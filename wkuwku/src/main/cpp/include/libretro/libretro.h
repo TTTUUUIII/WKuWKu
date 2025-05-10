@@ -3032,7 +3032,7 @@ typedef bool (RETRO_CALLCONV *retro_get_image_path_t)(unsigned index, char *path
  * corresponding to in-game disk change prompts (so the
  * frontend can provide better user guidance than a 'dumb'
  * disk index value).
- * Returns 'false' if index is invalid (index >= get_num_images())
+ * Returns 'false' if index is invalid (index >= get_num_imagesretro_disk_control_callback())
  * or label is otherwise unavailable.
  */
 typedef bool (RETRO_CALLCONV *retro_get_image_label_t)(unsigned index, char *label, size_t len);
