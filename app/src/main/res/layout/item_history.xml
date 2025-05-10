@@ -36,23 +36,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
-        <TextView
-            android:id="@+id/system"
-            android:layout_marginStart="8dp"
-            android:minWidth="34dp"
-            android:gravity="center_horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurface"
-            android:text="@{game.system}"/>
-        <TextView
-            android:id="@+id/region"
-            android:minWidth="34dp"
-            android:gravity="center_horizontal"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSecondaryContainer"
-            tools:text="@{game.region}" />
         <Button
             android:id="@+id/button_launch"
             android:layout_marginStart="8dp"
