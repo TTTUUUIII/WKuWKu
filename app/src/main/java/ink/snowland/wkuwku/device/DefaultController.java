@@ -4,9 +4,6 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Build;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,25 +12,16 @@ import androidx.annotation.NonNull;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
-import ink.snowland.wkuwku.databinding.LayoutNesControllerBinding;
-import ink.snowland.wkuwku.util.SettingsManager;
+import ink.snowland.wkuwku.databinding.LayoutDefaultControllerBinding;
 
-public class NESController extends BaseController implements View.OnTouchListener {
+public class DefaultController extends BaseController implements View.OnTouchListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
-    private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     private short mState = 0;
-    private final LayoutNesControllerBinding binding;
-    private Vibrator mVibrator;
+    private final LayoutDefaultControllerBinding binding;
 
-    public NESController(int port, @NonNull Context context) {
-        super(port, RETRO_DEVICE_JOYPAD);
-        binding = LayoutNesControllerBinding.inflate(LayoutInflater.from(context));
-        if (SettingsManager.getBoolean(VIBRATION_FEEDBACK, true)) {
-            mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-            if (!mVibrator.hasVibrator()) {
-                mVibrator = null;
-            }
-        }
+    public DefaultController(int port, @NonNull Context context) {
+        super(context, port, RETRO_DEVICE_JOYPAD);
+        binding = LayoutDefaultControllerBinding.inflate(LayoutInflater.from(context));
         bindEvents();
     }
     @Override
@@ -108,12 +96,8 @@ public class NESController extends BaseController implements View.OnTouchListene
             }
             setState(id, state);
         }
-        if (mVibrator != null && event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
-            } else {
-                mVibrator.vibrate(20);
-            }
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            vibrator();
         }
         return false;
     }

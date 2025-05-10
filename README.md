@@ -1,7 +1,7 @@
 # WKuWKu ![Application icon](app/src/main/res/drawable/app_icon_mdpi.png)
 
-| <img src="sc_001.png" style="zoom:30%;" /> | <img src="sc_002.png" style="zoom:30%;" /> | <img src="sc_003.png" style="zoom:30%;" /> |
-| ------------------------------------------ | ------------------------------------------ | ------------------------------------------ |
+| <img src="sc_001.png" style="zoom:30%;" /> | <img src="sc_002.png" style="zoom:30%;" /> | <img src="sc_003.png" style="zoom:30%;" /> | <img src="sc_004.png" style="zoom:30%;" /> |
+| ------------------------------------------ | ------------------------------------------ | ------------------------------------------ | ------------------------------------------ |
 
 
 
@@ -10,7 +10,7 @@
 > This is a [Libretro](https://www.libretro.com/) frontend implementation for the Android platform.
 
 ## What can it currently do ?
-> Currently, it integrates the [libretro-fceumm](https://github.com/libretro/libretro-fceumm) core, so you can use it to play classic games on the Nintendo NES platform on your Android phone.
+> Currently, it integrates the [libretro-fceumm](https://github.com/libretro/libretro-fceumm) and [genesis-plus-gx](https://github.com/libretro/Genesis-Plus-GX) core, So you can use it to play classic games from Nintendo or Sega platforms directly on your Android phone.
 
 ## What's next ?
 > - Continue to improve various basic functions (as you can see, many functions are still only on the interface and have not yet been implemented.)

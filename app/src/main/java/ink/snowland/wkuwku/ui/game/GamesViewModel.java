@@ -122,9 +122,7 @@ public class GamesViewModel extends BaseViewModel {
                     showErrorToast(error);
                     error.printStackTrace(System.err);
                 })
-                .subscribe(() -> {
-                    Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
-                }, error -> {/*Ignored*/});
+                .subscribe(() -> {}, error -> {/*Ignored*/});
     }
 
     public void deleteGame(@NonNull Game game) {
@@ -137,7 +135,6 @@ public class GamesViewModel extends BaseViewModel {
                 })
                 .subscribe(() -> {
                     FileManager.delete(game.filepath);
-                    Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
                 }, error -> {/*Ignored*/});
     }
 
@@ -152,8 +149,6 @@ public class GamesViewModel extends BaseViewModel {
                     }
                     showErrorToast(error);
                 })
-                .subscribe(() -> {
-                    Toast.makeText(getApplication(), R.string.successful, Toast.LENGTH_SHORT).show();
-                }, error -> {/*Ignored*/});
+                .subscribe(() -> { }, error -> {/*Ignored*/});
     }
 }

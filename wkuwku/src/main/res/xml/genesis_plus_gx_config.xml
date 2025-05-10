@@ -3,22 +3,28 @@
     <systems>
         <system
             name="Game Gear"
-            tag="sega-game-gear" />
+            tag="game-gear"
+            manufacturer="sega" />
         <system
             name="Master System"
-            tag="sega-master-system" />
+            tag="master-system"
+            manufacturer="sega" />
         <system
             name="Mega-CD"
-            tag="sega-cd" />
+            tag="mega-cd"
+            manufacturer="sega" />
         <system
             name="Mega Drive"
-            tag="sega-mega-drive" />
+            tag="mega-drive"
+            manufacturer="sega" />
         <system
             name="PICO"
-            tag="sega-pico" />
+            tag="sega-pico"
+            manufacturer="sega" />
         <system
             name="SG-1000"
-            tag="sega-sg-1000" />
+            tag="sg-1000"
+            manufacturer="sega" />
     </systems>
     <content-extensions>
         <item>m3u</item>

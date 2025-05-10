@@ -63,4 +63,5 @@
     <string name="network_error">错误：网络不可用！</string>
     <string name="load_bios_failed">错误：无法加载 bios！</string>
     <string name="please_select_system">请选择系统</string>
+    <string name="no_matching_emulator_found">找不到匹配的模拟器</string>
 </resources>

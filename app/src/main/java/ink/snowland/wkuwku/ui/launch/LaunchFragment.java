@@ -17,7 +17,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +36,8 @@ import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.AudioDevice;
-import ink.snowland.wkuwku.device.NESController;
+import ink.snowland.wkuwku.device.SegaController;
+import ink.snowland.wkuwku.device.DefaultController;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.device.GLVideoDevice;
 import ink.snowland.wkuwku.util.BiosProvider;
@@ -77,8 +77,7 @@ public class LaunchFragment extends BaseFragment {
         Bundle arguments = getArguments();
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
-        assert mGame != null;
-        mEmulator = getEmulatorForGame(mGame);
+        selectEmulator();
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -91,7 +90,7 @@ public class LaunchFragment extends BaseFragment {
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
-        prepareController();
+        selectController();
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
     }
@@ -99,7 +98,11 @@ public class LaunchFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE && mEmulator != null) {
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            if (mEmulator == null) {
+                Toast.makeText(parentActivity, R.string.no_matching_emulator_found, Toast.LENGTH_SHORT).show();
+                return;
+            }
             mViewModel.setPendingIndicator(true, getString(R.string.fmt_downloading, "bios"));
             Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getCacheDirectory())
                     .subscribeOn(Schedulers.io())
@@ -177,17 +180,19 @@ public class LaunchFragment extends BaseFragment {
         }
     }
 
-    private void prepareController() {
-//        if (mGame.system.toLowerCase(Locale.ROOT).equals("nes")) {
-//            mController = new NESController(0, parentActivity);
-//            binding.controllerRoot.addView(mController.getView());
-//        } else {
-//            /*Not supported yet.*/
-//            mController = new NESController(0, parentActivity);
-//            binding.controllerRoot.addView(mController.getView());
-//            Log.w(TAG, "No controller for system \"" + mGame.system + "\"");
-//        }
-        mController = new NESController(0, parentActivity);
+    private void selectController() {
+        switch (mGame.system) {
+            case "game-gear":
+            case "master-system":
+            case "mega-cd":
+            case "mega-drive":
+            case "sega-pico":
+            case "sg-1000":
+                mController = new SegaController(0, parentActivity);
+                break;
+            default:
+                mController = new DefaultController(0, parentActivity);
+        }
         binding.controllerRoot.addView(mController.getView());
     }
 
@@ -266,28 +271,26 @@ public class LaunchFragment extends BaseFragment {
     }
 
     public static final String ARG_GAME = "game";
-
-    private static Emulator getEmulatorForGame(@NonNull Game game) {
-        String system = game.system.toLowerCase(Locale.ROOT);
-        String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", system));
+    private void selectEmulator() {
+        String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", mGame.system));
         if (tag.isEmpty()) {
-            switch (system) {
+            switch (mGame.system) {
                 case "nes":
                 case "famicom":
                     tag = "fceumm";
                     break;
-                case "sega-game-gear":
-                case "sega-master-system":
-                case "sega-cd":
-                case "sega-mega-drive":
+                case "game-gear":
+                case "master-system":
+                case "mega-cd":
+                case "mega-drive":
                 case "sega-pico":
-                case "sega-sg-1000":
+                case "sg-1000":
                     tag = "genesis-plus-gx";
                     break;
                 default:
                     /*Unknown system*/
             }
         }
-        return EmulatorManager.getEmulator(tag);
+        mEmulator = EmulatorManager.getEmulator(tag);
     }
 }

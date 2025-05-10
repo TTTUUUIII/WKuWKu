@@ -68,8 +68,9 @@ public class EmConfig {
     private EmSystem parseSystem(XmlResourceParser parser) {
         String systemName = parser.getAttributeValue(null, "name");
         String systemTag = parser.getAttributeValue(null, "tag");
-        if (systemName != null && systemTag != null) {
-            return new EmSystem(systemName, systemTag);
+        String manufacturer = parser.getAttributeValue(null, "manufacturer");
+        if (systemName != null && systemTag != null && manufacturer != null) {
+            return new EmSystem(systemName, systemTag, manufacturer);
         }
         return null;
     }

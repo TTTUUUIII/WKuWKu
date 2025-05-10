@@ -3,10 +3,12 @@
     <systems>
         <system
             name="NES"
-            tag="nes" />
+            tag="nes"
+            manufacturer="nintendo" />
         <system
             name="Famicom"
-            tag="famicom" />
+            tag="famicom"
+            manufacturer="nintendo" />
     </systems>
     <content-extensions>
         <item>fds</item>
