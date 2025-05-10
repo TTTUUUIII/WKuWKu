@@ -13,7 +13,6 @@ import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,6 @@ import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.databinding.LayoutEditGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.interfaces.Emulator;
 
 public class GameEditDialog {
     private LayoutEditGameBinding binding;
@@ -51,10 +49,10 @@ public class GameEditDialog {
             mAllSupportedSystems.put(system.name, system);
         }
         String[] allSupportedSystemNames = mAllSupportedSystems.keySet().toArray(new String[0]);
-        binding.systemTextView.setSimpleItems(allSupportedSystemNames);
+        binding.systemTextView.setAdapter(new NoFilterArrayAdapter<String>(mParent, R.layout.layout_simple_text, allSupportedSystemNames));
         binding.systemTextView.setText(allSupportedSystemNames[0], false);
         mAllSupportedRegions = activity.getResources().getStringArray(R.array.all_regions);
-        binding.regionTextView.setSimpleItems(mAllSupportedRegions);
+        binding.regionTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, mAllSupportedRegions));
         binding.buttonSelectFile.setOnClickListener(v -> {
             activity.openDocument("*/*"/*"application/octet-stream"*/, uri -> {
                 DocumentFile file = DocumentFile.fromSingleUri(activity, uri);
@@ -79,6 +77,12 @@ public class GameEditDialog {
         mGame = base.clone();
         binding.buttonQrCode.setVisibility(View.GONE);
         binding.selectFileLayout.setVisibility(View.GONE);
+        for (EmSystem system : mAllSupportedSystems.values()) {
+            if (mGame.system.equals(system.tag)) {
+                binding.systemTextView.setText(system.name, false);
+                break;
+            }
+        }
         binding.setGame(mGame);
         binding.invalidateAll();
         mCallback = callback;
@@ -101,7 +105,6 @@ public class GameEditDialog {
         binding.selectFileLayout.setVisibility(View.VISIBLE);
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            System.out.println(binding.systemTextView.getListSelection());
             EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
             if (system != null) {
                 mGame.system = system.tag;

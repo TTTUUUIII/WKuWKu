@@ -158,7 +158,7 @@ public class GLVideoDevice implements EmVideoDevice {
 
     private void allocFrameBuffer() {
         int size = mVideoWidth * mVideoHeight * 2;
-        if (mFrameBuffer == null || mFrameBuffer.capacity() < size) {
+        if (mFrameBuffer == null || mFrameBuffer.capacity() != size) {
             mFrameBuffer = ByteBuffer.allocateDirect(size)
                     .order(ByteOrder.nativeOrder());
             mFrameBuffer.position(0);
