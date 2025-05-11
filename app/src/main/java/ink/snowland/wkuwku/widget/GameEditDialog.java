@@ -88,6 +88,9 @@ public class GameEditDialog {
         mCallback = callback;
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
+            if (system != null)
+                mGame.system = system.tag;
             if (checkValid()) {
                 mCallback.onConfirm(mGame, null);
                 mDialog.dismiss();
@@ -106,9 +109,8 @@ public class GameEditDialog {
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
-            if (system != null) {
+            if (system != null)
                 mGame.system = system.tag;
-            }
             if (checkValid()) {
                 assert mUri != null;
                 mCallback.onConfirm(mGame, mUri);
