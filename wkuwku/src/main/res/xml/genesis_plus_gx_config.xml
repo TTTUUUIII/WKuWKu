@@ -54,7 +54,7 @@
         </option>
         <option
             defaultValue="100"
-            
+            inputType="number"
             key="genesis_plus_gx_psg_channel_3_volume"
             title="PSG Tone Channel 3 Volume" />
         <option
@@ -68,10 +68,12 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_psg_channel_2_volume"
             title="PSG Tone Channel 2 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_psg_channel_1_volume"
             title="PSG Tone Channel 1 Volume" />
         <option
@@ -98,6 +100,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_cdda_volume"
             title="CD-DA Volume" />
         <option
@@ -122,11 +125,12 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_audio_eq_low"
             title="EQ Low" />
         <option
             defaultValue="disabled"
-            
+
             key="genesis_plus_gx_gun_cursor"
             title="Show Light Gun Crosshair">
             <allow-values>
@@ -136,6 +140,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_md_channel_0_volume"
             title="Mega Drive/Genesis FM Channel 0 Volume" />
         <option
@@ -149,6 +154,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_audio_eq_mid"
             title="EQ Mid" />
         <option
@@ -162,6 +168,7 @@
         </option>
         <option
             defaultValue="8"
+            inputType="number"
             key="genesis_plus_gx_enhanced_vscroll_limit"
             title="Enhanced per-tile vertical scroll limit" />
         <option
@@ -178,18 +185,22 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_1_volume"
             title="Master System FM (YM2413) Channel 1 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_3_volume"
             title="Master System FM (YM2413) Channel 3 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_overclock"
             title="CPU Speed" />
         <option
             defaultValue="33"
+            inputType="number"
             key="genesis_plus_gx_frameskip_threshold"
             title="Frameskip Threshold" />
         <option
@@ -203,11 +214,12 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_5_volume"
             title="Master System FM (YM2413) Channel 5 Volume" />
         <option
             defaultValue="disabled"
-            
+
             key="genesis_plus_gx_bios"
             title="System Boot ROM">
             <allow-values>
@@ -217,10 +229,12 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_md_channel_2_volume"
             title="Mega Drive/Genesis FM Channel 2 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_md_channel_4_volume"
             title="Mega Drive/Genesis FM Channel 4 Volume" />
         <option
@@ -246,6 +260,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_7_volume"
             title="Master System FM (YM2413) Channel 7 Volume" />
         <option
@@ -298,6 +313,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_fm_preamp"
             title="FM Preamp Level" />
         <option
@@ -325,10 +341,12 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_audio_eq_high"
             title="EQ High" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_pcm_volume"
             title="PCM Volume" />
         <option
@@ -361,6 +379,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_8_volume"
             title="Master System FM (YM2413) Channel 8 Volume" />
         <option
@@ -402,6 +421,7 @@
         </option>
         <option
             defaultValue="150"
+            inputType="number"
             key="genesis_plus_gx_psg_preamp"
             title="PSG Preamp Level" />
         <option
@@ -437,38 +457,47 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_0_volume"
             title="Master System FM (YM2413) Channel 0 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_2_volume"
             title="Master System FM (YM2413) Channel 2 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_psg_channel_0_volume"
             title="PSG Tone Channel 0 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_md_channel_3_volume"
             title="Mega Drive/Genesis FM Channel 3 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_4_volume"
             title="Master System FM (YM2413) Channel 4 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_sms_fm_channel_6_volume"
             title="Master System FM (YM2413) Channel 6 Volume" />
         <option
             defaultValue="60"
+            inputType="number"
             key="genesis_plus_gx_lowpass_range"
             title="Low-Pass Filter %" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_md_channel_1_volume"
             title="Mega Drive/Genesis FM Channel 1 Volume" />
         <option
             defaultValue="100"
+            inputType="number"
             key="genesis_plus_gx_md_channel_5_volume"
             title="Mega Drive/Genesis FM Channel 5 Volume" />
         <option

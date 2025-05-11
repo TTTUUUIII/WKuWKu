@@ -13,6 +13,7 @@ import androidx.viewbinding.ViewBinding;
 
 import android.os.SystemClock;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -140,7 +141,13 @@ public class CoreFragment extends BaseFragment {
 
         public void bind(@NonNull EmOption option) {
             if (_binding instanceof ItemCoreOptionBinding) {
-                ((ItemCoreOptionBinding) _binding).setOption(option);
+                ItemCoreOptionBinding itemBinding = (ItemCoreOptionBinding) _binding;
+                itemBinding.setOption(option);
+                if (option.inputType.equals(EmOption.NUMBER)) {
+                    itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                } else if (option.inputType.equals(EmOption.NUMBER_DECIMAL)) {
+                    itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                }
             } else {
                 ItemCoreEnumOptionBinding itemBinding = (ItemCoreEnumOptionBinding) _binding;
                 NoFilterArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, option.allowVals);

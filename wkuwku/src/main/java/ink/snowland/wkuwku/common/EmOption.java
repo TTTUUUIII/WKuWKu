@@ -7,18 +7,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 public class EmOption implements Cloneable , Comparable<EmOption>{
+
+    public static final String NUMBER = "number";
+    public static final String NUMBER_DECIMAL = "numberDecimal";
+    public static final String TEXT = "text";
+
     public final String key;
     public String val;
     public final String title;
     public final String[] allowVals;
     public final boolean enable;
+    public final String inputType;
 
-    private EmOption(@NonNull String key, @NonNull String val, @Nullable String title, boolean enable, @Nullable String ...allowVals) {
+    private EmOption(@NonNull String key, @NonNull String val, @Nullable String title, boolean enable, String inputType, @Nullable String ...allowVals) {
         this.key = key;
         this.val = val;
         this.title = title;
         this.allowVals = allowVals;
         this.enable = enable;
+        this.inputType = inputType;
     }
 
     @Override
@@ -32,6 +39,7 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
         private String title;
         private String[] allowVals = null;
         private boolean enable = true;
+        private String inputType;
 
         public Builder(@NonNull String key, @NonNull String val) {
             this.key = key;
@@ -53,8 +61,13 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
             return this;
         }
 
+        public Builder setInputType(String inputType) {
+            this.inputType = inputType;
+            return this;
+        }
+
         public EmOption build() {
-            return new EmOption(key, val, title, enable, allowVals);
+            return new EmOption(key, val, title, enable, inputType, allowVals);
         }
     }
 

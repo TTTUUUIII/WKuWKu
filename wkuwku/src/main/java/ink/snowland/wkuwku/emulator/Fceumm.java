@@ -55,7 +55,6 @@ public class Fceumm extends Emulator {
             case RETRO_ENVIRONMENT_GET_VARIABLE:
                 entry = (VariableEntry) data;
                 EmOption option = options.get(entry.key);
-                Log.d(TAG, entry.key);
                 if (option != null) {
                     entry.value = option.val;
                 } else {

@@ -78,14 +78,17 @@
         </option>
         <option
             defaultValue="8"
+            inputType="number"
             key="fceumm_overscan_v_top"
             title="Crop overscan VT" />
         <option
             defaultValue="4"
+            inputType="number"
             key="fceumm_zapper_tolerance"
             title="Zapper tolerance" />
         <option
             defaultValue="8"
+            inputType="number"
             key="fceumm_overscan_h_right"
             title="Crop overscan HR" />
         <option
@@ -118,6 +121,7 @@
         </option>
         <option
             defaultValue="100"
+            inputType="number"
             key="fceumm_mouse_sensitivity"
             title="Mouse sensitivity" />
         <option
@@ -186,10 +190,12 @@
         </option>
         <option
             defaultValue="8"
+            inputType="number"
             key="fceumm_overscan_v_bottom"
             title="Crop overscan VB" />
         <option
             defaultValue="10"
+            inputType="number"
             key="fceumm_sndvolume"
             title="Sound volume (0 - 10)" />
         <option
@@ -277,6 +283,7 @@
         </option>
         <option
             defaultValue="8"
+            inputType="number"
             key="fceumm_overscan_h_left"
             title="Crop overscan HL" />
         <option
@@ -308,6 +315,7 @@
         </option>
         <option
             defaultValue="3"
+            inputType="number"
             key="fceumm_turbo_delay"
             title="Turbo delay (in frames)" />
         <option

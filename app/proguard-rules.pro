@@ -12,6 +12,9 @@
 #   public *;
 #}
 
+-keep class ink.snowland.wkuwku.emulator.** { *; }
+-keep class ink.snowland.wkuwku.common.** { *; }
+
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable

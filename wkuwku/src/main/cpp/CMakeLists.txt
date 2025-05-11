@@ -26,32 +26,19 @@ project("wkuwku")
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include_directories(include)
-add_library(fceumm-bridge SHARED
-    # List C/C++ source files with relative paths to this CMakeLists.txt.
-        universal.cpp
-        ink_snowland_wkuwku_fceumm_bridge.cpp)
+macro(add_bridge_library name)
+    add_library(${name}-bridge SHARED common.cpp ink_snowland_wkuwku_${name}_bridge.cpp)
+    target_link_libraries(${name}-bridge android log ${name})
+    string(TOUPPER ${name} tmp)
+    string(REPLACE "-" "_" tag ${tmp})
+    target_compile_definitions(${name}-bridge PRIVATE ${tag})
+endmacro()
 
-add_library(fceumm SHARED IMPORTED)
-set_target_properties(fceumm PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libfceumm.so)
+add_bridge_library(fceumm)
+#add_bridge_library(mesen)
+add_bridge_library(genesis-plus-gx)
 
-add_library(genesis-plus-gx-bridge SHARED
-        universal.cpp
-        ink_snowland_wkuwku_genesis_bridge.cpp)
-
-add_library(genesis-plus-gx SHARED IMPORTED)
-set_target_properties(genesis-plus-gx PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libgenesis-plus-gx.so)
-
-# Specifies libraries CMake should link to your target library. You
-# can link libraries from various origins, such as libraries defined in this
-# build script, prebuilt third-party libraries, or Android system libraries.
-target_link_libraries(fceumm-bridge
-    # List libraries link to the target library
-    android
-    log
-    fceumm)
-
-target_link_libraries(genesis-plus-gx-bridge
-        android
-        log
-        genesis-plus-gx
-)
+foreach(lib IN ITEMS fceumm genesis-plus-gx)
+    add_library(${lib} SHARED IMPORTED)
+    set_target_properties(${lib} PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/lib${lib}.so")
+endforeach()

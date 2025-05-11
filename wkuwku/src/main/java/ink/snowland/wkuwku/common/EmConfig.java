@@ -79,6 +79,7 @@ public class EmConfig {
         String key = parser.getAttributeValue(null, "key");
         String defaultValue = parser.getAttributeValue(null, "defaultValue");
         String title = parser.getAttributeValue(null, "title");
+        String inputType = parser.getAttributeValue(null, "inputType");
         boolean enable = parser.getAttributeBooleanValue(null, "enable", true);
         int event = parser.getEventType();
         String name = parser.getName();
@@ -99,9 +100,10 @@ public class EmConfig {
             EmOption.Builder builder = EmOption.builder(key, defaultValue)
                     .setTitle(title)
                     .setEnable(enable);
-            if (allowValues != null) {
+            if (allowValues != null)
                 builder.setAllowVals(allowValues.toArray(new String[0]));
-            }
+            if (inputType != null)
+                builder.setInputType(inputType);
             return builder.build();
         }
         return null;
