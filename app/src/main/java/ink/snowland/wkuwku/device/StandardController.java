@@ -14,12 +14,12 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.databinding.LayoutDefaultControllerBinding;
 
-public class DefaultController extends BaseController implements View.OnTouchListener {
+public class StandardController extends BaseController implements View.OnTouchListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
     private final LayoutDefaultControllerBinding binding;
 
-    public DefaultController(int port, @NonNull Context context) {
+    public StandardController(int port, @NonNull Context context) {
         super(context, port, RETRO_DEVICE_JOYPAD);
         binding = LayoutDefaultControllerBinding.inflate(LayoutInflater.from(context));
         bindEvents();

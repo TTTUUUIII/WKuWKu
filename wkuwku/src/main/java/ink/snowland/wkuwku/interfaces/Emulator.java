@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.annotations.CallFromJni;
 import ink.snowland.wkuwku.common.EmConfig;
+import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmScheduledThread;
 import ink.snowland.wkuwku.common.EmSystem;
@@ -1608,8 +1609,6 @@ public abstract class Emulator {
 
     public static final int SYSTEM_DIR = 1;
     public static final int SAVE_DIR = 2;
-
-
     protected final String TAG = getClass().getSimpleName();
     private static final int STATE_INVALID = 0;
     private static final int STATE_RUNNING = 1;
@@ -1630,6 +1629,7 @@ public abstract class Emulator {
     protected EmInputDevice inputDevice1;
     protected EmInputDevice inputDevice2;
     protected EmInputDevice inputDevice3;
+    private OnEmulatorEventListener mEventListener;
 
     public boolean run(@NonNull File rom) {
         if (!rom.exists() || !rom.canRead()) return false;
@@ -1700,6 +1700,7 @@ public abstract class Emulator {
         if (videoDevice != null) {
             videoDevice = null;
         }
+        mEventListener = null;
         if (mState == STATE_INVALID) return;
         onPowerOff();
         mState = STATE_INVALID;
@@ -1810,6 +1811,14 @@ public abstract class Emulator {
                     /*pass*/
                 }
                 break;
+            case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
+                variable = (Variable) data;
+                variable.value = 1;
+                break;
+            case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
+                if (mEventListener != null)
+                    mEventListener.onShowMessage((EmMessageExt) data);
+                break;
             case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
                 variable = (Variable) data;
                 if ((int) variable.value == RETRO_PIXEL_FORMAT_XRGB8888)
@@ -1827,6 +1836,12 @@ public abstract class Emulator {
                 break;
             case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
 //                List<InputDescriptor> descriptors = (ArrayList<InputDescriptor>) data;
+                break;
+            case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
+//                ArrayList<ControllerDescription> descriptors = (ArrayList<ControllerDescription>) data;
+                break;
+            case RETRO_ENVIRONMENT_SET_GEOMETRY:
+//                EmGameGeometry geometry = (EmGameGeometry) data;
                 break;
             default:
                 return false;
@@ -1876,6 +1891,10 @@ public abstract class Emulator {
 
     }
 
+    public void setEmulatorEventListener(@Nullable OnEmulatorEventListener listener) {
+        mEventListener = listener;
+    }
+
     public abstract String getTag();
     public abstract EmSystemInfo getSystemInfo();
     protected abstract EmSystemAvInfo getSystemAvInfo();
@@ -1886,4 +1905,8 @@ public abstract class Emulator {
     public abstract void onLoadState(@NonNull String fullPath);
     public abstract boolean onSaveState(@NonNull String savePath);
     public abstract void onPowerOff();
+
+    public interface OnEmulatorEventListener {
+        void onShowMessage(EmMessageExt msg);
+    }
 }

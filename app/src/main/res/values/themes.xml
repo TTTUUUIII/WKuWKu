@@ -4,18 +4,29 @@
         <!-- Customize your light theme here. -->
          <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryContainer">@color/primary_700</item>
+        <item name="colorPrimaryInverse">@color/error</item>
         <item name="colorSurface">@color/primary_500</item>
+        <item name="colorOnBackground">@color/primary_700</item>
         <item name="colorContainer">@color/primary_500</item>
         <item name="colorSurfaceContainer">@color/primary_300</item>
+        <item name="colorOnSurfaceInverse">@color/text_color_light</item>
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorSecondaryContainer">@color/secondary_500</item>
         <item name="colorSurfaceContainerHigh">@color/primary_100</item>
         <item name="colorError">@color/error_700</item>
         <item name="popupMenuBackground">@color/primary_100</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="snackbarStyle">@style/Theme.WKuWKu.Snackbar</item>
+        <item name="snackbarButtonStyle">@style/Widget.Material3.Button.TextButton.Snackbar</item>
+        <item name="snackbarTextViewStyle">@style/Theme.WKuWKu.Snackbar.TextView</item>
+<!--        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>-->
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
+    <style name="Theme.WKuWKu.Snackbar" parent="Widget.Material3.Snackbar">
+        <item name="backgroundTint">?attr/colorSurfaceContainer</item>
+    </style>
+    <style name="Theme.WKuWKu.Snackbar.TextView" parent="Widget.Material3.Snackbar.TextView">
+    </style>
     <style name="Theme.WKuWKu.TextInputLayout.OutlinedBox" parent="Widget.Material3.TextInputLayout.OutlinedBox">
 
     </style>

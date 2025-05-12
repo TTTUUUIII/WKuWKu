@@ -15,4 +15,5 @@
     <color name="error">#E52020</color>
     <color name="error_700">#E96262</color>
     <color name="ic_launcher_background">#FE8E37</color>
+    <color name="text_color_light">#737373</color>
 </resources>

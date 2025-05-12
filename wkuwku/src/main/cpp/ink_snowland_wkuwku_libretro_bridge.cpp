@@ -5,21 +5,23 @@
 #include "log.h"
 
 #if defined(FCEUMM)
-#define TAG "Fceumm Native"
+#define TAG "Fceumm_Native"
 #elif defined(GENESIS_PLUS_GX)
-#define TAG "Genesis Plus GX Native"
+#define TAG "Genesis_Plus_GX_Native"
 #elif defined(BSNES)
-#define TAG "Bsnes Native"
+#define TAG "Bsnes_Native"
 #else
-#define TAG "Mesen Native"
+#define TAG "Mesen_Native"
 #endif
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
     JavaVM *jvm;
     jclass input_descriptor_clazz;
+    jclass message_ext_clazz;
     jclass array_list_clazz;
     jobject emulator_obj;
+    jmethodID message_ext_constructor;
     jmethodID input_descriptor_constructor;
     jmethodID array_list_constructor;
     jmethodID array_list_add_method;
@@ -54,6 +56,13 @@ static void set_variable_value(JNIEnv *env, const char *value) {
 
 static jobject get_variable_value(JNIEnv *env) {
     return env->GetObjectField(variable_object, ctx.variable_value_field);
+}
+
+static jint get_variable_int_value(JNIEnv *env) {
+    jobject integer_obj = env->GetObjectField(variable_object, ctx.variable_value_field);
+    jclass clazz = env->FindClass("java/lang/Integer");
+    jmethodID int_value_method = env->GetMethodID(clazz, "intValue", "()I");
+    return env->CallIntMethod(integer_obj, int_value_method);
 }
 
 static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
@@ -97,22 +106,27 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 }
 
 static bool set_eject_state_t(bool ejected) {
+    LOGD(TAG, "set_eject_state_t: %d", ejected);
     return false;
 }
 
 static bool get_eject_state_t() {
+    LOGD(TAG, "get_eject_state_t");
     return false;
 }
 
 static unsigned get_image_index_t() {
+    LOGD(TAG, "get_image_index_t");
     return 1;
 }
 
 static bool set_image_index_t(unsigned index) {
+    LOGD(TAG, "set_image_index_t: %d", index);
     return false;
 }
 
 static unsigned get_num_images_t() {
+    LOGD(TAG, "get_num_images_t");
     return 1;
 }
 
@@ -140,6 +154,23 @@ static bool environment_callback(unsigned cmd, void *data) {
             log_cb = (struct retro_log_callback *) data;
             log_cb->log = log_print_callback;
             break;
+        case RETRO_ENVIRONMENT_SET_MESSAGE_EXT: {
+            auto *msg_ext = (struct retro_message_ext*) data;
+            jobject jmsg_ext = env->NewObject(ctx.message_ext_clazz,
+                                                    ctx.message_ext_constructor,
+                                                    env->NewStringUTF(msg_ext->msg),
+                                                    msg_ext->priority,
+                                                    msg_ext->level,
+                                                    msg_ext->target,
+                                                    msg_ext->type,
+                                                    msg_ext->progress,
+                                                    msg_ext->duration
+            );
+            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
+        }
+            break;
+        case RETRO_ENVIRONMENT_SET_VARIABLES:
+            break;
         case RETRO_ENVIRONMENT_GET_VARIABLE: {
             struct retro_variable *variable;
             variable = (struct retro_variable *) data;
@@ -158,9 +189,47 @@ static bool environment_callback(unsigned cmd, void *data) {
             }
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_entry_object);
         }
+        case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO: {
+            auto *controller_info = (struct retro_controller_info*) data;
+            jobject array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
+            jclass controller_desc_clazz = env->FindClass(
+                    "ink/snowland/wkuwku/common/ControllerDescription");
+            jmethodID constructor = env->GetMethodID(controller_desc_clazz, "<init>",
+                                                     "(Ljava/lang/String;I)V");
+            for (int i = 0; i < controller_info->num_types; ++i) {
+                jobject controller_desc = env->NewObject(controller_desc_clazz, constructor,
+                                                         env->NewStringUTF(
+                                                                 controller_info->types[i].desc),
+                                                         (jint) controller_info->types[i].id);
+                env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
+            }
+            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
+        }
+            break;
+        case RETRO_ENVIRONMENT_SET_GEOMETRY: {
+            auto geometry = (struct retro_game_geometry*) data;
+            jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
+            jmethodID constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
+            jobject o1 = env->NewObject(clazz, constructor, (jint) geometry->base_width,
+                                        (jint) geometry->base_height,
+                                        (jint) geometry->max_width,
+                                        (jint) geometry->max_height, geometry->aspect_ratio);
+            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, o1);
+        }
+            break;
+        case RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE:
+        case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
+            return false;
         case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
+        case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+            LOGI(TAG, "INFO: core version: %d", *(int*)data);
+            break;
         case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS:
+        case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
+            /*Ignored*/
             break;
         case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE: {
             if (data == nullptr) return true;
@@ -183,8 +252,6 @@ static bool environment_callback(unsigned cmd, void *data) {
             *(unsigned *) data = (unsigned int) env->CallIntMethod(language, int_value_method);
         }
             break;
-        case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
-            return false;
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
             set_variable_value(env, *((jint *) data));
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
@@ -235,9 +302,16 @@ static bool environment_callback(unsigned cmd, void *data) {
             *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
         }
             break;
-        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
+        case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION: {
+            set_variable_value(env, 0);
+            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            jint version = (jint) get_variable_int_value(env);
+            *(int *) data = version;
+            LOGI(TAG, "INFO: message interface version: %d", version);
+        }
             break;
         default:
+            LOGW(TAG, "WARN: environment: %d ignored.", cmd);
             return false;
     }
     return true;
@@ -472,6 +546,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ctx.array_list_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.array_list_constructor = constructor;
     ctx.array_list_add_method = env->GetMethodID(clazz, "add", "(ILjava/lang/Object;)V");
+    clazz = env->FindClass("ink/snowland/wkuwku/common/EmMessageExt");
+    constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;IIIIII)V");
+    ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
+    ctx.message_ext_constructor = constructor;
     clazz = env->FindClass("ink/snowland/wkuwku/interfaces/Emulator");
     ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
     ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");
@@ -500,6 +578,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     }
     env->DeleteGlobalRef(ctx.input_descriptor_clazz);
     env->DeleteGlobalRef(ctx.array_list_clazz);
+    env->DeleteGlobalRef(ctx.message_ext_clazz);
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
     ctx.jvm = nullptr;

@@ -18,11 +18,13 @@
             <TextView
                 android:text="@{option.title}"
                 android:textStyle="bold"
+                android:textSize="13sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
             <TextView
                 android:text="@{option.key}"
                 android:textStyle="italic"
+                android:textSize="13sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -37,8 +39,7 @@
                 android:id="@+id/auto_complete"
                 android:inputType="none"
                 android:hint="@string/value"
-                android:maxLines="1"
-                android:ellipsize="end"
+                android:textSize="13sp"
                 android:layout_margin="0dp"
                 android:text="@={option.val}"
                 android:layout_width="match_parent"

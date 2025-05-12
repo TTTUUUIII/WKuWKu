@@ -10,6 +10,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -23,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.util.Collection;
@@ -32,12 +34,13 @@ import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
+import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.AudioDevice;
 import ink.snowland.wkuwku.device.SegaController;
-import ink.snowland.wkuwku.device.DefaultController;
+import ink.snowland.wkuwku.device.StandardController;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.device.GLVideoDevice;
 import ink.snowland.wkuwku.util.BiosProvider;
@@ -47,7 +50,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment {
+public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener {
     private static final String TAG = "PlayFragment";
     private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
@@ -58,6 +61,7 @@ public class LaunchFragment extends BaseFragment {
     private AudioDevice mAudioDevice;
     private LaunchViewModel mViewModel;
     private Game mGame;
+    private Snackbar mSnackbar;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -77,7 +81,6 @@ public class LaunchFragment extends BaseFragment {
         Bundle arguments = getArguments();
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
-        selectEmulator();
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -90,6 +93,11 @@ public class LaunchFragment extends BaseFragment {
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
+        mSnackbar = Snackbar.make(binding.snackbarContainer, "", Snackbar.LENGTH_SHORT);
+        mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
+        mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
+//        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) mSnackbar.getView().getLayoutParams();
+//        layoutParams.width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 400, getResources().getDisplayMetrics());
         selectController();
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
@@ -99,6 +107,7 @@ public class LaunchFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            selectEmulator();
             if (mEmulator == null) {
                 Toast.makeText(parentActivity, R.string.no_matching_emulator_found, Toast.LENGTH_SHORT).show();
                 return;
@@ -156,6 +165,7 @@ public class LaunchFragment extends BaseFragment {
         boolean success = false;
         if (mGame.state == Game.STATE_VALID && mEmulator != null) {
             applyOptions();
+            mEmulator.setEmulatorEventListener(this);
             mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
             mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
             mEmulator.attachDevice(INPUT_DEVICE, mController);
@@ -191,7 +201,7 @@ public class LaunchFragment extends BaseFragment {
                 mController = new SegaController(0, parentActivity);
                 break;
             default:
-                mController = new DefaultController(0, parentActivity);
+                mController = new StandardController(0, parentActivity);
         }
         binding.controllerRoot.addView(mController.getView());
     }
@@ -199,14 +209,16 @@ public class LaunchFragment extends BaseFragment {
     private void saveCurrentState(boolean auto) {
         if (mEmulator == null) return;
         if (mGame.system.equals("famicom")) return;
+        final String prefix = mEmulator.getTag();
         final String ext = auto ? ".ast" : ".st";
-        mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, mGame.md5 + ext));
+        mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ext));
     }
 
     private void loadCurrentState(boolean auto) {
         if (mEmulator == null) return;
+        final String prefix = mEmulator.getTag();
         final String ext = auto ? ".ast" : ".st";
-        File file = FileManager.getFile(FileManager.STATE_DIRECTORY, mGame.md5 + ext);
+        File file = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ext);
         if (file.exists()) {
             mEmulator.load(LOAD_STATE, file);
         }
@@ -278,5 +290,19 @@ public class LaunchFragment extends BaseFragment {
         } else {
             mEmulator = EmulatorManager.getEmulator(tag);
         }
+    }
+
+    @Override
+    public void onShowMessage(@NonNull EmMessageExt msg) {
+        if (msg.type == EmMessageExt.MESSAGE_TARGET_OSD) {
+            handler.post(() -> showSnackbar(msg.msg, msg.duration));
+        }
+    }
+
+    @MainThread
+    private void showSnackbar(@NonNull String msg, int duration) {
+        mSnackbar.setText(msg);
+        mSnackbar.setDuration(duration);
+        mSnackbar.show();
     }
 }
