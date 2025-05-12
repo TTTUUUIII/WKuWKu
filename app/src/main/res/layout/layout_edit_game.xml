@@ -34,6 +34,7 @@
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/system_text_view"
                 android:inputType="none"
+                android:textSize="13sp"
                 style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />

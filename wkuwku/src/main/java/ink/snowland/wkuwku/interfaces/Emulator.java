@@ -2,6 +2,7 @@ package ink.snowland.wkuwku.interfaces;
 
 
 import android.content.res.Resources;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,9 +22,12 @@ import java.util.stream.Collectors;
 import ink.snowland.wkuwku.annotations.CallFromJni;
 import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.common.EmScheduledThread;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
+import ink.snowland.wkuwku.common.Variable;
+import ink.snowland.wkuwku.common.VariableEntry;
 
 public abstract class Emulator {
 
@@ -1606,23 +1610,100 @@ public abstract class Emulator {
     public static final int SAVE_DIR = 2;
 
 
+    protected final String TAG = getClass().getSimpleName();
+    private static final int STATE_INVALID = 0;
+    private static final int STATE_RUNNING = 1;
+    private static final int STATE_PAUSED = 2;
+
+    private final byte[] mLock = new byte[0];
+    private volatile int mState = STATE_INVALID;
+    private EmScheduledThread mMainThread;
+
     protected final EmConfig config;
     protected final Map<String, EmOption> options = new HashMap<>();
-    protected final String tag;
-    protected final EmSystemAvInfo systemAvInfo;
-    protected final EmSystemInfo systemInfo;
+    protected EmSystemAvInfo systemAvInfo;
     protected String systemDir;
     protected String saveDir;
+    protected EmAudioDevice audioDevice;
+    protected EmVideoDevice videoDevice;
+    protected EmInputDevice inputDevice0;
+    protected EmInputDevice inputDevice1;
+    protected EmInputDevice inputDevice2;
+    protected EmInputDevice inputDevice3;
 
-    public abstract boolean run(@NonNull File rom);
+    public boolean run(@NonNull File rom) {
+        if (!rom.exists() || !rom.canRead()) return false;
+        if (mState == STATE_INVALID) {
+            onPowerOn();
+        }
+        if (!onLoadGame(rom.getAbsolutePath())) {
+            onPowerOff();
+            mState = STATE_INVALID;
+            return false;
+        }
+        assert mMainThread == null;
+        mMainThread = new EmScheduledThread() {
+            @Override
+            public void next() {
+                synchronized (mLock) {
+                    if (mState == STATE_RUNNING) {
+                        onNext();
+                    } else if (mState == STATE_PAUSED) {
+                        try {
+                            mLock.wait();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace(System.err);
+                        }
+                    } else {
+                        interrupt();
+                    }
+                }
+            }
+        };
+        mState = STATE_RUNNING;
+        if (systemAvInfo == null)
+            systemAvInfo = getSystemAvInfo();
+        mMainThread.schedule(systemAvInfo.timing.fps);
+        return true;
+    }
 
-    public abstract void pause();
+    public void pause() {
+        if (mState != STATE_RUNNING) return;
+        mState = STATE_PAUSED;
+        if (audioDevice != null) {
+            audioDevice.pause();
+        }
+    }
 
-    public abstract void resume();
+    public void resume() {
+        if (mState != STATE_PAUSED) return;
+        synchronized (mLock) {
+            mState = STATE_RUNNING;
+            mLock.notify();
+        }
+    }
 
-    public abstract void reset();
+    public void reset() {
+        if (mState == STATE_INVALID) return;
+        onReset();
+    }
 
-    public abstract void suspend();
+    public void suspend() {
+        if (mMainThread != null) {
+            mMainThread.cancel();
+            mMainThread = null;
+        }
+        if (audioDevice != null) {
+            audioDevice.close();
+            audioDevice = null;
+        }
+        if (videoDevice != null) {
+            videoDevice = null;
+        }
+        if (mState == STATE_INVALID) return;
+        onPowerOff();
+        mState = STATE_INVALID;
+    }
 
     public void setSystemDirectory(int type, @NonNull File dir) {
         if (!dir.exists() || !dir.isDirectory())
@@ -1639,14 +1720,35 @@ public abstract class Emulator {
         }
     }
 
-    public abstract void attachDevice(int target, @Nullable EmulatorDevice device);
+    public void attachDevice(int target, @Nullable EmulatorDevice device) {
+        switch (target) {
+            case AUDIO_DEVICE:
+                audioDevice = (EmAudioDevice) device;
+                break;
+            case VIDEO_DEVICE:
+                videoDevice = (EmVideoDevice) device;
+                break;
+            case INPUT_DEVICE:
+                if (device instanceof EmInputDevice) {
+                    EmInputDevice it = (EmInputDevice) device;
+                    if (it.port == 1) {
+                        inputDevice1 = it;
+                    } else if (it.port == 2) {
+                        inputDevice2 = it;
+                    } else if (it.port == 3) {
+                        inputDevice3 = it;
+                    } else {
+                        inputDevice0 = it;
+                    }
+                }
+                break;
+            default:
+        }
+    }
 
-    public Emulator(@NonNull String tag, @NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
+    public Emulator(@NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
         config = EmConfig.fromXmlConfig(res, configResId);
         config.options.forEach(option -> options.put(option.key, option));
-        this.tag = tag;
-        systemAvInfo = getSystemAvInfo();
-        systemInfo = getSystemInfo();
     }
 
     public void setOption(@NonNull EmOption option) {
@@ -1663,41 +1765,125 @@ public abstract class Emulator {
                 .collect(Collectors.toList());
     }
 
-
-    public String getTag() {
-        return tag;
+    public boolean isSupportedSystem(@NonNull EmSystem system) {
+        return config.systems.contains(system);
     }
 
-    public boolean isSupportedSystem(@NonNull String systemTag) {
-        for (EmSystem system : config.systems) {
-            if (system.tag.equals(systemTag)) {
-                return true;
-            }
+    public boolean save(int type, @NonNull File file) {
+        if (type == SAVE_STATE)
+            return onSaveState(file.getAbsolutePath());
+        return false;
+    }
+
+    public boolean load(int type, @Nullable File file) {
+        if (file == null) return true;
+        if (type == LOAD_STATE) {
+            onLoadState(file.getAbsolutePath());
         }
         return false;
     }
 
-    public abstract boolean save(int type, @NonNull File file);
-
-    public abstract boolean load(int type, @Nullable File file);
-
-    public abstract EmSystemInfo getSystemInfo();
-    public abstract EmSystemAvInfo getSystemAvInfo();
     public List<EmSystem> getSupportedSystems() {
         return config.systems;
     }
 
     @CallFromJni
-    protected abstract boolean onEnvironment(int cmd, Object data);
+    protected boolean onEnvironment(int cmd, Object data) {
+        if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
+            return false;
+        }
+        Variable variable;
+        VariableEntry entry;
+        switch (cmd) {
+            case RETRO_ENVIRONMENT_GET_VARIABLE:
+                entry = (VariableEntry) data;
+                EmOption option = options.get(entry.key);
+                if (option != null) {
+                    entry.value = option.val;
+                } else {
+                    Log.d(TAG, entry.key);
+                }
+                break;
+            case RETRO_ENVIRONMENT_SET_VARIABLE:
+            case RETRO_ENVIRONMENT_SET_VARIABLES:
+                if (data != null) {
+                    /*pass*/
+                }
+                break;
+            case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+                variable = (Variable) data;
+                if ((int) variable.value == RETRO_PIXEL_FORMAT_XRGB8888)
+                    videoDevice.setPixelFormat(EmVideoDevice.PIXEL_FORMAT_RGBA);
+                break;
+            case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
+                break;
+            case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+                variable = (Variable) data;
+                variable.value = systemDir;
+                break;
+            case RETRO_ENVIRONMENT_GET_LANGUAGE:
+                variable = (Variable) data;
+                variable.value = RETRO_LANGUAGE_ENGLISH;
+                break;
+            case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
+//                List<InputDescriptor> descriptors = (ArrayList<InputDescriptor>) data;
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
     @CallFromJni
-    protected abstract void onVideoRefresh(final byte[] data, int width, int height, int pitch);
+    protected void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
+        if (videoDevice == null) return;
+        videoDevice.refresh(data, width, height, pitch);
+    }
 
     @CallFromJni
-    protected abstract void onAudioSampleBatch(final short[] data, int frames);
+    protected void onAudioSampleBatch(final short[] data, int frames) {
+        if (audioDevice == null) return;
+        if (!audioDevice.isOpen()) {
+            int sampleRate = (int) systemAvInfo.timing.sampleRate;
+            if (sampleRate == 0)
+                sampleRate = 48000;
+            audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2);
+        }
+        if (audioDevice.isOpen()) {
+            audioDevice.play(data, frames);
+        }
+    }
 
     @CallFromJni
-    protected abstract int onInputState(int port, int device, int index, int id);
+    protected int onInputState(int port, int device, int index, int id) {
+        EmInputDevice it = null;
+        if (port == 0) {
+            it = inputDevice0;
+        } else if (port == 1) {
+            it = inputDevice1;
+        } else if (port == 2) {
+            it = inputDevice2;
+        } else if (port == 3) {
+            it = inputDevice3;
+        }
+        if (it != null && it.device == device) {
+            return it.getState(id);
+        }
+        return 0;
+    }
 
     @CallFromJni
-    protected abstract void onInputPoll();
+    protected void onInputPoll() {
+
+    }
+
+    public abstract String getTag();
+    public abstract EmSystemInfo getSystemInfo();
+    protected abstract EmSystemAvInfo getSystemAvInfo();
+    public abstract void onPowerOn();
+    public abstract boolean onLoadGame(@NonNull String fullPath);
+    public abstract void onNext();
+    public abstract void onReset();
+    public abstract void onLoadState(@NonNull String fullPath);
+    public abstract boolean onSaveState(@NonNull String savePath);
+    public abstract void onPowerOff();
 }

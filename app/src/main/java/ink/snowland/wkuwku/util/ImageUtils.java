@@ -7,6 +7,53 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 public class ImageUtils {
+    public static void saveXRGB8888AsBMP(byte[] xrgbData, int width, int height, String outputPath) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(outputPath);
+             DataOutputStream dos = new DataOutputStream(fos)) {
+
+            int rowSize = width * 3;
+            int padding = (4 - (rowSize % 4)) % 4;
+            int imageDataSize = (rowSize + padding) * height;
+            int fileSize = 54 + imageDataSize;
+
+            dos.write('B');
+            dos.write('M');
+            writeLittleEndianInt(dos, fileSize);
+            dos.write(0);
+            dos.write(0);
+            dos.write(0);
+            dos.write(0);
+            writeLittleEndianInt(dos, 54);
+
+            writeLittleEndianInt(dos, 40);
+            writeLittleEndianInt(dos, width);
+            writeLittleEndianInt(dos, height);
+            writeLittleEndianShort(dos, (short)1);
+            writeLittleEndianShort(dos, (short)24);
+            writeLittleEndianInt(dos, 0);
+            writeLittleEndianInt(dos, 0);
+            writeLittleEndianInt(dos, 2835);
+            writeLittleEndianInt(dos, 2835);
+            writeLittleEndianInt(dos, 0);
+            writeLittleEndianInt(dos, 0);
+
+            byte[] paddingBytes = new byte[padding];
+            for (int y = height - 1; y >= 0; y--) {
+                for (int x = 0; x < width; x++) {
+                    int offset = (y * width + x) * 4;
+                    byte b = xrgbData[offset + 3];
+                    byte g = xrgbData[offset + 2];
+                    byte r = xrgbData[offset + 1];
+
+                    dos.write(b);
+                    dos.write(g);
+                    dos.write(r);
+                }
+                dos.write(paddingBytes);
+            }
+        }
+    }
+
     public static void saveRGB565AsBMP(byte[] rgb565Data, int width, int height, String outputPath) throws IOException {
         if (rgb565Data == null || rgb565Data.length != width * height * 2) {
             throw new IllegalArgumentException("Invalid RGB565 data or dimensions");
@@ -72,5 +119,19 @@ public class ImageUtils {
                 out.write(row);
             }
         }
+    }
+
+    // 辅助方法：以小端序写入int
+    private static void writeLittleEndianInt(DataOutputStream dos, int value) throws IOException {
+        dos.write(value & 0xFF);
+        dos.write((value >> 8) & 0xFF);
+        dos.write((value >> 16) & 0xFF);
+        dos.write((value >> 24) & 0xFF);
+    }
+
+    // 辅助方法：以小端序写入short
+    private static void writeLittleEndianShort(DataOutputStream dos, short value) throws IOException {
+        dos.write(value & 0xFF);
+        dos.write((value >> 8) & 0xFF);
     }
 }

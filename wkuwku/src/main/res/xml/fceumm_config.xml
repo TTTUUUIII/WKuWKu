@@ -2,11 +2,11 @@
 <em-config>
     <systems>
         <system
-            name="NES"
+            name="Nintendo Entertainment System"
             tag="nes"
             manufacturer="nintendo" />
         <system
-            name="Famicom"
+            name="Family Computer"
             tag="famicom"
             manufacturer="nintendo" />
     </systems>

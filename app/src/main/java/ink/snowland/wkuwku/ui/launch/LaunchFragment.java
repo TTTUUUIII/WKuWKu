@@ -274,23 +274,9 @@ public class LaunchFragment extends BaseFragment {
     private void selectEmulator() {
         String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", mGame.system));
         if (tag.isEmpty()) {
-            switch (mGame.system) {
-                case "nes":
-                case "famicom":
-                    tag = "fceumm";
-                    break;
-                case "game-gear":
-                case "master-system":
-                case "mega-cd":
-                case "mega-drive":
-                case "sega-pico":
-                case "sg-1000":
-                    tag = "genesis-plus-gx";
-                    break;
-                default:
-                    /*Unknown system*/
-            }
+            mEmulator = EmulatorManager.getDefaultEmulator(mGame.system);
+        } else {
+            mEmulator = EmulatorManager.getEmulator(tag);
         }
-        mEmulator = EmulatorManager.getEmulator(tag);
     }
 }

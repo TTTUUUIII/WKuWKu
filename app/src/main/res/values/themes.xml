@@ -12,6 +12,7 @@
         <item name="colorSurfaceContainerHigh">@color/primary_100</item>
         <item name="colorError">@color/error_700</item>
         <item name="popupMenuBackground">@color/primary_100</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />

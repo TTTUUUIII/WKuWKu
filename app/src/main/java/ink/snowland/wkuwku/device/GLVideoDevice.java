@@ -30,6 +30,8 @@ public class GLVideoDevice implements EmVideoDevice {
     private RenderImpl mRender;
     private final String mVertexShaderSource;
     private final String mFragmentShaderSource;
+    private int mPixelFormat = PIXEL_FORMAT_RGB565;
+    private int mBytesPerPixel = 2;
 
     public GLVideoDevice(Context context) {
         mVertexShaderSource = onGetShaderSource(context, GL_VERTEX_SHADER);
@@ -42,6 +44,14 @@ public class GLVideoDevice implements EmVideoDevice {
         mVideoHeight = height;
         allocFrameBuffer();
         fillFrameBuffer(data, pitch);
+    }
+
+    @Override
+    public void setPixelFormat(int format) {
+        mPixelFormat = format;
+        if (mPixelFormat == PIXEL_FORMAT_RGBA) {
+            mBytesPerPixel = 4;
+        }
     }
 
     public GLSurfaceView.Renderer getRenderer() {
@@ -113,12 +123,20 @@ public class GLVideoDevice implements EmVideoDevice {
             glClear(GL_COLOR_BUFFER_BIT);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, mBuffers[2]);
+            int internalFormat = GL_RGB565;
+            int format = GL_RGB;
+            int type = GL_UNSIGNED_SHORT_5_6_5;
+            if (mPixelFormat == PIXEL_FORMAT_RGBA) {
+                internalFormat = GL_RGBA;
+                format = GL_RGBA;
+                type = GL_UNSIGNED_BYTE;
+            }
             synchronized (mLock) {
                 if (mFirstRender) {
-                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB565, mVideoWidth, mVideoHeight, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mFrameBuffer);
+                    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mVideoWidth, mVideoHeight, 0, format, type, mFrameBuffer);
                     mFirstRender = true;
                 } else {
-                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mVideoWidth, mVideoHeight, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, mFrameBuffer);
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, mVideoWidth, mVideoHeight, format, type, mFrameBuffer);
                 }
             }
             glUseProgram(mProgram);
@@ -150,14 +168,14 @@ public class GLVideoDevice implements EmVideoDevice {
         synchronized (mLock) {
             mFrameBuffer.rewind();
             for (int i = 0; i < mVideoHeight; ++i) {
-                mFrameBuffer.put(data, i * pitch, mVideoWidth * 2);
+                mFrameBuffer.put(data, i * pitch, mVideoWidth * mBytesPerPixel);
             }
             mFrameBuffer.flip();
         }
     }
 
     private void allocFrameBuffer() {
-        int size = mVideoWidth * mVideoHeight * 2;
+        int size = mVideoWidth * mVideoHeight * mBytesPerPixel;
         if (mFrameBuffer == null || mFrameBuffer.capacity() != size) {
             mFrameBuffer = ByteBuffer.allocateDirect(size)
                     .order(ByteOrder.nativeOrder());

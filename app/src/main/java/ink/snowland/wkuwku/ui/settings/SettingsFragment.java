@@ -42,7 +42,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 ListPreference listPreference = new ListPreference(requireContext());
                 List<Emulator> supportedEmulators = new ArrayList<>();
                 for (Emulator emulator : emulators) {
-                    if (emulator.isSupportedSystem(system.tag)) {
+                    if (emulator.isSupportedSystem(system)) {
                         supportedEmulators.add(emulator);
                     }
                 }
@@ -54,7 +54,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 listPreference.setTitle(system.name);
                 listPreference.setEntryValues(values);
                 listPreference.setEntries(values);
-                listPreference.setDefaultValue(values[0]);
+                Emulator emulator = EmulatorManager.getDefaultEmulator(system);
+                if (emulator != null)
+                    listPreference.setDefaultValue(emulator.getTag());
                 listPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
                 corePreferenceCategory.addPreference(listPreference);
             }

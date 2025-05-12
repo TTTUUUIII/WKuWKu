@@ -1,0 +1,284 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Nintendo Entertainment System"
+            tag="nes"
+            manufacturer="nintendo" />
+        <system
+            name="Famicom"
+            tag="famicom"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>fds</item>
+        <item>nes</item>
+        <item>unif</item>
+        <item>unf</item>
+    </content-extensions>
+    <options>
+        <option
+            key="mesen_ntsc_filter"
+            defaultValue="Disabled"
+            title="NTSC filter">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Composite (Blargg)</value>
+                <value>S-Video (Blargg)</value>
+                <value>RGB (Blargg)</value>
+                <value>Monochrome (Blargg)</value>
+                <value>Bisqwit 2x</value>
+                <value>Bisqwit 4x</value>
+                <value>Bisqwit 8x</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_palette"
+            defaultValue="Default"
+            title="Palette">
+            <allow-values>
+                <value>Default</value>
+                <value>Composite Direct (by FirebrandX)</value>
+                <value>Nes Classic</value>
+                <value>Nestopia (RGB)</value>
+                <value>Original Hardware (by FirebrandX)</value>
+                <value>PVM Style (by FirebrandX)</value>
+                <value>Sony CXA2025AS/Unsaturated v6 (by FirebrandX)</value>
+                <value>YUV v3 (by FirebrandX)</value>
+                <value>Wavebeam (by nakedarthur)</value>
+                <value>Custom</value>
+                <value>Raw</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_nospritelimit"
+            defaultValue="enabled"
+            title="Remove sprite limit">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_overclock"
+            defaultValue="None"
+            title="Overclock">
+            <allow-values>
+                <value>None</value>
+                <value>Low</value>
+                <value>Medium</value>
+                <value>High</value>
+                <value>Very High</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_overclock_type"
+            defaultValue="Before NMI"
+            title="Overclock type">
+            <allow-values>
+                <value>Before NMI</value>
+                <value>After NMI</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_overscan_left"
+            defaultValue="None"
+            title="Overscan left">
+            <allow-values>
+                <value>None</value>
+                <value>4px</value>
+                <value>8px</value>
+                <value>12px</value>
+                <value>16px</value>
+                <value>20px</value>
+                <value>24px</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_overscan_right"
+            defaultValue="None"
+            title="Overscan right">
+            <allow-values>
+                <value>None</value>
+                <value>4px</value>
+                <value>8px</value>
+                <value>12px</value>
+                <value>16px</value>
+                <value>20px</value>
+                <value>24px</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_overscan_up"
+            defaultValue="None"
+            title="Overscan up">
+            <allow-values>
+                <value>None</value>
+                <value>4px</value>
+                <value>8px</value>
+                <value>12px</value>
+                <value>16px</value>
+                <value>20px</value>
+                <value>24px</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_overscan_down"
+            defaultValue="None"
+            title="Overscan down">
+            <allow-values>
+                <value>None</value>
+                <value>4px</value>
+                <value>8px</value>
+                <value>12px</value>
+                <value>16px</value>
+                <value>20px</value>
+                <value>24px</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_aspect_ratio"
+            defaultValue="Auto"
+            title="Aspect Ratio">
+            <allow-values>
+                <value>Auto</value>
+                <value>No Stretching</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+                <value>4:3</value>
+                <value>16:9</value>
+                <value>16:9 (Preserved)</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_region"
+            defaultValue="Auto"
+            title="Region">
+            <allow-values>
+                <value>Auto</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+                <value>Dendy</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_ramstate"
+            defaultValue="All 0s (Default)"
+            title="Default power-on state for RAM">
+            <allow-values>
+                <value>All 0s (Default)</value>
+                <value>All 1s</value>
+                <value>Random Values</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_controllerturbospeed"
+            defaultValue="Fast"
+            title="Controller Turbo Speed">
+            <allow-values>
+                <value>Fast</value>
+                <value>Very Fast</value>
+                <value>Disabled</value>
+                <value>Slow</value>
+                <value>Normal</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_fdsautoinsertdisk"
+            defaultValue="disabled"
+            title="FDS: Automatically insert disks">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_fdsfastforwardload"
+            defaultValue="disabled"
+            title="FDS: Fast forward while loading">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_hdpacks"
+            defaultValue="disabled"
+            title="Enable HD Packs">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_screenrotation"
+            defaultValue="None"
+            title="Screen rotation">
+            <allow-values>
+                <value>None</value>
+                <value>90 degrees</value>
+                <value>180 degrees</value>
+                <value>270 degrees</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_fake_stereo"
+            defaultValue="disabled"
+            title="Enable fake stereo effect">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_mute_triangle_ultrasonic"
+            defaultValue="enabled"
+            title="Reduce popping on Triangle channel">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_reduce_dmc_popping"
+            defaultValue="enabled"
+            title="Reduce popping on DMC channel">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_swap_duty_cycle"
+            defaultValue="disabled"
+            title="Swap Square channel duty cycles">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_disable_noise_mode_flag"
+            defaultValue="disabled"
+            title="Disable Noise channel mode flag">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_shift_buttons_clockwise"
+            defaultValue="disabled"
+            title="Shift buttons clockwise">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen_audio_sample_rate"
+            defaultValue="48000"
+            inputType="number"
+            title="Audio sample rate" />
+    </options>
+</em-config>

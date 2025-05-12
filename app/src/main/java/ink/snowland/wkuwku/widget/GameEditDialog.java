@@ -13,9 +13,11 @@ import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
-import java.util.HashMap;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
@@ -30,7 +32,7 @@ public class GameEditDialog {
     private Game mGame = null;
     private final BaseActivity mParent;
     private Uri mUri;
-    private final Map<String, EmSystem> mAllSupportedSystems = new HashMap<>();
+    private final Map<String, EmSystem> mAllSupportedSystems = new LinkedHashMap<>();
     private final String[] mAllSupportedRegions;
 
     public GameEditDialog(@NonNull BaseActivity activity) {
@@ -44,11 +46,16 @@ public class GameEditDialog {
                 .setNegativeButton(R.string.cancel, null)
                 .setCancelable(false)
                 .create();
-        List<EmSystem> systems = EmulatorManager.getSupportedSystems();
-        for (EmSystem system : systems) {
+        List<EmSystem> systems = EmulatorManager.getSupportedSystems()
+                .stream()
+                .sorted(Comparator.comparing(system -> system.manufacturer))
+                .collect(Collectors.toList());
+        final String[] allSupportedSystemNames = new String[systems.size()];
+        for (int i = 0; i < systems.size(); i++) {
+            EmSystem system = systems.get(i);
+            allSupportedSystemNames[i] = system.name;
             mAllSupportedSystems.put(system.name, system);
         }
-        String[] allSupportedSystemNames = mAllSupportedSystems.keySet().toArray(new String[0]);
         binding.systemTextView.setAdapter(new NoFilterArrayAdapter<String>(mParent, R.layout.layout_simple_text, allSupportedSystemNames));
         binding.systemTextView.setText(allSupportedSystemNames[0], false);
         mAllSupportedRegions = activity.getResources().getStringArray(R.array.all_regions);
