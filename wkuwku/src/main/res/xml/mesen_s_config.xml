@@ -1,0 +1,174 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Game Boy"
+            tag="game-boy"
+            manufacturer="nintendo" />
+        <system
+            name="Game Boy Color"
+            tag="game-boy-color"
+            manufacturer="nintendo" />
+        <system
+            name="Super Nintendo Entertainment System"
+            tag="snes"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>sfc</item>
+        <item>smc</item>
+        <item>fig</item>
+        <item>swc</item>
+        <item>bs</item>
+        <item>gb</item>
+        <item>gbc</item>
+    </content-extensions>
+    <options>
+        <option
+            key="mesen-s_ntsc_filter"
+            defaultValue="Disabled"
+            title="NTSC filter">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Composite (Blargg)</value>
+                <value>S-Video (Blargg)</value>
+                <value>RGB (Blargg)</value>
+                <value>Monochrome (Blargg)</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_region"
+            defaultValue="Auto"
+            title="Region">
+            <allow-values>
+                <value>Auto</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_aspect_ratio"
+            defaultValue="Auto"
+            title="Aspect Ratio">
+            <allow-values>
+                <value>Auto</value>
+                <value>No Stretching</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+                <value>4:3</value>
+                <value>16:9</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_blend_high_res"
+            defaultValue="disabled"
+            title="Blend Hi-Res Modes">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_cubic_interpolation"
+            defaultValue="enabled"
+            title="Cubic Interpolation (Audio)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_overscan_vertical"
+            defaultValue="None"
+            title="Vertical Overscan">
+            <allow-values>
+                <value>None</value>
+                <value>8px</value>
+                <value>16px</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_overscan_horizontal"
+            defaultValue="None"
+            title="Horizontal Overscan">
+            <allow-values>
+                <value>None</value>
+                <value>8px</value>
+                <value>16px</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_ramstate"
+            defaultValue="Random Values (Default)"
+            title="Default power-on state for RAM">
+            <allow-values>
+                <value>Random Values (Default)</value>
+                <value>All 0s</value>
+                <value>All 1s</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_overclock"
+            defaultValue="None"
+            title="Overclock">
+            <allow-values>
+                <value>None</value>
+                <value>Low</value>
+                <value>Medium</value>
+                <value>High</value>
+                <value>Very High</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_overclock_type"
+            defaultValue="Before NMI"
+            title="Overclock Type">
+            <allow-values>
+                <value>Before NMI</value>
+                <value>After NMI</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_superfx_overclock"
+            defaultValue="100%"
+            title="Super FX Clock Speed">
+            <allow-values>
+                <value>100%</value>
+                <value>200%</value>
+                <value>300%</value>
+                <value>400%</value>
+                <value>500%</value>
+                <value>1000%</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_gbmodel"
+            defaultValue="Auto"
+            title="Game Boy Model">
+            <allow-values>
+                <value>Auto</value>
+                <value>Game Boy</value>
+                <value>Game Boy Color</value>
+                <value>Super Game Boy</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_sgb2"
+            defaultValue="disabled"
+            title="Use SGB2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mesen-s_hle_coprocessor"
+            defaultValue="disabled"
+            title="Use HLE coprocessor emulation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>

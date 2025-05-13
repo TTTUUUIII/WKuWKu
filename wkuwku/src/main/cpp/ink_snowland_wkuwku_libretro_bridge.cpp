@@ -341,7 +341,7 @@ video_refresh_callback(const void *data, unsigned width, unsigned height, size_t
             is_attached = true;
         }
     }
-#if defined(MESEN) || defined(BSNES)
+#if defined(MESEN) || defined(BSNES) || defined(MESEN_S)
     char* buffer = (char*) data;
     for (int i = 0; i < height * pitch; i += 4)
         std::swap(buffer[i], buffer[i + 2]);
@@ -599,7 +599,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;IIIIII)V");
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
-//    clazz = env->FindClass("ink/snowland/wkuwku/interfaces/Emulator");
 
 #if defined(FCEUMM)
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
@@ -607,8 +606,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/GenesisPlusGX");
 #elif defined(BSNES)
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Bsnes");
-#else
+#elif defined(MESEN)
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Mesen");
+#elif defined(MESEN_S)
+    clazz = env->FindClass("ink/snowland/wkuwku/emulator/MesenS");
 #endif
     ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
     ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");

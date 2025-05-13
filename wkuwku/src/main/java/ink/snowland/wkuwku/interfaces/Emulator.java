@@ -1662,7 +1662,10 @@ public abstract class Emulator {
             }
         };
         mState = STATE_RUNNING;
-        mMainThread.schedule(systemAvInfo.timing.fps);
+        if (isSyncWithFpsWhenSchedule())
+            mMainThread.schedule(systemAvInfo.timing.fps);
+        else
+            mMainThread.schedule(0);
         return true;
     }
 
@@ -1892,6 +1895,10 @@ public abstract class Emulator {
 
     public void setEmulatorEventListener(@Nullable OnEmulatorEventListener listener) {
         mEventListener = listener;
+    }
+
+    protected boolean isSyncWithFpsWhenSchedule() {
+        return true;
     }
 
     public abstract String getTag();

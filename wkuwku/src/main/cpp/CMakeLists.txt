@@ -36,10 +36,11 @@ endmacro()
 
 add_bridge_library(fceumm)
 add_bridge_library(mesen)
+add_bridge_library(mesen-s)
 add_bridge_library(genesis-plus-gx)
 add_bridge_library(bsnes)
 
-foreach(lib IN ITEMS fceumm mesen bsnes genesis-plus-gx)
+foreach(lib IN ITEMS fceumm mesen mesen-s bsnes genesis-plus-gx)
     add_library(${lib} SHARED IMPORTED)
     set_target_properties(${lib} PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/lib${lib}.so")
 endforeach()

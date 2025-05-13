@@ -4,8 +4,16 @@ package ink.snowland.wkuwku.common;
 public abstract class EmScheduledThread extends Thread {
     private long mFrameIntervalNS;
 
+    public EmScheduledThread() {
+        setPriority(Thread.MAX_PRIORITY);
+    }
+
     public void schedule(double fps) {
-        mFrameIntervalNS = (long) Math.floor(1e9 / fps);
+        if (fps > 0) {
+            mFrameIntervalNS = (long) Math.floor(1e9 / fps);
+        } else {
+            mFrameIntervalNS = 0;
+        }
         start();
     }
     @Override
