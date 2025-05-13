@@ -1863,7 +1863,7 @@ public abstract class Emulator {
             int sampleRate = (int) systemAvInfo.timing.sampleRate;
             if (sampleRate == 0)
                 sampleRate = 48000;
-            audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2); /*Crashed*/
+            audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2);
         }
         if (audioDevice.isOpen()) {
             audioDevice.play(data, frames);
@@ -1898,7 +1898,7 @@ public abstract class Emulator {
     }
 
     protected boolean isSyncWithFpsWhenSchedule() {
-        return true;
+        return false;
     }
 
     public abstract String getTag();

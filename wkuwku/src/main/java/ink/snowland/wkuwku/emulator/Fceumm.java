@@ -87,6 +87,10 @@ public class Fceumm extends Emulator {
     }
 
     private static Fceumm SHARED_INSTANCE;
+    @Override
+    protected boolean isSyncWithFpsWhenSchedule() {
+        return true;
+    }
 
     static {
         System.loadLibrary("fceumm-bridge");

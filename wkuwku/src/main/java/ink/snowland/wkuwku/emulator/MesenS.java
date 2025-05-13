@@ -101,10 +101,5 @@ public class MesenS extends Emulator {
     public void onPowerOff() {
         nativePowerOff();
     }
-
-    @Override
-    protected boolean isSyncWithFpsWhenSchedule() {
-        return false;
-    }
 }
 

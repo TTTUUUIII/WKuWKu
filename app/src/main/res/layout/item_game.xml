@@ -23,16 +23,19 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="vertical">
-            <ink.snowland.wkuwku.view.AutoMarqueeTextView
+            <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="@{game.title}"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 tools:text="Super Mario Bros." />
             <TextView
                 android:layout_gravity="bottom"
+                android:textSize="13sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 tools:text="NES"

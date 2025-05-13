@@ -21,18 +21,21 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:orientation="vertical">
-            <ink.snowland.wkuwku.view.AutoMarqueeTextView
+            <TextView
                 android:id="@+id/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
                 android:text="@{game.title}"
-                android:textSize="15sp"
+                android:textSize="13sp"
                 tools:text="Super Mario Bros." />
             <TextView
                 android:id="@+id/last_played_time"
                 android:layout_marginTop="8dp"
                 android:textStyle="italic"
+                android:textSize="13sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
