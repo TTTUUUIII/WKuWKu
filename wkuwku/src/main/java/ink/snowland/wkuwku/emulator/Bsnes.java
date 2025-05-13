@@ -20,6 +20,11 @@ public class Bsnes extends Emulator {
     }
 
     @Override
+    protected void onAudioSampleBatch(short[] data, int frames) {
+//        super.onAudioSampleBatch(data, frames);
+    }
+
+    @Override
     public String getTag() {
         return "bsnes";
     }
