@@ -171,7 +171,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.attachDevice(INPUT_DEVICE, mController);
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getCacheDirectory());
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(mEmulator.getTag()));
-            if (mEmulator.run(new File(mGame.filepath))) {
+            if (mEmulator.run(mGame.filepath, mGame.system)) {
                 if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
                     loadCurrentState(true);
                 }

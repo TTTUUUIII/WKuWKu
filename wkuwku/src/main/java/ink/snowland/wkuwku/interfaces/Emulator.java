@@ -1630,18 +1630,19 @@ public abstract class Emulator {
     protected EmInputDevice inputDevice2;
     protected EmInputDevice inputDevice3;
     private OnEmulatorEventListener mEventListener;
+    protected String systemTag;
 
-    public boolean run(@NonNull File rom) {
-        if (!rom.exists() || !rom.canRead()) return false;
+    public boolean run(@NonNull String fullPath, @NonNull String systemTag) {
         if (mState == STATE_INVALID) {
             onPowerOn();
         }
         systemAvInfo = getSystemAvInfo();
-        if (!onLoadGame(rom.getAbsolutePath())) {
+        if (!onLoadGame(fullPath)) {
             onPowerOff();
             mState = STATE_INVALID;
             return false;
         }
+        this.systemTag = systemTag;
         assert mMainThread == null;
         mMainThread = new EmScheduledThread() {
             @Override
