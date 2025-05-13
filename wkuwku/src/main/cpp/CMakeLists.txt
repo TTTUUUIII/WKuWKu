@@ -37,6 +37,7 @@ endmacro()
 add_bridge_library(fceumm)
 add_bridge_library(mesen)
 add_bridge_library(genesis-plus-gx)
+add_bridge_library(bsnes)
 
 foreach(lib IN ITEMS fceumm mesen bsnes genesis-plus-gx)
     add_library(${lib} SHARED IMPORTED)

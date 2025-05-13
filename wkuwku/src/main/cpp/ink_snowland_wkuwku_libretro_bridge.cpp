@@ -35,9 +35,11 @@ typedef struct {
     jfieldID variable_entry_value_field;
 } em_context_t;
 
-em_context_t ctx = {nullptr};
-jobject variable_object;
-jobject variable_entry_object;
+static em_context_t ctx = {nullptr};
+static jobject variable_object;
+static jobject variable_entry_object;
+static jbyteArray frame_buffer = nullptr;
+static jshortArray audio_buffer = nullptr;
 
 static void set_variable_value(JNIEnv *env, jobject value) {
     env->SetObjectField(variable_object, ctx.variable_value_field, value);
@@ -140,12 +142,19 @@ static bool add_image_index_t() {
 
 static bool environment_callback(unsigned cmd, void *data) {
     JNIEnv *env;
+    bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        LOGE(TAG, "ERROR: unable attach env thread!");
-        return false;
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "ERROR: unable attach env thread!");
+            return false;
+        } else {
+            is_attached = true;
+        }
     }
     switch (cmd) {
         case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
+        case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
         case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
             break;
@@ -221,6 +230,7 @@ static bool environment_callback(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK:
         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
+        case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
             return false;
         case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
@@ -314,59 +324,98 @@ static bool environment_callback(unsigned cmd, void *data) {
             LOGW(TAG, "WARN: environment: %d ignored.", cmd);
             return false;
     }
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
     return true;
 }
 
 static void
 video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch) {
     JNIEnv *env;
+    bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        LOGE(TAG, "ERROR: unable attach env thread!");
-        return;
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "ERROR: unable attach env thread!");
+            return;
+        } else {
+            is_attached = true;
+        }
     }
-#ifdef MESEN
-    char* frame_buffer = (char*) data;
+#if defined(MESEN) || defined(BSNES)
+    char* buffer = (char*) data;
     for (int i = 0; i < height * pitch; i += 4)
-        std::swap(frame_buffer[i], frame_buffer[i + 2]);
+        std::swap(buffer[i], buffer[i + 2]);
 #endif
-    jbyteArray framebuffer = env->NewByteArray(height * pitch);
-    env->SetByteArrayRegion(framebuffer, 0, height * pitch, (jbyte *) data);
-    env->CallVoidMethod(ctx.emulator_obj, ctx.video_refresh_method, framebuffer, (jint) width,
+    if (frame_buffer == nullptr || env->GetArrayLength(frame_buffer) != height * pitch) {
+        if (frame_buffer != nullptr)
+            env->DeleteGlobalRef(frame_buffer);
+        frame_buffer = (jbyteArray) env->NewGlobalRef(env->NewByteArray(height * pitch));
+    }
+    env->SetByteArrayRegion(frame_buffer, 0, height * pitch, (jbyte *) data);
+    env->CallVoidMethod(ctx.emulator_obj, ctx.video_refresh_method, frame_buffer, (jint) width,
                         (jint) height, (jint) pitch);
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
 }
 
 static size_t audio_sample_batch_callback(const int16_t *data, size_t frames) {
     JNIEnv *env;
+    bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        LOGE(TAG, "ERROR: unable attach env thread!");
-        return frames;
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "ERROR: unable attach env thread!");
+            return false;
+        } else {
+            is_attached = true;
+        }
     }
-    jshortArray samples = env->NewShortArray(frames * 2);
-    env->SetShortArrayRegion(samples, 0, frames * 2, data);
-    env->CallVoidMethod(ctx.emulator_obj, ctx.audio_sample_batch_method, samples, frames);
+    if (audio_buffer == nullptr || env->GetArrayLength(audio_buffer) != frames * 2) {
+        if (audio_buffer != nullptr) {
+            env->DeleteGlobalRef(audio_buffer);
+        }
+        audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(frames * 2));
+    }
+    env->SetShortArrayRegion(audio_buffer, 0, frames * 2, data);
+    env->CallVoidMethod(ctx.emulator_obj, ctx.audio_sample_batch_method, audio_buffer, frames);
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
     return frames;
 }
 
 static int16_t input_state_callback(unsigned port, unsigned device, unsigned index, unsigned id) {
     JNIEnv *env;
+    bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        LOGE(TAG, "ERROR: unable attach env thread!");
-        return 0;
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "ERROR: unable attach env thread!");
+            return 0;
+        } else {
+            is_attached = true;
+        }
     }
     auto state = (int16_t) env->CallIntMethod(ctx.emulator_obj, ctx.input_state_method, port,
                                               device,
                                               index,
                                               id);
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
     return state;
 }
 
 static void input_poll_callback() {
     JNIEnv *env;
+    bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        LOGE(TAG, "ERROR: unable attach env thread!");
-        return;
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "ERROR: unable attach env thread!");
+            return;
+        } else {
+            is_attached = true;
+        }
     }
     env->CallVoidMethod(ctx.emulator_obj, ctx.input_poll_method);
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
 }
 
 static void em_power_on(JNIEnv *env, jobject thiz) {
@@ -550,12 +599,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;IIIIII)V");
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
-    clazz = env->FindClass("ink/snowland/wkuwku/interfaces/Emulator");
-    ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
-    ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");
-    ctx.environment_method = env->GetMethodID(clazz, "onEnvironment", "(ILjava/lang/Object;)Z");
-    ctx.input_state_method = env->GetMethodID(clazz, "onInputState", "(IIII)I");
-    ctx.input_poll_method = env->GetMethodID(clazz, "onInputPoll", "()V");
+//    clazz = env->FindClass("ink/snowland/wkuwku/interfaces/Emulator");
 
 #if defined(FCEUMM)
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
@@ -566,6 +610,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 #else
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Mesen");
 #endif
+    ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
+    ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");
+    ctx.environment_method = env->GetMethodID(clazz, "onEnvironment", "(ILjava/lang/Object;)Z");
+    ctx.input_state_method = env->GetMethodID(clazz, "onInputState", "(IIII)I");
+    ctx.input_poll_method = env->GetMethodID(clazz, "onInputPoll", "()V");
     env->RegisterNatives(clazz, methods, ARRAY_SIZE(methods));
     return JNI_VERSION_1_6;
 }
@@ -581,5 +630,9 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     env->DeleteGlobalRef(ctx.message_ext_clazz);
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
+    if (audio_buffer != nullptr)
+        env->DeleteGlobalRef(audio_buffer);
+    if (frame_buffer != nullptr)
+        env->DeleteGlobalRef(frame_buffer);
     ctx.jvm = nullptr;
 }

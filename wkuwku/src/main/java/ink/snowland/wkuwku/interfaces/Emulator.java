@@ -1636,6 +1636,7 @@ public abstract class Emulator {
         if (mState == STATE_INVALID) {
             onPowerOn();
         }
+        systemAvInfo = getSystemAvInfo();
         if (!onLoadGame(rom.getAbsolutePath())) {
             onPowerOff();
             mState = STATE_INVALID;
@@ -1661,8 +1662,6 @@ public abstract class Emulator {
             }
         };
         mState = STATE_RUNNING;
-        if (systemAvInfo == null)
-            systemAvInfo = getSystemAvInfo();
         mMainThread.schedule(systemAvInfo.timing.fps);
         return true;
     }
@@ -1790,7 +1789,7 @@ public abstract class Emulator {
 
     @CallFromJni
     protected boolean onEnvironment(int cmd, Object data) {
-        if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
+        if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE || cmd == RETRO_ENVIRONMENT_GET_FASTFORWARDING) {
             return false;
         }
         Variable variable;
@@ -1802,7 +1801,7 @@ public abstract class Emulator {
                 if (option != null) {
                     entry.value = option.val;
                 } else {
-                    Log.d(TAG, entry.key);
+                    Log.w(TAG, "WARN: " + entry.key + " not found!");
                 }
                 break;
             case RETRO_ENVIRONMENT_SET_VARIABLE:
@@ -1861,7 +1860,7 @@ public abstract class Emulator {
             int sampleRate = (int) systemAvInfo.timing.sampleRate;
             if (sampleRate == 0)
                 sampleRate = 48000;
-            audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2);
+            audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2); /*Crashed*/
         }
         if (audioDevice.isOpen()) {
             audioDevice.play(data, frames);

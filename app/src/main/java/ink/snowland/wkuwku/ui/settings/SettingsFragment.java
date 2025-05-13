@@ -13,7 +13,9 @@ import androidx.preference.PreferenceScreen;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
@@ -36,7 +38,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
         PreferenceCategory corePreferenceCategory = (PreferenceCategory) findPreference("core_preference_category");
         if (corePreferenceCategory != null) {
-            List<EmSystem> systems = EmulatorManager.getSupportedSystems();
+            List<EmSystem> systems = EmulatorManager.getSupportedSystems()
+                    .stream()
+                    .sorted(Comparator.comparing(it -> it.manufacturer))
+                    .collect(Collectors.toList());
             Collection<Emulator> emulators = EmulatorManager.getEmulators();
             for (EmSystem system : systems) {
                 ListPreference listPreference = new ListPreference(requireContext());

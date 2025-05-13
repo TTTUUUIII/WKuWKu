@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemInfo;
+import ink.snowland.wkuwku.emulator.Bsnes;
 import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.emulator.GenesisPlusGX;
 import ink.snowland.wkuwku.emulator.Mesen;
@@ -32,6 +33,7 @@ public final class EmulatorManager {
         Fceumm.registerAsEmulator(context);
         Mesen.registerAsEmulator(context);
         GenesisPlusGX.registerAsEmulator(context);
+        Bsnes.registerAsEmulator(context);
     }
 
     public static Emulator getDefaultEmulator(@NonNull String systemTag) {
@@ -46,6 +48,8 @@ public final class EmulatorManager {
             case "sega-pico":
             case "sg-1000":
                 return EMULATORS.get("genesis-plus-gx");
+            case "snes":
+                return EMULATORS.get("bsnes");
             default:
                 /*Unknown system*/
         }
