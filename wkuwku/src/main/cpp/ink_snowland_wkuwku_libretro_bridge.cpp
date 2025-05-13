@@ -341,7 +341,11 @@ video_refresh_callback(const void *data, unsigned width, unsigned height, size_t
             is_attached = true;
         }
     }
-
+#if defined(MESEN) || defined(MESEN_S) || defined(BSNES)
+    char* buffer = (char*) data;
+    for(int i = 0; i < height * pitch; i += 4)
+        std::swap(buffer[i], buffer[i + 2]);
+#endif
     if (frame_buffer == nullptr || env->GetArrayLength(frame_buffer) != height * pitch) {
         if (frame_buffer != nullptr)
             env->DeleteGlobalRef(frame_buffer);

@@ -51,17 +51,6 @@ public class Mesen extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
-
-    @Override
-    protected void onVideoRefresh(byte[] data, int width, int height, int pitch) {
-        for (int i = 0; i < data.length; i += 4) {
-            data[i] = (byte) (data[i] ^ data[i + 2]);
-            data[i + 2] = (byte) (data[i] ^ data[i + 2]);
-            data[i] = (byte) (data[i] ^ data[i + 2]);
-        }
-        super.onVideoRefresh(data, width, height, pitch);
-    }
-
     @Override
     public String getTag() {
         return "mesen";

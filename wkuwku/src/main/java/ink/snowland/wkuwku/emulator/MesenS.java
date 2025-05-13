@@ -20,18 +20,6 @@ public class MesenS extends Emulator {
         super(context.getResources(), R.xml.mesen_s_config);
     }
 
-    @Override
-    protected void onVideoRefresh(byte[] data, int width, int height, int pitch) {
-        if (!systemTag.equals("game-boy") && !systemTag.equals("game-boy-color")) {
-            for (int i = 0; i < data.length; i += 4) {
-                data[i] = (byte) (data[i] ^ data[i + 2]);
-                data[i + 2] = (byte) (data[i] ^ data[i + 2]);
-                data[i] = (byte) (data[i] ^ data[i + 2]);
-            }
-        }
-        super.onVideoRefresh(data, width, height, pitch);
-    }
-
     public static void registerAsEmulator(@NonNull Context context) {
         if (SHARED_INSTANCE == null) {
             try {
