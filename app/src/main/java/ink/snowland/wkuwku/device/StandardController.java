@@ -12,16 +12,16 @@ import androidx.annotation.NonNull;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
-import ink.snowland.wkuwku.databinding.LayoutDefaultControllerBinding;
+import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
 
 public class StandardController extends BaseController implements View.OnTouchListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
-    private final LayoutDefaultControllerBinding binding;
+    private final LayoutStandardControllerBinding binding;
 
     public StandardController(int port, @NonNull Context context) {
         super(context, port, RETRO_DEVICE_JOYPAD);
-        binding = LayoutDefaultControllerBinding.inflate(LayoutInflater.from(context));
+        binding = LayoutStandardControllerBinding.inflate(LayoutInflater.from(context));
         bindEvents();
     }
     @Override

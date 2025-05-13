@@ -58,4 +58,12 @@ public class AudioDevice implements EmAudioDevice {
     public boolean isOpen() {
         return mAudioTrack != null;
     }
+
+    @Override
+    public int getSampleRate() {
+        if (mAudioTrack != null) {
+            return mAudioTrack.getSampleRate();
+        }
+        return 0;
+    }
 }

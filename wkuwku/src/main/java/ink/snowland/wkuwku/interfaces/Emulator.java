@@ -1598,6 +1598,11 @@ public abstract class Emulator {
     public static final int RETRO_DEVICE_ID_POINTER_PRESSED = 2;
     public static final int RETRO_DEVICE_ID_POINTER_COUNT = 3;
 
+    private static final int FLAG_ENABLE_VIDEO = 1;
+    private static final int FLAG_ENABLE_AUDIO = 1 << 1;
+    private static final int FLAG_USE_FAST_SAVE_STATE = 1 << 2;
+    private static final int FLAG_HARD_DISABLE_AUDIO =  1 << 3;
+
     public static final int VIDEO_DEVICE = 1;
     public static final int AUDIO_DEVICE = 2;
     public static final int INPUT_DEVICE = 3;
@@ -1663,10 +1668,7 @@ public abstract class Emulator {
             }
         };
         mState = STATE_RUNNING;
-        if (isSyncWithFpsWhenSchedule())
-            mMainThread.schedule(systemAvInfo.timing.fps);
-        else
-            mMainThread.schedule(0);
+        mMainThread.schedule(systemAvInfo.timing.fps);
         return true;
     }
 
@@ -1814,6 +1816,14 @@ public abstract class Emulator {
                     /*pass*/
                 }
                 break;
+            case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+                variable = (Variable) data;
+                Log.i(TAG, "INFO: core options version: " + variable.value);
+                break;
+            case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
+                systemAvInfo = (EmSystemAvInfo) data;
+                mMainThread.setScheduleFps((int) systemAvInfo.timing.fps);
+                break;
             case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
                 variable = (Variable) data;
                 variable.value = 1;
@@ -1826,6 +1836,14 @@ public abstract class Emulator {
                 variable = (Variable) data;
                 if ((int) variable.value == RETRO_PIXEL_FORMAT_XRGB8888)
                     videoDevice.setPixelFormat(EmVideoDevice.PIXEL_FORMAT_RGBA);
+                break;
+            case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
+                variable = (Variable) data;
+                variable.value = FLAG_ENABLE_AUDIO | FLAG_ENABLE_VIDEO;
+                break;
+            case RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY:
+                variable = (Variable) data;
+                Log.i(TAG, "INFO: minimum audio latency: " + variable.value);
                 break;
             case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
                 break;
@@ -1858,12 +1876,18 @@ public abstract class Emulator {
     }
 
     @CallFromJni
+    protected void onAudioBufferState(boolean active, int occupancy, boolean underrunLikely) {
+        Log.i(TAG, String.format("onAudioBufferState: active=%b, occupancy=%d, underrunLikely=%b", active, occupancy, underrunLikely));
+    }
+
+    @CallFromJni
     protected void onAudioSampleBatch(final short[] data, int frames) {
         if (audioDevice == null) return;
         if (!audioDevice.isOpen()) {
             int sampleRate = (int) systemAvInfo.timing.sampleRate;
-            if (sampleRate == 0)
+            if (sampleRate == 0) {
                 sampleRate = 48000;
+            }
             audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2);
         }
         if (audioDevice.isOpen()) {
@@ -1896,10 +1920,6 @@ public abstract class Emulator {
 
     public void setEmulatorEventListener(@Nullable OnEmulatorEventListener listener) {
         mEventListener = listener;
-    }
-
-    protected boolean isSyncWithFpsWhenSchedule() {
-        return false;
     }
 
     public abstract String getTag();

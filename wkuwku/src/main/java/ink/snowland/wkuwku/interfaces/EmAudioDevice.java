@@ -8,4 +8,6 @@ public interface EmAudioDevice extends EmulatorDevice {
     void close();
 
     boolean isOpen();
+
+    int getSampleRate();
 }

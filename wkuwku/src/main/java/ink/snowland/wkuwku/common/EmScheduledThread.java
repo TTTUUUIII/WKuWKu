@@ -1,32 +1,33 @@
 package ink.snowland.wkuwku.common;
 
-
 public abstract class EmScheduledThread extends Thread {
     private long mFrameIntervalNS;
 
     public EmScheduledThread() {
         setPriority(Thread.MAX_PRIORITY);
     }
-
     public void schedule(double fps) {
-        if (fps > 0) {
+        if (!Double.isNaN(fps) && fps != 0) {
             mFrameIntervalNS = (long) Math.floor(1e9 / fps);
-        } else {
-            mFrameIntervalNS = 0;
         }
         start();
     }
+
     @Override
     public void run() {
         super.run();
-        long start = System.nanoTime();
+        long prevFrameTimeNS = System.nanoTime();
         while (!isInterrupted()) {
-            long current = System.nanoTime();
-            if (current - start >= mFrameIntervalNS) {
+            long currentTimeNS = System.nanoTime();
+            if (currentTimeNS - prevFrameTimeNS >= mFrameIntervalNS) {
                 next();
-                start = current;
+                prevFrameTimeNS = 2 * currentTimeNS - System.nanoTime();
             }
         }
+    }
+
+    public void setScheduleFps(int fps) {
+        mFrameIntervalNS = (long) Math.floor(1e9 / fps);
     }
 
     public void cancel() {
