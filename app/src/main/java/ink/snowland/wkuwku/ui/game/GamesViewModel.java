@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
@@ -20,6 +21,7 @@ import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.FileManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleOnSubscribe;
@@ -100,18 +102,32 @@ public class GamesViewModel extends BaseViewModel {
     }
 
     private void addNewGame(@NonNull Game game, Uri uri) {
-        if (!FileManager.copy(FileManager.ROM_DIRECTORY, game.filepath, uri)) {
-            Toast.makeText(getApplication(), R.string.copy_file_failed, Toast.LENGTH_SHORT).show();
-            return;
-        }
-        File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-        assert file.exists() && file.isFile() && file.canRead();
-        game.filepath = file.getAbsolutePath();
-        game.addedTime = System.currentTimeMillis();
-        game.lastModifiedTime = game.addedTime;
-        game.state = Game.STATE_VALID;
-        game.md5 = FileManager.calculateMD5Sum(file);
-        addGameToDatabase(game);
+        setPendingIndicator(true, R.string.copying_files);
+        Disposable disposable = Completable.create(emitter -> {
+                    if (!FileManager.copy(FileManager.ROM_DIRECTORY, game.filepath, uri)) {
+                        emitter.onError(new IOException(getString(R.string.copy_file_failed)));
+                    } else {
+                        emitter.onComplete();
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(error -> {
+                    Toast.makeText(getApplication(), R.string.copy_file_failed, Toast.LENGTH_SHORT).show();
+                })
+                .doFinally(() -> {
+                    setPendingIndicator(false);
+                })
+                .doOnComplete(() -> {
+                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
+                    assert file.exists() && file.isFile() && file.canRead();
+                    game.filepath = file.getAbsolutePath();
+                    game.addedTime = System.currentTimeMillis();
+                    game.lastModifiedTime = game.addedTime;
+                    game.state = Game.STATE_VALID;
+                    game.md5 = FileManager.calculateMD5Sum(file);
+                    addGameToDatabase(game);
+                })
+                .subscribe(() -> {/*Ignored*/}, error -> {/*Ignored*/});
     }
 
     public void updateGame(@NonNull Game game) {

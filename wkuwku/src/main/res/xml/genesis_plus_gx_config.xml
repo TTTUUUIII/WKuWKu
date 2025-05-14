@@ -326,9 +326,10 @@
             </allow-values>
         </option>
         <option
-            defaultValue="disabled"
+            defaultValue="4meg"
             key="genesis_plus_gx_cart_size"
-            title="CD Backup Cart BRAM size">
+            title="CD Backup Cart BRAM size"
+            enable="false">
             <allow-values>
                 <value>disabled</value>
                 <value>128k</value>

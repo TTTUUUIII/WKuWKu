@@ -73,10 +73,13 @@
     <string name="mark_broken_when_start_game_failed">Mark broken games</string>
     <string name="fmt_downloading">Downloading %s</string>
     <string name="network_error">ERROR: Network error</string>
-    <string name="load_bios_failed">ERROR: Load bios failed!</string>
+    <string name="load_bios_failed">ERROR: Load bios failed, network error!</string>
     <string name="please_select_system">Please select a system</string>
-    <string name="c">C</string>
-    <string name="z">Z</string>
-    <string name="mode">MODE</string>
-    <string name="no_matching_emulator_found">No matching simulator found</string>
+    <string name="c" translatable="false">C</string>
+    <string name="z" translatable="false">Z</string>
+    <string name="mode" translatable="false">MODE</string>
+    <string name="no_matching_emulator_found">No matching emulator found</string>
+    <string name="trash_on">Trash on</string>
+    <string name="trash_is_clean">✨️Trash is clean</string>
+    <string name="copying_files">Copying files</string>
 </resources>

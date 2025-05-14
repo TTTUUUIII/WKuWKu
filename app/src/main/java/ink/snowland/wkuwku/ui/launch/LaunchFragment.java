@@ -70,7 +70,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         parentActivity.setActionBarVisibility(false);
         parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mViewModel = new ViewModelProvider(this).get(LaunchViewModel.class);
-        mAudioDevice = new AudioDevice();
+        mAudioDevice = new AudioDevice(requireContext());
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
             public void refresh(byte[] data, int width, int height, int pitch) {
@@ -96,8 +96,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mSnackbar = Snackbar.make(binding.snackbarContainer, "", Snackbar.LENGTH_SHORT);
         mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
         mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
-//        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) mSnackbar.getView().getLayoutParams();
-//        layoutParams.width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 400, getResources().getDisplayMetrics());
         selectController();
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
@@ -170,10 +168,10 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
             mEmulator.attachDevice(INPUT_DEVICE, mController);
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getCacheDirectory());
-            mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(mEmulator.getTag()));
+            mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
                 if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
-                    loadCurrentState(true);
+                    loadState(true);
                 }
                 success = true;
             }
@@ -206,7 +204,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         binding.controllerRoot.addView(mController.getView());
     }
 
-    private void saveCurrentState(boolean auto) {
+    private void saveState(boolean auto) {
         if (mEmulator == null) return;
         if (mGame.system.equals("famicom")) return;
         final String prefix = mEmulator.getTag();
@@ -214,7 +212,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ext));
     }
 
-    private void loadCurrentState(boolean auto) {
+    private void loadState(boolean auto) {
         if (mEmulator == null) return;
         final String prefix = mEmulator.getTag();
         final String ext = auto ? ".ast" : ".st";
@@ -274,7 +272,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 })
                 .doOnComplete(() -> {
                     if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
-                        saveCurrentState(true);
+                        saveState(true);
                     }
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.popBackStack();

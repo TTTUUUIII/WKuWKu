@@ -48,6 +48,16 @@ public class MainActivity extends BaseActivity {
                         .build();
                 mNavController.navigate(R.id.settings_fragment, null, navOptions);
             }
+        } else if (itemId == R.id.action_trash) {
+            if (isNavigateAble(R.id.trash_fragment)) {
+                NavOptions navOptions = new NavOptions.Builder()
+                        .setEnterAnim(R.anim.slide_in_right)
+                        .setExitAnim(R.anim.slide_out_left)
+                        .setPopEnterAnim(R.anim.slide_in_left)
+                        .setPopExitAnim(R.anim.slide_out_right)
+                        .build();
+                mNavController.navigate(R.id.trash_fragment, null, navOptions);
+            }
         }
         return true;
     }

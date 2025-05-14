@@ -48,7 +48,7 @@
         <item name="backgroundTint">@color/outlined_button_tint</item>
     </style>
     <style name="Theme.WKuWKu.Button.IconButton" parent="Widget.Material3.Button.IconButton">
-
+        <item name="iconSize">25dp</item>
     </style>
     <style name="Theme.WKuWKu.GPButton" parent="Theme.WKuWKu.Button.OutlinedButton">
         <item name="cornerRadius">37dp</item>

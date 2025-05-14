@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <data>
+        <variable
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
+        <import type="ink.snowland.wkuwku.util.TimeUtils" />
+    </data>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:paddingHorizontal="15dp"
+        android:paddingVertical="4dp"
+        android:orientation="horizontal"
+        tools:background="?attr/colorSurfaceContainerHigh"
+        xmlns:tools="http://schemas.android.com/tools">
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="@{game.title}"
+                android:textSize="13sp"
+                tools:text="Super Mario Bros." />
+            <TextView
+                android:layout_marginTop="8dp"
+                android:textStyle="italic"
+                android:textSize="13sp"
+                android:text="@{@string/trash_on + `：` + TimeUtils.toString(game.lastModifiedTime)}"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <Button
+            android:id="@+id/button_restore"
+            android:layout_marginStart="8dp"
+            style="@style/Theme.WKuWKu.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:iconTint="@color/info"
+            app:icon="@drawable/ic_undo" />
+        <Button
+            android:id="@+id/button_delete"
+            style="@style/Theme.WKuWKu.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:iconTint="@color/error"
+            app:icon="@drawable/ic_cancel" />
+    </LinearLayout>
+</layout>

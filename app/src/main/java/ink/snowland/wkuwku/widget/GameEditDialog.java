@@ -27,7 +27,7 @@ import ink.snowland.wkuwku.databinding.LayoutEditGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 
 public class GameEditDialog {
-    private LayoutEditGameBinding binding;
+    private final LayoutEditGameBinding binding;
     private final AlertDialog mDialog;
     private Game mGame = null;
     private final BaseActivity mParent;
@@ -152,17 +152,6 @@ public class GameEditDialog {
         }
     }
 
-//    private void clear() {
-//        mGame.filepath = null;
-//        mGame.region = mDefaultRegion;
-//        mGame.title = null;
-//        mGame.system = mDefaultPlatform;
-//        mGame.addedTime = 0;
-//        mGame.remark = null;
-//        binding.errorTextView.setText("");
-//        binding.invalidateAll();
-//        mGame = null;
-//    }
     @SuppressLint("SetTextI18n")
     private boolean checkValid() {
         if (mGame.title == null || mGame.title.trim().isEmpty()) {

@@ -6,4 +6,10 @@
         <url>https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Famicom%20Disk%20System/disksys.rom</url>
         <md5>ca30b50f880eb660a320674ed365ef7a</md5>
     </bios>
+    <bios system="mega-cd">
+        <title>Sega - Mega CD</title>
+        <filename>bios_CD_U.bin</filename>
+        <url>https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Mega%20CD%20-%20Sega%20CD/bios_CD_U.bin</url>
+        <md5>2efd74e3232ff260e371b99f84024f7f</md5>
+    </bios>
 </bios-config>
