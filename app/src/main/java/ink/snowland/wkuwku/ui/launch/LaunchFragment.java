@@ -58,6 +58,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private static final String TAG = "PlayFragment";
     private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
+    private static final String REVERSE_LANDSCAPE = "app_video_reverse_landscape";
     private FragmentLaunchBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
@@ -84,7 +85,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
         parentActivity.setStatusBarVisibility(false);
         parentActivity.setActionBarVisibility(false);
-        parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        if (SettingsManager.getBoolean(REVERSE_LANDSCAPE)) {
+            parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
+        } else {
+            parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
         mViewModel = new ViewModelProvider(this).get(LaunchViewModel.class);
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override

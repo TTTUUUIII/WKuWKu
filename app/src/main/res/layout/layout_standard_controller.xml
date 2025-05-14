@@ -44,7 +44,7 @@
 
     <ink.snowland.wkuwku.view.JoystickView
         android:id="@+id/joystick_view"
-        android:layout_width="160dp"
+        android:layout_width="170dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

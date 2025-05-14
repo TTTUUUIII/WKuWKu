@@ -328,7 +328,7 @@
             </allow-values>
         </option>
         <option
-            defaultValue="None"
+            defaultValue="Player 1"
             key="fceumm_turbo_enable"
             title="Turbo enable">
             <allow-values>

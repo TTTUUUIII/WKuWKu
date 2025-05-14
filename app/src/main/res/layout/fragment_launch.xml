@@ -21,7 +21,7 @@
             android:id="@+id/gl_surface_view"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="4" />
+            android:layout_weight="3" />
 
         <View
             android:layout_width="0dp"

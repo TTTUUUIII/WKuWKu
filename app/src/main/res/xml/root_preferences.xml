@@ -2,12 +2,6 @@
 
     <PreferenceCategory
         app:title="@string/video_options">
-
-<!--        <EditTextPreference-->
-<!--            app:key="signature"-->
-<!--            app:title="@string/signature_title"-->
-<!--            app:useSimpleSummaryProvider="true" />-->
-
         <ListPreference
             app:defaultValue="covered"
             app:entries="@array/video_ratio_entries"
@@ -15,7 +9,10 @@
             app:key="app_video_ratio"
             app:title="@string/video_ratio"
             app:useSimpleSummaryProvider="true" />
-
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:title="@string/reverse_landscape"
+            app:key="app_video_reverse_landscape" />
     </PreferenceCategory>
 
     <PreferenceCategory app:title="@string/input_options">
