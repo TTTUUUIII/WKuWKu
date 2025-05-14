@@ -82,4 +82,5 @@
     <string name="trash_on">Trash on</string>
     <string name="trash_is_clean">✨️Trash is clean</string>
     <string name="copying_files">Copying files</string>
+    <string name="emoji_rocket" translatable="false">🚀</string>
 </resources>
