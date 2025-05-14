@@ -2,6 +2,14 @@ package ink.snowland.wkuwku.interfaces;
 
 
 import android.content.res.Resources;
+import android.media.AudioAttributes;
+import android.media.AudioFormat;
+import android.media.AudioTrack;
+import android.os.Build;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
+import android.os.Process;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -23,7 +31,6 @@ import ink.snowland.wkuwku.annotations.CallFromJni;
 import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.common.EmScheduledThread;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
@@ -1604,8 +1611,7 @@ public abstract class Emulator {
     private static final int FLAG_HARD_DISABLE_AUDIO =  1 << 3;
 
     public static final int VIDEO_DEVICE = 1;
-    public static final int AUDIO_DEVICE = 2;
-    public static final int INPUT_DEVICE = 3;
+    public static final int INPUT_DEVICE = 2;
 
     public static final int SAVE_MEMORY_RAM = 1;
     public static final int SAVE_STATE = 2;
@@ -1619,16 +1625,13 @@ public abstract class Emulator {
     private static final int STATE_RUNNING = 1;
     private static final int STATE_PAUSED = 2;
 
-    private final byte[] mLock = new byte[0];
     private volatile int mState = STATE_INVALID;
-    private EmScheduledThread mMainThread;
 
     protected final EmConfig config;
     protected final Map<String, EmOption> options = new HashMap<>();
     protected EmSystemAvInfo systemAvInfo;
     protected String systemDir;
     protected String saveDir;
-    protected EmAudioDevice audioDevice;
     protected EmVideoDevice videoDevice;
     protected EmInputDevice inputDevice0;
     protected EmInputDevice inputDevice1;
@@ -1636,56 +1639,35 @@ public abstract class Emulator {
     protected EmInputDevice inputDevice3;
     private OnEmulatorEventListener mEventListener;
     protected String systemTag;
+    private AudioTrack mAudioTrack;
+    private float mVolume = 1.0f;
 
     public boolean run(@NonNull String fullPath, @NonNull String systemTag) {
-        if (mState == STATE_INVALID) {
-            onPowerOn();
-        }
-        systemAvInfo = getSystemAvInfo();
+        if (mState != STATE_INVALID)
+            return false;
+        onPowerOn();
         if (!onLoadGame(fullPath)) {
             onPowerOff();
             mState = STATE_INVALID;
             return false;
         }
         this.systemTag = systemTag;
-        assert mMainThread == null;
-        mMainThread = new EmScheduledThread() {
-            @Override
-            public void next() {
-                synchronized (mLock) {
-                    if (mState == STATE_RUNNING) {
-                        onNext();
-                    } else if (mState == STATE_PAUSED) {
-                        try {
-                            mLock.wait();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace(System.err);
-                        }
-                    } else {
-                        interrupt();
-                    }
-                }
-            }
-        };
         mState = STATE_RUNNING;
-        mMainThread.schedule(systemAvInfo.timing.fps);
+        schedule();
+        Process.setThreadPriority(sMainThread.getThreadId(), Process.THREAD_PRIORITY_AUDIO);
         return true;
     }
 
     public void pause() {
         if (mState != STATE_RUNNING) return;
         mState = STATE_PAUSED;
-        if (audioDevice != null) {
-            audioDevice.pause();
-        }
+        mAudioTrack.pause();
     }
 
     public void resume() {
         if (mState != STATE_PAUSED) return;
-        synchronized (mLock) {
-            mState = STATE_RUNNING;
-            mLock.notify();
-        }
+        mAudioTrack.play();
+        mState = STATE_RUNNING;
     }
 
     public void reset() {
@@ -1694,21 +1676,13 @@ public abstract class Emulator {
     }
 
     public void suspend() {
-        if (mMainThread != null) {
-            mMainThread.cancel();
-            mMainThread = null;
-        }
-        if (audioDevice != null) {
-            audioDevice.close();
-            audioDevice = null;
-        }
-        if (videoDevice != null) {
-            videoDevice = null;
-        }
-        mEventListener = null;
         if (mState == STATE_INVALID) return;
-        onPowerOff();
         mState = STATE_INVALID;
+        onPowerOff();
+        releaseAudioTrack();
+        videoDevice = null;
+        mEventListener = null;
+        Process.setThreadPriority(sMainThread.getThreadId(), Process.THREAD_PRIORITY_LOWEST);
     }
 
     public void setSystemDirectory(int type, @NonNull File dir) {
@@ -1728,9 +1702,6 @@ public abstract class Emulator {
 
     public void attachDevice(int target, @Nullable EmulatorDevice device) {
         switch (target) {
-            case AUDIO_DEVICE:
-                audioDevice = (EmAudioDevice) device;
-                break;
             case VIDEO_DEVICE:
                 videoDevice = (EmVideoDevice) device;
                 break;
@@ -1793,6 +1764,16 @@ public abstract class Emulator {
         return config.systems;
     }
 
+    public void setAudioVolume(float volume) {
+        mVolume = volume;
+        if (mAudioTrack != null)
+            mAudioTrack.setVolume(mVolume);
+    }
+
+    public void setEmulatorEventListener(@Nullable OnEmulatorEventListener listener) {
+        mEventListener = listener;
+    }
+
     @CallFromJni
     protected boolean onEnvironment(int cmd, Object data) {
         if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE || cmd == RETRO_ENVIRONMENT_GET_FASTFORWARDING) {
@@ -1822,7 +1803,7 @@ public abstract class Emulator {
                 break;
             case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
                 systemAvInfo = (EmSystemAvInfo) data;
-                mMainThread.setScheduleFps((int) systemAvInfo.timing.fps);
+//                mMainThread.setScheduleFps((int) systemAvInfo.timing.fps);
                 break;
             case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
                 variable = (Variable) data;
@@ -1882,17 +1863,13 @@ public abstract class Emulator {
 
     @CallFromJni
     protected void onAudioSampleBatch(final short[] data, int frames) {
-        if (audioDevice == null) return;
-        if (!audioDevice.isOpen()) {
-            int sampleRate = (int) systemAvInfo.timing.sampleRate;
-            if (sampleRate == 0) {
-                sampleRate = 48000;
-            }
-            audioDevice.open(EmAudioDevice.PCM_16BIT, sampleRate, 2);
+        if (systemAvInfo == null)
+            systemAvInfo = getSystemAvInfo();
+        if (mAudioTrack == null) {
+            createAudioTrack();
+            mAudioTrack.play();
         }
-        if (audioDevice.isOpen()) {
-            audioDevice.play(data, frames);
-        }
+        mAudioTrack.write(data, 0, frames * 2);
     }
 
     @CallFromJni
@@ -1918,8 +1895,46 @@ public abstract class Emulator {
 
     }
 
-    public void setEmulatorEventListener(@Nullable OnEmulatorEventListener listener) {
-        mEventListener = listener;
+    protected void post(@NonNull Runnable r) {
+        sHandler.post(r);
+    }
+
+    private void schedule() {
+        if (mState == STATE_RUNNING)
+            onNext();
+        if (mState != STATE_INVALID)
+            sHandler.post(this::schedule);
+    }
+
+    private void createAudioTrack() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .build();
+        int sampleRateInHz = systemAvInfo.timing.sampleRate != 0 ? (int) systemAvInfo.timing.sampleRate : 48000;
+        int minBufferSizeInBytes = AudioTrack.getMinBufferSize(sampleRateInHz, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+        AudioFormat audioFormat = new AudioFormat.Builder()
+                .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                .setSampleRate(sampleRateInHz)
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .build();
+        AudioTrack.Builder trackBuilder = new AudioTrack.Builder()
+                .setAudioFormat(audioFormat)
+                .setAudioAttributes(audioAttributes)
+                .setBufferSizeInBytes(minBufferSizeInBytes)
+                .setTransferMode(AudioTrack.MODE_STREAM);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            trackBuilder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
+        }
+        mAudioTrack = trackBuilder.build();
+        mAudioTrack.setVolume(mVolume);
+    }
+
+    private void releaseAudioTrack() {
+        if (mAudioTrack != null) {
+            mAudioTrack.release();
+            mAudioTrack = null;
+        }
     }
 
     public abstract String getTag();
@@ -1935,5 +1950,19 @@ public abstract class Emulator {
 
     public interface OnEmulatorEventListener {
         void onShowMessage(EmMessageExt msg);
+    }
+
+    private static final HandlerThread sMainThread;
+    private static Handler sHandler;
+
+    static {
+        sMainThread = new HandlerThread("RetroEmulator", HandlerThread.MAX_PRIORITY) {
+            @Override
+            protected void onLooperPrepared() {
+                sHandler = new Handler(getLooper());
+                Process.setThreadPriority(getThreadId(), Process.THREAD_PRIORITY_LOWEST);
+            }
+        };
+        sMainThread.start();
     }
 }

@@ -21,7 +21,7 @@ public class Bsnes extends Emulator {
 
     @Override
     protected void onAudioSampleBatch(short[] data, int frames) {
-//        super.onAudioSampleBatch(data, frames);
+        post(() -> super.onAudioSampleBatch(data, frames));
     }
 
     @Override

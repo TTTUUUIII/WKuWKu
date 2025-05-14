@@ -3,10 +3,15 @@ package ink.snowland.wkuwku.ui.launch;
 import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -38,7 +43,6 @@ import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.device.AudioDevice;
 import ink.snowland.wkuwku.device.SegaController;
 import ink.snowland.wkuwku.device.StandardController;
 import ink.snowland.wkuwku.interfaces.Emulator;
@@ -50,7 +54,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener {
+public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, AudioManager.OnAudioFocusChangeListener {
     private static final String TAG = "PlayFragment";
     private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
@@ -58,19 +62,30 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
     private BaseController mController;
-    private AudioDevice mAudioDevice;
     private LaunchViewModel mViewModel;
     private Game mGame;
     private Snackbar mSnackbar;
+    private AudioFocusRequest mAudioFocusRequest;
+    private AudioManager mAudioManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mAudioManager = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mAudioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setOnAudioFocusChangeListener(this)
+                    .setAudioAttributes(new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_GAME)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build())
+                    .setAcceptsDelayedFocusGain(true)
+                    .build();
+        }
         parentActivity.setStatusBarVisibility(false);
         parentActivity.setActionBarVisibility(false);
         parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         mViewModel = new ViewModelProvider(this).get(LaunchViewModel.class);
-        mAudioDevice = new AudioDevice(requireContext());
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
             public void refresh(byte[] data, int width, int height, int pitch) {
@@ -157,14 +172,19 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         if (mEmulator != null) {
             mEmulator.suspend();
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mAudioManager.abandonAudioFocusRequest(mAudioFocusRequest);
+        }
     }
 
     private void launch() {
         boolean success = false;
         if (mGame.state == Game.STATE_VALID && mEmulator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mEmulator.setAudioVolume(mAudioManager.requestAudioFocus(mAudioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
+            }
             applyOptions();
             mEmulator.setEmulatorEventListener(this);
-            mEmulator.attachDevice(AUDIO_DEVICE, mAudioDevice);
             mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
             mEmulator.attachDevice(INPUT_DEVICE, mController);
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getCacheDirectory());
@@ -281,6 +301,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     public static final String ARG_GAME = "game";
+
     private void selectEmulator() {
         String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", mGame.system));
         if (tag.isEmpty()) {
@@ -304,5 +325,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mSnackbar.setText(msg);
         mSnackbar.setDuration(duration);
         mSnackbar.show();
+    }
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        if (mEmulator == null) return;
+        mEmulator.setAudioVolume(focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
     }
 }
