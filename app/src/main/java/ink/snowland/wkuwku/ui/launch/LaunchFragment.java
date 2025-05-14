@@ -287,6 +287,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator = EmulatorManager.getDefaultEmulator(mGame.system);
         } else {
             mEmulator = EmulatorManager.getEmulator(tag);
+            if (mEmulator == null)
+                mEmulator = EmulatorManager.getDefaultEmulator(mGame.system);
         }
     }
 
