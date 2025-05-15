@@ -227,7 +227,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 mController = new StandardController(0, parentActivity);
         }
         binding.controllerRoot.addView(mController.getView());
-        getLifecycle().addObserver(mController);
     }
 
     private void saveState(boolean auto) {

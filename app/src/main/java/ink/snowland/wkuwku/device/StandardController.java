@@ -138,7 +138,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.button_m2) {
-            MacroEvent event = new MacroEvent(new int[]{RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_Y}, 0, 200);
+            MacroEvent event = new MacroEvent(new int[]{RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_Y}, 0, 30);
             postMacroEvent(event);
         }
     }
