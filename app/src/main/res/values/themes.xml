@@ -51,7 +51,6 @@
         <item name="iconSize">25dp</item>
     </style>
     <style name="Theme.WKuWKu.GPButton" parent="Theme.WKuWKu.Button.OutlinedButton">
-        <item name="cornerRadius">37dp</item>
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
         <item name="android:paddingLeft">0dp</item>
@@ -59,6 +58,5 @@
         <item name="android:paddingTop">0dp</item>
         <item name="android:paddingBottom">0dp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:textSize">24sp</item>
     </style>
 </resources>

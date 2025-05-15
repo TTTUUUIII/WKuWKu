@@ -20,7 +20,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class StandardController extends BaseController implements View.OnTouchListener {
+public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
     private final LayoutStandardControllerBinding binding;
@@ -68,19 +68,6 @@ public class StandardController extends BaseController implements View.OnTouchLi
                 setState(RETRO_DEVICE_ID_JOYPAD_A, KEY_UP);
                 setState(RETRO_DEVICE_ID_JOYPAD_B, KEY_UP);
             }
-        } else if (viewId == R.id.button_m2) {
-            MacroEvent events = new MacroEvent(new int[]{RETRO_DEVICE_ID_JOYPAD_A, RETRO_DEVICE_ID_JOYPAD_B}, 0, 200);
-            Disposable disposable = Completable.create(emitter -> {
-                        SystemClock.sleep(events.delayed);
-                        for (int key : events.keys)
-                            setState(key, KEY_DOWN);
-                        SystemClock.sleep(events.duration);
-                        for (int key: events.keys)
-                            setState(key, KEY_UP);
-                        emitter.onComplete();
-                    }).subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe();
         } else {
             if (viewId == R.id.button_select) {
                 id = RETRO_DEVICE_ID_JOYPAD_SELECT;
@@ -135,6 +122,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
         binding.buttonR.setOnTouchListener(this);
         binding.buttonR2.setOnTouchListener(this);
         binding.buttonAB.setOnTouchListener(this);
+        binding.buttonM2.setOnClickListener(this);
         binding.joystickView.setOnMoveListener((angle, strength) -> {
             double rad = Math.toRadians(angle);
             double dist = strength / 100.0;
@@ -149,5 +137,14 @@ public class StandardController extends BaseController implements View.OnTouchLi
             setState(RETRO_DEVICE_ID_JOYPAD_LEFT, left);
             setState(RETRO_DEVICE_ID_JOYPAD_RIGHT, right);
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        int viewId = v.getId();
+        if (viewId == R.id.button_m2) {
+            MacroEvent event = new MacroEvent(new int[]{RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_Y}, 0, 200);
+            postMacroEvent(event);
+        }
     }
 }
