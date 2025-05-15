@@ -84,7 +84,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     .build();
         }
         parentActivity.setStatusBarVisibility(false);
-        parentActivity.setActionBarVisibility(false);
         if (SettingsManager.getBoolean(REVERSE_LANDSCAPE)) {
             parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
         } else {
@@ -116,7 +115,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mSnackbar = Snackbar.make(binding.snackbarContainer, "", Snackbar.LENGTH_SHORT);
         mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
         mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
-        selectController();
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         return binding.getRoot();
     }
@@ -125,6 +123,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            parentActivity.setActionBarVisibility(false);
+            selectController();
             selectEmulator();
             if (mEmulator == null) {
                 Toast.makeText(parentActivity, R.string.no_matching_emulator_found, Toast.LENGTH_SHORT).show();
