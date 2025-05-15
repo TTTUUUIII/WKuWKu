@@ -2,6 +2,8 @@ package ink.snowland.wkuwku.common;
 
 import android.content.Context;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
@@ -14,6 +16,7 @@ import ink.snowland.wkuwku.util.SettingsManager;
 public abstract class BaseController extends EmInputDevice {
     private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     protected Vibrator vibrator;
+    protected final Handler handler = new Handler(Looper.getMainLooper());
     public BaseController(@NonNull Context context, int port, int device) {
         super(port, device);
         if (SettingsManager.getBoolean(VIBRATION_FEEDBACK, true)) {

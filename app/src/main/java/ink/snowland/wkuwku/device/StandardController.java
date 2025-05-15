@@ -4,6 +4,7 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -12,7 +13,12 @@ import androidx.annotation.NonNull;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
+import ink.snowland.wkuwku.common.MacroEvent;
 import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class StandardController extends BaseController implements View.OnTouchListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
@@ -24,6 +30,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
         binding = LayoutStandardControllerBinding.inflate(LayoutInflater.from(context));
         bindEvents();
     }
+
     @Override
     public short getState(int id) {
         if (id == RETRO_DEVICE_ID_JOYPAD_MASK) {
@@ -61,6 +68,19 @@ public class StandardController extends BaseController implements View.OnTouchLi
                 setState(RETRO_DEVICE_ID_JOYPAD_A, KEY_UP);
                 setState(RETRO_DEVICE_ID_JOYPAD_B, KEY_UP);
             }
+        } else if (viewId == R.id.button_m2) {
+            MacroEvent events = new MacroEvent(new int[]{RETRO_DEVICE_ID_JOYPAD_A, RETRO_DEVICE_ID_JOYPAD_B}, 0, 200);
+            Disposable disposable = Completable.create(emitter -> {
+                        SystemClock.sleep(events.delayed);
+                        for (int key : events.keys)
+                            setState(key, KEY_DOWN);
+                        SystemClock.sleep(events.duration);
+                        for (int key: events.keys)
+                            setState(key, KEY_UP);
+                        emitter.onComplete();
+                    }).subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe();
         } else {
             if (viewId == R.id.button_select) {
                 id = RETRO_DEVICE_ID_JOYPAD_SELECT;

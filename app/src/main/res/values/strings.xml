@@ -87,4 +87,5 @@
     <string name="app_desc" translatable="false">Let\'s keep playing!</string>
     <string name="key_macro">Key macro</string>
     <string name="about">About</string>
+    <string name="m2">M2</string>
 </resources>
