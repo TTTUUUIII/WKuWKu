@@ -4,7 +4,6 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -15,10 +14,6 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.MacroEvent;
 import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
