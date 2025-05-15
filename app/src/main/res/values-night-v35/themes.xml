@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DynamicColors.DayNight">
+    <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DynamicColors.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!--         <item name="colorPrimary">@color/primary_dark</item>-->
         <item name="android:statusBarColor">@color/primary_dark</item>

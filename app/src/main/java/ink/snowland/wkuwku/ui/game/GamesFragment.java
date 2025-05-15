@@ -69,7 +69,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         binding.setLifecycleOwner(this);
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
-        parentActivity.setActionbarSubTitle(R.string.all_games);
+        parentActivity.setActionbarTitle(R.string.all_games);
         return binding.getRoot();
     }
 

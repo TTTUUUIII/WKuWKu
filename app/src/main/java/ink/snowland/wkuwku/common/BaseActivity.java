@@ -65,10 +65,10 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
-    public void setActionbarSubTitle(@StringRes int resId) {
+    public void setActionbarTitle(@StringRes int resId) {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
-            actionBar.setSubtitle(resId);
+            actionBar.setTitle(resId);
         }
     }
 

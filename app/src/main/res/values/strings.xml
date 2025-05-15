@@ -84,4 +84,7 @@
     <string name="copying_files">Copying files</string>
     <string name="emoji_rocket" translatable="false">🚀</string>
     <string name="reverse_landscape">Reverse landscape</string>
+    <string name="app_desc" translatable="false">Let\'s keep playing!</string>
+    <string name="key_macro">Key macro</string>
+    <string name="about">About</string>
 </resources>

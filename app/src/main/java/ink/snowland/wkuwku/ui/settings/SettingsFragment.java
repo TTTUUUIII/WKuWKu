@@ -71,6 +71,6 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mParentActivity.setActionbarSubTitle(R.string.app_settings);
+        mParentActivity.setActionbarTitle(R.string.app_settings);
     }
 }

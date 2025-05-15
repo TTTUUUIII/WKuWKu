@@ -60,7 +60,7 @@ public class HistoryFragment extends BaseFragment {
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
-        parentActivity.setActionbarSubTitle(R.string.recent_played);
+        parentActivity.setActionbarTitle(R.string.recent_played);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
         return binding.getRoot();

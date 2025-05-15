@@ -48,7 +48,7 @@ public class CoreFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         binding = FragmentCoreBinding.inflate(inflater, container, false);
         mViewModel = new ViewModelProvider(this).get(CoreViewModel.class);
-        parentActivity.setActionbarSubTitle(R.string.core_options);
+        parentActivity.setActionbarTitle(R.string.core_options);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         binding.pendingIndicator.setDataModel(mViewModel);

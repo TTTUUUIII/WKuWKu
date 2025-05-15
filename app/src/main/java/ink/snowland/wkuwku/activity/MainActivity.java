@@ -1,11 +1,16 @@
 package ink.snowland.wkuwku.activity;
 
+import android.graphics.RenderEffect;
+import android.graphics.Shader;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
@@ -17,26 +22,39 @@ import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 
 public class MainActivity extends BaseActivity {
     private NavController mNavController;
+    private ActivityMainBinding binding;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setSupportActionBar(binding.toolBar);
         setContentView(binding.getRoot());
         NavHostFragment fragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolBar, R.string.start, R.string.close);
+        binding.drawerLayout.addDrawerListener(toggle);
+        binding.navigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
+        toggle.syncState();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            View heroImageView = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
+            heroImageView.setRenderEffect(RenderEffect.createBlurEffect(18, 18, Shader.TileMode.MIRROR));
+        }
         assert fragment != null;
         mNavController = fragment.getNavController();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    private boolean onDrawerItemSelected(MenuItem item) {
+        binding.drawerLayout.closeDrawers();
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        super.onOptionsItemSelected(item);
         int itemId = item.getItemId();
         if (itemId == R.id.action_settings) {
             if (isNavigateAble(R.id.settings_fragment)) {
@@ -59,7 +77,7 @@ public class MainActivity extends BaseActivity {
                 mNavController.navigate(R.id.trash_fragment, null, navOptions);
             }
         }
-        return true;
+        return super.onOptionsItemSelected(item);
     }
 
     private boolean isNavigateAble(@IdRes int id) {

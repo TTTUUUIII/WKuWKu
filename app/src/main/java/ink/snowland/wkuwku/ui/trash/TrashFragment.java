@@ -15,6 +15,7 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
+import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentTrashBinding;
 import ink.snowland.wkuwku.databinding.ItemTrashBinding;
@@ -49,6 +50,12 @@ public class TrashFragment extends BaseFragment {
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
         return binding.getRoot();
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        parentActivity.setActionbarTitle(R.string.trash);
     }
 
     @Override

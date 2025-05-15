@@ -68,4 +68,6 @@
     <string name="trash_is_clean">✨️回收站是空的</string>
     <string name="copying_files">正在拷贝文件</string>
     <string name="reverse_landscape">反向横屏</string>
+    <string name="key_macro">按键宏</string>
+    <string name="about">关于</string>
 </resources>

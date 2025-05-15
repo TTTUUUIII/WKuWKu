@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/pattern_zigzag_sm_landscape"
+    android:background="@drawable/pattern_cross_dots"
     tools:context=".ui.launch.LaunchFragment">
     <LinearLayout
         android:layout_width="match_parent"
