@@ -131,6 +131,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
         binding.buttonR2.setOnTouchListener(this);
         binding.buttonAB.setOnTouchListener(this);
         binding.buttonM2.setOnClickListener(this);
+        binding.buttonM1.setOnLongClickListener(this);
         binding.buttonM2.setOnLongClickListener(this);
         binding.joystickView.setOnMoveListener((angle, strength) -> {
             double rad = Math.toRadians(angle);
@@ -187,6 +188,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
     @Override
     public boolean onLongClick(View v) {
         int viewId = v.getId();
+        if (mAllValidMacros == null || mAllValidMacros.isEmpty()) return true;
         if (binding.layoutMacrosControl.getVisibility() == View.VISIBLE) {
             binding.layoutMacrosControl.setVisibility(View.GONE);
         } else {
