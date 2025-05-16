@@ -16,6 +16,9 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
@@ -53,6 +56,8 @@ public class MainActivity extends BaseActivity {
         if (itemId == R.id.action_macro) {
             if (isNavigateAble(R.id.macro_fragment))
                 mNavController.navigate(R.id.macro_fragment);
+        } else if (itemId == R.id.action_about) {
+            showAboutDialog();
         }
         binding.drawerLayout.closeDrawers();
         return true;
@@ -88,5 +93,13 @@ public class MainActivity extends BaseActivity {
     private boolean isNavigateAble(@IdRes int id) {
         NavDestination destination = mNavController.getCurrentDestination();
         return destination != null && destination.getId() != id;
+    }
+
+    private void showAboutDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.about_wkuwku)
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setMessage(getString(R.string.fmt_about_wkuwku, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TIME))
+                .show();
     }
 }

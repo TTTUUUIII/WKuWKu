@@ -24,6 +24,7 @@ android {
         versionCode 1
         versionName "v0.1a"
 
+        buildConfigField "String", "BUILD_TIME", "\"" + new Date().format("EEE MMM dd zzz yyyy") + "\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -48,6 +49,7 @@ android {
     buildFeatures {
         viewBinding true
         dataBinding true
+        buildConfig true
     }
 
     compileOptions {
