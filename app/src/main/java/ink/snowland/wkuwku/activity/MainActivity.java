@@ -55,7 +55,7 @@ public class MainActivity extends BaseActivity {
         int itemId = item.getItemId();
         if (itemId == R.id.action_macro) {
             if (isNavigateAble(R.id.macro_fragment))
-                mNavController.navigate(R.id.macro_fragment);
+                mNavController.navigate(R.id.macro_fragment, null, navAnimOptions);
         } else if (itemId == R.id.action_about) {
             showAboutDialog();
         }
@@ -63,28 +63,24 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
+    private final NavOptions navAnimOptions = new NavOptions.Builder()
+            .setEnterAnim(R.anim.slide_in_right)
+            .setExitAnim(R.anim.slide_out_left)
+            .setPopEnterAnim(R.anim.slide_in_left)
+            .setPopExitAnim(R.anim.slide_out_right)
+            .build();
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.action_settings) {
             if (isNavigateAble(R.id.settings_fragment)) {
-                NavOptions navOptions = new NavOptions.Builder()
-                        .setEnterAnim(R.anim.slide_in_right)
-                        .setExitAnim(R.anim.slide_out_left)
-                        .setPopEnterAnim(R.anim.slide_in_left)
-                        .setPopExitAnim(R.anim.slide_out_right)
-                        .build();
-                mNavController.navigate(R.id.settings_fragment, null, navOptions);
+                mNavController.navigate(R.id.settings_fragment, null, navAnimOptions);
             }
         } else if (itemId == R.id.action_trash) {
             if (isNavigateAble(R.id.trash_fragment)) {
-                NavOptions navOptions = new NavOptions.Builder()
-                        .setEnterAnim(R.anim.slide_in_right)
-                        .setExitAnim(R.anim.slide_out_left)
-                        .setPopEnterAnim(R.anim.slide_in_left)
-                        .setPopExitAnim(R.anim.slide_out_right)
-                        .build();
-                mNavController.navigate(R.id.trash_fragment, null, navOptions);
+
+                mNavController.navigate(R.id.trash_fragment, null, navAnimOptions);
             }
         }
         return super.onOptionsItemSelected(item);

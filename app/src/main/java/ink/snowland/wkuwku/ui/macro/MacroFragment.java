@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,12 +41,6 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(MacroViewModel.class);
         mAdapter = new ViewAdapter();
-        mDisposable = mViewModel.getAll()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mAdapter::submitList, error -> {
-                    error.printStackTrace(System.err);
-                });
     }
 
     @Override
@@ -80,8 +75,23 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        mDisposable = mViewModel.getAll()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(scripts -> {
+                    handler.postAtTime(() -> {
+                        mAdapter.submitList(scripts);
+                    }, SystemClock.uptimeMillis() + 300);
+                }, error -> {
+                    error.printStackTrace(System.err);
+                });
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
         mDisposable.dispose();
     }
 
