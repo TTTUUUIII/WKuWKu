@@ -49,6 +49,11 @@ public class MainActivity extends BaseActivity {
     }
 
     private boolean onDrawerItemSelected(MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.action_macro) {
+            if (isNavigateAble(R.id.macro_fragment))
+                mNavController.navigate(R.id.macro_fragment);
+        }
         binding.drawerLayout.closeDrawers();
         return true;
     }

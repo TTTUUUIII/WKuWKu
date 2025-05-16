@@ -4,7 +4,7 @@
     <group
         android:id="@+id/utility_tools">
         <item
-            android:id="@+id/action_skill_management"
+            android:id="@+id/action_macro"
             android:icon="@drawable/ic_smart_toy"
             android:title="@string/key_macro" />
     </group>

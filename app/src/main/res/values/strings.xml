@@ -87,5 +87,8 @@
     <string name="app_desc" translatable="false">Let\'s keep playing!</string>
     <string name="key_macro">Key macro</string>
     <string name="about">About</string>
-    <string name="m2">M2</string>
+    <string name="m2" translatable="false">M2</string>
+    <string name="add_macro">Add a macro</string>
+    <string name="please_input_macro_script">Please input macro script.</string>
+    <string name="key_macro_manage">Macro management</string>
 </resources>
