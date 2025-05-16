@@ -73,4 +73,5 @@
     <string name="add_macro">添加宏</string>
     <string name="please_input_macro_script">请输入按键宏脚本</string>
     <string name="key_macro_manage">宏管理</string>
+    <string name="please_input_valid_marco_script">请输入正确的宏代码</string>
 </resources>

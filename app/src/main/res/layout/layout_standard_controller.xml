@@ -6,6 +6,47 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <LinearLayout
+        android:id="@+id/layout_macros_control"
+        android:background="@color/white_alpha_700"
+        android:layout_width="wrap_content"
+        android:minWidth="200dp"
+        android:visibility="gone"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:padding="15dp"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/m1" />
+            <Spinner
+                android:id="@+id/m1_marco"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/m2" />
+            <Spinner
+                android:id="@+id/m2_marco"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+    </LinearLayout>
     <Button
         android:id="@+id/button_l2"
         style="@style/Theme.WKuWKu.Button.OutlinedButton"
@@ -94,6 +135,17 @@
         android:textSize="24sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button_m1"
+        style="@style/Theme.WKuWKu.GPButton"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_marginBottom="220dp"
+        android:layout_marginEnd="58dp"
+        android:text="@string/m1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <Button
         android:id="@+id/button_m2"

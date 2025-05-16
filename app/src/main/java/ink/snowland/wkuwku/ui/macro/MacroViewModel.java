@@ -1,7 +1,44 @@
 package ink.snowland.wkuwku.ui.macro;
 
-import androidx.lifecycle.ViewModel;
+import android.app.Application;
 
-public class MacroViewModel extends ViewModel {
-    // TODO: Implement the ViewModel
+import androidx.annotation.NonNull;
+
+import java.util.List;
+
+import ink.snowland.wkuwku.common.BaseViewModel;
+import ink.snowland.wkuwku.db.AppDatabase;
+import ink.snowland.wkuwku.db.entity.MacroScript;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+
+public class MacroViewModel extends BaseViewModel {
+    public MacroViewModel(@NonNull Application application) {
+        super(application);
+    }
+
+    public void addMacro(@NonNull MacroScript script) {
+        Disposable disposable = AppDatabase.db.macroScriptDao()
+                .add(script)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> {
+                }, this::showErrorToast);
+    }
+
+    public void deleteMacro(@NonNull MacroScript script) {
+        Disposable disposable = AppDatabase.db.macroScriptDao()
+                .delete(script)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> {
+                }, this::showErrorToast);
+
+    }
+
+    public Observable<List<MacroScript>> getAll() {
+        return AppDatabase.db.macroScriptDao().getAll();
+    }
 }

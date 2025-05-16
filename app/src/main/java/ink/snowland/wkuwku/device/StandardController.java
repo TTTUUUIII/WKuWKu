@@ -7,15 +7,28 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.MacroEvent;
 import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
+import ink.snowland.wkuwku.db.entity.MacroScript;
+import ink.snowland.wkuwku.util.MacroCompiler;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener {
+public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
     private final LayoutStandardControllerBinding binding;
@@ -118,6 +131,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
         binding.buttonR2.setOnTouchListener(this);
         binding.buttonAB.setOnTouchListener(this);
         binding.buttonM2.setOnClickListener(this);
+        binding.buttonM2.setOnLongClickListener(this);
         binding.joystickView.setOnMoveListener((angle, strength) -> {
             double rad = Math.toRadians(angle);
             double dist = strength / 100.0;
@@ -134,12 +148,50 @@ public class StandardController extends BaseController implements View.OnTouchLi
         });
     }
 
+    private final Map<String, MacroScript> mAllValidMacros = new HashMap<>();
+    @Override
+    public void setMacros(Single<List<MacroScript>> macros) {
+        ArrayList<String> macroTitles = new ArrayList<>();
+        Disposable disposable = macros.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((scripts, throwable) -> {
+                    if (throwable == null) {
+                        scripts.forEach(script -> {
+                            macroTitles.add(script.title);
+                            mAllValidMacros.put(script.title, script);
+                        });
+                        binding.m1Marco.setAdapter(new ArrayAdapter<String>(binding.getRoot().getContext(), R.layout.layout_simple_text, macroTitles.toArray(new String[0])));
+                        binding.m2Marco.setAdapter(new ArrayAdapter<String>(binding.getRoot().getContext(), R.layout.layout_simple_text, macroTitles.toArray(new String[0])));
+                    }
+                });
+    }
+
     @Override
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.button_m2) {
-            MacroEvent event = new MacroEvent(new int[]{RETRO_DEVICE_ID_JOYPAD_B, RETRO_DEVICE_ID_JOYPAD_Y}, 0, 30);
-            postMacroEvent(event);
+            MacroScript script = mAllValidMacros.get(binding.m2Marco.getSelectedItem().toString());
+            if (script != null) {
+                List<MacroEvent> events = MacroCompiler.compile(script);
+                postMacroEvents(events);
+            }
+        } else if (viewId == R.id.button_m1) {
+            MacroScript script = mAllValidMacros.get(binding.m1Marco.getSelectedItem().toString());
+            if (script != null) {
+                List<MacroEvent> events = MacroCompiler.compile(script);
+                postMacroEvents(events);
+            }
         }
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        int viewId = v.getId();
+        if (binding.layoutMacrosControl.getVisibility() == View.VISIBLE) {
+            binding.layoutMacrosControl.setVisibility(View.GONE);
+        } else {
+            binding.layoutMacrosControl.setVisibility(View.VISIBLE);
+        }
+        return true;
     }
 }

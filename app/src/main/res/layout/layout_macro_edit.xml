@@ -32,5 +32,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="200dp" />
+        <TextView
+            android:id="@+id/error_text_view"
+            android:textStyle="bold"
+            android:textColor="@color/error"
+            android:layout_width="wrap_content"
+            android:layout_below="@id/macro_edit"
+            android:layout_height="wrap_content" />
     </RelativeLayout>
 </layout>

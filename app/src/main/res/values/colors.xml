@@ -3,6 +3,7 @@
     <color name="modal_mask">#7BFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="white_alpha_700">#B3FFFFFF</color>
     <color name="primary">#DF491E</color>
     <color name="primary_700">#E8805F</color>
     <color name="primary_500">#E89E89</color>
