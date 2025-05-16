@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,12 +16,12 @@ import ink.snowland.wkuwku.common.MacroEvent;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 
 public class MacroCompiler {
-    private static Map<String, List<MacroEvent>> sHistory = new HashMap<>();
+    private static final Map<String, List<MacroEvent>> sHistory = new HashMap<>();
 
     public static List<MacroEvent> compile(@NonNull MacroScript script) {
-        List<MacroEvent> events = sHistory.get(script.script);
+        List<MacroEvent> events = sHistory.get(script.title);
         if (events != null) return events;
-        Matcher matcher = pattern.matcher(script.script);
+        Matcher matcher = pattern.matcher(script.script.toUpperCase(Locale.US));
         events = new ArrayList<>();
         while (matcher.find()) {
             String keysInText = matcher.group(1);

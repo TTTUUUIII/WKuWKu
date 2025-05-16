@@ -32,5 +32,12 @@
             android:layout_height="wrap_content"
             app:iconTint="@color/error"
             app:icon="@drawable/ic_cancel" />
+        <Button
+            android:id="@+id/button_edit"
+            style="@style/Theme.WKuWKu.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:iconTint="@color/info"
+            app:icon="@drawable/ic_edit" />
     </LinearLayout>
 </layout>

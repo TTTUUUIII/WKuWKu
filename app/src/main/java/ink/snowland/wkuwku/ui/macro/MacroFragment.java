@@ -65,11 +65,17 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.fab) {
-            if (mMacroEditDialog == null)
-                mMacroEditDialog = new MacroEditDialog(parentActivity);
-            mMacroEditDialog.show(script -> {
-                mViewModel.addMacro(script);
-            });
+            showEditDialog(null);
+        }
+    }
+
+    private void showEditDialog(@Nullable MacroScript base) {
+        if (mMacroEditDialog == null)
+            mMacroEditDialog = new MacroEditDialog(parentActivity);
+        if (base == null) {
+            mMacroEditDialog.show(mViewModel::add);
+        } else {
+            mMacroEditDialog.show(mViewModel::update, base);
         }
     }
 
@@ -90,7 +96,10 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
         public void bind(@NonNull MacroScript script) {
             itemBinding.setScript(script);
             itemBinding.buttonDelete.setOnClickListener(v -> {
-                mViewModel.deleteMacro(script);
+                mViewModel.delete(script);
+            });
+            itemBinding.buttonEdit.setOnClickListener(v -> {
+                showEditDialog(script);
             });
         }
     }

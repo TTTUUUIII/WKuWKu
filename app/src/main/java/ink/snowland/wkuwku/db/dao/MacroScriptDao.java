@@ -1,10 +1,10 @@
 package ink.snowland.wkuwku.db.dao;
 
-import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
+import androidx.room.Update;
 
 import java.util.List;
 
@@ -22,7 +22,9 @@ public interface MacroScriptDao {
     @Query("SELECT * FROM tb_macro WHERE id = :id")
     Single<MacroScript> findById(int id);
     @Delete
-    Completable delete(@NonNull MacroScript info);
+    Completable delete(MacroScript info);
     @Insert
-    Completable add(@NonNull MacroScript info);
+    Completable add(MacroScript info);
+    @Update
+    Completable update(MacroScript script);
 }

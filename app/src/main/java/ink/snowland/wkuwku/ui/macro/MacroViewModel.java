@@ -19,7 +19,7 @@ public class MacroViewModel extends BaseViewModel {
         super(application);
     }
 
-    public void addMacro(@NonNull MacroScript script) {
+    public void add(@NonNull MacroScript script) {
         Disposable disposable = AppDatabase.db.macroScriptDao()
                 .add(script)
                 .subscribeOn(Schedulers.io())
@@ -28,7 +28,15 @@ public class MacroViewModel extends BaseViewModel {
                 }, this::showErrorToast);
     }
 
-    public void deleteMacro(@NonNull MacroScript script) {
+    public void update(@NonNull MacroScript script) {
+        Disposable disposable = AppDatabase.db.macroScriptDao()
+                .update(script)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> {}, this::showErrorToast);
+    }
+
+    public void delete(@NonNull MacroScript script) {
         Disposable disposable = AppDatabase.db.macroScriptDao()
                 .delete(script)
                 .subscribeOn(Schedulers.io())
