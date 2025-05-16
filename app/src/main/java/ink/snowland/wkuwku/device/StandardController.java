@@ -170,14 +170,18 @@ public class StandardController extends BaseController implements View.OnTouchLi
     @Override
     public void onClick(View v) {
         int viewId = v.getId();
+        String macroTitle = "";
         if (viewId == R.id.button_m2) {
-            MacroScript script = mAllValidMacros.get(binding.m2Marco.getSelectedItem().toString());
-            if (script != null) {
-                List<MacroEvent> events = MacroCompiler.compile(script);
-                postMacroEvents(events);
-            }
+            Object item = binding.m2Marco.getSelectedItem();
+            if (item != null)
+                macroTitle = item.toString();
         } else if (viewId == R.id.button_m1) {
-            MacroScript script = mAllValidMacros.get(binding.m1Marco.getSelectedItem().toString());
+            Object item = binding.m1Marco.getSelectedItem();
+            if (item != null)
+                macroTitle = item.toString();
+        }
+        if (!macroTitle.isEmpty()) {
+            MacroScript script = mAllValidMacros.get(macroTitle);
             if (script != null) {
                 List<MacroEvent> events = MacroCompiler.compile(script);
                 postMacroEvents(events);
