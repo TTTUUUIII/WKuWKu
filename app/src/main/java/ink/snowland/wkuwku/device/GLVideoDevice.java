@@ -65,10 +65,14 @@ public class GLVideoDevice implements EmVideoDevice {
 
     public void exportAsPNG(File file) {
         if (mFrameBuffer == null) return;
+        final byte[] pixels;
+        synchronized (mLock) {
+            pixels = mFrameBuffer.array();
+        }
         if (mPixelFormat == PIXEL_FORMAT_RGB565) {
-            ImageUtils.saveAsPng(Bitmap.Config.RGB_565, mFrameBuffer, mVideoWidth, mVideoHeight, file);
+            ImageUtils.saveAsPng(Bitmap.Config.RGB_565, pixels, mVideoWidth, mVideoHeight, file);
         } else {
-            ImageUtils.saveAsPng(Bitmap.Config.ARGB_8888, mFrameBuffer, mVideoWidth, mVideoHeight, file);
+            ImageUtils.saveAsPng(Bitmap.Config.ARGB_8888, pixels, mVideoWidth, mVideoHeight, file);
         }
     }
 

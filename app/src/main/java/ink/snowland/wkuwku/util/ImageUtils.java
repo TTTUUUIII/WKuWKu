@@ -138,10 +138,10 @@ public class ImageUtils {
         dos.write((value >> 8) & 0xFF);
     }
 
-    public static void saveAsPng(Bitmap.Config config, ByteBuffer pixels, int width, int height, File file) {
+    public static void saveAsPng(Bitmap.Config config, final byte[] pixels, int width, int height, File file) {
         // 创建 Bitmap
         Bitmap bitmap = Bitmap.createBitmap(width, height, config);
-        bitmap.copyPixelsFromBuffer(pixels);
+        bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(pixels));
 
         // 保存为 PNG
         try (FileOutputStream fos = new FileOutputStream(file)) {

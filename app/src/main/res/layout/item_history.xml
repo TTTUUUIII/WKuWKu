@@ -17,7 +17,9 @@
             <ImageView
                 android:id="@+id/screen_shot"
                 android:layout_width="120dp"
-                android:layout_height="wrap_content" />
+                android:scaleType="centerCrop"
+                android:layout_gravity="center_vertical"
+                android:layout_height="match_parent" />
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
