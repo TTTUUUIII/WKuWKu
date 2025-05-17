@@ -26,4 +26,8 @@ public class BaseFragment extends Fragment {
     protected void runAtTime(@NonNull Runnable r, long updateMillis) {
         handler.postAtTime(r, updateMillis);
     }
+
+    protected void run(@NonNull Runnable r) {
+        handler.post(r);
+    }
 }

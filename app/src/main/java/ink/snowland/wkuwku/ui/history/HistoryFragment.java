@@ -18,6 +18,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -27,6 +31,7 @@ import ink.snowland.wkuwku.databinding.ItemHistoryBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
+import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
@@ -116,6 +121,13 @@ public class HistoryFragment extends BaseFragment {
             itemBinding.buttonMore.setOnClickListener(v -> {
                 showMorePopupMenu(v, game);
             });
+            RequestOptions options = new RequestOptions()
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true);
+            Glide.with(itemBinding.getRoot())
+                    .setDefaultRequestOptions(options)
+                    .load(FileManager.getFile(FileManager.IMAGE_DIRECTORY, game.id + ".png"))
+                    .into(itemBinding.screenShot);
             if (game.lastPlayedTime == 0) {
                 itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + getString(R.string.never_played));
             } else {

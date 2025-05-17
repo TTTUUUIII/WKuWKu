@@ -195,7 +195,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getCacheDirectory());
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
-                if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
+                if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE, false)) {
                     loadState(true);
                 }
                 success = true;
@@ -296,10 +296,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 .doOnError(error -> {
                     error.printStackTrace(System.err);
                 })
-                .doOnComplete(() -> {
-                    if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE)) {
+                .doFinally(() -> {
+                    if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE, false)) {
                         saveState(true);
                     }
+                    mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.popBackStack();
                 })

@@ -1,6 +1,9 @@
 package ink.snowland.wkuwku.util;
 
+import android.graphics.Bitmap;
+
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -133,5 +136,18 @@ public class ImageUtils {
     private static void writeLittleEndianShort(DataOutputStream dos, short value) throws IOException {
         dos.write(value & 0xFF);
         dos.write((value >> 8) & 0xFF);
+    }
+
+    public static void saveAsPng(Bitmap.Config config, ByteBuffer pixels, int width, int height, File file) {
+        // 创建 Bitmap
+        Bitmap bitmap = Bitmap.createBitmap(width, height, config);
+        bitmap.copyPixelsFromBuffer(pixels);
+
+        // 保存为 PNG
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
     }
 }

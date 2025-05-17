@@ -3,11 +3,13 @@ package ink.snowland.wkuwku.device;
 import static android.opengl.GLES30.*;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.Buffer;
@@ -19,6 +21,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.interfaces.EmVideoDevice;
+import ink.snowland.wkuwku.util.ImageUtils;
 import ink.snowland.wkuwku.util.SettingsManager;
 
 public class GLVideoDevice implements EmVideoDevice {
@@ -58,6 +61,15 @@ public class GLVideoDevice implements EmVideoDevice {
         if (mRender == null)
             mRender = new RenderImpl();
         return mRender;
+    }
+
+    public void exportAsPNG(File file) {
+        if (mFrameBuffer == null) return;
+        if (mPixelFormat == PIXEL_FORMAT_RGB565) {
+            ImageUtils.saveAsPng(Bitmap.Config.RGB_565, mFrameBuffer, mVideoWidth, mVideoHeight, file);
+        } else {
+            ImageUtils.saveAsPng(Bitmap.Config.ARGB_8888, mFrameBuffer, mVideoWidth, mVideoHeight, file);
+        }
     }
 
     private class RenderImpl implements GLSurfaceView.Renderer {
