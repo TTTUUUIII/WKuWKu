@@ -1747,15 +1747,20 @@ public abstract class Emulator {
     }
 
     public boolean save(int type, @NonNull File file) {
-        if (type == SAVE_STATE)
-            return onSaveState(file.getAbsolutePath());
+        if (type == SAVE_STATE) {
+            synchronized (this) {
+                return onSaveState(file.getAbsolutePath());
+            }
+        }
         return false;
     }
 
     public boolean load(int type, @Nullable File file) {
         if (file == null) return true;
         if (type == LOAD_STATE) {
-            onLoadState(file.getAbsolutePath());
+            synchronized (this) {
+                onLoadState(file.getAbsolutePath());
+            }
         }
         return false;
     }
@@ -1900,8 +1905,11 @@ public abstract class Emulator {
     }
 
     private void schedule() {
-        if (mState == STATE_RUNNING)
-            onNext();
+        if (mState == STATE_RUNNING) {
+            synchronized (this) {
+                onNext();
+            }
+        }
         if (mState != STATE_INVALID)
             sHandler.post(this::schedule);
     }
