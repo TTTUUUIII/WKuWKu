@@ -10,6 +10,7 @@ import android.view.View;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -26,23 +27,30 @@ import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 public class MainActivity extends BaseActivity {
     private NavController mNavController;
     private ActivityMainBinding binding;
+    private ActionBarDrawerToggle mActionBarDrawerToggle;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setSupportActionBar(binding.toolBar);
         setContentView(binding.getRoot());
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null)
+            actionBar.setDisplayHomeAsUpEnabled(true);
         NavHostFragment fragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolBar, R.string.start, R.string.close);
-        binding.drawerLayout.addDrawerListener(toggle);
+        mActionBarDrawerToggle = new ActionBarDrawerToggle(this, binding.drawerLayout, R.string.start, R.string.close);
+        binding.drawerLayout.addDrawerListener(mActionBarDrawerToggle);
         binding.navigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
-        toggle.syncState();
+        mActionBarDrawerToggle.syncState();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             View heroImageView = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
             heroImageView.setRenderEffect(RenderEffect.createBlurEffect(18, 18, Shader.TileMode.MIRROR));
         }
         assert fragment != null;
         mNavController = fragment.getNavController();
+        mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
+            mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null);
+        });
     }
 
     @Override
@@ -73,7 +81,9 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.action_settings) {
+        if (mActionBarDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        } else if (itemId == R.id.action_settings) {
             if (isNavigateAble(R.id.settings_fragment)) {
                 mNavController.navigate(R.id.settings_fragment, null, navAnimOptions);
             }
@@ -84,6 +94,11 @@ public class MainActivity extends BaseActivity {
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        return mNavController.navigateUp() || super.onSupportNavigateUp();
     }
 
     private boolean isNavigateAble(@IdRes int id) {
