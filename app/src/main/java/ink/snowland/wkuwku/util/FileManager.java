@@ -20,6 +20,7 @@ public class FileManager {
     public static final String STATE_DIRECTORY = "state";
     public static final String SAVE_DIRECTORY = "save";
     public static final String IMAGE_DIRECTORY = "image";
+    public static final String SYSTEM_DIRECTORY = "system";
     private FileManager() {}
     private static Context sApplicationContext;
 

@@ -1793,7 +1793,8 @@ public abstract class Emulator {
                 if (option != null) {
                     entry.value = option.val;
                 } else {
-                    Log.w(TAG, "WARN: " + entry.key + " not found!");
+                    Log.w(TAG, "WARN: option \"" + entry.key + "\" requested but not found in config!");
+                    return false;
                 }
                 break;
             case RETRO_ENVIRONMENT_SET_VARIABLE:

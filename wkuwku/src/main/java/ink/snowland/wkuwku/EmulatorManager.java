@@ -19,6 +19,7 @@ import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.emulator.GenesisPlusGX;
 import ink.snowland.wkuwku.emulator.Mesen;
 import ink.snowland.wkuwku.emulator.MesenS;
+import ink.snowland.wkuwku.emulator.Pcsx;
 import ink.snowland.wkuwku.interfaces.Emulator;
 
 public final class EmulatorManager {
@@ -36,6 +37,7 @@ public final class EmulatorManager {
         MesenS.registerAsEmulator(context);
         GenesisPlusGX.registerAsEmulator(context);
 //        Bsnes.registerAsEmulator(context);
+        Pcsx.registerAsEmulator(context);
     }
 
     public static Emulator getDefaultEmulator(@NonNull String systemTag) {
@@ -54,6 +56,8 @@ public final class EmulatorManager {
             case "game-boy":
             case "game-boy-color":
                 return EMULATORS.get("mesen-s");
+            case "playstation":
+                return EMULATORS.get("pcsx");
             default:
                 /*Unknown system*/
         }

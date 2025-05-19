@@ -10,6 +10,7 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
 
     public static final String NUMBER = "number";
     public static final String NUMBER_DECIMAL = "numberDecimal";
+    public static final String NUMBER_SIGNED = "numberSigned";
     public static final String TEXT = "text";
 
     public final String key;

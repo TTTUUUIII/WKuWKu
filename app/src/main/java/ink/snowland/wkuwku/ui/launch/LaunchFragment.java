@@ -131,7 +131,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 return;
             }
             mViewModel.setPendingIndicator(true, getString(R.string.fmt_downloading, "bios"));
-            Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getCacheDirectory())
+            Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnError(error -> {
@@ -192,7 +192,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.setEmulatorEventListener(this);
             mEmulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
             mEmulator.attachDevice(INPUT_DEVICE, mController);
-            mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getCacheDirectory());
+            mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
                 if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE, false)) {

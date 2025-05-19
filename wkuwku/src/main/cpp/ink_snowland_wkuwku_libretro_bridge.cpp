@@ -295,12 +295,14 @@ static bool environment_callback(unsigned cmd, void *data) {
             struct retro_variable *variable;
             variable = (struct retro_variable *) data;
             set_variable_entry(env, variable->key, nullptr);
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+            bool supported = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
                                    variable_entry_object);
-            auto value = (jstring) get_variable_entry_value(env);
-            variable->value = env->GetStringUTFChars(value, JNI_FALSE);
+            if (supported) {
+                auto value = (jstring) get_variable_entry_value(env);
+                variable->value = env->GetStringUTFChars(value, JNI_FALSE);
+            }
+            return supported;
         }
-            break;
         case RETRO_ENVIRONMENT_SET_VARIABLE: {
             struct retro_variable *variable = nullptr;
             if (data != nullptr) {
@@ -643,6 +645,8 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Mesen");
 #elif defined(MESEN_S)
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/MesenS");
+#elif defined(PCSX)
+    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Pcsx");
 #endif
     ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
     ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");

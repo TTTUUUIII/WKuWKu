@@ -147,6 +147,8 @@ public class CoreFragment extends BaseFragment {
                     itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER);
                 } else if (option.inputType.equals(EmOption.NUMBER_DECIMAL)) {
                     itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                } else if (option.inputType.equals(EmOption.NUMBER_SIGNED)) {
+                    itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
                 }
             } else {
                 ItemCoreEnumOptionBinding itemBinding = (ItemCoreEnumOptionBinding) _binding;
