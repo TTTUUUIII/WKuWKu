@@ -41,6 +41,9 @@ public class QRScannerActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityQrscannerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        binding.buttonCancel.setOnClickListener(v -> {
+            cancel();
+        });
     }
 
     @Override
@@ -49,8 +52,7 @@ public class QRScannerActivity extends BaseActivity {
         if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startScanner();
         } else {
-            setResult(RESULT_CANCELED);
-            finish();
+            cancel();
         }
     }
 
@@ -70,6 +72,11 @@ public class QRScannerActivity extends BaseActivity {
         if (mScanner != null) {
             mScanner.close();
         }
+    }
+
+    private void cancel() {
+        setResult(RESULT_CANCELED);
+        finish();
     }
 
     private void startScanner() {
@@ -124,9 +131,8 @@ public class QRScannerActivity extends BaseActivity {
                 .addOnFailureListener(error -> {
                     Toast.makeText(getApplicationContext(), getString(R.string.fmt_operation_failed, error.getMessage()), Toast.LENGTH_SHORT).show();
                     error.printStackTrace(System.err);
-                    setResult(RESULT_CANCELED);
                     mCameraProvider.unbindAll();
-                    finish();
+                    cancel();
                 });
     }
 }
