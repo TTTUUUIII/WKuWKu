@@ -188,6 +188,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
                 postMacroEvents(events);
             }
         }
+        vibrator();
     }
 
     @Override
