@@ -22,3 +22,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-dontwarn org.tukaani.xz.ARMOptions
+-dontwarn org.tukaani.xz.ARMThumbOptions
+-dontwarn org.tukaani.xz.DeltaOptions
+-dontwarn org.tukaani.xz.FilterOptions
+-dontwarn org.tukaani.xz.IA64Options
+-dontwarn org.tukaani.xz.LZMA2InputStream
+-dontwarn org.tukaani.xz.LZMA2Options
+-dontwarn org.tukaani.xz.LZMAInputStream
+-dontwarn org.tukaani.xz.PowerPCOptions
+-dontwarn org.tukaani.xz.SPARCOptions
+-dontwarn org.tukaani.xz.X86Options
