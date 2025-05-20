@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 
 import ink.snowland.libwkuwku.R;
@@ -99,6 +100,32 @@ public class MesenS extends Emulator {
     @Override
     public void onPowerOff() {
         nativePowerOff();
+    }
+
+//    <item>sfc</item>
+//        <item>smc</item>
+//        <item>fig</item>
+//        <item>swc</item>
+//        <item>bs</item>
+//        <item>gb</item>
+//        <item>gbc</item>
+    @Override
+    public String findRom(@NonNull File dir) {
+        assert dir.exists() && dir.isDirectory();
+        File[] files = dir.listFiles();
+        if (files == null) return null;
+        for (File file : files) {
+            String name = file.getName();
+            if (name.endsWith("smc")
+                    || name.endsWith("sfc")
+                    || name.endsWith("fig")
+                    || name.endsWith("swc")
+                    || name.endsWith("bs")
+                    || name.endsWith("gb")
+                    || name.endsWith("gbc"))
+                return file.getAbsolutePath();
+        }
+        return null;
     }
 }
 

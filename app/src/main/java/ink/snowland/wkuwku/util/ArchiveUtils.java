@@ -1,5 +1,7 @@
 package ink.snowland.wkuwku.util;
 
+import androidx.annotation.NonNull;
+
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -9,22 +11,27 @@ import java.io.*;
 
 public class ArchiveUtils {
 
+    public static boolean isSupportedArchiveType(@NonNull File file) {
+        return isSupportedArchiveType(file.getName());
+    }
+
     public static boolean isSupportedArchiveType(String name) {
         return name.endsWith(".zip") || name.endsWith(".7z") || name.endsWith(".tar");
     }
 
-    public static void extract(String outputPath, String archive) throws IOException {
-        extract(outputPath, new File(archive));
+    public static File extract(String outputPath, String archive) throws IOException {
+        return extract(outputPath, new File(archive));
     }
 
-    public static void extract(String outputPath, File archive) throws IOException {
+    public static File extract(String outputPath, File archive) throws IOException {
         if (!archive.exists() || !archive.isFile()) {
             throw new RuntimeException(new FileNotFoundException(archive + " not found!"));
         }
         String filename = archive.getName();
         String filenameNotExt = filename.substring(0, filename.lastIndexOf("."));
         File outputDir = new File(outputPath, filenameNotExt);
-        if (!outputDir.exists() && !outputDir.mkdirs()) {
+        if (outputDir.exists()) return outputDir;
+        if (!outputDir.mkdirs()) {
             throw new IOException("Failed to create output directory! \"" + outputPath + "\"");
         }
         if (filename.endsWith(".zip"))
@@ -35,6 +42,7 @@ public class ArchiveUtils {
             extractTar(outputDir.getAbsolutePath(), archive);
         else
             throw new UnsupportedOperationException();
+        return outputDir;
     }
 
     private static void extractTar(String output, File file) throws IOException{

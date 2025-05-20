@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 
 import ink.snowland.libwkuwku.R;
@@ -98,5 +99,44 @@ public class GenesisPlusGX extends Emulator {
     @Override
     public void onPowerOff() {
         nativePowerOff();
+    }
+
+//    <item>m3u</item>
+//        <item>mdx</item>
+//        <item>md</item>
+//        <item>smd</item>
+//        <item>gen</item>
+//        <item>bin</item>
+//        <item>cue</item>
+//        <item>iso</item>
+//        <item>chd</item>
+//        <item>bms</item>
+//        <item>gg</item>
+//        <item>sg</item>
+//        <item>68k</item>
+//        <item>sgd</item>
+    @Override
+    public String findRom(@NonNull File dir) {
+        assert dir.exists() && dir.isDirectory();
+        File[] files = dir.listFiles();
+        if (files == null) return null;
+        for (File file : files) {
+            String name = file.getName();
+            if (name.endsWith("mdx")
+                    || name.endsWith("md")
+                    || name.endsWith("smd")
+                    || name.endsWith("gen")
+                    || name.endsWith("bin")
+                    || name.endsWith("cue")
+                    || name.endsWith("iso")
+                    || name.endsWith("chd")
+                    || name.endsWith("bms")
+                    || name.endsWith("gg")
+                    || name.endsWith("sg")
+                    || name.endsWith("68k")
+                    || name.endsWith("sgd"))
+                return file.getAbsolutePath();
+        }
+        return null;
     }
 }

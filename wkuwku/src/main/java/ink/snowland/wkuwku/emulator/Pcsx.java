@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 
 import ink.snowland.libwkuwku.R;
@@ -68,6 +69,38 @@ public class Pcsx extends Emulator {
     @Override
     public void onPowerOff() {
         nativePowerOff();
+    }
+
+//<item>bin</item>
+//        <item>cue</item>
+//        <item>img</item>
+//        <item>mdf</item>
+//        <item>pbp</item>
+//        <item>toc</item>
+//        <item>cbn</item>
+//        <item>m3u</item>
+//        <item>ccd</item>
+//        <item>chd</item>
+//        <item>iso</item>
+//        <item>exe</item>
+    @Override
+    public String findRom(@NonNull File dir) {
+        assert dir.exists() && dir.isDirectory();
+        File[] files = dir.listFiles();
+        if (files == null) return null;
+        for (File file : files) {
+            String name = file.getName();
+            if (name.endsWith(".cue")
+            || name.endsWith(".chd")
+            || name.endsWith(".iso"))
+                return file.getAbsolutePath();
+        }
+        for (File file : files) {
+            String name = file.getName();
+            if (name.endsWith(".bin"))
+                return file.getAbsolutePath();
+        }
+        return null;
     }
 
     public static void registerAsEmulator(@NonNull Context context) {

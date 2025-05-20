@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 
 import ink.snowland.libwkuwku.R;
@@ -72,6 +73,11 @@ public class Bsnes extends Emulator {
     @Override
     public void onPowerOff() {
         nativePowerOff();
+    }
+
+    @Override
+    public String findRom(@NonNull File dir) {
+        return null;
     }
 
     public static void registerAsEmulator(@NonNull Context context) {

@@ -49,6 +49,18 @@ public class FileManager {
         }
     }
 
+    public static void deleteDirectory(File file) throws IOException {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files != null) {
+                for (File it : files) {
+                    deleteDirectory(it);
+                }
+            }
+        }
+        boolean delete = file.delete();
+    }
+
     public static boolean copy(String type, String filename, Uri uri) {
         try (InputStream from = sApplicationContext.getContentResolver().openInputStream(uri)) {
             if (from == null) return false;

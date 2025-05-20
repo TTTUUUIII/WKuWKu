@@ -4,6 +4,7 @@ import android.app.Application;
 
 import androidx.annotation.NonNull;
 
+import java.io.File;
 import java.util.List;
 
 import ink.snowland.wkuwku.common.BaseViewModel;
@@ -30,7 +31,12 @@ public class TrashViewModel extends BaseViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::showErrorToast)
                 .subscribe(() -> {
-                    FileManager.delete(game.filepath);
+                    File file = new File(game.filepath).getParentFile();
+                    if (file != null && !file.equals(FileManager.getFileDirectory(FileManager.ROM_DIRECTORY))) {
+                        FileManager.deleteDirectory(file);
+                    } else {
+                        FileManager.delete(game.filepath);
+                    }
                 }, error -> {/*ignored*/});
     }
 

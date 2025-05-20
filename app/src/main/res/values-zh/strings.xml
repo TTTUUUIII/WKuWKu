@@ -75,4 +75,8 @@
     <string name="key_macro_manage">宏管理</string>
     <string name="please_input_valid_marco_script">请输入正确的宏代码</string>
     <string name="please_wait">Please wait</string>
+    <string name="extracting_archive">正在解压文件</string>
+    <string name="failed_to_extract_archive">错误: 解压文件失败!</string>
+    <string name="no_supported_rom_found_in_archive">错误：找不到有效的文件!</string>
+    <string name="fmt_game_already_exists">\"%s\" 似乎已经添加过了！</string>
 </resources>

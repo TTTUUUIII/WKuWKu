@@ -1956,6 +1956,7 @@ public abstract class Emulator {
     public abstract void onLoadState(@NonNull String fullPath);
     public abstract boolean onSaveState(@NonNull String savePath);
     public abstract void onPowerOff();
+    public abstract String findRom(@NonNull File dir);
 
     public interface OnEmulatorEventListener {
         void onShowMessage(EmMessageExt msg);

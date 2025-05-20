@@ -1,11 +1,13 @@
 package ink.snowland.wkuwku.emulator;
 
 import android.content.Context;
+import android.os.FileUtils;
 
 import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 
 import ink.snowland.libwkuwku.R;
@@ -99,6 +101,19 @@ public class Mesen extends Emulator {
     @Override
     public void onPowerOff() {
         nativePowerOff();
+    }
+
+    @Override
+    public String findRom(@NonNull File dir) {
+        assert dir.exists() && dir.isDirectory();
+        File[] files = dir.listFiles();
+        if (files == null) return null;
+        for (File file : files) {
+            String name = file.getName();
+            if (name.endsWith("nes") || name.endsWith("fds") || name.endsWith("unif") || name.endsWith("unf"))
+                return file.getAbsolutePath();
+        }
+        return null;
     }
 }
 
