@@ -130,6 +130,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
         binding.buttonR.setOnTouchListener(this);
         binding.buttonR2.setOnTouchListener(this);
         binding.buttonAB.setOnTouchListener(this);
+        binding.buttonM1.setOnClickListener(this);
         binding.buttonM2.setOnClickListener(this);
         binding.buttonM1.setOnLongClickListener(this);
         binding.buttonM2.setOnLongClickListener(this);
