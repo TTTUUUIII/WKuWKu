@@ -40,7 +40,7 @@
     <string name="virbration_feedback">震动反馈</string>
     <string name="via_qr_code">使用二维码</string>
     <string name="invalid_url">错误：无效的链接！</string>
-    <string name="downloading">下载中</string>
+    <string name="downloading">正在下载</string>
     <string name="emulator">模拟器</string>
     <string name="restore_last_state">恢复上一次的状态</string>
     <string name="filepath">文件路径</string>
@@ -75,4 +75,8 @@
     <string name="key_macro_manage">宏管理</string>
     <string name="please_input_valid_marco_script">请输入正确的宏代码</string>
     <string name="please_wait">Please wait</string>
+    <string name="unzipping_files">正在解压文件</string>
+    <string name="fmt_game_already_exists">%s 似乎已经存在！</string>
+    <string name="could_not_find_valid_rom_file">错误: 没有发现有效的文件!</string>
+    <string name="move_to_trash">移至回收站</string>
 </resources>

@@ -7,9 +7,11 @@
             manufacturer="sony" />
     </systems>
     <content-extensions>
-        <item>bin</item>
         <item>cue</item>
+        <item>bin</item>
+        <item>chd</item>
         <item>img</item>
+        <item>iso</item>
         <item>mdf</item>
         <item>pbp</item>
         <item>toc</item>

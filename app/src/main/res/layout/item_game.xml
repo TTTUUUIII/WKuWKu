@@ -48,7 +48,7 @@
             android:layout_marginStart="8dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="18sp"
             android:text="@string/emoji_rocket" />
         <Button
             android:id="@+id/button_more"

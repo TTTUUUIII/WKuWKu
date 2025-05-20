@@ -1946,6 +1946,19 @@ public abstract class Emulator {
         }
     }
 
+    public @Nullable File findLoaderFile(@NonNull File directory) {
+        File[] files = directory.listFiles();
+        if (files == null) return null;
+        for (String extension : config.contentExtensions) {
+            for (File file : files) {
+                String name = file.getName();
+                if (name.endsWith(extension))
+                    return file;
+            }
+        }
+        return null;
+    }
+
     public abstract String getTag();
     public abstract EmSystemInfo getSystemInfo();
     protected abstract EmSystemAvInfo getSystemAvInfo();

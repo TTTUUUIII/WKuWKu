@@ -27,20 +27,20 @@
             manufacturer="sega" />
     </systems>
     <content-extensions>
-        <item>m3u</item>
-        <item>mdx</item>
-        <item>md</item>
-        <item>smd</item>
-        <item>gen</item>
-        <item>bin</item>
         <item>cue</item>
-        <item>iso</item>
+        <item>md</item>
+        <item>mdx</item>
+        <item>smd</item>
+        <item>bin</item>
         <item>chd</item>
-        <item>bms</item>
+        <item>iso</item>
         <item>gg</item>
-        <item>sg</item>
         <item>68k</item>
+        <item>sg</item>
         <item>sgd</item>
+        <item>m3u</item>
+        <item>gen</item>
+        <item>bms</item>
     </content-extensions>
     <options>
         <option

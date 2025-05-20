@@ -114,13 +114,13 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     private void showEditDialog(@NonNull Game base) {
         mEditGameDialog.show((game, uri) -> {
             game.lastModifiedTime = System.currentTimeMillis();
-            mViewModel.updateGame(game);
+            mViewModel.update(game);
         }, base);
     }
 
     private void showDeleteDialog(@NonNull Game game) {
         if (game.state == Game.STATE_BROKEN) {
-            mViewModel.deleteGame(game);
+            mViewModel.delete(game);
         } else {
             new MaterialAlertDialogBuilder(requireActivity())
                     .setIcon(R.mipmap.ic_launcher_round)
@@ -128,7 +128,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                     .setMessage(getString(R.string.delete_confirm, game.title))
                     .setPositiveButton(R.string.confirm, (dialog, which) -> {
                         game.state = Game.STATE_DELETED;
-                        mViewModel.updateGame(game);
+                        mViewModel.update(game);
                     })
                     .setNegativeButton(R.string.cancel, null)
                     .setCancelable(false)

@@ -15,10 +15,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 
+import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
+import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.util.ArchiveUtils;
 import ink.snowland.wkuwku.util.FileManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
@@ -36,33 +39,70 @@ public class GamesViewModel extends BaseViewModel {
         return AppDatabase.db.gameInfoDao().getAll();
     }
 
+    private Completable copyFiles(@NonNull String filename, @NonNull Uri uri) {
+        return Completable.create(emitter -> {
+            boolean noError = true;
+            if (uri.getScheme() != null && uri.getScheme().equals("https")) {
+                setPendingIndicator(true, R.string.downloading);
+                try {
+                    URL url = new URL(uri.toString());
+                    URLConnection conn = url.openConnection();
+                    conn.setConnectTimeout(1000 * 5);
+                    conn.setReadTimeout(1000 * 8);
+                    try (InputStream from = conn.getInputStream()) {
+                        FileManager.copy(from, FileManager.ROM_DIRECTORY, filename);
+                    }
+                } catch (Exception e) {
+                    noError = false;
+                }
+            } else {
+                setPendingIndicator(true, R.string.copying_files);
+                noError = FileManager.copy(FileManager.ROM_DIRECTORY, filename, uri);
+            }
+            if (noError) {
+                emitter.onComplete();
+            } else {
+                emitter.onError(new IOException(getString(R.string.copy_file_failed)));
+            }
+            setPendingIndicator(false);
+        });
+    }
+
     public void addGame(@NonNull Game game, @NonNull Uri uri) {
-        if (uri.getScheme() != null && uri.getScheme().equals("https")) {
-            addGameFormNetwork(game, uri);
-            return;
-        }
-        File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-        if (file.exists()) {
-            Disposable disposable = AppDatabase.db.gameInfoDao().findByPathAndState(file.getAbsolutePath(), Game.STATE_DELETED)
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(it -> {
-                        if (it != null) {
-                            it.title = game.title;
-                            it.lastPlayedTime = 0;
-                            it.addedTime = SystemClock.currentThreadTimeMillis();
-                            it.lastModifiedTime = it.addedTime;
-                            it.remark = game.remark;
-                            it.state = Game.STATE_VALID;
-                            updateGame(it);
-                        } else {
-                            boolean ignored = file.delete();
-                            addNewGame(game, uri);
+        final String filename = game.filepath;
+        Disposable disposable = copyFiles(filename, uri)
+                .subscribeOn(Schedulers.io())
+                .doOnComplete(() -> {
+                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
+                    assert file.exists() && file.isFile() && file.canRead();
+                    if (filename.endsWith(".zip") || filename.endsWith(".7z")) {
+                        setPendingIndicator(true, R.string.unzipping_files);
+                        String unzippedPath = ArchiveUtils.extract(file);
+                        FileManager.delete(file);
+                        file = new File(unzippedPath);
+                    }
+                    if (file.isDirectory()) {
+                        Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
+                        assert emulator != null;
+                        File romFile = emulator.findLoaderFile(file);
+                        if (romFile == null) {
+                            FileManager.delete(file);
                         }
-                    });
-        } else {
-            addNewGame(game, uri);
-        }
+                        file = romFile;
+                    }
+                    if (file == null) {
+                        Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    game.filepath = file.getAbsolutePath();
+                    game.addedTime = SystemClock.currentThreadTimeMillis();
+                    game.lastModifiedTime = game.addedTime;
+                    game.state = Game.STATE_VALID;
+                    game.md5 = FileManager.calculateMD5Sum(file);
+                    insert(game);
+                })
+                .subscribe(() -> {
+                }, (error) -> {/*Ignored*/});
     }
 
     private void addGameFormNetwork(@NonNull Game game, @NonNull Uri uri) {
@@ -97,7 +137,7 @@ public class GamesViewModel extends BaseViewModel {
                     game.lastModifiedTime = game.addedTime;
                     game.state = Game.STATE_VALID;
                     game.md5 = md5;
-                    addGameToDatabase(game);
+                    insert(game);
                 }, error -> {/*Ignored*/});
     }
 
@@ -125,12 +165,12 @@ public class GamesViewModel extends BaseViewModel {
                     game.lastModifiedTime = game.addedTime;
                     game.state = Game.STATE_VALID;
                     game.md5 = FileManager.calculateMD5Sum(file);
-                    addGameToDatabase(game);
+                    insert(game);
                 })
                 .subscribe(() -> {/*Ignored*/}, error -> {/*Ignored*/});
     }
 
-    public void updateGame(@NonNull Game game) {
+    public void update(@NonNull Game game) {
         Disposable disposable = AppDatabase.db.gameInfoDao().update(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -141,7 +181,7 @@ public class GamesViewModel extends BaseViewModel {
                 .subscribe(() -> {}, error -> {/*Ignored*/});
     }
 
-    public void deleteGame(@NonNull Game game) {
+    public void delete(@NonNull Game game) {
         Disposable disposable = AppDatabase.db.gameInfoDao().delete(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -154,16 +194,24 @@ public class GamesViewModel extends BaseViewModel {
                 }, error -> {/*Ignored*/});
     }
 
-    private void addGameToDatabase(@NonNull Game game) {
+    private void insert(@NonNull Game game) {
         Disposable disposable = AppDatabase.db.gameInfoDao()
                 .insert(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> {
                     if (!(error instanceof SQLiteConstraintException)) {
-                        FileManager.delete(new File(game.filepath));
+                        File parent = new File(game.filepath).getParentFile();
+                        assert parent != null;
+                        if (!parent.equals(FileManager.getFileDirectory(FileManager.ROM_DIRECTORY))) {
+                            FileManager.delete(parent);
+                        } else {
+                            FileManager.delete(game.filepath);
+                        }
+                        Toast.makeText(getApplication(), getString(R.string.fmt_game_already_exists, game.title), Toast.LENGTH_SHORT).show();
+                    } else {
+                        showErrorToast(error);
                     }
-                    showErrorToast(error);
                 })
                 .subscribe(() -> { }, error -> {/*Ignored*/});
     }

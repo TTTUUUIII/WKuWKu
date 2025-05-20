@@ -44,9 +44,23 @@ public class FileManager {
     }
 
     public static void delete(File file) {
-        if (file.exists() && !file.delete()) {
-            Log.e(TAG, "ERROR: failed to delete file \"" + file + "\"");
+        if (!file.exists()) return;
+        if (file.isDirectory()) {
+            deleteDirectory(file);
+        } else {
+            boolean delete = file.delete();
         }
+    }
+
+    private static void deleteDirectory(File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files == null) return;
+            for (File child : files) {
+                deleteDirectory(child);
+            }
+        }
+        boolean delete = file.delete();
     }
 
     public static boolean copy(String type, String filename, Uri uri) {

@@ -42,6 +42,10 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
         return getApplication().getString(resId);
     }
 
+    protected String getString(@StringRes int resId, Object... formatArgs) {
+        return getApplication().getString(resId, formatArgs);
+    }
+
     public LiveData<Boolean> getPendingIndicator() {
         return pendingIndicator;
     }

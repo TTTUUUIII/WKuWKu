@@ -30,10 +30,10 @@
             app:defaultValue="false"
             app:key="app_emulator_restore_last_state"
             app:title="@string/restore_last_state" />
-        <SwitchPreferenceCompat
-            app:defaultValue="false"
-            app:key="app_mark_broken_when_start_game_failed"
-            app:title="@string/mark_broken_when_start_game_failed" />
+<!--        <SwitchPreferenceCompat-->
+<!--            app:defaultValue="false"-->
+<!--            app:key="app_mark_broken_when_start_game_failed"-->
+<!--            app:title="@string/mark_broken_when_start_game_failed" />-->
     </PreferenceCategory>
 
     <PreferenceCategory
