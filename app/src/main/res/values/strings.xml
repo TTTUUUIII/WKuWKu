@@ -100,4 +100,5 @@
     <string name="fmt_game_already_exists">%s already exists in list</string>
     <string name="could_not_find_valid_rom_file">ERROR: could not found valid rom file!</string>
     <string name="move_to_trash">Move to trash</string>
+    <string name="unsupported_rar_file">Sorry, rar file not supported yet, zip、7z、tar are supported.</string>
 </resources>

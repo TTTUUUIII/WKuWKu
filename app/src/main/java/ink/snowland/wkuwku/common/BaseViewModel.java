@@ -1,6 +1,8 @@
 package ink.snowland.wkuwku.common;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -15,6 +17,7 @@ import java.net.UnknownHostException;
 import ink.snowland.wkuwku.R;
 
 public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorDataModel{
+    protected Handler handler = new Handler(Looper.getMainLooper());
     protected final MutableLiveData<Boolean> emptyListIndicator = new MutableLiveData<>(false);
     protected final MutableLiveData<Boolean> pendingIndicator = new MutableLiveData<>(false);
     protected final MutableLiveData<String> pendingMessage = new MutableLiveData<>("");
@@ -76,5 +79,9 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
     @Override
     public void setPendingIndicator(boolean pending, int resId) {
         setPendingIndicator(pending, getApplication().getString(resId));
+    }
+
+    public void post(@NonNull Runnable r) {
+        handler.post(r);
     }
 }

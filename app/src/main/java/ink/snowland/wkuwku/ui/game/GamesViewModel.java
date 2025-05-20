@@ -70,12 +70,18 @@ public class GamesViewModel extends BaseViewModel {
 
     public void addGame(@NonNull Game game, @NonNull Uri uri) {
         final String filename = game.filepath;
+        if (filename.endsWith(".rar")) {
+            post(() -> {
+                Toast.makeText(getApplication(), R.string.unsupported_rar_file, Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
         Disposable disposable = copyFiles(filename, uri)
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> {
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
                     assert file.exists() && file.isFile() && file.canRead();
-                    if (filename.endsWith(".zip") || filename.endsWith(".7z")) {
+                    if (filename.endsWith(".zip") || filename.endsWith(".7z") || filename.endsWith(".tar")) {
                         setPendingIndicator(true, R.string.unzipping_files);
                         String unzippedPath = ArchiveUtils.extract(file);
                         FileManager.delete(file);
@@ -91,7 +97,9 @@ public class GamesViewModel extends BaseViewModel {
                         file = romFile;
                     }
                     if (file == null) {
-                        Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_SHORT).show();
+                        post(() -> {
+                            Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_SHORT).show();
+                        });
                         return;
                     }
                     game.filepath = file.getAbsolutePath();
@@ -103,71 +111,6 @@ public class GamesViewModel extends BaseViewModel {
                 })
                 .subscribe(() -> {
                 }, (error) -> {/*Ignored*/});
-    }
-
-    private void addGameFormNetwork(@NonNull Game game, @NonNull Uri uri) {
-        pendingIndicator.postValue(true);
-        pendingMessage.postValue(getString(R.string.downloading));
-        Disposable disposable = Single.create((SingleOnSubscribe<String>) emitter -> {
-            try {
-                URL url = new URL(uri.toString());
-                URLConnection conn = url.openConnection();
-                conn.setConnectTimeout(1000 * 5);
-                conn.setReadTimeout(1000 * 8);
-                try (InputStream from = conn.getInputStream()) {
-                    FileManager.copy(from, FileManager.ROM_DIRECTORY, game.filepath);
-                }
-                File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-                emitter.onSuccess(FileManager.calculateMD5Sum(file));
-            } catch (Exception e) {
-                emitter.onError(e);
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(this::showErrorToast)
-                .doFinally(() -> {
-                    pendingIndicator.postValue(false);
-                    pendingMessage.postValue("");
-                })
-                .subscribe(md5 -> {
-                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-                    assert file.exists() && file.isFile() && file.canRead();
-                    game.filepath = file.getAbsolutePath();
-                    game.addedTime = System.currentTimeMillis();
-                    game.lastModifiedTime = game.addedTime;
-                    game.state = Game.STATE_VALID;
-                    game.md5 = md5;
-                    insert(game);
-                }, error -> {/*Ignored*/});
-    }
-
-    private void addNewGame(@NonNull Game game, Uri uri) {
-        setPendingIndicator(true, R.string.copying_files);
-        Disposable disposable = Completable.create(emitter -> {
-                    if (!FileManager.copy(FileManager.ROM_DIRECTORY, game.filepath, uri)) {
-                        emitter.onError(new IOException(getString(R.string.copy_file_failed)));
-                    } else {
-                        emitter.onComplete();
-                    }
-                }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(error -> {
-                    Toast.makeText(getApplication(), R.string.copy_file_failed, Toast.LENGTH_SHORT).show();
-                })
-                .doFinally(() -> {
-                    setPendingIndicator(false);
-                })
-                .doOnComplete(() -> {
-                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-                    assert file.exists() && file.isFile() && file.canRead();
-                    game.filepath = file.getAbsolutePath();
-                    game.addedTime = System.currentTimeMillis();
-                    game.lastModifiedTime = game.addedTime;
-                    game.state = Game.STATE_VALID;
-                    game.md5 = FileManager.calculateMD5Sum(file);
-                    insert(game);
-                })
-                .subscribe(() -> {/*Ignored*/}, error -> {/*Ignored*/});
     }
 
     public void update(@NonNull Game game) {
