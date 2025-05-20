@@ -14,7 +14,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
-import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -63,34 +62,32 @@ public class MainActivity extends BaseActivity {
         int itemId = item.getItemId();
         if (itemId == R.id.action_macro) {
             if (isNavigateAble(R.id.macro_fragment))
-                mNavController.navigate(R.id.macro_fragment, null, navAnimOptions);
+                mNavController.navigate(R.id.macro_fragment/*, null, navAnimOptions*/);
         } else if (itemId == R.id.action_about) {
             showAboutDialog();
+        } else if (itemId == R.id.action_trash) {
+            if (isNavigateAble(R.id.trash_fragment)) {
+                mNavController.navigate(R.id.trash_fragment/*, null, navAnimOptions*/);
+            }
         }
         binding.drawerLayout.closeDrawers();
         return true;
     }
 
-    private final NavOptions navAnimOptions = new NavOptions.Builder()
+    /*private final NavOptions navAnimOptions = new NavOptions.Builder()
             .setEnterAnim(R.anim.slide_in_right)
             .setExitAnim(R.anim.slide_out_left)
             .setPopEnterAnim(R.anim.slide_in_left)
             .setPopExitAnim(R.anim.slide_out_right)
-            .build();
+            .build();*/
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int itemId = item.getItemId();
         if (mActionBarDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } else if (itemId == R.id.action_settings) {
+        } else if (item.getItemId() == R.id.action_settings) {
             if (isNavigateAble(R.id.settings_fragment)) {
-                mNavController.navigate(R.id.settings_fragment, null, navAnimOptions);
-            }
-        } else if (itemId == R.id.action_trash) {
-            if (isNavigateAble(R.id.trash_fragment)) {
-
-                mNavController.navigate(R.id.trash_fragment, null, navAnimOptions);
+                mNavController.navigate(R.id.settings_fragment/*, null, navAnimOptions*/);
             }
         }
         return super.onOptionsItemSelected(item);

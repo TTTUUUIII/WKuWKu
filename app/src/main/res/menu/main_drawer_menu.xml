@@ -4,6 +4,11 @@
     <group
         android:id="@+id/utility_tools">
         <item
+            android:id="@+id/action_trash"
+            android:icon="@drawable/ic_recycling"
+            android:title="@string/trash"
+            app:showAsAction="collapseActionView" />
+        <item
             android:id="@+id/action_macro"
             android:icon="@drawable/ic_smart_toy"
             android:title="@string/key_macro" />
