@@ -69,6 +69,8 @@ public class GameEditDialog {
                     mGame.filepath = filename;
                     if ((mGame.title == null || mGame.title.isEmpty()) && filename != null) {
                         mGame.title = filename.substring(0, filename.lastIndexOf("."));
+                        if (mGame.title.endsWith(".tar"))
+                            mGame.title = mGame.title.substring(0, mGame.title.lastIndexOf("."));
                     }
                     binding.invalidateAll();
                     mUri = uri;

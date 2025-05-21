@@ -78,6 +78,7 @@ dependencies {
     implementation "androidx.camera:camera-view:$camera_version"
     implementation "androidx.camera:camera-lifecycle:$camera_version"
     implementation 'org.apache.commons:commons-compress:1.27.1'
+    implementation 'org.tukaani:xz:1.9'
 //    implementation "androidx.core:core-splashscreen:1.0.0"
 //    implementation "com.google.code.gson:gson:2.13.1"
     implementation libs.appcompat

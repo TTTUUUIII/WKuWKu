@@ -26,10 +26,9 @@ import ink.snowland.wkuwku.util.FileManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.core.SingleOnSubscribe;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import kotlin.io.FileAlreadyExistsException;
 
 public class GamesViewModel extends BaseViewModel {
     public GamesViewModel(@NonNull Application application) {
@@ -70,9 +69,11 @@ public class GamesViewModel extends BaseViewModel {
 
     public void addGame(@NonNull Game game, @NonNull Uri uri) {
         final String filename = game.filepath;
-        if (filename.endsWith(".rar")) {
+        int infoMask = ArchiveUtils.getFileInfoMask(filename);
+        if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
+                && (infoMask & ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) != ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) {
             post(() -> {
-                Toast.makeText(getApplication(), R.string.unsupported_rar_file, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplication(), R.string.unsupported_archive_format, Toast.LENGTH_SHORT).show();
             });
             return;
         }
@@ -81,11 +82,20 @@ public class GamesViewModel extends BaseViewModel {
                 .doOnComplete(() -> {
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
                     assert file.exists() && file.isFile() && file.canRead();
-                    if (filename.endsWith(".zip") || filename.endsWith(".7z") || filename.endsWith(".tar")) {
+                    if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
+                            && (infoMask & ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) {
                         setPendingIndicator(true, R.string.unzipping_files);
-                        String unzippedPath = ArchiveUtils.extract(file);
-                        FileManager.delete(file);
-                        file = new File(unzippedPath);
+                        try {
+                            String unzippedPath = ArchiveUtils.extract(file);
+                            FileManager.delete(file);
+                            file = new File(unzippedPath);
+                        } catch (FileAlreadyExistsException e) {
+                            post(() -> {
+                                Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
+                            });
+                            FileManager.delete(file);
+                            return;
+                        }
                     }
                     if (file.isDirectory()) {
                         Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
@@ -151,7 +161,9 @@ public class GamesViewModel extends BaseViewModel {
                         } else {
                             FileManager.delete(game.filepath);
                         }
-                        Toast.makeText(getApplication(), getString(R.string.fmt_game_already_exists, game.title), Toast.LENGTH_SHORT).show();
+                        post(() -> {
+                            Toast.makeText(getApplication(), getString(R.string.fmt_game_already_exists, game.title), Toast.LENGTH_SHORT).show();
+                        });
                     } else {
                         showErrorToast(error);
                     }
