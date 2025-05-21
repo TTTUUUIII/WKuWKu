@@ -94,6 +94,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         mOpenDocumentCallback = callback;
     }
 
+    public void setDrawerLockedMode(int mode) {}
+
     public interface OnResultCallback<T> {
         void onResult(T t);
     }

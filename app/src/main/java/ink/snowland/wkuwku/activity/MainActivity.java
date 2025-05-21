@@ -110,4 +110,11 @@ public class MainActivity extends BaseActivity {
                 .setMessage(getString(R.string.fmt_about_wkuwku, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TIME))
                 .show();
     }
+
+    @Override
+    public void setDrawerLockedMode(int mode) {
+        try {
+            binding.drawerLayout.setDrawerLockMode(mode);
+        } catch (NullPointerException ignored) {}
+    }
 }

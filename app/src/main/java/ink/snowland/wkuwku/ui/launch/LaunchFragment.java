@@ -19,6 +19,7 @@ import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -89,6 +90,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         } else {
             parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
+        parentActivity.setDrawerLockedMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
         mViewModel = new ViewModelProvider(this).get(LaunchViewModel.class);
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
@@ -171,15 +173,21 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_BEHIND);
-        parentActivity.setStatusBarVisibility(true);
-        parentActivity.setActionBarVisibility(true);
         if (mEmulator != null) {
             mEmulator.suspend();
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mAudioManager.abandonAudioFocusRequest(mAudioFocusRequest);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_BEHIND);
+        parentActivity.setStatusBarVisibility(true);
+        parentActivity.setActionBarVisibility(true);
+        parentActivity.setDrawerLockedMode(DrawerLayout.LOCK_MODE_UNLOCKED);
     }
 
     private void launch() {
