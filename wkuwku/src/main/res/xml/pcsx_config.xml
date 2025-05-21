@@ -467,6 +467,7 @@
         <option
             key="pcsx_rearmed_rgb32_output"
             defaultValue="disabled"
+            enable="false"
             title="RGB32 output">
             <allow-values>
                 <value>disabled</value>
