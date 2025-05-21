@@ -30,7 +30,7 @@
     <string name="edit">编辑</string>
     <string name="detail">详情</string>
     <string name="emergency">紧急情况</string>
-    <string name="delete_confirm">确定要删除 “%s” 吗？\n\n提醒：删除之后可能无法恢复！</string>
+    <string name="delete_confirm">确定要删除 “%s” 吗？\n\n提醒：删除之后无法恢复！</string>
     <string name="video_options">视频选项</string>
     <string name="input_options">输入选项</string>
     <string name="video_ratio">画面比例</string>

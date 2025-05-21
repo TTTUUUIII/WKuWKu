@@ -13,6 +13,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -64,6 +66,19 @@ public class TrashFragment extends BaseFragment {
         mDisposable.dispose();
     }
 
+    private void showDeleteDialog(@NonNull Game game) {
+        new MaterialAlertDialogBuilder(requireActivity())
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setTitle(R.string.emergency)
+                .setMessage(getString(R.string.delete_confirm, game.title))
+                .setPositiveButton(R.string.confirm, (dialog, which) -> {
+                    mViewModel.delete(game);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .setCancelable(false)
+                .show();
+    }
+
     private final class ViewHolder extends GameViewAdapter.GameViewHolder {
 
         private final ItemTrashBinding itemBinding;
@@ -76,7 +91,7 @@ public class TrashFragment extends BaseFragment {
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
             itemBinding.buttonDelete.setOnClickListener(v -> {
-                mViewModel.delete(game);
+                showDeleteDialog(game);
             });
             itemBinding.buttonRestore.setOnClickListener(v -> {
                 mViewModel.restore(game);

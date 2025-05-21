@@ -11,6 +11,6 @@
         android:title="@string/edit" />
     <item
         android:id="@+id/action_delete"
-        android:icon="@drawable/ic_delete"
+        android:icon="@drawable/ic_recycling"
         android:title="@string/move_to_trash" />
 </menu>

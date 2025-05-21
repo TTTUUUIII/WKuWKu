@@ -18,9 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
-
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -96,7 +93,8 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_delete) {
-                showDeleteDialog(game);
+                game.state = Game.STATE_DELETED;
+                mViewModel.update(game);
             } else if (itemId == R.id.action_edit) {
                 showEditDialog(game);
             } else if (itemId == R.id.action_detail) {
@@ -118,23 +116,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         }, base);
     }
 
-    private void showDeleteDialog(@NonNull Game game) {
-        if (game.state == Game.STATE_BROKEN) {
-            mViewModel.delete(game);
-        } else {
-            new MaterialAlertDialogBuilder(requireActivity())
-                    .setIcon(R.mipmap.ic_launcher_round)
-                    .setTitle(R.string.emergency)
-                    .setMessage(getString(R.string.delete_confirm, game.title))
-                    .setPositiveButton(R.string.confirm, (dialog, which) -> {
-                        game.state = Game.STATE_DELETED;
-                        mViewModel.update(game);
-                    })
-                    .setNegativeButton(R.string.cancel, null)
-                    .setCancelable(false)
-                    .show();
-        }
-    }
     private void showAddGameDialog() {
         mEditGameDialog.show((game, uri) -> {
             mViewModel.addGame(game, uri);
