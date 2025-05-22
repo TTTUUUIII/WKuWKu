@@ -60,6 +60,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
     private static final String REVERSE_LANDSCAPE = "app_video_reverse_landscape";
+    private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private FragmentLaunchBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
@@ -69,10 +70,12 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private Snackbar mSnackbar;
     private AudioFocusRequest mAudioFocusRequest;
     private AudioManager mAudioManager;
+    private boolean mKeepScreenOn;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mKeepScreenOn = SettingsManager.getBoolean(KEEP_SCREEN_ON, true);
         mAudioManager = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             mAudioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
@@ -91,6 +94,9 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
         parentActivity.setDrawerLockedMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        if (mKeepScreenOn) {
+            parentActivity.setKeepScreenOn(true);
+        }
         mViewModel = new ViewModelProvider(this).get(LaunchViewModel.class);
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
@@ -188,6 +194,9 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         parentActivity.setStatusBarVisibility(true);
         parentActivity.setActionBarVisibility(true);
         parentActivity.setDrawerLockedMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+        if (mKeepScreenOn) {
+            parentActivity.setKeepScreenOn(false);
+        }
     }
 
     private void launch() {

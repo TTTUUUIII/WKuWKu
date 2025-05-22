@@ -104,4 +104,9 @@
     <string name="unsupported_archive_format">Sorry, this compression format is not currently supported.</string>
     <string name="fmt_file_already_exists">ERROR: %s already exists.</string>
     <string name="file_already_exists">ERROR: file already exists.</string>
+    <string name="keep_screen_on">Keep screen on</string>
+    <string name="keep_screen_on_when_gaming">Keep the screen on when gaming</string>
+    <string name="summary_reverse_landscape">Reverse screen rotation when entering game</string>
+    <string name="summary_input_vibration_feedback">Trigger vibration feedback when pressing the virtual game controller button</string>
+    <string name="summary_restore_last_state">Auto restore to the last position after entering the game</string>
 </resources>

@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.common;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -80,6 +81,14 @@ public abstract class BaseActivity extends AppCompatActivity {
             if (subtitle.equals(getString(resId))) {
                 actionBar.setSubtitle("");
             }
+        }
+    }
+
+    public void setKeepScreenOn(boolean keep) {
+        if (keep) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
     }
 

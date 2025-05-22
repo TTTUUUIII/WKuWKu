@@ -6,10 +6,8 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.ListPreference;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceScreen;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +57,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 listPreference.setTitle(system.name);
                 listPreference.setEntryValues(values);
                 listPreference.setEntries(values);
+                listPreference.setIconSpaceReserved(false);
                 Emulator emulator = EmulatorManager.getDefaultEmulator(system);
                 if (emulator != null)
                     listPreference.setDefaultValue(emulator.getTag());
