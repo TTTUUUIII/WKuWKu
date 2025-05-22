@@ -133,21 +133,27 @@ public class GameEditDialog {
 
     private void parseFromUrl(@Nullable String url) {
         if (url == null) return;
-        Uri uri = Uri.parse(url);
-        url = Uri.decode(url);
-        int start = url.lastIndexOf("/");
-        int end = url.lastIndexOf(".");
         boolean noError = false;
-        if (uri.getScheme() != null && uri.getScheme().equals("https") && start != -1 && end != -1 && start < end) {
-            try {
-                mGame.title = url.substring(start + 1, end);
-                mGame.filepath = url.substring(start + 1);
-                mUri = uri;
-                binding.invalidateAll();
-                noError = true;
-            } catch (Exception e) {
-                e.printStackTrace(System.err);
+        try {
+            Uri uri = Uri.parse(url);
+            String path = uri.getPath();
+            if (path != null) {
+                int start = path.lastIndexOf("/");
+                int end = path.lastIndexOf(".");
+                if (uri.getScheme() != null && uri.getScheme().equals("https") && start != -1 && end != -1 && start < end) {
+                    try {
+                        mGame.title = path.substring(start + 1, end);
+                        mGame.filepath = path.substring(start + 1);
+                        mUri = uri;
+                        binding.invalidateAll();
+                        noError = true;
+                    } catch (Exception e) {
+                        e.printStackTrace(System.err);
+                    }
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
         }
         if (!noError) {
             Toast.makeText(mParent.getApplicationContext(), R.string.invalid_url, Toast.LENGTH_SHORT).show();
