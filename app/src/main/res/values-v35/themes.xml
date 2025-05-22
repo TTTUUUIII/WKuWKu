@@ -8,7 +8,7 @@
         <item name="colorContainer">@color/primary_500</item>
         <item name="colorSurface">@color/primary_500</item>
         <item name="colorSurfaceContainer">@color/primary_300</item>
-        <item name="colorSecondaryContainer">@color/primary_300</item>
+        <item name="colorSecondaryContainer">@color/primary_700</item>
         <item name="colorSurfaceContainerHigh">@color/primary_100</item>
         <item name="popupMenuBackground">@color/primary_500</item>
         <item name="snackbarStyle">@style/Theme.WKuWKu.Snackbar</item>
