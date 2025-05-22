@@ -11,6 +11,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Process;
 import android.util.Log;
+import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -1633,10 +1634,7 @@ public abstract class Emulator {
     protected String systemDir;
     protected String saveDir;
     protected EmVideoDevice videoDevice;
-    protected EmInputDevice inputDevice0;
-    protected EmInputDevice inputDevice1;
-    protected EmInputDevice inputDevice2;
-    protected EmInputDevice inputDevice3;
+    protected final SparseArray<EmInputDevice> inputDevices = new SparseArray<>();
     private OnEmulatorEventListener mEventListener;
     protected String systemTag;
     private AudioTrack mAudioTrack;
@@ -1708,15 +1706,7 @@ public abstract class Emulator {
             case INPUT_DEVICE:
                 if (device instanceof EmInputDevice) {
                     EmInputDevice it = (EmInputDevice) device;
-                    if (it.port == 1) {
-                        inputDevice1 = it;
-                    } else if (it.port == 2) {
-                        inputDevice2 = it;
-                    } else if (it.port == 3) {
-                        inputDevice3 = it;
-                    } else {
-                        inputDevice0 = it;
-                    }
+                    inputDevices.put(it.port, it);
                 }
                 break;
             default:
@@ -1880,16 +1870,7 @@ public abstract class Emulator {
 
     @CallFromJni
     protected int onInputState(int port, int device, int index, int id) {
-        EmInputDevice it = null;
-        if (port == 0) {
-            it = inputDevice0;
-        } else if (port == 1) {
-            it = inputDevice1;
-        } else if (port == 2) {
-            it = inputDevice2;
-        } else if (port == 3) {
-            it = inputDevice3;
-        }
+        EmInputDevice it = inputDevices.get(port);
         if (it != null && it.device == device) {
             return it.getState(id);
         }
@@ -1899,6 +1880,14 @@ public abstract class Emulator {
     @CallFromJni
     protected void onInputPoll() {
 
+    }
+
+    @CallFromJni
+    protected boolean onRumbleState(int port, int effect, int strength) {
+        EmInputDevice device = inputDevices.get(port);
+        if (device != null)
+            return device.onRumbleEvent(effect, strength);
+        return false;
     }
 
     protected void post(@NonNull Runnable r) {
