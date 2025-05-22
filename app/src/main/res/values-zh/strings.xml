@@ -40,7 +40,7 @@
     <string name="virbration_feedback">震动反馈</string>
     <string name="via_qr_code">使用二维码</string>
     <string name="invalid_url">错误：无效的链接！</string>
-    <string name="downloading">正在下载</string>
+    <string name="connecting">正在连接</string>
     <string name="emulator">模拟器</string>
     <string name="restore_last_state">恢复上一次的状态</string>
     <string name="filepath">文件路径</string>
@@ -59,7 +59,8 @@
     <string name="trash">回收站</string>
     <string name="loading">加载中</string>
     <string name="mark_broken_when_start_game_failed">标记损坏的游戏</string>
-    <string name="fmt_downloading">正在下载 %s</string>
+    <string name="fmt_downloading">正在下载 %.0f%%</string>
+    <string name="downloading_files">正在下载文件</string>
     <string name="network_error">错误：网络不可用！</string>
     <string name="load_bios_failed">错误：无法加载 bios，网络错误！</string>
     <string name="please_select_system">请选择系统</string>

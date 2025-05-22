@@ -132,7 +132,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 Toast.makeText(parentActivity, R.string.no_matching_emulator_found, Toast.LENGTH_SHORT).show();
                 return;
             }
-            mViewModel.setPendingIndicator(true, getString(R.string.fmt_downloading, "bios"));
+            mViewModel.setPendingIndicator(true, getString(R.string.downloading_files));
             Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())

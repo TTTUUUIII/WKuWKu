@@ -18,6 +18,7 @@ import java.util.List;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
+import ink.snowland.wkuwku.common.NumberUtils;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.interfaces.Emulator;
@@ -42,16 +43,22 @@ public class GamesViewModel extends BaseViewModel {
         return Completable.create(emitter -> {
             boolean noError = true;
             if (uri.getScheme() != null && uri.getScheme().equals("https")) {
-                setPendingIndicator(true, R.string.downloading);
+                setPendingIndicator(true, R.string.connecting);
                 try {
                     URL url = new URL(uri.toString());
                     URLConnection conn = url.openConnection();
                     conn.setConnectTimeout(1000 * 5);
                     conn.setReadTimeout(1000 * 8);
                     try (InputStream from = conn.getInputStream()) {
-                        FileManager.copy(from, FileManager.ROM_DIRECTORY, filename);
+                        final long total = NumberUtils.parseLong(conn.getHeaderField("Content-Length"), 0);
+                        FileManager.copy(from, FileManager.ROM_DIRECTORY, filename, (progress, max) -> {
+                            if (total != 0)
+                                setPendingMessage(getString(R.string.fmt_downloading, (float) progress / total * 100));
+                        });
                     }
                 } catch (Exception e) {
+                    e.printStackTrace(System.err);
+                    post(() -> showErrorToast(e));
                     noError = false;
                 }
             } else {

@@ -51,7 +51,7 @@
     <string name="virbration_feedback">vibration feedback</string>
     <string name="via_qr_code">Via QR code</string>
     <string name="invalid_url">Invalid url</string>
-    <string name="downloading">Downloading</string>
+    <string name="connecting">正在连接</string>
     <string name="emulator">Emulator</string>
     <string name="restore_last_state">Restore last state</string>
     <string name="filepath">File path</string>
@@ -71,7 +71,8 @@
     <string name="trash">Trash</string>
     <string name="loading">loading</string>
     <string name="mark_broken_when_start_game_failed">Mark broken games</string>
-    <string name="fmt_downloading">Downloading %s</string>
+    <string name="fmt_downloading">Downloading %.0f%%</string>
+    <string name="downloading_files">Downloading files</string>
     <string name="network_error">ERROR: Network error</string>
     <string name="load_bios_failed">ERROR: Load bios failed, network error!</string>
     <string name="please_select_system">Please select a system</string>

@@ -10,4 +10,6 @@ public interface LoadingIndicatorDataModel {
     void setPendingIndicator(boolean pending);
     void setPendingIndicator(boolean pending, String message);
     void setPendingIndicator(boolean pending, @StringRes int resId);
+    void setPendingMessage(String message);
+    void setPendingMessage(@StringRes int resId);
 }

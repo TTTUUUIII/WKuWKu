@@ -81,6 +81,16 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
         setPendingIndicator(pending, getApplication().getString(resId));
     }
 
+    @Override
+    public void setPendingMessage(String message) {
+        pendingMessage.postValue(message);
+    }
+
+    @Override
+    public void setPendingMessage(int resId) {
+        pendingMessage.postValue(getApplication().getString(resId));
+    }
+
     public void post(@NonNull Runnable r) {
         handler.post(r);
     }

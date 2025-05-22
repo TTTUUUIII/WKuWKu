@@ -27,7 +27,7 @@
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/linearProgressIndicator"
-            android:layout_width="120dp"
+            android:layout_width="140dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:indeterminate="@{dataModel.pendingIndicator}"

@@ -7,6 +7,7 @@ import android.os.FileUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,21 +16,28 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 
+import ink.snowland.wkuwku.common.OnProgressListener;
+
 public class FileManager {
     public static final String ROM_DIRECTORY = "rom";
     public static final String STATE_DIRECTORY = "state";
     public static final String SAVE_DIRECTORY = "save";
     public static final String IMAGE_DIRECTORY = "image";
     public static final String SYSTEM_DIRECTORY = "system";
-    private FileManager() {}
+
+    private FileManager() {
+    }
+
     private static Context sApplicationContext;
 
     public static File getCacheDirectory() {
         return sApplicationContext.getExternalCacheDir();
     }
+
     public static File getFileDirectory(String type) {
         return sApplicationContext.getExternalFilesDir(type);
     }
+
     public static File getFile(String type, String filename) {
         return new File(sApplicationContext.getExternalFilesDir(type), filename);
     }
@@ -66,7 +74,7 @@ public class FileManager {
     public static boolean copy(String type, String filename, Uri uri) {
         try (InputStream from = sApplicationContext.getContentResolver().openInputStream(uri)) {
             if (from == null) return false;
-            copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename));
+            copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename), null);
             return true;
         } catch (IOException e) {
             e.printStackTrace(System.err);
@@ -75,19 +83,32 @@ public class FileManager {
     }
 
     public static void copy(InputStream from, String type, String filename) throws IOException {
-        copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename));
+        copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename), null);
     }
+    public static void copy(InputStream from, String type, String filename, @Nullable OnProgressListener listener) throws IOException {
+        copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename), listener);
+    }
+
     public static void copy(InputStream from, @NonNull File file) throws IOException {
-        try (FileOutputStream to = new FileOutputStream(file)){
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                FileUtils.copy(from, to);
-            } else {
-                byte[] buffer = new byte[2048];
-                int readNumInBytes;
-                while ((readNumInBytes = from.read(buffer)) != -1) {
-                    to.write(buffer, 0, readNumInBytes);
-                }
+        copy(from, file, null);
+    }
+
+    public static void copy(InputStream from, @NonNull File file, @Nullable OnProgressListener listener) throws IOException {
+        long total = from.available();
+        long read = 0;
+        try (FileOutputStream to = new FileOutputStream(file)) {
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                FileUtils.copy(from, to);
+//            } else {
+            byte[] buffer = new byte[1024];
+            int readNumInBytes;
+            while ((readNumInBytes = from.read(buffer)) != -1) {
+                to.write(buffer, 0, readNumInBytes);
+                read += readNumInBytes;
+                if (listener != null)
+                    listener.update(read, total);
             }
+//            }
         } catch (IOException e) {
             delete(file);
             throw e;
@@ -97,6 +118,7 @@ public class FileManager {
     public static String calculateMD5Sum(@NonNull String path) {
         return calculateMD5Sum(new File(path));
     }
+
     public static String calculateMD5Sum(@NonNull File file) {
         if (!file.exists() || !file.isFile() || !file.canRead()) return "";
         try {
