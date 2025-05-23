@@ -285,7 +285,6 @@ static bool environment_callback(unsigned cmd, void *data) {
     }
     switch (cmd) {
         case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
         case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
         case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
@@ -322,9 +321,8 @@ static bool environment_callback(unsigned cmd, void *data) {
                                               msg_ext->progress,
                                               msg_ext->duration
             );
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
         }
-            break;
         case RETRO_ENVIRONMENT_GET_VARIABLE: {
             struct retro_variable *variable;
             variable = (struct retro_variable *) data;
@@ -360,9 +358,8 @@ static bool environment_callback(unsigned cmd, void *data) {
                                                          (jint) controller_info->types[i].id);
                 env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
             }
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
         }
-            break;
         case RETRO_ENVIRONMENT_SET_GEOMETRY: {
             auto geometry = (struct retro_game_geometry *) data;
             jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
@@ -371,9 +368,8 @@ static bool environment_callback(unsigned cmd, void *data) {
                                         (jint) geometry->base_height,
                                         (jint) geometry->max_width,
                                         (jint) geometry->max_height, geometry->aspect_ratio);
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, o1);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, o1);
         }
-            break;
         case RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE:
         case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
         case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK:
@@ -413,13 +409,13 @@ static bool environment_callback(unsigned cmd, void *data) {
             break;
         case RETRO_ENVIRONMENT_GET_LANGUAGE: {
             set_variable_value(env, RETRO_LANGUAGE_DUMMY);
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
-            auto language = (jobject) get_variable_value(env);
-            jclass integer_clazz = env->FindClass("java/lang/Integer");
-            jmethodID int_value_method = env->GetMethodID(integer_clazz, "intValue", "()I");
-            *(unsigned *) data = (unsigned int) env->CallIntMethod(language, int_value_method);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            if (ret) {
+                auto language = get_variable_int_value(env);
+                *(unsigned *) data = language;
+            }
+            return ret;
         }
-            break;
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
             set_variable_value(env, *((jint *) data));
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
@@ -442,16 +438,18 @@ static bool environment_callback(unsigned cmd, void *data) {
                 desc++;
                 index++;
             }
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
+            return ret;
         }
-            break;
         case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE: {
             set_variable_value(env, 0);
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
-            jint val = get_variable_int_value(env);
-            *(int *) data = val;
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            if (ret) {
+                jint val = get_variable_int_value(env);
+                *(int *) data = val;
+            }
+            return ret;
         }
-            break;
         case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO: {
             auto *av_info = (struct retro_system_av_info *) data;
             jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
@@ -468,17 +466,19 @@ static bool environment_callback(unsigned cmd, void *data) {
             clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
             constructor = env->GetMethodID(clazz, "<init>",
                                            "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
                                    env->NewObject(clazz, constructor, o1, o0));
+            return ret;
         }
-            break;
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
-            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
-            auto path = (jstring) get_variable_value(env);
-            *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            if (ret) {
+                auto path = (jstring) get_variable_value(env);
+                *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
+            }
+            return ret;
         }
-            break;
         case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION: {
             set_variable_value(env, 0);
             env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);

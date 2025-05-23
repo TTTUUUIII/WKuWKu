@@ -1827,6 +1827,10 @@ public abstract class Emulator {
                 variable = (Variable) data;
                 variable.value = systemDir;
                 break;
+            case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+                variable = (Variable) data;
+                variable.value = saveDir;
+                break;
             case RETRO_ENVIRONMENT_GET_LANGUAGE:
                 variable = (Variable) data;
                 variable.value = RETRO_LANGUAGE_ENGLISH;

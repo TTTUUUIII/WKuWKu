@@ -218,7 +218,7 @@
         </option>
         <option
             key="pcsx_rearmed_noxadecoding"
-            defaultValue="disabled"
+            defaultValue="enabled"
             title="XA decoding">
             <allow-values>
                 <value>disabled</value>
@@ -227,7 +227,7 @@
         </option>
         <option
             key="pcsx_rearmed_nocdaudio"
-            defaultValue="disabled"
+            defaultValue="enabled"
             title="CD audio">
             <allow-values>
                 <value>disabled</value>
@@ -274,6 +274,15 @@
             key="pcsx_rearmed_drc"
             defaultValue="enabled"
             title="Dynamic recompiler">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_drc_thread"
+            defaultValue="enabled"
+            title="Dynamic recompiler thread">
             <allow-values>
                 <value>disabled</value>
                 <value>enabled</value>
@@ -570,7 +579,7 @@
         </option>
         <option
             key="pcsx_rearmed_cd_turbo"
-            defaultValue="disabled"
+            defaultValue="enabled"
             title="CD turbo">
             <allow-values>
                 <value>disabled</value>
@@ -582,15 +591,6 @@
             defaultValue="10"
             inputType="number"
             title="CD readahead" />
-        <option
-            key="pcsx_rearmed_drc_thread"
-            defaultValue="disabled"
-            title="Dynamic recompiler thread">
-            <allow-values>
-                <value>disabled</value>
-                <value>enabled</value>
-            </allow-values>
-        </option>
         <option
             key="pcsx_rearmed_nosmccheck"
             defaultValue="disabled"
