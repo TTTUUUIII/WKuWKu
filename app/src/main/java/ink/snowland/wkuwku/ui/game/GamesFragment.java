@@ -89,7 +89,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             popupMenu.setForceShowIcon(true);
         }
-        popupMenu.getMenuInflater().inflate(R.menu.more_library_menu, popupMenu.getMenu());
+        popupMenu.getMenuInflater().inflate(R.menu.more_games_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_delete) {

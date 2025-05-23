@@ -44,7 +44,7 @@
     <string name="emulator">模拟器</string>
     <string name="restore_last_state">恢复上一次的状态</string>
     <string name="filepath">文件路径</string>
-    <string name="modified">修改过</string>
+    <string name="modified">上次修改</string>
     <string name="added_date">添加时间</string>
 
     <string name="game_detail">游戏详细</string>
