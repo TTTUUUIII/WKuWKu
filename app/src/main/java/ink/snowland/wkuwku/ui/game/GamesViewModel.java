@@ -3,7 +3,6 @@ package ink.snowland.wkuwku.ui.game;
 import android.app.Application;
 import android.database.sqlite.SQLiteConstraintException;
 import android.net.Uri;
-import android.os.SystemClock;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -120,7 +119,7 @@ public class GamesViewModel extends BaseViewModel {
                         return;
                     }
                     game.filepath = file.getAbsolutePath();
-                    game.addedTime = SystemClock.currentThreadTimeMillis();
+                    game.addedTime = System.currentTimeMillis();
                     game.lastModifiedTime = game.addedTime;
                     game.state = Game.STATE_VALID;
                     game.md5 = FileManager.calculateMD5Sum(file);
