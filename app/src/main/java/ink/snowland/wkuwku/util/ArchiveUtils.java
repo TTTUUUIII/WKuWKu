@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ar.ArArchiveInputStream;
+import org.apache.commons.compress.archivers.jar.JarArchiveInputStream;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
@@ -21,11 +22,12 @@ public class ArchiveUtils {
 
     public static int getFileInfoMask(@NonNull String filename) {
         if (filename.endsWith(".zip")
-        || filename.endsWith(".7z")
-        || filename.endsWith(".tar")
-        || filename.endsWith(".ar")
-        || filename.endsWith(".tar.gz")
-        || filename.endsWith(".tar.xz")) {
+                || filename.endsWith(".7z")
+                || filename.endsWith(".tar")
+                || filename.endsWith(".ar")
+                || filename.endsWith(".jar")
+                || filename.endsWith(".tar.gz")
+                || filename.endsWith(".tar.xz")) {
             return 0x03;
         } else if (filename.endsWith(".rar")) {
             return 0x01;
@@ -51,6 +53,8 @@ public class ArchiveUtils {
         File outputDir = getOutputFile(outputPath, filename);
         if (filename.endsWith(".zip"))
             extractZip(outputDir.getAbsolutePath(), archive);
+        else if (filename.endsWith(".jar"))
+            extractJar(outputDir.getAbsolutePath(), archive);
         else if (filename.endsWith(".7z"))
             extractSevenZ(outputDir.getAbsolutePath(), archive);
         else if (filename.endsWith(".tar"))
@@ -80,6 +84,12 @@ public class ArchiveUtils {
         return outputDir;
     }
 
+    private static void extractJar(String output, File file) throws IOException {
+        try (JarArchiveInputStream archive = new JarArchiveInputStream(new FileInputStream(file))) {
+            extract(output, archive);
+        }
+    }
+
     private static void extractTarXz(String output, File file) throws IOException {
         try (XZCompressorInputStream archive = new XZCompressorInputStream(new FileInputStream(file));
              TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(archive)) {
@@ -87,21 +97,21 @@ public class ArchiveUtils {
         }
     }
 
-    private static void extractTarGz(String output, File file) throws IOException{
+    private static void extractTarGz(String output, File file) throws IOException {
         try (GzipCompressorInputStream archive = new GzipCompressorInputStream(new FileInputStream(file));
              TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(archive)) {
             extract(output, tarArchiveInputStream);
         }
     }
 
-    private static void extractAr(String output, File file) throws IOException{
-        try (ArArchiveInputStream archive = new ArArchiveInputStream(new FileInputStream(file))){
+    private static void extractAr(String output, File file) throws IOException {
+        try (ArArchiveInputStream archive = new ArArchiveInputStream(new FileInputStream(file))) {
             extract(output, archive);
         }
     }
 
-    private static void extractTar(String output, File file) throws IOException{
-        try (TarArchiveInputStream archive = new TarArchiveInputStream(new FileInputStream(file))){
+    private static void extractTar(String output, File file) throws IOException {
+        try (TarArchiveInputStream archive = new TarArchiveInputStream(new FileInputStream(file))) {
             extract(output, archive);
         }
     }
@@ -109,7 +119,7 @@ public class ArchiveUtils {
     private static void extractSevenZ(String output, File file) throws IOException {
         try (SevenZFile archive = new SevenZFile.Builder()
                 .setFile(file)
-                .get()){
+                .get()) {
             ArchiveEntry entry;
             while ((entry = archive.getNextEntry()) != null) {
                 File item = new File(output, entry.getName());
@@ -117,7 +127,7 @@ public class ArchiveUtils {
                     if (!item.mkdirs())
                         System.err.println("Failed to create directory! \"" + item + "\"");
                 } else {
-                    try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))){
+                    try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
                         byte[] buffer = new byte[1024];
                         int readNumInBytes;
                         while ((readNumInBytes = archive.read(buffer)) != -1) {
@@ -130,7 +140,7 @@ public class ArchiveUtils {
     }
 
     private static void extractZip(String output, File file) throws IOException {
-        try (ZipArchiveInputStream archive = new ZipArchiveInputStream(new FileInputStream(file))){
+        try (ZipArchiveInputStream archive = new ZipArchiveInputStream(new FileInputStream(file))) {
             extract(output, archive);
         }
     }
@@ -143,7 +153,7 @@ public class ArchiveUtils {
                 if (!item.mkdirs())
                     System.err.println("Failed to create directory! \"" + item + "\"");
             } else {
-                try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))){
+                try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
                     byte[] buffer = new byte[1024];
                     int readNumInBytes;
                     while ((readNumInBytes = archiveInputStream.read(buffer)) != -1) {
