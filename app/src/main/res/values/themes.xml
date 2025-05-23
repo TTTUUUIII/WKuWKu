@@ -13,6 +13,7 @@
         <item name="snackbarStyle">@style/Theme.WKuWKu.Snackbar</item>
         <item name="snackbarButtonStyle">@style/Widget.Material3.Button.TextButton.Snackbar</item>
         <item name="snackbarTextViewStyle">@style/Theme.WKuWKu.Snackbar.TextView</item>
+        <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
 <!--        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>-->
     </style>
 
@@ -53,5 +54,11 @@
         <item name="android:paddingTop">0dp</item>
         <item name="android:paddingBottom">0dp</item>
         <item name="android:textStyle">bold</item>
+    </style>
+    <style name="ThemeOverlay.WKuWKu.Preference" parent="PreferenceThemeOverlay">
+        <item name="switchPreferenceCompatStyle">@style/Preference.WKuWKu.SwitchPreferenceCompat</item>
+    </style>
+    <style name="Preference.WKuWKu.SwitchPreferenceCompat" parent="Preference.SwitchPreferenceCompat.Material">
+        <item name="widgetLayout">@layout/widget_switch_compat</item>
     </style>
 </resources>

@@ -14,6 +14,7 @@
         <item name="snackbarStyle">@style/Theme.WKuWKu.Snackbar</item>
         <item name="snackbarButtonStyle">@style/Widget.Material3.Button.TextButton.Snackbar</item>
         <item name="snackbarTextViewStyle">@style/Theme.WKuWKu.Snackbar.TextView</item>
+        <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
         <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
 </resources>

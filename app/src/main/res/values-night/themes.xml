@@ -3,5 +3,6 @@
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
 <!--         <item name="colorPrimary">@color/primary_dark</item>-->
+        <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
     </style>
 </resources>
