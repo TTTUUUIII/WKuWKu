@@ -38,6 +38,7 @@ public class TrashViewModel extends BaseViewModel {
                     } else {
                         FileManager.delete(game.filepath);
                     }
+                    FileManager.delete(FileManager.IMAGE_DIRECTORY, game.id + ".png");
                 }, error -> {/*ignored*/});
     }
 
