@@ -21,8 +21,8 @@ android {
         applicationId "ink.snowland.wkuwku"
         minSdk 24
         targetSdk 35
-        versionCode 3
-        versionName "v0.1.2a"
+        versionCode 4
+        versionName "v0.1.3a"
 
         buildConfigField "String", "BUILD_TIME", "\"" + new Date().format("EEE MMM dd zzz yyyy") + "\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
