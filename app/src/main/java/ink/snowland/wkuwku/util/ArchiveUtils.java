@@ -147,20 +147,25 @@ public class ArchiveUtils {
 
     private static void extract(String output, ArchiveInputStream<?> archiveInputStream) throws IOException {
         ArchiveEntry entry;
-        while ((entry = archiveInputStream.getNextEntry()) != null) {
-            File item = new File(output, entry.getName());
-            if (entry.isDirectory()) {
-                if (!item.mkdirs())
-                    System.err.println("Failed to create directory! \"" + item + "\"");
-            } else {
-                try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
-                    byte[] buffer = new byte[1024];
-                    int readNumInBytes;
-                    while ((readNumInBytes = archiveInputStream.read(buffer)) != -1) {
-                        fos.write(buffer, 0, readNumInBytes);
+        try {
+            while ((entry = archiveInputStream.getNextEntry()) != null) {
+                File item = new File(output, entry.getName());
+                if (entry.isDirectory()) {
+                    if (!item.mkdirs())
+                        System.err.println("Failed to create directory! \"" + item + "\"");
+                } else {
+                    try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
+                        byte[] buffer = new byte[1024];
+                        int readNumInBytes;
+                        while ((readNumInBytes = archiveInputStream.read(buffer)) != -1) {
+                            fos.write(buffer, 0, readNumInBytes);
+                        }
                     }
                 }
             }
+        } catch (IOException e) {
+            FileManager.delete(output);
+            throw e;
         }
     }
 }

@@ -86,6 +86,7 @@ public class GamesViewModel extends BaseViewModel {
         Disposable disposable = copyFiles(filename, uri)
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> {
+                    boolean noError = true;
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
                     assert file.exists() && file.isFile() && file.canRead();
                     if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
@@ -93,16 +94,22 @@ public class GamesViewModel extends BaseViewModel {
                         setPendingIndicator(true, R.string.unzipping_files);
                         try {
                             String unzippedPath = ArchiveUtils.extract(file);
-                            FileManager.delete(file);
                             file = new File(unzippedPath);
-                        } catch (FileAlreadyExistsException e) {
-                            post(() -> {
-                                Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
-                            });
-                            FileManager.delete(file);
-                            return;
+                        } catch (IOException e) {
+                            if (e instanceof FileAlreadyExistsException) {
+                                post(() -> {
+                                    Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
+                                });
+                            } else {
+                                post(() -> {
+                                    showErrorToast(e);
+                                });
+                            }
+                            noError = false;
                         }
                     }
+                    FileManager.delete(file);
+                    if (!noError) return;
                     if (file.isDirectory()) {
                         Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
                         assert emulator != null;
