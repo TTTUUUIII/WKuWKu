@@ -1,1 +1,0 @@
-WKuWKu is a <a href="https://www.libretro.com">Libretro</a> frontend implementation for the Android platform.

@@ -1,9 +1,0 @@
-Feat:
-- support direct import of compressed ROM (zip、7z、tar).
-Update:
-- Theme styles;
-Add:
-- Save last screen when exit game;
-Fix:
-- The emulator freezes when try restore state;
-- App crashed on pixel 7 pro (v35);
