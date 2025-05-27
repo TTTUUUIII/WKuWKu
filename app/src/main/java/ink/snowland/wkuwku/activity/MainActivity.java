@@ -50,6 +50,7 @@ public class MainActivity extends BaseActivity {
     private InstallApkReceiver mInstallApkReceiver;
     private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
     private Uri mNewApkUri;
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +84,7 @@ public class MainActivity extends BaseActivity {
                 registerReceiver(mInstallApkReceiver, new IntentFilter(CheckLatestVersionWorker.ACTION_UPDATE_APK));
             }
             mRequestInstallPackageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK) {
+                if (getPackageManager().canRequestPackageInstalls()) {
                     installPackage(mNewApkUri);
                 }
             });
