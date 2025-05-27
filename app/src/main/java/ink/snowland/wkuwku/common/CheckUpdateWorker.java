@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 
+import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.util.FileManager;
 
 public class CheckUpdateWorker extends Worker {
@@ -26,8 +27,10 @@ public class CheckUpdateWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        try (InputStream config = new URL("https://github.com/TTTUUUIII/WKuWKu/blob/main/version_tags.xml").openStream()){
+        Log.d(TAG, "INFO: check update");
+        try (InputStream config = new URL("https://raw.githubusercontent.com/TTTUUUIII/WKuWKu/refs/heads/main/version_tags.xml").openStream()){
             String version = null;
+            String[] md5Array = null;
             XmlPullParser xmlPullParser = Xml.newPullParser();
             xmlPullParser.setInput(config, "utf-8");
             int event = xmlPullParser.getEventType();
@@ -35,21 +38,38 @@ public class CheckUpdateWorker extends Worker {
                 String name = xmlPullParser.getName();
                 if (event == XmlPullParser.START_TAG && "tag".equals(name)) {
                     String tag = xmlPullParser.getAttributeValue(null, "name");
+                    String md5 = xmlPullParser.getAttributeValue(null, "md5");
+                    if (md5 == null)
+                        md5 = "";
                     boolean latest = Boolean.parseBoolean(xmlPullParser.getAttributeValue(null, "latest"));
-                    Log.d(TAG, "INFO: new tag " + tag + ", latest: " + latest);
+                    Log.d(TAG, "INFO: latest tag " + tag);
                     if (latest) {
                         version = tag;
+                        md5Array = md5.split("\\|");
                         break;
                     }
                 }
                 event = xmlPullParser.next();
             }
-            if (version != null) {
+            if (version == null)
+                return Result.success();
+            if (!version.equals(BuildConfig.VERSION_NAME)) {
+                File apkFile = new File(FileManager.getCacheDirectory(), version + ".apk");
+                boolean authed = false;
                 try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", version, Build.SUPPORTED_ABIS[0])).openStream()){
-                    File apkFile = new File(FileManager.getCacheDirectory(), version + ".apk");
-                    FileManager.copy(ins, apkFile, (progress, max) -> {
-                        Log.d(TAG, "INFO: download progress: " + progress + "/" + max);
-                    });
+                    FileManager.copy(ins, apkFile);
+                    String md5 = FileManager.calculateMD5Sum(apkFile);
+                    for (String key : md5Array) {
+                        if (key.equals(md5)) {
+                            authed = true;
+                            break;
+                        }
+                    }
+                    if (authed) {
+                        Log.d(TAG, "INFO: request install apk");
+                    } else {
+                        return Result.retry();
+                    }
                 }
             }
         } catch (Exception e) {

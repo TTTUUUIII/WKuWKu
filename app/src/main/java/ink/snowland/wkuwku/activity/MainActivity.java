@@ -19,8 +19,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -58,6 +56,7 @@ public class MainActivity extends BaseActivity {
         mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null);
         });
+        checkUpdate();
     }
 
     @Override
