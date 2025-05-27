@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.activity;
 
+import android.content.Context;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.os.Build;
@@ -15,15 +16,22 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.work.ExistingWorkPolicy;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
+import ink.snowland.wkuwku.common.CheckUpdateWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 
 public class MainActivity extends BaseActivity {
+    private static final String CHECK_UPDATE_WORK = "check_update";
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
@@ -109,6 +117,16 @@ public class MainActivity extends BaseActivity {
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setMessage(getString(R.string.fmt_about_wkuwku, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TIME))
                 .show();
+    }
+
+    private void checkUpdate() {
+        WorkManager manager = WorkManager.getInstance(getApplication());
+        manager.beginUniqueWork(CHECK_UPDATE_WORK,
+                        ExistingWorkPolicy.REPLACE,
+                        new OneTimeWorkRequest.Builder(CheckUpdateWorker.class)
+                                .build()
+                )
+                .enqueue();
     }
 
     @Override
