@@ -52,6 +52,18 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
+        app:title="@string/app_options">
+
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:defaultValue="true"
+            app:key="app_new_version_notification"
+            app:summary="@string/summary_new_version_notification"
+            app:title="@string/new_version_notification" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
         app:key="core_preference_category"
         app:title="@string/core_preference">
     </PreferenceCategory>

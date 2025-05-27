@@ -12,10 +12,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
+import java.io.File;
 import java.util.Objects;
 
 import ink.snowland.wkuwku.activity.QRScannerActivity;
@@ -107,5 +109,12 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public interface OnResultCallback<T> {
         void onResult(T t);
+    }
+
+    protected void installPackage(@NonNull Uri uri) {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(uri, "application/vnd.android.package-archive");
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        startActivity(intent);
     }
 }

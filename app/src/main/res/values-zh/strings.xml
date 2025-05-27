@@ -88,4 +88,14 @@
     <string name="summary_reverse_landscape">进入游戏时反向旋转屏幕</string>
     <string name="summary_input_vibration_feedback">按下虚拟游戏控制器按键后触发振动反馈</string>
     <string name="summary_restore_last_state">进入游戏后自动恢复到上一次离开时的位置</string>
+    <string name="app_options">应用选项</string>
+    <string name="summary_new_version_notification">检测到新版本后将自动通知您</string>
+    <string name="new_version_notification">新版本通知</string>
+    <string name="updated">更新</string>
+    <string name="ignore_for_now">暂时忽略</string>
+    <string name="new_version_found">发现新版本!</string>
+    <string name="fmt_update_version">要现在为您更新到 %s 版本吗?</string>
+    <string name="permission_denied">权限不足!</string>
+    <string name="summary_request_install_package_permssion">WkuWku首先需要您授予安装应用的权限才能自动为您更新应用。</string>
+    <string name="grant">去授权</string>
 </resources>

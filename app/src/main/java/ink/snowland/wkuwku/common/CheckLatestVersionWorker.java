@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.common;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
 import android.util.Xml;
@@ -14,23 +15,30 @@ import org.xmlpull.v1.XmlPullParser;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.util.FileManager;
 
-public class CheckUpdateWorker extends Worker {
+public class CheckLatestVersionWorker extends Worker {
+
+    public static final String ACTION_UPDATE_APK = "ink.snowland.wkuwku.action.UPDATE_APK";
+    public static final String EXTRA_APK_PATH = "apk.path";
+    public static final String EXTRA_APK_VERSION = "apk.version";
+
     private static final String TAG = "CheckUpdateWorker";
-    public CheckUpdateWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+    public CheckLatestVersionWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        Log.d(TAG, "INFO: check update");
-        try (InputStream config = new URL("https://raw.githubusercontent.com/TTTUUUIII/WKuWKu/refs/heads/main/version_tags.xml").openStream()){
+        Log.d(TAG, "INFO: start check latest version.");
+        try (InputStream config = new URL("https://media.snowland.ink/wkuwku_versions.xml").openStream()){
             String version = null;
-            String[] md5Array = null;
+            List<String> md5List = null;
             XmlPullParser xmlPullParser = Xml.newPullParser();
             xmlPullParser.setInput(config, "utf-8");
             int event = xmlPullParser.getEventType();
@@ -45,7 +53,7 @@ public class CheckUpdateWorker extends Worker {
                     Log.d(TAG, "INFO: latest tag " + tag);
                     if (latest) {
                         version = tag;
-                        md5Array = md5.split("\\|");
+                        md5List = Arrays.asList(md5.split("\\|"));
                         break;
                     }
                 }
@@ -55,22 +63,29 @@ public class CheckUpdateWorker extends Worker {
                 return Result.success();
             if (!version.equals(BuildConfig.VERSION_NAME)) {
                 File apkFile = new File(FileManager.getCacheDirectory(), version + ".apk");
-                boolean authed = false;
-                try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", version, Build.SUPPORTED_ABIS[0])).openStream()){
-                    FileManager.copy(ins, apkFile);
+                boolean requestInstall = false;
+                if (apkFile.exists()) {
                     String md5 = FileManager.calculateMD5Sum(apkFile);
-                    for (String key : md5Array) {
-                        if (key.equals(md5)) {
-                            authed = true;
-                            break;
-                        }
-                    }
-                    if (authed) {
-                        Log.d(TAG, "INFO: request install apk");
-                    } else {
-                        return Result.retry();
+                    if (md5List.contains(md5))
+                        requestInstall = true;
+                }
+                if (!requestInstall) {
+                    try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", version, Build.SUPPORTED_ABIS[0])).openStream()){
+                        FileManager.copy(ins, apkFile);
+                        String md5 = FileManager.calculateMD5Sum(apkFile);
+                        if (md5List.contains(md5))
+                            requestInstall = true;
                     }
                 }
+                if (requestInstall) {
+                    Intent intent = new Intent(ACTION_UPDATE_APK);
+                    intent.putExtra(EXTRA_APK_PATH, apkFile.getAbsolutePath());
+                    intent.putExtra(EXTRA_APK_VERSION, version);
+                    Log.i(TAG, "INFO: request update version: " + version);
+                    getApplicationContext().sendBroadcast(intent);
+                }
+            } else {
+                Log.i(TAG, "INFO: new version not found.");
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);

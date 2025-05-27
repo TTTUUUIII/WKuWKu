@@ -1,18 +1,28 @@
 package ink.snowland.wkuwku.activity;
 
+import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.core.content.FileProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
@@ -22,17 +32,25 @@ import androidx.work.WorkManager;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.io.File;
+
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
-import ink.snowland.wkuwku.common.CheckUpdateWorker;
+import ink.snowland.wkuwku.common.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
+import ink.snowland.wkuwku.util.SettingsManager;
 
 public class MainActivity extends BaseActivity {
     private static final String CHECK_UPDATE_WORK = "check_update";
+    private static final String NEW_VERSION_NOTIFICATION = "app_new_version_notification";
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
+    private InstallApkReceiver mInstallApkReceiver;
+    private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
+    private Uri mNewApkUri;
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +74,20 @@ public class MainActivity extends BaseActivity {
         mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null);
         });
-        checkUpdate();
+        if (SettingsManager.getBoolean(NEW_VERSION_NOTIFICATION, true)) {
+            checkUpdate();
+            mInstallApkReceiver = new InstallApkReceiver();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(mInstallApkReceiver, new IntentFilter(CheckLatestVersionWorker.ACTION_UPDATE_APK), Context.RECEIVER_EXPORTED);
+            } else {
+                registerReceiver(mInstallApkReceiver, new IntentFilter(CheckLatestVersionWorker.ACTION_UPDATE_APK));
+            }
+            mRequestInstallPackageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    installPackage(mNewApkUri);
+                }
+            });
+        }
     }
 
     @Override
@@ -110,6 +141,13 @@ public class MainActivity extends BaseActivity {
         return destination != null && destination.getId() != id;
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mInstallApkReceiver != null)
+            unregisterReceiver(mInstallApkReceiver);
+    }
+
     private void showAboutDialog() {
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.about_wkuwku)
@@ -122,10 +160,47 @@ public class MainActivity extends BaseActivity {
         WorkManager manager = WorkManager.getInstance(getApplication());
         manager.beginUniqueWork(CHECK_UPDATE_WORK,
                         ExistingWorkPolicy.REPLACE,
-                        new OneTimeWorkRequest.Builder(CheckUpdateWorker.class)
+                        new OneTimeWorkRequest.Builder(CheckLatestVersionWorker.class)
                                 .build()
                 )
                 .enqueue();
+    }
+
+    private void showUpdateApkDialog(@NonNull String path, @NonNull String version) {
+        mNewApkUri = FileProvider.getUriForFile(this, "ink.snowland.wkuwku.provider", new File(path));
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.new_version_found)
+                .setMessage(getString(R.string.fmt_update_version, version))
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setPositiveButton(R.string.updated,(dialog, which) -> {
+                    boolean request = true;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        if (!getPackageManager().canRequestPackageInstalls()) {
+                            showRequestInstallPackageDialog();
+                            request = false;
+                        }
+                    }
+
+                    if (request) {
+                        installPackage(mNewApkUri);
+                    }
+                })
+                .setNegativeButton(R.string.ignore_for_now, null)
+                .setCancelable(false)
+                .show();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void showRequestInstallPackageDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setTitle(R.string.permission_denied)
+                .setMessage(R.string.summary_request_install_package_permssion)
+                .setPositiveButton(R.string.grant, (dialog, which) -> {
+                    mRequestInstallPackageLauncher.launch(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES));
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     @Override
@@ -133,5 +208,20 @@ public class MainActivity extends BaseActivity {
         try {
             binding.drawerLayout.setDrawerLockMode(mode);
         } catch (NullPointerException ignored) {}
+    }
+
+    private class InstallApkReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (action == null) return;
+            if (action.equals(CheckLatestVersionWorker.ACTION_UPDATE_APK)) {
+                String apkPath = intent.getStringExtra(CheckLatestVersionWorker.EXTRA_APK_PATH);
+                String apkVersion = intent.getStringExtra(CheckLatestVersionWorker.EXTRA_APK_VERSION);
+                if (apkPath == null || apkVersion == null) return;
+                showUpdateApkDialog(apkPath, apkVersion);
+            }
+        }
     }
 }
