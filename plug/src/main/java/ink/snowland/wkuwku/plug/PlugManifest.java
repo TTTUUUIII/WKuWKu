@@ -14,5 +14,5 @@ public class PlugManifest {
     public final String mainClass;
     public final String author;
     protected String installPath;
-    protected String dexPath;
+    protected String dexFileName;
 }

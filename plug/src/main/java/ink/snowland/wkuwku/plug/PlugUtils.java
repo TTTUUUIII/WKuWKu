@@ -2,16 +2,16 @@ package ink.snowland.wkuwku.plug;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.FileUtils;
-import android.util.Xml;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import org.xmlpull.v1.XmlPullParser;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import dalvik.system.DexClassLoader;
@@ -31,9 +30,8 @@ import dalvik.system.DexClassLoader;
 public class PlugUtils {
 
     private static final Map<String, Plug> sCache = new HashMap<>();
-    @SuppressLint("PrivateApi")
     public static PlugManifest install(Context context, File plugFile, File installDir) {
-        PlugManifest manifest = readManifest(plugFile);
+        PlugManifest manifest = readManifest(context, plugFile);
         if (manifest == null) return null;
         String plugName = plugFile.getName();
         installDir = new File(installDir, manifest.packageName);
@@ -41,8 +39,9 @@ public class PlugUtils {
             return null;
         if (!installDir.mkdirs())
             return null;
-        manifest.installPath = installDir.getAbsolutePath();
         File plug = new File(installDir, plugName);
+        manifest.installPath = installDir.getAbsolutePath();
+        manifest.dexFileName = plug.getName();
         if (!plug.exists()) {
             try (FileInputStream from = new FileInputStream(plugFile);
                  FileOutputStream to = new FileOutputStream(plug)){
@@ -62,13 +61,15 @@ public class PlugUtils {
     @SuppressLint("PrivateApi")
     public static boolean install(Context context, PlugManifest manifest) {
         boolean noError = true;
-        DexClassLoader loader = new DexClassLoader(manifest.dexPath, null, new File(manifest.installPath, "lib/" + Build.SUPPORTED_ABIS[0]).getAbsolutePath(), context.getClassLoader());
+        File dexFile = new File(manifest.installPath, manifest.dexFileName);
+        assert dexFile.exists() && dexFile.isFile() && dexFile.canRead();
+        DexClassLoader loader = new DexClassLoader(dexFile.getAbsolutePath(), null, new File(manifest.installPath, "lib/" + Build.SUPPORTED_ABIS[0]).getAbsolutePath(), context.getClassLoader());
         Resources resources = null;
         try {
             Class<?> clazz = loader.loadClass(manifest.mainClass);
             AssetManager assetManager = AssetManager.class.newInstance();
             Method method = AssetManager.class.getDeclaredMethod("addAssetPath", String.class);
-            Object ret = method.invoke(assetManager, manifest.dexPath);
+            Object ret = method.invoke(assetManager, dexFile.getAbsolutePath());
             if (ret != null && ((int) ret) != 0) {
                 resources = new Resources(assetManager, context.getResources().getDisplayMetrics(), context.getResources().getConfiguration());
             }
@@ -104,37 +105,17 @@ public class PlugUtils {
         }
     }
 
-    private static @Nullable PlugManifest readManifest(@NonNull File plug) {
-        String plugPackageName = null;
-        String plugMainClass = null;
-        String plugAuthor = null;
-        try (ZipFile zip = new ZipFile(plug)){
-            ZipEntry entry = zip.getEntry("AndroidManifest.xml");
-            if (entry != null) {
-                XmlPullParser parser = Xml.newPullParser();
-                parser.setInput(zip.getInputStream(entry), "utf-8");
-                int eventType = parser.getEventType();
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    String tagName = parser.getName();
-                    if (eventType == XmlPullParser.START_TAG && "meta-data".equals(tagName)) {
-                        String key = parser.getAttributeValue("android", "name");
-                        String value = parser.getAttributeValue("android", "value");
-                        if ("plugMainClass".equals(key))
-                            plugMainClass = value;
-                        else if ("plugPackageName".equals(key))
-                            plugPackageName = value;
-                        else if ("plugAuthor".equals(key))
-                            plugAuthor = value;
-                    }
-                    eventType = parser.next();
-                }
-            }
-            if (plugPackageName != null && plugMainClass != null) {
-                return new PlugManifest(plugPackageName, plugMainClass, plugAuthor);
-            }
-        } catch (Exception e) {
-            e.printStackTrace(System.err);
-        }
+    private static @Nullable PlugManifest readManifest(@NonNull Context context, @NonNull File plug) {
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo packageInfo = packageManager.getPackageArchiveInfo(plug.getAbsolutePath(), PackageManager.GET_META_DATA);
+        if (packageInfo == null) return null;
+        String plugPackageName = packageInfo.packageName;
+        if (packageInfo.applicationInfo == null) return null;
+        Bundle metaData = packageInfo.applicationInfo.metaData;
+        String plugMainClass = metaData.getString("plugMainClass");
+        String plugAuthor = metaData.getString("plugAuthor", "");
+        if (plugMainClass != null)
+            return new PlugManifest(plugPackageName, plugMainClass, plugAuthor);
         return null;
     }
     private static void extractLibrary(File plug, File installDir) {
