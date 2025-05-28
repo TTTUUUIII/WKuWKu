@@ -94,6 +94,7 @@ public class GamesViewModel extends BaseViewModel {
                         setPendingIndicator(true, R.string.unzipping_files);
                         try {
                             String unzippedPath = ArchiveUtils.extract(file);
+                            FileManager.delete(file);
                             file = new File(unzippedPath);
                         } catch (IOException e) {
                             if (e instanceof FileAlreadyExistsException) {
@@ -108,7 +109,6 @@ public class GamesViewModel extends BaseViewModel {
                             noError = false;
                         }
                     }
-                    FileManager.delete(file);
                     if (!noError) return;
                     if (file.isDirectory()) {
                         Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
@@ -119,7 +119,7 @@ public class GamesViewModel extends BaseViewModel {
                         }
                         file = romFile;
                     }
-                    if (file == null) {
+                    if (file == null || !file.exists()) {
                         post(() -> {
                             Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_SHORT).show();
                         });
