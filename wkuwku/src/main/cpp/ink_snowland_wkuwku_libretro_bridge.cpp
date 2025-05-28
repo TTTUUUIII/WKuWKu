@@ -294,6 +294,9 @@ static bool environment_callback(unsigned cmd, void *data) {
             log_cb = (struct retro_log_callback *) data;
             log_cb->log = log_print_callback;
             break;
+        case RETRO_ENVIRONMENT_SET_ROTATION:
+            set_variable_value(env, (jint)*(unsigned *) data);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
             if (data != nullptr) {
                 auto *audio_buffer_state = (struct retro_audio_buffer_status_callback *) data;
@@ -507,6 +510,7 @@ static void em_power_on(JNIEnv *env, jobject thiz) {
 }
 
 static void em_power_off(JNIEnv *env, jobject thiz) {
+    retro_unload_game();
     retro_deinit();
     env->DeleteGlobalRef(ctx.emulator_obj);
 }
