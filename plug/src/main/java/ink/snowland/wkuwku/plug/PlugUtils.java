@@ -84,8 +84,10 @@ public class PlugUtils {
 
     public static boolean uninstall(@NonNull PlugManifest manifest) {
         Plug plug = sCache.get(manifest.packageName);
-        if (plug != null)
+        if (plug != null) {
             plug.uninstall();
+            sCache.remove(manifest.packageName);
+        }
         File file = new File(manifest.installPath);
         return !file.exists() || file.delete();
     }
