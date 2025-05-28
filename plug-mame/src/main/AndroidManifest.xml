@@ -1,4 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
+    <application>
+        <meta-data
+            android:name="plugMainClass"
+            android:value="ink.snowland.wkuwku.plug.mame.MamePlug" />
+        <meta-data
+            android:name="plugAuthor"
+            android:value="wn123o@outlook.com" />
+    </application>
 </manifest>

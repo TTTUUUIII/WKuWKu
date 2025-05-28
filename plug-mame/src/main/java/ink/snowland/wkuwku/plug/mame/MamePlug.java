@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.plug.emulator;
+package ink.snowland.wkuwku.plug.mame;
 
 import android.content.Context;
 import android.content.res.Resources;

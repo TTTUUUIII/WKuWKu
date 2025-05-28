@@ -3,12 +3,12 @@ plugins {
 }
 
 android {
-    namespace 'ink.snowland.wkuwku.mame'
+    namespace 'ink.snowland.wkuwku.plug.mame'
     compileSdk 35
 
     defaultConfig {
         minSdk 24
-
+        applicationId 'ink.snowland.wkuwku.plug.mame'
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
         externalNativeBuild {

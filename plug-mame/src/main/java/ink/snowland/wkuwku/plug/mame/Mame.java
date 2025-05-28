@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.plug.emulator;
+package ink.snowland.wkuwku.plug.mame;
 
 import android.content.res.Resources;
 
@@ -12,7 +12,6 @@ import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.mame.R;
 
 public class Mame extends Emulator {
     public Mame(@NonNull Resources res, int configResId) throws XmlPullParserException, IOException {

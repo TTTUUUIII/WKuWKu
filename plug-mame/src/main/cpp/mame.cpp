@@ -485,7 +485,7 @@ static bool environment_callback(unsigned cmd, void *data) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativePowerOn(JNIEnv *env, jobject thiz) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativePowerOn(JNIEnv *env, jobject thiz) {
     ctx.emulator_obj = env->NewGlobalRef(thiz);
     retro_set_environment(environment_callback);
     retro_init();
@@ -496,19 +496,19 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativePowerOn(JNIEnv *env, jobject t
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativePowerOff(JNIEnv *env, jobject thiz) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativePowerOff(JNIEnv *env, jobject thiz) {
     retro_unload_game();
     retro_deinit();
     env->DeleteGlobalRef(ctx.emulator_obj);
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeReset(JNIEnv *env, jobject thiz) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeReset(JNIEnv *env, jobject thiz) {
     retro_reset();
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeLoad(JNIEnv *env, jobject thiz, jstring jpath) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeLoad(JNIEnv *env, jobject thiz, jstring jpath) {
     const char *path = env->GetStringUTFChars(jpath, JNI_FALSE);
     struct retro_game_info info = {path, nullptr, 0, nullptr};
     bool state = retro_load_game(&info);
@@ -517,12 +517,12 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeLoad(JNIEnv *env, jobject thiz
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeRun(JNIEnv *env, jobject thiz) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeRun(JNIEnv *env, jobject thiz) {
     retro_run();
 }
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeGetSystemAvInfo(JNIEnv *env, jobject thiz) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeGetSystemAvInfo(JNIEnv *env, jobject thiz) {
     struct retro_system_av_info av_info = {0};
     retro_get_system_av_info(&av_info);
     jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
@@ -542,7 +542,7 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeGetSystemAvInfo(JNIEnv *env, j
 }
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeGetSystemInfo(JNIEnv *env, jobject thiz) {
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeGetSystemInfo(JNIEnv *env, jobject thiz) {
     struct retro_system_info system_info = {};
     retro_get_system_info(&system_info);
     jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemInfo");
@@ -559,7 +559,7 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeGetSystemInfo(JNIEnv *env, job
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeSaveMemoryRam(JNIEnv *env, jobject thiz,
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeSaveMemoryRam(JNIEnv *env, jobject thiz,
                                                                 jstring path) {
     size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
     if (len == 0) return false;
@@ -575,7 +575,7 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeSaveMemoryRam(JNIEnv *env, job
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeLoadMemoryRam(JNIEnv *env, jobject thiz,
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeLoadMemoryRam(JNIEnv *env, jobject thiz,
                                                                 jstring path) {
     bool no_error = false;
     const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
@@ -594,7 +594,7 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeLoadMemoryRam(JNIEnv *env, job
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeSaveState(JNIEnv *env, jobject thiz,
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeSaveState(JNIEnv *env, jobject thiz,
                                                             jstring path) {
     size_t len = retro_serialize_size();
     if (len == 0) return false;
@@ -617,7 +617,7 @@ Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeSaveState(JNIEnv *env, jobject
 }
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_ink_snowland_wkuwku_plug_emulator_Mame_nativeLoadState(JNIEnv *env, jobject thiz,
+Java_ink_snowland_wkuwku_plug_mame_Mame_nativeLoadState(JNIEnv *env, jobject thiz,
                                                             jstring path) {
     bool no_error = false;
     size_t len = retro_serialize_size();
@@ -667,7 +667,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;IIIIII)V");
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
-    clazz = env->FindClass("ink/snowland/wkuwku/plug/emulator/Mame");
+    clazz = env->FindClass("ink/snowland/wkuwku/plug/mame/Mame");
     ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
     ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");
     ctx.environment_method = env->GetMethodID(clazz, "onEnvironment", "(ILjava/lang/Object;)Z");
