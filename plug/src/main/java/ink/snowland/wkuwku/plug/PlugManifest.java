@@ -1,13 +1,18 @@
 package ink.snowland.wkuwku.plug;
 
-public class PlugManifest {
-    public final String name;
-    public final String path;
-    public final String mainClass;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-    public PlugManifest(String name, String path, String mainClass) {
-        this.name = name;
-        this.path = path;
+public class PlugManifest {
+    public PlugManifest(@NonNull String packageName, @NonNull String mainClass, @Nullable String author) {
+        this.packageName = packageName;
         this.mainClass = mainClass;
+        this.author = author;
     }
+
+    public final String packageName;
+    public final String mainClass;
+    public final String author;
+    protected String installPath;
+    protected String dexPath;
 }
