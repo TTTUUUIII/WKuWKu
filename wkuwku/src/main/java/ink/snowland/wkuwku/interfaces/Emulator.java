@@ -1713,7 +1713,11 @@ public abstract class Emulator {
     }
 
     public Emulator(@NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
-        config = EmConfig.fromXmlConfig(res, configResId);
+        this(EmConfig.fromXmlConfig(res, configResId));
+    }
+
+    public Emulator(@NonNull EmConfig config) throws XmlPullParserException, IOException {
+        this.config = config;
         config.options.forEach(option -> options.put(option.key, option));
     }
 
@@ -1733,6 +1737,11 @@ public abstract class Emulator {
 
     public boolean isSupportedSystem(@NonNull EmSystem system) {
         return config.systems.contains(system);
+    }
+
+
+    public boolean isSupportedSystem(@NonNull String systemTag) {
+        return config.systems.stream().anyMatch(it -> it.tag.equals(systemTag));
     }
 
     public boolean save(int type, @NonNull File file) {
@@ -1938,14 +1947,23 @@ public abstract class Emulator {
         }
     }
 
-    public @Nullable File findLoaderFile(@NonNull File directory) {
-        File[] files = directory.listFiles();
-        if (files == null) return null;
-        for (String extension : config.contentExtensions) {
-            for (File file : files) {
-                String name = file.getName();
-                if (name.endsWith(extension))
-                    return file;
+    public @Nullable File findContent(@NonNull File src) {
+        if (src.isDirectory()) {
+            File[] files = src.listFiles();
+            if (files == null) return null;
+            for (String extension : config.contentExtensions) {
+                for (File file : files) {
+                    String name = file.getName();
+                    if (name.endsWith(extension))
+                        return file;
+                }
+            }
+        } else {
+            String name = src.getName();
+            for (String extension : config.contentExtensions) {
+                if (name.endsWith(extension)) {
+                    return src;
+                }
             }
         }
         return null;

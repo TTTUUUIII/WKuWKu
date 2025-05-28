@@ -87,33 +87,38 @@ public class GamesViewModel extends BaseViewModel {
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> {
                     boolean noError = true;
+                    Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-                    assert file.exists() && file.isFile() && file.canRead();
+                    if (emulator == null) return;
                     if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
                             && (infoMask & ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) {
-                        setPendingIndicator(true, R.string.unzipping_files);
-                        try {
-                            String unzippedPath = ArchiveUtils.extract(file);
-                            FileManager.delete(file);
-                            file = new File(unzippedPath);
-                        } catch (IOException e) {
-                            if (e instanceof FileAlreadyExistsException) {
-                                post(() -> {
-                                    Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
-                                });
-                            } else {
-                                post(() -> {
-                                    showErrorToast(e);
-                                });
+                        boolean emulatorSupportedArchive = emulator.findContent(file) != null;
+                        if (!emulatorSupportedArchive) {
+                            setPendingIndicator(true, R.string.unzipping_files);
+                            File originFile = file;
+                            try {
+                                String unzippedPath = ArchiveUtils.extract(originFile);
+                                file = new File(unzippedPath);
+                            } catch (IOException e) {
+                                e.printStackTrace(System.err);
+                                if (e instanceof FileAlreadyExistsException) {
+                                    post(() -> {
+                                        Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
+                                    });
+                                } else {
+                                    post(() -> {
+                                        showErrorToast(e);
+                                    });
+                                }
+                                noError = false;
+                            } finally {
+                                FileManager.delete(originFile);
                             }
-                            noError = false;
                         }
                     }
                     if (!noError) return;
                     if (file.isDirectory()) {
-                        Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
-                        assert emulator != null;
-                        File romFile = emulator.findLoaderFile(file);
+                        File romFile = emulator.findContent(file);
                         if (romFile == null) {
                             FileManager.delete(file);
                         }

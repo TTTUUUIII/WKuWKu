@@ -154,6 +154,11 @@ public class ArchiveUtils {
                     if (!item.mkdirs())
                         System.err.println("Failed to create directory! \"" + item + "\"");
                 } else {
+                    File parent = item.getParentFile();
+                    if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                        System.err.println("Failed to create directory! \"" + item + "\"");
+                        return;
+                    }
                     try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
                         byte[] buffer = new byte[1024];
                         int readNumInBytes;

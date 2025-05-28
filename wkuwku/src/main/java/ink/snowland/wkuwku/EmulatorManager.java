@@ -5,6 +5,7 @@ import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,9 +60,8 @@ public final class EmulatorManager {
             case "playstation":
                 return EMULATORS.get("pcsx");
             default:
-                /*Unknown system*/
+                return findEmulatorBySystemTag(systemTag);
         }
-        return null;
     }
 
     public static Emulator getDefaultEmulator(@NonNull EmSystem system) {
@@ -78,6 +78,15 @@ public final class EmulatorManager {
 
     public static Emulator getEmulator(@NonNull String tag) {
         return EMULATORS.get(tag);
+    }
+
+    private static @Nullable Emulator findEmulatorBySystemTag(@NonNull String systemTag) {
+        for (Emulator emulator : EMULATORS.values()) {
+            if (emulator.isSupportedSystem(systemTag)) {
+                return emulator;
+            }
+        }
+        return null;
     }
 
     public static void registerEmulator(@NonNull Emulator emulator) {
