@@ -38,16 +38,8 @@ public class FileManager {
         return sApplicationContext.getExternalFilesDir(type);
     }
 
-    public static File getPlugDirector(String name) {
-        File root = new File(sApplicationContext.getFilesDir(), "plug");
-        if (!root.exists() && !root.mkdir()) {
-            throw new RuntimeException(new IOException("Unable mkdir dir " + root.getAbsolutePath()));
-        }
-        File plug = new File(root, name);
-        if (!plug.exists() && !plug.mkdir()) {
-            throw new RuntimeException(new IOException("Unable mkdir dir " + plug.getAbsolutePath()));
-        }
-        return plug;
+    public static File getPlugDirectory() {
+        return sApplicationContext.getDir("plug", Context.MODE_PRIVATE);
     }
 
     public static File getFile(String type, String filename) {
