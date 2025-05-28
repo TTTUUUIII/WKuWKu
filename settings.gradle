@@ -23,3 +23,4 @@ rootProject.name = "WKuWKu"
 include ':app'
 include ':wkuwku'
 include ':plug'
+include ':plug-mame'

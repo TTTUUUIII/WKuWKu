@@ -1,0 +1,371 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Arcade"
+            tag="arcade"
+            manufacturer="mame" />
+    </systems>
+    <content-extensions>
+        <item>zip</item>
+        <item>7z</item>
+        <item>chd</item>
+    </content-extensions>
+    <options>
+        <option
+            key="plus_skip_disclaimer"
+            defaultValue="enabled"
+            title="Skip Disclaimer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_skip_warnings"
+            defaultValue="enabled"
+            title="Skip Warnings">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_display_setup"
+            defaultValue="disabled"
+            title="Display MAME Menu">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_mame_remapping"
+            defaultValue="disabled"
+            title="Legacy Remapping">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_autosave_hiscore"
+            defaultValue="default"
+            title="Autosave Hiscore">
+            <allow-values>
+                <value>default</value>
+                <value>recursively</value>
+                <value>disabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_nvram_bootstraps"
+            defaultValue="disabled"
+            title="NVRAM Bootstraps">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_core_sys_subfolder"
+            defaultValue="enabled"
+            title="Locate System Files Within a Subfolder">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_core_save_subfolder"
+            defaultValue="enabled"
+            title="Locate Save Files Within a Subfolder">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_xy_device"
+            defaultValue="disabled"
+            title="X-Y Device">
+            <allow-values>
+                <value>mouse</value>
+                <value>pointer</value>
+                <value>lightgun</value>
+                <value>disabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_input_interface"
+            defaultValue="simultaneous"
+            title="Input Interface">
+            <allow-values>
+                <value>simultaneous</value>
+                <value>retropad</value>
+                <value>keyboard</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_four_way_emulation"
+            defaultValue="disabled"
+            title="4-Way Joystick Emulation on 8-Way Joysticks">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_crosshair_enabled"
+            defaultValue="disabled"
+            title="Show Lightgun Crosshairs">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_crosshair_appearance"
+            defaultValue="simple"
+            title="Lightgun Crosshair Appearance">
+            <allow-values>
+                <value>simple</value>
+                <value>enhanced</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_dialsharexy"
+            defaultValue="disabled"
+            title="Share 2 Player Dial Controls Across One X/Y Device">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_dial_swap_xy"
+            defaultValue="disabled"
+            title="Swap X and Y Dial Axis">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_cheat_input_ports"
+            defaultValue="disabled"
+            title="Dip Switch/Cheat Input Ports">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_override_ad_stick"
+            defaultValue="disabled"
+            title="Use Lightgun as an Analog Stick">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_input_toggle"
+            defaultValue="enabled"
+            title="Allow Input Button to Act as a Toggle Switch">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_digital_joy_centering"
+            defaultValue="enabled"
+            title="Center Joystick Axis for Digital Controls">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_use_samples"
+            defaultValue="enabled"
+            title="Use Samples">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_use_alt_sound"
+            defaultValue="disabled"
+            title="Use CD Soundtrack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_sample_rate"
+            defaultValue="48000"
+            title="Audio Sample Rate">
+            <allow-values>
+                <value>8000</value>
+                <value>11025</value>
+                <value>22050</value>
+                <value>30000</value>
+                <value>44100</value>
+                <value>48000</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_brightness"
+            defaultValue="1.0"
+            inputType="numberDecimal"
+            title="Brightness (0.2 - 2.0)" />
+        <option
+            key="mame2003-plus_gamma"
+            defaultValue="1.0"
+            inputType="numberDecimal"
+            title="Brightness (0.5 - 2.0)" />
+        <option
+            key="mame2003-plus_tate_mode"
+            defaultValue="disabled"
+            title="TATE Mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_frameskip"
+            defaultValue="disabled"
+            title="Frameskip">
+            <allow-values>
+                <value>disabled</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+                <value>4</value>
+                <value>5</value>
+                <value>6</value>
+                <value>7</value>
+                <value>8</value>
+                <value>9</value>
+                <value>10</value>
+                <value>11</value>
+                <value>auto</value>
+                <value>auto_aggressive</value>
+                <value>auto_max</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_display_artwork"
+            defaultValue="enabled"
+            title="Display Artwork">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_art_resolution"
+            defaultValue="1"
+            inputType="number"
+            title="Artwork Resolution Multiplier (1 - 8)" />
+        <option
+            key="mame2003-plus_art_overlay_opacity"
+            defaultValue="default"
+            inputType="text"
+            title="Artwork Hardcoded Overlay Opacity (default or 0 - 70)" />
+        <option
+            key="mame2003-plus_vector_resolution"
+            defaultValue="1024x768"
+            title="Vector Resolution">
+            <allow-values>
+                <value>640x480</value>
+                <value>1024x768</value>
+                <value>1280x960</value>
+                <value>1440x1080</value>
+                <value>1600x1200</value>
+                <value>1707x1280</value>
+                <value>original</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_vector_antialias"
+            defaultValue="enabled"
+            title="Vector Antialiasing">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_vector_translucency"
+            defaultValue="2"
+            inputType="numberDecimal"
+            title="Vector Beam Width (1 - 12)" />
+        <option
+            key="mame2003-plus_vector_antialias"
+            defaultValue="enabled"
+            title="Vector Translucency">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_vector_flicker"
+            defaultValue="20"
+            inputType="number"
+            title="Vector Flicker (0 - 20, step: 10)" />
+        <option
+            key="mame2003-plus_vector_intensity"
+            defaultValue="1.5"
+            inputType="numberDecimal"
+            title="Vector Intensity (0.5 - 3)" />
+        <option
+            key="mame2003-plus_neogeo_bios"
+            defaultValue="default"
+            title="Specify Neo Geo BIOS">
+            <allow-values>
+                <value>default</value>
+                <value>euro</value>
+                <value>euro-s1</value>
+                <value>us</value>
+                <value>us-e</value>
+                <value>asia</value>
+                <value>japan</value>
+                <value>japan-s2</value>
+                <value>unibios40</value>
+                <value>unibios33</value>
+                <value>unibios20</value>
+                <value>unibios13</value>
+                <value>unibios11</value>
+                <value>unibios10</value>
+                <value>debug</value>
+                <value>asia-aes</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_stv_bios"
+            defaultValue="default"
+            title="Specify Sega ST-V BIOS">
+            <allow-values>
+                <value>default</value>
+                <value>japan</value>
+                <value>japana</value>
+                <value>us</value>
+                <value>japan_b</value>
+                <value>taiwan</value>
+                <value>europe</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_cpu_clock_scale"
+            defaultValue="default"
+            inputType="text"
+            title="CPU Clock Scale (default or 25 - 300)" />
+    </options>
+</em-config>
