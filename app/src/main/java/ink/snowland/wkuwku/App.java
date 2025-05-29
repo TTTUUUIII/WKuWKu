@@ -18,6 +18,5 @@ public class App extends Application {
         EmulatorManager.initialize(getApplicationContext());
         BiosProvider.initialize(getApplicationContext());
         PlugManager.initialize(getApplicationContext());
-        PlugManager.install("/sdcard/Android/data/ink.snowland.wkuwku/files/plug-mame-release-unsigned.apk", null);
     }
 }

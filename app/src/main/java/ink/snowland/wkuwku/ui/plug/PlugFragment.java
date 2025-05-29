@@ -176,6 +176,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             if (o instanceof PlugManifestExt) {
                 PlugManifestExt manifest = (PlugManifestExt) o;
                 Drawable icon = PlugManager.getPlugIcon(manifest.origin);
+                itemBinding.setManifest(manifest.origin);
                 if (icon != null) {
                     Glide.with(parentActivity)
                             .load(icon)

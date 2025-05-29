@@ -57,22 +57,26 @@ public class FileManager {
 
     public static void delete(File file) {
         if (!file.exists()) return;
+        boolean deleted;
         if (file.isDirectory()) {
-            deleteDirectory(file);
+            deleted = deleteDirectory(file);
         } else {
-            boolean delete = file.delete();
+            deleted = file.delete();
+        }
+        if (!deleted) {
+            Log.e(TAG, "Unable delete file " + file.getPath());
         }
     }
 
-    private static void deleteDirectory(File file) {
+    private static boolean deleteDirectory(File file) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();
-            if (files == null) return;
+            if (files == null) return file.delete();
             for (File child : files) {
                 deleteDirectory(child);
             }
         }
-        boolean delete = file.delete();
+        return file.delete();
     }
 
     public static boolean copy(String type, String filename, Uri uri) {
