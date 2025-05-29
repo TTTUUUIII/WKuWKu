@@ -2,10 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <meta-data
+            android:name="plugName"
+            android:value="Mame" />
+        <meta-data
             android:name="plugMainClass"
             android:value="ink.snowland.wkuwku.plug.mame.MamePlug" />
         <meta-data
             android:name="plugAuthor"
-            android:value="wn123o@outlook.com" />
+            android:value="wn123o<wn123o@outlook.com>" />
+        <meta-data
+            android:name="plugSummary"
+            android:value="Mame plug provides arcade platform simulation support." />
     </application>
 </manifest>
