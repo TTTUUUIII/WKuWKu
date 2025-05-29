@@ -110,4 +110,6 @@
     <string name="uninstall">卸载</string>
     <string name="need_restart">需要重启</string>
     <string name="error_occurred">发生错误</string>
+    <string name="fmt_delete_plug">确定要删除 %s 扩展吗?</string>
+    <string name="fmt_plug_deleted">%s 已删除</string>
 </resources>

@@ -15,8 +15,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 
 
@@ -48,7 +50,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             mPlugInstalledBinding.emptyListIndicator.setVisibility(list == null || list.isEmpty() ? View.VISIBLE : View.GONE);
         }
     };
-//    private final PlugViewAdapter mAvailablePlugAdapter = new PlugViewAdapter();
+    //    private final PlugViewAdapter mAvailablePlugAdapter = new PlugViewAdapter();
     private Disposable mDisposable;
 
     @Override
@@ -148,8 +150,20 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
         @Override
         public int getItemCount() {
-            return 2;
+            return binding.tabLayout.getTabCount();
         }
+    }
+
+    private void showDeletePlugDialog(@NonNull PlugManifestExt manifest) {
+        new MaterialAlertDialogBuilder(parentActivity)
+                .setIcon(R.mipmap.ic_launcher_round)
+                .setTitle(R.string.emergency)
+                .setMessage(getString(R.string.fmt_delete_plug, manifest.origin.name))
+                .setPositiveButton(R.string.delete, (dialog, which) -> {
+                    PlugManager.uninstall(manifest.origin, null);
+                })
+                .setNegativeButton(R.string.cancel, null)
+                .show();
     }
 
     private final class PlugViewHolder extends RecyclerView.ViewHolder {
