@@ -112,10 +112,12 @@ public class PlugUtils {
         String plugPackageName = packageInfo.packageName;
         if (packageInfo.applicationInfo == null) return null;
         Bundle metaData = packageInfo.applicationInfo.metaData;
+        String plugName = metaData.getString("plugName");
         String plugMainClass = metaData.getString("plugMainClass");
         String plugAuthor = metaData.getString("plugAuthor", "");
-        if (plugMainClass != null)
-            return new PlugManifest(plugPackageName, plugMainClass, plugAuthor);
+        String plugSummary = metaData.getString("plugSummary", "");
+        if (plugName != null && plugMainClass != null)
+            return new PlugManifest(plugName, plugPackageName, plugMainClass, plugAuthor, plugSummary);
         return null;
     }
     private static void extractLibrary(File plug, File installDir) {
