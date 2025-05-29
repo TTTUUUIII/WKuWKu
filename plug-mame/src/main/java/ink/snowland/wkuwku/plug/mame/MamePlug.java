@@ -13,6 +13,6 @@ public class MamePlug implements Plug {
 
     @Override
     public void uninstall() {
-
+        Mame.unregisterEmulator();
     }
 }

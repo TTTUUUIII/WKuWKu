@@ -12,6 +12,7 @@ import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.mame.R;
 
 public class Mame extends Emulator {
     public Mame(@NonNull Resources res, int configResId) throws XmlPullParserException, IOException {
@@ -79,6 +80,11 @@ public class Mame extends Emulator {
         if (SHARED_INSTANCE != null) {
             EmulatorManager.registerEmulator(SHARED_INSTANCE);
         }
+    }
+
+    public static void unregisterEmulator() {
+        if (SHARED_INSTANCE != null)
+            EmulatorManager.unregisterEmulator(SHARED_INSTANCE);
     }
 
     private static Mame SHARED_INSTANCE;
