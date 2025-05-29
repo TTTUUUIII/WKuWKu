@@ -12,6 +12,10 @@
             android:id="@+id/action_macro"
             android:icon="@drawable/ic_smart_toy"
             android:title="@string/key_macro" />
+        <item
+            android:id="@+id/action_extension"
+            android:icon="@drawable/ic_extension"
+            android:title="@string/app_extension" />
     </group>
     <group
         android:id="@+id/information">
