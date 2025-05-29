@@ -8,9 +8,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public abstract class Plug {
-    private PlugManifest manifest;
-    protected abstract void install(Context context, Resources resources);
-    protected abstract void uninstall();
+    protected PlugManifest manifest;
+    protected Resources resources;
+    protected void install(Context context, Resources resources) {
+        this.resources = resources;
+    }
+    protected void uninstall() {
+
+    }
     public @Nullable Bitmap getIcon() {
         return null;
     }
