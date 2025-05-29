@@ -39,7 +39,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     private GamesViewModel mViewModel;
     private final ViewAdapter mAdapter = new ViewAdapter();
     private Disposable mDisposable;
-    private GameEditDialog mEditGameDialog;
     private GameDetailDialog mGameDetailDialog;
 
     @Override
@@ -49,7 +48,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         mDisposable = mViewModel.getGameInfos().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(mAdapter::submitList);
-        mEditGameDialog = new GameEditDialog(parentActivity);
         mGameDetailDialog = new GameDetailDialog(parentActivity);
     }
 
@@ -110,16 +108,17 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
 
     private void showEditDialog(@NonNull Game base) {
-        mEditGameDialog.show((game, uri) -> {
+        new GameEditDialog(parentActivity).show((game, uri) -> {
             game.lastModifiedTime = System.currentTimeMillis();
             mViewModel.update(game);
         }, base);
     }
 
     private void showAddGameDialog() {
-        mEditGameDialog.show((game, uri) -> {
-            mViewModel.addGame(game, uri);
-        });
+        new GameEditDialog(parentActivity)
+                .show((game, uri) -> {
+                    mViewModel.addGame(game, uri);
+                });
     }
 
     private void launch(@NonNull Game game) {

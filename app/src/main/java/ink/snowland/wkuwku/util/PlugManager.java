@@ -1,10 +1,13 @@
 package ink.snowland.wkuwku.util;
 
 import android.content.Context;
+import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.util.List;
 
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
@@ -12,10 +15,13 @@ import ink.snowland.wkuwku.plug.PlugManifest;
 import ink.snowland.wkuwku.plug.PlugUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleOnSubscribe;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlugManager {
+    private static final String TAG = "PlugManager";
     private static Context sApplicationContext;
 
     public static void initialize(Context applicationContext) {
@@ -24,9 +30,7 @@ public class PlugManager {
                 .getSingleAll()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(plugs -> {
-                    System.out.println(plugs);
-                }, error -> {
+                .subscribe(PlugManager::install, error -> {
                     error.printStackTrace(System.err);
                 });
     }
@@ -75,6 +79,22 @@ public class PlugManager {
                 }, error -> {
                     if (listener != null)
                         listener.onFailure(error);
+                });
+    }
+
+    private static void install(@NonNull List<PlugManifestExt> plugs) {
+        Disposable disposable = Single.create((SingleOnSubscribe<Integer>) emitter -> {
+                    int installed = 0;
+                    for (PlugManifestExt plug : plugs) {
+                        if (!plug.enabled) continue;
+                        if (PlugUtils.install(sApplicationContext, plug.origin))
+                            installed++;
+                    }
+                    emitter.onSuccess(installed);
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe((installed) -> {
+                    Log.i(TAG, "INFO: " + installed + " of " + plugs.size() + " auto installed.");
                 });
     }
 

@@ -104,5 +104,10 @@ public final class EmulatorManager {
 
     public static void unregisterEmulator(@NonNull Emulator emulator) {
         EMULATORS.remove(emulator.getTag());
+        List<EmSystem> systems = emulator.getSupportedSystems();
+        for (EmSystem system : systems) {
+            if (findEmulatorBySystemTag(system.tag) == null)
+                mAllSupportedSystems.remove(system);
+        }
     }
 }
