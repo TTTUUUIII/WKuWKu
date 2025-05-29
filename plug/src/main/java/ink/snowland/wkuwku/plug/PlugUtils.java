@@ -92,7 +92,7 @@ public class PlugUtils {
             sCache.remove(manifest.packageName);
         }
         File file = new File(manifest.installPath);
-        return !file.exists() || file.delete();
+        return !file.exists() || delete(file);
     }
 
     public static boolean isInstanced(@NonNull PlugManifest manifest) {
@@ -106,6 +106,17 @@ public class PlugUtils {
         if (packageInfo == null || packageInfo.applicationInfo == null) return null;
         packageInfo.applicationInfo.publicSourceDir = plugPath;
         return packageManager.getApplicationIcon(packageInfo.applicationInfo);
+    }
+
+    private static boolean delete(File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            if (files == null) return file.delete();
+            for (File child : files) {
+                delete(child);
+            }
+        }
+        return file.delete();
     }
 
     private static void copy(InputStream from, OutputStream to) throws IOException {
