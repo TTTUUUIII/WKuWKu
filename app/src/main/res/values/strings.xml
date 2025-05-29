@@ -132,4 +132,6 @@
     <string name="plug_icon" translatable="false">Plug icon</string>
     <string name="need_restart">Need to restart</string>
     <string name="error_occurred">An error occurred</string>
+    <string name="fmt_delete_plug">Are you sure you want to delete the %s extension?</string>
+    <string name="fmt_plug_deleted">%s deleted</string>
 </resources>

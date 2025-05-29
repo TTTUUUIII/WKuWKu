@@ -27,4 +27,11 @@ public class PlugViewModel extends BaseViewModel {
             emitter.onComplete();
         });
     }
+
+    public Completable delete(@NonNull PlugManifestExt manifest) {
+        return Completable.create(emitter -> {
+            AppDatabase.db.plugManifestExtDao().delete(manifest);
+            emitter.onComplete();
+        });
+    }
 }
