@@ -5,7 +5,8 @@ import android.content.res.Resources;
 
 import ink.snowland.wkuwku.plug.Plug;
 
-public class MamePlug implements Plug {
+public class MamePlug extends Plug {
+    private Resources mResources;
     @Override
     public void install(Context context, Resources resources) {
         Mame.registerAsEmulator(resources);
