@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
+    <application android:icon="@drawable/mame_logo">
         <meta-data
             android:name="plugName"
             android:value="Mame" />
