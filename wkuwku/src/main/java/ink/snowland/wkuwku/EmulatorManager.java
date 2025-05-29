@@ -101,4 +101,8 @@ public final class EmulatorManager {
                 "\tValidExtensions: " + info.validExtensions);
 
     }
+
+    public static void unregisterEmulator(@NonNull Emulator emulator) {
+        EMULATORS.remove(emulator.getTag());
+    }
 }
