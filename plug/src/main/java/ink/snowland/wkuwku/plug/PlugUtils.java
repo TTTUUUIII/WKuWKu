@@ -131,8 +131,12 @@ public class PlugUtils {
         String plugMainClass = metaData.getString("plugMainClass");
         String plugAuthor = metaData.getString("plugAuthor", "");
         String plugSummary = metaData.getString("plugSummary", "");
-        if (plugName != null && plugMainClass != null)
-            return new PlugManifest(plugName, plugPackageName, plugMainClass, plugAuthor, plugSummary);
+        if (plugName != null && plugMainClass != null){
+            PlugManifest manifest = new PlugManifest(plugName, plugPackageName, plugMainClass, plugAuthor, plugSummary);
+            manifest.versionName = packageInfo.versionName;
+            manifest.versionCode = packageInfo.versionCode;
+            return manifest;
+        }
         return null;
     }
     private static void extractLibrary(File plug, File installDir) {

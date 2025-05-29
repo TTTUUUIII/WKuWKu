@@ -1,73 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center_vertical"
-    android:padding="15dp"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical">
+<layout>
+    <data>
+        <variable
+            name="manifest"
+            type="ink.snowland.wkuwku.plug.PlugManifest" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:padding="15dp"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/plug_icon"
-        android:layout_width="58dp"
-        android:layout_height="58dp"
-        android:contentDescription="@string/plug_icon"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <ImageView
+            android:id="@+id/plug_icon"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
+            android:contentDescription="@string/plug_icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/linearLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:paddingHorizontal="15dp"
-        android:paddingVertical="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/plug_icon"
-        app:layout_constraintTop_toTopOf="parent">
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingHorizontal="15dp"
+            android:paddingVertical="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/plug_icon"
+            app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/plug_name"
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/plug_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="2"
+                    android:textStyle="bold"
+                    android:text="@{manifest.name}"
+                    tools:text="Mame" />
+                <TextView
+                    android:id="@+id/plug_version"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:layout_marginStart="8dp"
+                    android:text="@{manifest.versionName}"
+                    tools:text="v1.0" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/plug_summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:text="@{manifest.summary}"
+                tools:text="Support arcade platforms." />
+            <TextView
+                android:id="@+id/warning"
+                android:textColor="@color/error"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+        <com.google.android.material.button.MaterialButtonToggleGroup
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textStyle="bold"
-            tools:text="Mame" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout">
 
-        <TextView
-            android:id="@+id/plug_summary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="13sp"
-            tools:text="Support arcade platforms." />
-        <TextView
-            android:id="@+id/warning"
-            android:textColor="@color/error"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/control"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="@string/enable" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/control"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="@string/enable" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/uninstall"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/white"
-            android:textColor="@color/error"
-            android:text="@string/uninstall" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/uninstall"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/white"
+                android:textColor="@color/error"
+                android:text="@string/uninstall" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
