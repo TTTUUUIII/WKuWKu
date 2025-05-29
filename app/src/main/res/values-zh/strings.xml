@@ -98,4 +98,5 @@
     <string name="permission_denied">权限不足!</string>
     <string name="summary_request_install_package_permssion">WkuWku首先需要您授予安装应用的权限才能自动为您更新应用。</string>
     <string name="grant">去授权</string>
+    <string name="app_extension">应用扩展</string>
 </resources>
