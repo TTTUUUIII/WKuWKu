@@ -1,18 +1,17 @@
 package ink.snowland.wkuwku.util;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
-import ink.snowland.wkuwku.plug.Plug;
 import ink.snowland.wkuwku.plug.PlugManifest;
 import ink.snowland.wkuwku.plug.PlugUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -63,6 +62,24 @@ public class PlugManager {
                 });
     }
 
+    public static void install(@NonNull PlugManifest manifest, @Nullable ActionListener listener) {
+        Disposable disposable = Completable.create(emitter -> {
+                    if (PlugUtils.install(sApplicationContext, manifest)) {
+                        emitter.onComplete();
+                    } else {
+                        emitter.onError(new UnknownError("Plug install failed!"));
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> {
+                    if (listener != null)
+                        listener.onSuccess();
+                }, error -> {
+                    if (listener != null)
+                        listener.onFailure(error);
+                });
+    }
+
     public static void uninstall(PlugManifest manifest, @Nullable ActionListener listener) {
         Disposable disposable = Completable.create(emitter -> {
                     try {
@@ -84,8 +101,12 @@ public class PlugManager {
                 });
     }
 
-    public static List<Plug> getInstalledPlugs() {
-        return new ArrayList<>(PlugUtils.getInstalledPlugs());
+    public static @Nullable Drawable getPlugIcon(@NonNull PlugManifest manifest) {
+        return PlugUtils.getPlugIcon(sApplicationContext, manifest);
+    }
+
+    public static boolean isInstalled(@NonNull PlugManifest manifest) {
+        return PlugUtils.isInstanced(manifest);
     }
 
     private static void install(@NonNull List<PlugManifestExt> plugs) {

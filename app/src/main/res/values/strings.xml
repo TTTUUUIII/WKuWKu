@@ -126,4 +126,10 @@
     <string name="no_extensions_installed">🪹 No extensions installed</string>
     <string name="no_available_extensions">🪶 No available extensions</string>
     <string name="install">Install</string>
+    <string name="disable">Disable</string>
+    <string name="enable">Enable</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="plug_icon" translatable="false">Plug icon</string>
+    <string name="need_restart">Need to restart</string>
+    <string name="error_occurred">An error occurred</string>
 </resources>

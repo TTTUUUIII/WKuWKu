@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.ui.plug;
 
 import android.annotation.SuppressLint;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -10,13 +11,16 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewbinding.ViewBinding;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.bumptech.glide.Glide;
 import com.google.android.material.tabs.TabLayout;
 
+
+import java.util.List;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
@@ -25,7 +29,7 @@ import ink.snowland.wkuwku.databinding.ItemPlugBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugAvailableBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugInstalledBinding;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
-import ink.snowland.wkuwku.plug.PlugManifest;
+import ink.snowland.wkuwku.util.PlugManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -37,7 +41,13 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
     private PlugViewModel mViewModel;
     private final PagerAdapter mPagerAdapter = new PagerAdapter();
-    private final PlugViewAdapter<PlugManifestExt> mInstalledPlugAdapter = new PlugViewAdapter<>();
+    private final PlugViewAdapter<PlugManifestExt> mInstalledPlugAdapter = new PlugViewAdapter<>() {
+        @Override
+        public void submitList(@Nullable List<PlugManifestExt> list) {
+            super.submitList(list);
+            mPlugInstalledBinding.emptyListIndicator.setVisibility(list == null || list.isEmpty() ? View.VISIBLE : View.GONE);
+        }
+    };
 //    private final PlugViewAdapter mAvailablePlugAdapter = new PlugViewAdapter();
     private Disposable mDisposable;
 
@@ -84,23 +94,23 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
     }
 
-    private final class PagerViewHolder extends RecyclerView.ViewHolder {
-        private final ViewBinding itemBinding;
+    private LayoutPlugInstalledBinding mPlugInstalledBinding;
+    private LayoutPlugAvailableBinding mPlugAvailableBinding;
 
-        public PagerViewHolder(@NonNull ViewBinding itemBinding) {
-            super(itemBinding.getRoot());
-            this.itemBinding = itemBinding;
+    private final class PagerViewHolder extends RecyclerView.ViewHolder {
+
+        public PagerViewHolder(int viewType) {
+            super(viewType == INSTALLED_SCREEN ? mPlugInstalledBinding.getRoot() : mPlugAvailableBinding.getRoot());
         }
 
-        public void bind() {
-            if (itemBinding instanceof LayoutPlugInstalledBinding) {
-                LayoutPlugInstalledBinding _bind = (LayoutPlugInstalledBinding) itemBinding;
-                _bind.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
-                _bind.recyclerView.setAdapter(mInstalledPlugAdapter);
-                _bind.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+        public void bind(int viewType) {
+            if (viewType == INSTALLED_SCREEN) {
+                mPlugInstalledBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
+                mPlugInstalledBinding.recyclerView.setAdapter(mInstalledPlugAdapter);
+                mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
             } else {
-                LayoutPlugAvailableBinding _bind = (LayoutPlugAvailableBinding) itemBinding;
-                _bind.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
+//                LayoutPlugAvailableBinding _bind = (LayoutPlugAvailableBinding) itemBinding;
+//                _bind.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
 //                _bind.recyclerView.setAdapter(mAvailablePlugAdapter);
 //                _bind.emptyListIndicator.setVisibility(mAvailablePlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
             }
@@ -119,15 +129,16 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         @Override
         public PagerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             if (viewType == INSTALLED_SCREEN) {
-                return new PagerViewHolder(LayoutPlugInstalledBinding.inflate(getLayoutInflater(), parent, false));
+                mPlugInstalledBinding = LayoutPlugInstalledBinding.inflate(getLayoutInflater(), parent, false);
             } else {
-                return new PagerViewHolder(LayoutPlugAvailableBinding.inflate(getLayoutInflater(), parent, false));
+                mPlugAvailableBinding = LayoutPlugAvailableBinding.inflate(getLayoutInflater(), parent, false);
             }
+            return new PagerViewHolder(viewType);
         }
 
         @Override
         public void onBindViewHolder(@NonNull PagerViewHolder holder, int position) {
-            holder.bind();
+            holder.bind(position);
         }
 
         @Override
@@ -154,14 +165,37 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 PlugManifestExt manifest = (PlugManifestExt) o;
                 itemBinding.plugName.setText(manifest.origin.name);
                 itemBinding.plugSummary.setText(manifest.origin.summary);
+                Drawable icon = PlugManager.getPlugIcon(manifest.origin);
+                if (icon != null) {
+                    Glide.with(parentActivity)
+                            .load(icon)
+                            .into(itemBinding.plugIcon);
+                }
+                itemBinding.control.setText(manifest.enabled ? R.string.disable : R.string.enable);
+                itemBinding.control.setOnClickListener(v -> {
+                    manifest.enabled = !manifest.enabled;
+                    mViewModel.update(manifest)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .doOnComplete(() -> {
+                                itemBinding.control.setText(manifest.enabled ? R.string.disable : R.string.enable);
+                                if (manifest.enabled && !PlugManager.isInstalled(manifest.origin)) {
+                                    PlugManager.install(manifest.origin, null);
+                                }
+                            })
+                            .subscribe();
+                });
+                itemBinding.uninstall.setOnClickListener(v -> {
+
+                });
             }
         }
     }
 
-    private final class PlugViewAdapter<T> extends ListAdapter<T, PlugViewHolder> {
+    private class PlugViewAdapter<T> extends ListAdapter<T, PlugViewHolder> {
 
 
-        protected PlugViewAdapter() {
+        private PlugViewAdapter() {
             super(new DiffUtil.ItemCallback<T>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull T oldItem, @NonNull T newItem) {
