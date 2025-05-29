@@ -12,6 +12,6 @@
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
         <meta-data
             android:name="plugSummary"
-            android:value="Mame plug provides arcade platform simulation support." />
+            android:value="Universal arcade platform emulator." />
     </application>
 </manifest>
