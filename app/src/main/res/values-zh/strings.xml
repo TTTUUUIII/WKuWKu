@@ -99,4 +99,10 @@
     <string name="summary_request_install_package_permssion">WkuWku首先需要您授予安装应用的权限才能自动为您更新应用。</string>
     <string name="grant">去授权</string>
     <string name="app_extension">应用扩展</string>
+    <string name="installed">已安装</string>
+    <string name="available">可用的</string>
+    <string name="extension_manage">管理扩展</string>
+    <string name="no_extensions_installed">🪹 没有安装任何扩展</string>
+    <string name="no_available_extensions">🪶 没有可用扩展</string>
+    <string name="install">安装</string>
 </resources>
