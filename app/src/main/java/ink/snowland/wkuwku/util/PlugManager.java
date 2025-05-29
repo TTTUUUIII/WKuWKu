@@ -7,10 +7,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
+import ink.snowland.wkuwku.plug.Plug;
 import ink.snowland.wkuwku.plug.PlugManifest;
 import ink.snowland.wkuwku.plug.PlugUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -80,6 +82,10 @@ public class PlugManager {
                     if (listener != null)
                         listener.onFailure(error);
                 });
+    }
+
+    public List<Plug> getInstalledPlugs() {
+        return new ArrayList<>(PlugUtils.getInstalledPlugs());
     }
 
     private static void install(@NonNull List<PlugManifestExt> plugs) {

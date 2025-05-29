@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -75,6 +76,7 @@ public class PlugUtils {
             }
             Plug o = (Plug) clazz.newInstance();
             o.install(context, resources);
+            o.setManifest(manifest);
             sCache.put(manifest.packageName, o);
         } catch (Exception e) {
             noError = false;
@@ -91,6 +93,10 @@ public class PlugUtils {
         }
         File file = new File(manifest.installPath);
         return !file.exists() || file.delete();
+    }
+
+    public static Collection<Plug> getInstalledPlugs() {
+        return sCache.values();
     }
 
     private static void copy(InputStream from, OutputStream to) throws IOException {
