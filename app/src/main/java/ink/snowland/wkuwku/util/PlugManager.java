@@ -84,7 +84,7 @@ public class PlugManager {
                 });
     }
 
-    public List<Plug> getInstalledPlugs() {
+    public static List<Plug> getInstalledPlugs() {
         return new ArrayList<>(PlugUtils.getInstalledPlugs());
     }
 

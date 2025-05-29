@@ -108,6 +108,10 @@ public class MainActivity extends BaseActivity {
             if (isNavigateAble(R.id.trash_fragment)) {
                 mNavController.navigate(R.id.trash_fragment/*, null, navAnimOptions*/);
             }
+        } else if (itemId == R.id.action_extension) {
+            if (isNavigateAble(R.id.plug_fragment)) {
+                mNavController.navigate(R.id.plug_fragment);
+            }
         }
         binding.drawerLayout.closeDrawers();
         return true;

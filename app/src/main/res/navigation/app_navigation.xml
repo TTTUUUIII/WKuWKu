@@ -28,4 +28,8 @@
     <fragment android:id="@+id/macro_fragment"
         android:name="ink.snowland.wkuwku.ui.macro.MacroFragment"
         android:label="fragment_macro" />
+
+    <fragment android:id="@+id/plug_fragment"
+        android:name="ink.snowland.wkuwku.ui.plug.PlugFragment"
+        android:label="fragment_plug" />
 </navigation>
