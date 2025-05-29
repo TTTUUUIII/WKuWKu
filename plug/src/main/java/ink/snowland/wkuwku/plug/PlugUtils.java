@@ -6,6 +6,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.FileUtils;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -95,8 +95,17 @@ public class PlugUtils {
         return !file.exists() || file.delete();
     }
 
-    public static Collection<Plug> getInstalledPlugs() {
-        return sCache.values();
+    public static boolean isInstanced(@NonNull PlugManifest manifest) {
+        return sCache.get(manifest.packageName) != null;
+    }
+
+    public static @Nullable Drawable getPlugIcon(@NonNull Context context, @NonNull PlugManifest manifest) {
+        PackageManager packageManager = context.getPackageManager();
+        String plugPath = new File(manifest.installPath, manifest.dexFileName).getAbsolutePath();
+        PackageInfo packageInfo = packageManager.getPackageArchiveInfo(plugPath, PackageManager.GET_META_DATA);
+        if (packageInfo == null || packageInfo.applicationInfo == null) return null;
+        packageInfo.applicationInfo.publicSourceDir = plugPath;
+        return packageManager.getApplicationIcon(packageInfo.applicationInfo);
     }
 
     private static void copy(InputStream from, OutputStream to) throws IOException {

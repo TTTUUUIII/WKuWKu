@@ -2,10 +2,8 @@ package ink.snowland.wkuwku.plug;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public abstract class Plug {
     protected PlugManifest manifest;
@@ -15,9 +13,6 @@ public abstract class Plug {
     }
     protected void uninstall() {
 
-    }
-    public @Nullable Bitmap getIcon() {
-        return null;
     }
     public PlugManifest getManifest() {
         return manifest;

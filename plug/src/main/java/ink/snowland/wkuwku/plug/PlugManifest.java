@@ -3,6 +3,8 @@ package ink.snowland.wkuwku.plug;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Objects;
+
 public class PlugManifest {
 
     public PlugManifest(@NonNull String name, @NonNull String packageName, @NonNull String mainClass, @Nullable String author, @Nullable String summary) {
@@ -46,6 +48,19 @@ public class PlugManifest {
 
     public String getInstallPath() {
         return installPath;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PlugManifest that = (PlugManifest) o;
+        return Objects.equals(packageName, that.packageName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(packageName);
     }
 
     @Override

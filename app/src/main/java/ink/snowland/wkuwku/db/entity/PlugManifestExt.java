@@ -6,6 +6,8 @@ import androidx.room.Embedded;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import java.util.Objects;
+
 import ink.snowland.wkuwku.plug.PlugManifest;
 
 @Entity(tableName = "tb_plug_manifest_ext")
@@ -28,5 +30,18 @@ public class PlugManifestExt {
 
     public PlugManifestExt() {
         packageName = "";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PlugManifestExt that = (PlugManifestExt) o;
+        return Objects.equals(packageName, that.packageName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(packageName);
     }
 }

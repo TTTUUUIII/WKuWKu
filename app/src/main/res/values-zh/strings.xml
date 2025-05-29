@@ -105,4 +105,9 @@
     <string name="no_extensions_installed">🪹 没有安装任何扩展</string>
     <string name="no_available_extensions">🪶 没有可用扩展</string>
     <string name="install">安装</string>
+    <string name="disable">禁用</string>
+    <string name="enable">启用</string>
+    <string name="uninstall">卸载</string>
+    <string name="need_restart">需要重启</string>
+    <string name="error_occurred">发生错误</string>
 </resources>
