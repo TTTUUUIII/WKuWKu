@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -109,7 +108,6 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             if (viewType == INSTALLED_SCREEN) {
                 mPlugInstalledBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugInstalledBinding.recyclerView.setAdapter(mInstalledPlugAdapter);
-                mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
             } else {
 //                LayoutPlugAvailableBinding _bind = (LayoutPlugAvailableBinding) itemBinding;
 //                _bind.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
@@ -177,8 +175,6 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         public void bind(Object o) {
             if (o instanceof PlugManifestExt) {
                 PlugManifestExt manifest = (PlugManifestExt) o;
-                itemBinding.plugName.setText(manifest.origin.name);
-                itemBinding.plugSummary.setText(manifest.origin.summary);
                 Drawable icon = PlugManager.getPlugIcon(manifest.origin);
                 if (icon != null) {
                     Glide.with(parentActivity)
@@ -200,7 +196,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .subscribe();
                 });
                 itemBinding.uninstall.setOnClickListener(v -> {
-
+                    showDeletePlugDialog(manifest);
                 });
             }
         }
