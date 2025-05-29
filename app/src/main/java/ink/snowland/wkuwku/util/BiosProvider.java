@@ -29,8 +29,12 @@ public class BiosProvider {
 
     private static final Map<String, Bios> BIOS = new HashMap<>();
 
-    public static void initialize(@NonNull Context context) throws XmlPullParserException, IOException {
-        parseBiosConfig(context.getResources().getXml(R.xml.bios_config));
+    public static void initialize(@NonNull Context context) {
+        try {
+            parseBiosConfig(context.getResources().getXml(R.xml.bios_config));
+        } catch (IOException | XmlPullParserException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static Completable downloadBiosForGame(@NonNull Game game, @NonNull File systemDir) {
