@@ -56,7 +56,11 @@ public class PlugUtils {
                 return null;
             }
         }
-        return install(context, manifest) ? manifest : null;
+        boolean noError = install(context, manifest);
+        if (!noError) {
+            delete(installDir);
+        }
+        return  noError ? manifest : null;
     }
 
     @SuppressLint("PrivateApi")
