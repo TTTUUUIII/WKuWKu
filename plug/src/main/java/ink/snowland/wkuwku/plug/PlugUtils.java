@@ -78,7 +78,7 @@ public class PlugUtils {
             o.install(context, resources);
             o.setManifest(manifest);
             sCache.put(manifest.packageName, o);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             noError = false;
             e.printStackTrace(System.err);
         }
