@@ -138,11 +138,11 @@ public class PlugUtils {
         String plugPackageName = packageInfo.packageName;
         if (packageInfo.applicationInfo == null) return null;
         Bundle metaData = packageInfo.applicationInfo.metaData;
-        String plugName = packageInfo.applicationInfo.name;
+        String plugName = packageManager.getApplicationLabel(packageInfo.applicationInfo).toString();
         String plugMainClass = metaData.getString("plugMainClass");
         String plugAuthor = metaData.getString("plugAuthor", "");
         String plugSummary = metaData.getString("plugSummary", "");
-        if (plugName != null && plugMainClass != null){
+        if (plugMainClass != null){
             PlugManifest manifest = new PlugManifest(plugName, plugPackageName, plugMainClass, plugAuthor, plugSummary);
             manifest.versionName = packageInfo.versionName;
             manifest.versionCode = packageInfo.versionCode;
