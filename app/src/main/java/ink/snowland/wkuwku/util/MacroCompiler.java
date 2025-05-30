@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ink.snowland.wkuwku.common.MacroEvent;
+import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 
 public class MacroCompiler {

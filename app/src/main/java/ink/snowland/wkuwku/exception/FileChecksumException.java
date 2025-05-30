@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.common;
+package ink.snowland.wkuwku.exception;
 
 import java.util.Locale;
 

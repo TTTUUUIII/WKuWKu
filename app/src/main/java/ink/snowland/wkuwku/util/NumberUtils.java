@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.common;
+package ink.snowland.wkuwku.util;
 
 public class NumberUtils {
     public static long parseLong(String s, long defaultValue) {

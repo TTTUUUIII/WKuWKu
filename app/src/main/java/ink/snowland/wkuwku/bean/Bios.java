@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.common;
+package ink.snowland.wkuwku.bean;
 
 public class Bios {
     public final String title;

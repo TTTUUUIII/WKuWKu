@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.common;
+package ink.snowland.wkuwku.bean;
 
 import java.util.Arrays;
 

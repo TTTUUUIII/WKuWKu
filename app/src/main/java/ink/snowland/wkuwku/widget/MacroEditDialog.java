@@ -9,10 +9,9 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.List;
-import java.util.Locale;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.common.MacroEvent;
+import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.databinding.LayoutMacroEditBinding;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;
