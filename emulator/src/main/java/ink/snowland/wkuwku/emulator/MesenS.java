@@ -7,24 +7,21 @@ import androidx.annotation.NonNull;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
-
-import ink.snowland.libwkuwku.R;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.interfaces.Emulator;
 
-public class Mesen extends Emulator {
+public class MesenS extends Emulator {
 
-    private Mesen(@NonNull Context context) throws XmlPullParserException, IOException {
-        super(context.getResources(), R.xml.mesen_config);
+    private MesenS(@NonNull Context context) throws XmlPullParserException, IOException {
+        super(context.getResources(), R.xml.mesen_s_config);
     }
-
 
     public static void registerAsEmulator(@NonNull Context context) {
         if (SHARED_INSTANCE == null) {
             try {
-                SHARED_INSTANCE = new Mesen(context);
+                SHARED_INSTANCE = new MesenS(context);
             } catch (XmlPullParserException | IOException e) {
                 e.printStackTrace(System.err);
             }
@@ -34,10 +31,10 @@ public class Mesen extends Emulator {
         }
     }
 
-    private static Mesen SHARED_INSTANCE;
+    private static MesenS SHARED_INSTANCE;
 
     static {
-        System.loadLibrary("mesen-bridge");
+        System.loadLibrary("mesen-s-bridge");
     }
 
     protected native void nativePowerOn();
@@ -51,9 +48,10 @@ public class Mesen extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+
     @Override
     public String getTag() {
-        return "mesen";
+        return "mesen-s";
     }
 
     @Override

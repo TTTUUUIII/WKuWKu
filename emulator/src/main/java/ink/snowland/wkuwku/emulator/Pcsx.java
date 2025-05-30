@@ -1,7 +1,6 @@
 package ink.snowland.wkuwku.emulator;
 
 import android.content.Context;
-import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
 
@@ -9,7 +8,6 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 
-import ink.snowland.libwkuwku.R;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;

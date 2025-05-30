@@ -21,6 +21,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "WKuWKu"
 include ':app'
-include ':wkuwku'
+include ':emulator'
 include ':plug'
 include ':plug-mame'

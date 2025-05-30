@@ -44,7 +44,7 @@ android {
 
 dependencies {
 
-    compileOnly(project(path: ":wkuwku"))
+    compileOnly(project(path: ":emulator"))
     compileOnly(project(path: ":plug"))
     implementation libs.appcompat
     implementation libs.material

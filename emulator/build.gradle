@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'ink.snowland.libwkuwku'
+    namespace 'ink.snowland.wkuwku.emulator'
     compileSdk 35
 
     defaultConfig {
