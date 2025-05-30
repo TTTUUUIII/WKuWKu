@@ -159,11 +159,11 @@ public class PlugUtils {
                 if (name.startsWith("lib/" + abi)) {
                     File item = new File(installDir, entry.getName());
                     if (entry.isDirectory()) {
-                        item.mkdirs();
+                        boolean success = item.mkdirs();
                     } else {
                         File parent = item.getParentFile();
                         if (parent != null && !parent.exists()) {
-                            parent.mkdirs();
+                            boolean success = parent.mkdirs();
                         }
                         try (FileOutputStream fos = new FileOutputStream(item)){
                             byte[] buffer = new byte[1024];

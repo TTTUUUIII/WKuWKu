@@ -8,10 +8,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
+import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
+import ink.snowland.wkuwku.exception.FileChecksumException;
 import ink.snowland.wkuwku.plug.PlugManifest;
 import ink.snowland.wkuwku.plug.PlugUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -33,6 +37,48 @@ public class PlugManager {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(PlugManager::install, error -> {
                     error.printStackTrace(System.err);
+                });
+    }
+
+    public static void install(@NonNull PlugRes res, @Nullable ActionListener listener) {
+        Disposable disposable = Completable.create(emitter -> {
+                    URL url = new URL(res.url);
+                    String filename = new File(url.getPath()).getName();
+                    if (!filename.endsWith(".apk")) {
+                        emitter.onError(new UnsupportedOperationException("Unknown plug file type!"));
+                        return;
+                    }
+                    File temp = new File(FileManager.getCacheDirectory(), filename);
+                    try (InputStream from = url.openStream()) {
+                        FileManager.copy(from, temp);
+                        String md5sum = FileManager.calculateMD5Sum(temp);
+                        if (!md5sum.equals(res.md5)) {
+                            emitter.onError(new FileChecksumException(res.md5, md5sum));
+                            FileManager.delete(temp);
+                            return;
+                        }
+                        install(temp.getAbsolutePath(), new ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                emitter.onComplete();
+                                FileManager.delete(temp);
+                            }
+
+                            @Override
+                            public void onFailure(Throwable e) {
+                                emitter.onError(e);
+                                FileManager.delete(temp);
+                            }
+                        });
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(() -> {
+                    if (listener != null)
+                        listener.onSuccess();
+                }, error -> {
+                    if (listener != null)
+                        listener.onFailure(error);
                 });
     }
 

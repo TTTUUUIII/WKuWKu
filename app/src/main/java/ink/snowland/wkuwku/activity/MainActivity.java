@@ -10,6 +10,8 @@ import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -99,21 +101,26 @@ public class MainActivity extends BaseActivity {
 
     private boolean onDrawerItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        if (itemId == R.id.action_macro) {
-            if (isNavigateAble(R.id.macro_fragment))
-                mNavController.navigate(R.id.macro_fragment/*, null, navAnimOptions*/);
-        } else if (itemId == R.id.action_about) {
+        if (itemId == R.id.action_about) {
             showAboutDialog();
-        } else if (itemId == R.id.action_trash) {
-            if (isNavigateAble(R.id.trash_fragment)) {
-                mNavController.navigate(R.id.trash_fragment/*, null, navAnimOptions*/);
+        } else {
+            final int navResId;
+            if (itemId == R.id.action_macro) {
+                navResId = R.id.macro_fragment;
+            } else if (itemId == R.id.action_trash) {
+                navResId = R.id.trash_fragment;
+            } else if (itemId == R.id.action_extension) {
+                navResId = R.id.plug_fragment;
+            } else {
+                navResId = 0;
             }
-        } else if (itemId == R.id.action_extension) {
-            if (isNavigateAble(R.id.plug_fragment)) {
-                mNavController.navigate(R.id.plug_fragment);
+            binding.drawerLayout.closeDrawers();
+            if (navResId != 0 && isNavigateAble(navResId)) {
+                postDelayed(() -> {
+                    mNavController.navigate(navResId);
+                }, 200);
             }
         }
-        binding.drawerLayout.closeDrawers();
         return true;
     }
 
