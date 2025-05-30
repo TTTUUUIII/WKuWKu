@@ -138,7 +138,7 @@ public class PlugUtils {
         String plugPackageName = packageInfo.packageName;
         if (packageInfo.applicationInfo == null) return null;
         Bundle metaData = packageInfo.applicationInfo.metaData;
-        String plugName = metaData.getString("plugName");
+        String plugName = packageInfo.applicationInfo.name;
         String plugMainClass = metaData.getString("plugMainClass");
         String plugAuthor = metaData.getString("plugAuthor", "");
         String plugSummary = metaData.getString("plugSummary", "");
