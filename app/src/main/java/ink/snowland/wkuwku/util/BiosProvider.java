@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.common.Bios;
-import ink.snowland.wkuwku.common.FileChecksumException;
+import ink.snowland.wkuwku.bean.Bios;
+import ink.snowland.wkuwku.exception.FileChecksumException;
 import ink.snowland.wkuwku.db.entity.Game;
 import io.reactivex.rxjava3.core.Completable;
 

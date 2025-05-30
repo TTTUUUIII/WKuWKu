@@ -10,7 +10,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +18,7 @@ import java.util.Map;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
-import ink.snowland.wkuwku.common.MacroEvent;
+import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;

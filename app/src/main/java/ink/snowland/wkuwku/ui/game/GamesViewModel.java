@@ -17,7 +17,7 @@ import java.util.List;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
-import ink.snowland.wkuwku.common.NumberUtils;
+import ink.snowland.wkuwku.util.NumberUtils;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.interfaces.Emulator;

@@ -1,5 +1,5 @@
-package ink.snowland.wkuwku.common;
-
+package ink.snowland.wkuwku.widget;
+import static ink.snowland.wkuwku.GlobalConfig.*;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -27,7 +27,7 @@ public class CheckLatestVersionWorker extends Worker {
     public static final String EXTRA_APK_PATH = "apk.path";
     public static final String EXTRA_APK_VERSION = "apk.version";
 
-    private static final String TAG = "CheckUpdateWorker";
+    private static final String TAG = "CheckLatestVersionWorker";
     public CheckLatestVersionWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
@@ -36,7 +36,7 @@ public class CheckLatestVersionWorker extends Worker {
     @Override
     public Result doWork() {
         Log.d(TAG, "INFO: start check latest version.");
-        try (InputStream config = new URL("https://media.snowland.ink/wkuwku_versions.xml").openStream()){
+        try (InputStream config = new URL(WEB_URL + "app-version.xml").openStream()){
             String version = null;
             List<String> md5List = null;
             XmlPullParser xmlPullParser = Xml.newPullParser();

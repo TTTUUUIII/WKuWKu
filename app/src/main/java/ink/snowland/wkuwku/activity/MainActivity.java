@@ -37,7 +37,7 @@ import java.io.File;
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
-import ink.snowland.wkuwku.common.CheckLatestVersionWorker;
+import ink.snowland.wkuwku.widget.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 import ink.snowland.wkuwku.util.SettingsManager;
 

@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import java.util.Collection;
 import java.util.List;
 
+import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.interfaces.EmInputDevice;
 import ink.snowland.wkuwku.util.SettingsManager;
