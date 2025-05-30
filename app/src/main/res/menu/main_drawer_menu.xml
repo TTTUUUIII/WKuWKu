@@ -15,7 +15,7 @@
         <item
             android:id="@+id/action_extension"
             android:icon="@drawable/ic_extension"
-            android:title="@string/app_extension" />
+            android:title="@string/extension" />
     </group>
     <group
         android:id="@+id/information">

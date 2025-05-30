@@ -138,11 +138,11 @@ public class PlugUtils {
         String plugPackageName = packageInfo.packageName;
         if (packageInfo.applicationInfo == null) return null;
         Bundle metaData = packageInfo.applicationInfo.metaData;
-        String plugName = packageInfo.applicationInfo.name;
+        String plugName = packageManager.getApplicationLabel(packageInfo.applicationInfo).toString();
         String plugMainClass = metaData.getString("plugMainClass");
         String plugAuthor = metaData.getString("plugAuthor", "");
         String plugSummary = metaData.getString("plugSummary", "");
-        if (plugName != null && plugMainClass != null){
+        if (plugMainClass != null){
             PlugManifest manifest = new PlugManifest(plugName, plugPackageName, plugMainClass, plugAuthor, plugSummary);
             manifest.versionName = packageInfo.versionName;
             manifest.versionCode = packageInfo.versionCode;
@@ -159,11 +159,11 @@ public class PlugUtils {
                 if (name.startsWith("lib/" + abi)) {
                     File item = new File(installDir, entry.getName());
                     if (entry.isDirectory()) {
-                        item.mkdirs();
+                        boolean success = item.mkdirs();
                     } else {
                         File parent = item.getParentFile();
                         if (parent != null && !parent.exists()) {
-                            parent.mkdirs();
+                            boolean success = parent.mkdirs();
                         }
                         try (FileOutputStream fos = new FileOutputStream(item)){
                             byte[] buffer = new byte[1024];

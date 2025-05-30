@@ -3,6 +3,8 @@ package ink.snowland.wkuwku.common;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -27,6 +29,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     private ActivityResultLauncher<String[]> mOpenDocumentLauncher;
     private OnResultCallback<Uri> mOpenDocumentCallback;
     private OnResultCallback<String> mOnQRScanResultCallback;
+    private final Handler handler = new Handler(Looper.getMainLooper());
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,5 +119,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         intent.setDataAndType(uri, "application/vnd.android.package-archive");
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         startActivity(intent);
+    }
+
+    protected void postDelayed(Runnable r, long delayMillis) {
+        handler.postDelayed(r, delayMillis);
     }
 }

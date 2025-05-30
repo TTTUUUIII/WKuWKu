@@ -16,6 +16,7 @@ import androidx.viewbinding.ViewBinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -136,6 +137,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             if (viewType == INSTALLED_SCREEN) {
                 mPlugInstalledBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugInstalledBinding.recyclerView.setAdapter(mInstalledPlugAdapter);
+                mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
             } else {
                 mPlugAvailableBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugAvailableBinding.recyclerView.setAdapter(mAvailablePlugAdapter);
@@ -239,6 +241,30 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 }
                 _binding.installButton.setEnabled(!mInstalledPlugs.contains(res.packageName));
                 _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.install : R.string.installed);
+                _binding.installButton.setOnClickListener(v -> {
+                    _binding.installButton.setText(R.string.installing);
+                    _binding.installButton.setEnabled(false);
+                    _binding.linearIndicator.setIndeterminate(true);
+                    _binding.linearIndicator.setVisibility(View.VISIBLE);
+                    PlugManager.install(res, new PlugManager.ActionListener() {
+                        @Override
+                        public void onSuccess() {
+                            _binding.installButton.setText(R.string.installed);
+                            _binding.linearIndicator.setIndeterminate(false);
+                            _binding.linearIndicator.setVisibility(View.INVISIBLE);
+                        }
+
+                        @Override
+                        public void onFailure(Throwable e) {
+                            _binding.installButton.setText(R.string.install);
+                            _binding.installButton.setEnabled(true);
+                            _binding.linearIndicator.setIndeterminate(false);
+                            _binding.linearIndicator.setVisibility(View.INVISIBLE);
+                            e.printStackTrace(System.err);
+                            Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                });
             }
         }
     }
