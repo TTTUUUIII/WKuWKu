@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -137,10 +138,14 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             if (viewType == INSTALLED_SCREEN) {
                 mPlugInstalledBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugInstalledBinding.recyclerView.setAdapter(mInstalledPlugAdapter);
+                DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
+                mPlugInstalledBinding.recyclerView.addItemDecoration(decoration);
                 mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
             } else {
                 mPlugAvailableBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugAvailableBinding.recyclerView.setAdapter(mAvailablePlugAdapter);
+                DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
+                mPlugAvailableBinding.recyclerView.addItemDecoration(decoration);
                 mPlugAvailableBinding.emptyListIndicator.setVisibility(mAvailablePlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
             }
         }
