@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.View;
 
@@ -78,6 +79,10 @@ public abstract class BaseController extends EmInputDevice implements View.OnKey
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
+        int source = event.getSource();
+        if ((source & InputDevice.SOURCE_GAMEPAD) != InputDevice.SOURCE_GAMEPAD && (source & InputDevice.SOURCE_DPAD) != InputDevice.SOURCE_DPAD) {
+            return false;
+        }
         int[] keys;
         int action = event.getAction() == KeyEvent.ACTION_DOWN ? KEY_DOWN : KEY_UP;
         switch (keyCode) {
