@@ -12,8 +12,11 @@
 #   public *;
 #}
 
--keep class ink.snowland.wkuwku.emulator.** { *; }
+-keep class ink.snowland.wkuwku.interfaces.Emulator { *; }
+-keep class * extends ink.snowland.wkuwku.interfaces.Emulator { *; }
+-keep class ink.snowland.wkuwku.EmulatorManager { *; }
 -keep class ink.snowland.wkuwku.common.** { *; }
+-keep class ink.snowland.wkuwku.plug.** { *; }
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.

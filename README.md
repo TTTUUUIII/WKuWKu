@@ -12,9 +12,9 @@
 ## What systems are currently supported?
 
 | System                              | manufacturer | optional core   |
-| ----------------------------------- | ------------ | --------------- |
-| Nintendo Entertainment System       | Nintendo     | fceumm、mesen   |
-| Family Computer                     | Nintendo     | fceumm、mesen   |
+|-------------------------------------|--------------|-----------------|
+| Nintendo Entertainment System       | Nintendo     | fceumm、mesen    |
+| Family Computer                     | Nintendo     | fceumm、mesen    |
 | Super Nintendo Entertainment System | Nintendo     | mesen-s         |
 | Game Boy                            | Nintendo     | mesen-s         |
 | Game Boy Color                      | Nintendo     | mesen-s         |
@@ -25,6 +25,7 @@
 | PICO                                | Sega         | genesis plus gx |
 | SG-1000                             | Sega         | genesis plus gx |
 | Play Station                        | Sony         | pcsx            |
+| Arcade                              | NA           | mame2003-plus   |
 
 
 
@@ -32,10 +33,6 @@
 
 > - Continue to improve various basic functions (as you can see, many functions are still only on the interface and have not yet been implemented.)
 > - Support more interesting platforms! (ps：sega genesis、snes、gameboy、even the arcade platform!)
-
-## Want to contribute ?
-
-> This project welcomes any code or test contributions. If you have any intention in this regard, please send an email wn123o@outlook.com.
 
 ## At last
 
