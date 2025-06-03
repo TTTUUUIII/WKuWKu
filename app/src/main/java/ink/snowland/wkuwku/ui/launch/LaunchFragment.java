@@ -190,7 +190,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @Override
     public void onDestroy() {
         super.onDestroy();
-        parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_BEHIND);
+        parentActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         parentActivity.setStatusBarVisibility(true);
         parentActivity.setActionBarVisibility(true);
         parentActivity.setDrawerLockedMode(DrawerLayout.LOCK_MODE_UNLOCKED);
