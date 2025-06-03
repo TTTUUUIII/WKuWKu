@@ -30,12 +30,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
-    private final LayoutStandardControllerBinding binding;
+    private LayoutStandardControllerBinding binding;
 
     public StandardController(int port, @NonNull Context context) {
         super(context, port, RETRO_DEVICE_JOYPAD);
-        binding = LayoutStandardControllerBinding.inflate(LayoutInflater.from(context));
-        bindEvents();
     }
 
     @Override
@@ -55,6 +53,14 @@ public class StandardController extends BaseController implements View.OnTouchLi
         } else {
             mState &= (short) ~(0x01 << id);
         }
+    }
+
+    @NonNull
+    @Override
+    public View onCreateView(@NonNull Context context) {
+        binding = LayoutStandardControllerBinding.inflate(LayoutInflater.from(context));
+        bindEvents();
+        return binding.getRoot();
     }
 
     @Override
