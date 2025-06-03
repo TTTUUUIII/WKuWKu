@@ -10,6 +10,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.FileUtils;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +30,7 @@ import java.util.zip.ZipInputStream;
 import dalvik.system.DexClassLoader;
 
 public class PlugUtils {
+    private static final String TAG = "PlugUtils";
 
     private static final Map<String, Plug> sCache = new HashMap<>();
     public static PlugManifest install(Context context, File plugFile, File installDir) {
@@ -36,10 +38,10 @@ public class PlugUtils {
         if (manifest == null) return null;
         String plugName = plugFile.getName();
         installDir = new File(installDir, manifest.packageName);
-        if (installDir.exists())
+        if (!installDir.exists() && !installDir.mkdirs()) {
+            Log.e(TAG, "ERROR: failed to create dir: " + installDir);
             return null;
-        if (!installDir.mkdirs())
-            return null;
+        }
         File plug = new File(installDir, plugName);
         manifest.installPath = installDir.getAbsolutePath();
         manifest.dexFileName = plug.getName();
