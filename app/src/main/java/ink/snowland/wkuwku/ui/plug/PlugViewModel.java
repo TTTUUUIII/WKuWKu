@@ -76,7 +76,7 @@ public class PlugViewModel extends BaseViewModel {
         if (info.name == null) return null;
         int eventType = xmlPullParser.getEventType();
         String tagName = xmlPullParser.getName();
-        while (eventType != XmlPullParser.END_TAG || "plug".equals(tagName)) {
+        while (eventType != XmlPullParser.END_TAG || !"plug".equals(tagName)) {
             if (eventType == XmlPullParser.START_TAG) {
                 if ("author".equals(tagName)) {
                     info.author = xmlPullParser.nextText();
