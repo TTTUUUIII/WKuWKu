@@ -1,0 +1,728 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Play Station"
+            tag="playstation"
+            manufacturer="sony" />
+    </systems>
+    <content-extensions>
+        <item>cue</item>
+        <item>bin</item>
+        <item>chd</item>
+        <item>img</item>
+        <item>iso</item>
+        <item>mdf</item>
+        <item>pbp</item>
+        <item>toc</item>
+        <item>cbn</item>
+    </content-extensions>
+    <options>
+        <option
+            key="pcsx_rearmed_frameskip"
+            defaultValue="0"
+            title="Frame skip">
+            <allow-values>
+                <value>0</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_bios"
+            defaultValue="auto"
+            title="Use BIOS">
+            <allow-values>
+                <value>auto</value>
+                <value>HLE</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_region"
+            defaultValue="auto"
+            title="Region">
+            <allow-values>
+                <value>auto</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_memcard2"
+            defaultValue="disabled"
+            title="Enable second memory card">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_input_sensitivity"
+            defaultValue="1.00"
+            inputType="numberDecimal"
+            title="Emulated Mouse Sensitivity (0.05-2.00)" />
+        <option
+            key="pcsx_rearmed_multitap"
+            defaultValue="disabled"
+            title="Multitap Mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>port 1 only</value>
+                <value>port 2 only</value>
+                <value>both</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_3ds_appcputime"
+            defaultValue="100"
+            inputType="number"
+            title="3DS app CPU time" />
+        <option
+            key="pcsx_rearmed_negcon_deadzone"
+            defaultValue="0"
+            title="NegCon Twist Deadzone">
+            <allow-values>
+                <value>0</value>
+                <value>5</value>
+                <value>10</value>
+                <value>15</value>
+                <value>20</value>
+                <value>25</value>
+                <value>30</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_negcon_response"
+            defaultValue="linear"
+            title="NegCon Twist Response">
+            <allow-values>
+                <value>linear</value>
+                <value>quadratic</value>
+                <value>cubic</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_analog_axis_modifier"
+            defaultValue="circle"
+            title="Analog axis bounds">
+            <allow-values>
+                <value>circle</value>
+                <value>square</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gunconadjustx"
+            defaultValue="0"
+            inputType="numberSigned"
+            title="Guncon adjust X (-15 - 25)" />
+        <option
+            key="pcsx_rearmed_gunconadjusty"
+            defaultValue="0"
+            inputType="numberSigned"
+            title="Guncon adjust Y (-15 - 25)" />
+        <option
+            key="pcsx_rearmed_gunconadjustratiox"
+            defaultValue="1"
+            inputType="numberDecimal"
+            title="Guncon adjust ratio X (0.75 - 1.25)" />
+        <option
+            key="pcsx_rearmed_gunconadjustratioy"
+            defaultValue="1"
+            inputType="numberDecimal"
+            title="Guncon adjust ratio Y (0.75 - 1.25)" />
+        <option
+            key="pcsx_rearmed_vibration"
+            defaultValue="disabled"
+            title="Enable vibration">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_dithering"
+            defaultValue="disabled"
+            title="Enable dithering">
+            <allow-values>
+                <value>disabled</value>
+                <value>force</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_duping_enable"
+            defaultValue="disabled"
+            title="Frame duping">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_display_internal_fps"
+            defaultValue="disabled"
+            title="Display internal FPS">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_thread_rendering"
+            defaultValue="disabled"
+            title="GPU thread rendering">
+            <allow-values>
+                <value>disabled</value>
+                <value>sync</value>
+                <value>async</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_show_bios_bootlogo"
+            defaultValue="disabled"
+            title="Show BIOS bootlogo">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_spu_reverb"
+            defaultValue="disabled"
+            title="Sound reverb">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_spu_interpolation"
+            defaultValue="simple"
+            title="Sound interpolation">
+            <allow-values>
+                <value>simple</value>
+                <value>gaussian</value>
+                <value>cubic</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_async_cd"
+            defaultValue="sync"
+            title="CD access method">
+            <allow-values>
+                <value>sync</value>
+                <value>async</value>
+                <value>precache</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_noxadecoding"
+            defaultValue="enabled"
+            title="XA decoding">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_nocdaudio"
+            defaultValue="enabled"
+            title="CD audio">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_spuirq"
+            defaultValue="disabled"
+            title="SPU IRQ always enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_idiablofix"
+            defaultValue="disabled"
+            title="Diablo music fix">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_pe2_fix"
+            defaultValue="disabled"
+            title="Parasite Eve 2/Vandal Hearts ½ Fix">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_inuyasha_fix"
+            defaultValue="disabled"
+            title="InuYasha Sengoku Battle Fix">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_drc"
+            defaultValue="enabled"
+            title="Dynamic recompiler">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_drc_thread"
+            defaultValue="enabled"
+            title="Dynamic recompiler thread">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_psxclock"
+            defaultValue="57"
+            inputType="number"
+            title="PSX cpu clock (30 - 100)" />
+        <option
+            key="pcsx_rearmed_neon_interlace_enable"
+            defaultValue="disabled"
+            title="Enable interlacing mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_neon_enhancement_enable"
+            defaultValue="disabled"
+            title="Enable resolution">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_neon_enhancement_no_main"
+            defaultValue="disabled"
+            title="Enhanced resolution speed hack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_odd_even_bit"
+            defaultValue="disabled"
+            title="(GPU) Odd/Even bit hack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_expand_screen_width"
+            defaultValue="disabled"
+            title="(GPU) Expand screen width">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_ignore_brightness"
+            defaultValue="disabled"
+            title="(GPU) Ignore brightness color">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_disable_coord_check"
+            defaultValue="disabled"
+            title="(GPU) Disable coordinate check">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_lazy_screen_update"
+            defaultValue="enabled"
+            title="(GPU) Lazy screen update">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_old_frame_skip"
+            defaultValue="disabled"
+            title="(GPU) Old frame skip">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_repeated_triangles"
+            defaultValue="disabled"
+            title="(GPU) Draw quads with triangles">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_fake_busy_state"
+            defaultValue="disabled"
+            title="(GPU) Fake 'Gpu Busy' states">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_old_renderer"
+            defaultValue="disabled"
+            title="(GPU) Old renderer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_skipline"
+            defaultValue="disabled"
+            title="(GPU) Skip lines">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_peops_quads_with_triangles"
+            defaultValue="disabled"
+            title="(GPU) Draw quads with triangles">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_blending"
+            defaultValue="enabled"
+            title="(GPU) Enable blending">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_lighting"
+            defaultValue="enabled"
+            title="(GPU) Enable lighting">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_fast_lighting"
+            defaultValue="disabled"
+            title="(GPU) Enable fast lighting">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_ilace_force"
+            defaultValue="disabled"
+            title="(GPU) Enable Forced Interlace">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_pixel_skip"
+            defaultValue="disabled"
+            title="(GPU) Enable pixel skipping">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_unai_scale_hires"
+            defaultValue="disabled"
+            title="(GPU) Enable Hi-Res Downscaling">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_rgb32_output"
+            defaultValue="disabled"
+            enable="false"
+            title="RGB32 output">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_crosshair1"
+            defaultValue="disabled"
+            title="Crosshair 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>blue</value>
+                <value>green</value>
+                <value>red</value>
+                <value>white</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_crosshair2"
+            defaultValue="disabled"
+            title="Crosshair 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>blue</value>
+                <value>green</value>
+                <value>red</value>
+                <value>white</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_konamigunadjustx"
+            defaultValue="0"
+            inputType="number"
+            title="Konami gun adjust X" />
+        <option
+            key="pcsx_rearmed_konamigunadjusty"
+            defaultValue="0"
+            inputType="number"
+            title="Konami gun adjust Y" />
+        <option
+            key="pcsx_rearmed_frameskip_type"
+            defaultValue="auto"
+            title="Frame skip type">
+            <allow-values>
+                <value>auto</value>
+                <value>auto_threshold</value>
+                <value>fixed_interval</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_frameskip_threshold"
+            defaultValue="0"
+            inputType="number"
+            title="Frame skip threshold" />
+        <option
+            key="pcsx_rearmed_frameskip_interval"
+            defaultValue="0"
+            inputType="number"
+            title="Frame skip interval" />
+        <option
+            key="pcsx_rearmed_analog_combo"
+            defaultValue="l1+r1+select"
+            title="Analog combo">
+            <allow-values>
+                <value>l1+r1+select</value>
+                <value>l1+r1+start</value>
+                <value>l1+r1+l3</value>
+                <value>l1+r1+r3</value>
+                <value>l3+r3</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_neon_interlace_enable_v2"
+            defaultValue="disabled"
+            title="Enable interlacing mode (v2)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_neon_enhancement_tex_adj_v2"
+            defaultValue="disabled"
+            title="Enhanced resolution speed hack (v2)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_display_fps_v2"
+            defaultValue="disabled"
+            title="Display internal FPS (v2)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+                <value>extra</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_cd_turbo"
+            defaultValue="enabled"
+            title="CD turbo">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_cd_readahead"
+            defaultValue="10"
+            inputType="number"
+            title="CD readahead" />
+        <option
+            key="pcsx_rearmed_nosmccheck"
+            defaultValue="disabled"
+            title="No SMC check">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gteregsunneeded"
+            defaultValue="disabled"
+            title="GTE registers not needed">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_nogteflags"
+            defaultValue="disabled"
+            title="GTE flags not needed">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_nocompathacks"
+            defaultValue="disabled"
+            title="No compatibility hacks">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_nostalls"
+            defaultValue="disabled"
+            title="No stalls">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_icache_emulation"
+            defaultValue="disabled"
+            title="ICache emulation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_exception_emulation"
+            defaultValue="disabled"
+            title="Exception emulation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_spu_thread"
+            defaultValue="disabled"
+            title="SPU thread">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_gpu_slow_llists"
+            defaultValue="disabled"
+            title="GPU slow lists">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_fractional_framerate"
+            defaultValue="disabled"
+            title="Fractional framerate">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_screen_centering"
+            defaultValue="disabled"
+            title="Screen centering">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_screen_centering_x"
+            defaultValue="0"
+            inputType="number"
+            title="Screen centering X" />
+        <option
+            key="pcsx_rearmed_screen_centering_y"
+            defaultValue="0"
+            inputType="number"
+            title="Screen centering Y" />
+        <option
+            key="pcsx_rearmed_screen_centering_h_adj"
+            defaultValue="0"
+            inputType="number"
+            title="Screen centering H adjust" />
+        <option
+            key="pcsx_rearmed_show_overscan"
+            defaultValue="auto"
+            title="Show overscan">
+            <allow-values>
+                <value>auto</value>
+                <value>hack</value>
+                <value>disabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="pcsx_rearmed_show_input_settings"
+            defaultValue="disabled"
+            title="Show input settings">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
