@@ -98,10 +98,14 @@ public class StandardController extends BaseController implements View.OnTouchLi
                 id = RETRO_DEVICE_ID_JOYPAD_L;
             } else if (viewId == R.id.button_l2) {
                 id = RETRO_DEVICE_ID_JOYPAD_L2;
+            } else if (viewId == R.id.button_l3) {
+                id = RETRO_DEVICE_ID_JOYPAD_L3;
             } else if (viewId == R.id.button_r) {
                 id = RETRO_DEVICE_ID_JOYPAD_R;
             } else if (viewId == R.id.button_r2) {
                 id = RETRO_DEVICE_ID_JOYPAD_R2;
+            } else if (viewId == R.id.button_r3) {
+                id = RETRO_DEVICE_ID_JOYPAD_R3;
             } else {
                 return false;
             }
@@ -132,8 +136,10 @@ public class StandardController extends BaseController implements View.OnTouchLi
         binding.buttonY.setOnTouchListener(this);
         binding.buttonL.setOnTouchListener(this);
         binding.buttonL2.setOnTouchListener(this);
+        binding.buttonL3.setOnTouchListener(this);
         binding.buttonR.setOnTouchListener(this);
         binding.buttonR2.setOnTouchListener(this);
+        binding.buttonR3.setOnTouchListener(this);
         binding.buttonAB.setOnTouchListener(this);
         binding.buttonM1.setOnClickListener(this);
         binding.buttonM2.setOnClickListener(this);
