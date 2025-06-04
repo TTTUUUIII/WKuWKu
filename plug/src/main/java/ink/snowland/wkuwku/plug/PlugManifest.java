@@ -21,20 +21,11 @@ public class PlugManifest {
     public final String author;
     public final String summary;
     protected String installPath;
-    protected String dexFileName;
     protected String versionName;
     protected int versionCode;
 
-    public void setDexFileName(String dexFileName) {
-        this.dexFileName = dexFileName;
-    }
-
     public void setInstallPath(String installPath) {
         this.installPath = installPath;
-    }
-
-    public String getDexFileName() {
-        return dexFileName;
     }
 
     public String getInstallPath() {
@@ -74,7 +65,6 @@ public class PlugManifest {
     @Override
     public String toString() {
         return "PlugManifest{" +
-                "dexFileName='" + dexFileName + '\'' +
                 ", installPath='" + installPath + '\'' +
                 ", summary='" + summary + '\'' +
                 ", author='" + author + '\'' +
