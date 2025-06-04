@@ -31,20 +31,19 @@ import dalvik.system.DexClassLoader;
 
 public class PlugUtils {
     private static final String TAG = "PlugUtils";
+    private static final String BASE_DEX_NAME = "plug-base.apk";
 
     private static final Map<String, Plug> sCache = new HashMap<>();
     public static PlugManifest install(Context context, File plugFile, File installDir) {
         PlugManifest manifest = readManifest(context, plugFile);
         if (manifest == null) return null;
-        String plugName = plugFile.getName();
         installDir = new File(installDir, manifest.packageName);
         if (!installDir.exists() && !installDir.mkdirs()) {
             Log.e(TAG, "ERROR: failed to create dir: " + installDir);
             return null;
         }
-        File plug = new File(installDir, plugName);
+        File plug = new File(installDir, BASE_DEX_NAME);
         manifest.installPath = installDir.getAbsolutePath();
-        manifest.dexFileName = plug.getName();
         if (!plug.exists()) {
             try (FileInputStream from = new FileInputStream(plugFile);
                  FileOutputStream to = new FileOutputStream(plug)){
@@ -68,9 +67,9 @@ public class PlugUtils {
     @SuppressLint("PrivateApi")
     public static boolean install(Context context, PlugManifest manifest) {
         boolean noError = true;
-        File dexFile = new File(manifest.installPath, manifest.dexFileName);
+        File dexFile = new File(manifest.installPath, BASE_DEX_NAME);
         assert dexFile.exists() && dexFile.isFile() && dexFile.canRead();
-        DexClassLoader loader = new DexClassLoader(dexFile.getAbsolutePath(), null, new File(manifest.installPath, "lib/" + Build.SUPPORTED_ABIS[0]).getAbsolutePath(), context.getClassLoader());
+        DexClassLoader loader = new DexClassLoader(dexFile.getAbsolutePath(), null, new File(manifest.installPath, "lib").getAbsolutePath(), context.getClassLoader());
         Resources resources = null;
         try {
             Class<?> clazz = loader.loadClass(manifest.mainClass);
@@ -107,7 +106,7 @@ public class PlugUtils {
 
     public static @Nullable Drawable getPlugIcon(@NonNull Context context, @NonNull PlugManifest manifest) {
         PackageManager packageManager = context.getPackageManager();
-        String plugPath = new File(manifest.installPath, manifest.dexFileName).getAbsolutePath();
+        String plugPath = new File(manifest.installPath, BASE_DEX_NAME).getAbsolutePath();
         PackageInfo packageInfo = packageManager.getPackageArchiveInfo(plugPath, PackageManager.GET_META_DATA);
         if (packageInfo == null || packageInfo.applicationInfo == null) return null;
         packageInfo.applicationInfo.publicSourceDir = plugPath;
@@ -158,20 +157,16 @@ public class PlugUtils {
     }
     private static void extractLibrary(File plug, File installDir) {
         String abi = Build.SUPPORTED_ABIS[0];
+        installDir = new File(installDir, "lib");
+        boolean mkdir = installDir.mkdir();
         try (ZipInputStream zip = new ZipInputStream(new FileInputStream(plug))){
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 String name = entry.getName();
                 if (name.startsWith("lib/" + abi)) {
-                    File item = new File(installDir, entry.getName());
-                    if (entry.isDirectory()) {
-                        boolean success = item.mkdirs();
-                    } else {
-                        File parent = item.getParentFile();
-                        if (parent != null && !parent.exists()) {
-                            boolean success = parent.mkdirs();
-                        }
-                        try (FileOutputStream fos = new FileOutputStream(item)){
+                    if (!entry.isDirectory()) {
+                        File lib = new File(installDir, new File(entry.getName()).getName());
+                        try (FileOutputStream fos = new FileOutputStream(lib)){
                             byte[] buffer = new byte[1024];
                             int readNumInBytes;
                             while ((readNumInBytes = zip.read(buffer)) != -1) {
