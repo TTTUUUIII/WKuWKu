@@ -136,4 +136,6 @@
     <string name="fmt_plug_deleted">%s deleted</string>
     <string name="installing">Installing</string>
     <string name="install_failed">ERROR: install failed!</string>
+    <string name="l3" translatable="false">L3</string>
+    <string name="r3" translatable="false">R3</string>
 </resources>
