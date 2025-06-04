@@ -41,5 +41,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
+        <include
+            android:id="@+id/loading_indicator"
+            layout="@layout/layout_loading_indicator" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

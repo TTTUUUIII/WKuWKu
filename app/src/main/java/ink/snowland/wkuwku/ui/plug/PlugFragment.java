@@ -69,6 +69,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     private Disposable mDisposable;
 
     private final List<String> mInstalledPlugs = new ArrayList<>();
+    private boolean mAvailablePlugListLoaded = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -89,6 +90,10 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         Disposable disposable = mViewModel.getAvailablePlugInfos()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doFinally(() -> {
+                    mAvailablePlugListLoaded = true;
+                    mViewModel.setPendingIndicator(false);
+                })
                 .subscribe(mAvailablePlugAdapter::submitList, error -> {
                     error.printStackTrace(System.err);
                 });
@@ -98,6 +103,8 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         binding = FragmentPlugBinding.inflate(inflater, container, false);
+        binding.loadingIndicator.setLifecycleOwner(this);
+        binding.loadingIndicator.setDataModel(mViewModel);
         return binding.getRoot();
     }
 
@@ -112,7 +119,11 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
-        binding.viewPager.setCurrentItem(tab.getPosition());
+        int screen = tab.getPosition();
+        binding.viewPager.setCurrentItem(screen);
+        if (screen == AVAILABLE_SCREEN && !mAvailablePlugListLoaded) {
+            mViewModel.setPendingIndicator(true, R.string.loading);
+        }
     }
 
     @Override
@@ -146,7 +157,9 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 mPlugAvailableBinding.recyclerView.setAdapter(mAvailablePlugAdapter);
                 DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
                 mPlugAvailableBinding.recyclerView.addItemDecoration(decoration);
-                mPlugAvailableBinding.emptyListIndicator.setVisibility(mAvailablePlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+                if (mAvailablePlugListLoaded) {
+                    mPlugAvailableBinding.emptyListIndicator.setVisibility(mAvailablePlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+                }
             }
         }
     }
