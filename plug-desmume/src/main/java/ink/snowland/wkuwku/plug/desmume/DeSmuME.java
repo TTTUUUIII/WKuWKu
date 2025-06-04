@@ -56,7 +56,7 @@ public class DeSmuME extends Emulator {
 
     @Override
     public String getTag() {
-        return "genesis-plus-gx";
+        return "desumme";
     }
 
     @Override
