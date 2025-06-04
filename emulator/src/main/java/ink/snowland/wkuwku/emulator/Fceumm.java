@@ -88,7 +88,7 @@ public class Fceumm extends Emulator {
     private static Fceumm SHARED_INSTANCE;
 
     static {
-        System.loadLibrary("fceumm-bridge");
+        System.loadLibrary("fceumm");
     }
 
     protected native void nativePowerOn();

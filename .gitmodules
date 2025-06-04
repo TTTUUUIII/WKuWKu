@@ -1,0 +1,3 @@
+[submodule "extern/libretro-fceumm"]
+	path = extern/libretro-fceumm
+	url = https://github.com/TTTUUUIII/libretro-fceumm.git
