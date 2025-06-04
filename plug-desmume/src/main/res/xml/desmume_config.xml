@@ -14,7 +14,7 @@
     <options>
         <option
             key="desmume_cpu_mode"
-            defaultValue="interpreter"
+            defaultValue="jit"
             title="CPU Mode">
             <allow-values>
                 <value>jit</value>
@@ -64,7 +64,7 @@
         </option>
         <option
             key="desmume_internal_resolution"
-            defaultValue="256x192"
+            defaultValue="1024x768"
             title="Internal Resolution (restart)">
             <allow-values>
                 <value>256x192</value>
@@ -86,7 +86,7 @@
             title="CPU Cores (1 - 4)"/>
         <option
             key="desmume_screens_layout"
-            defaultValue="top/bottom"
+            defaultValue="top only"
             title="Screen Layout">
             <allow-values>
                 <value>top/bottom</value>
