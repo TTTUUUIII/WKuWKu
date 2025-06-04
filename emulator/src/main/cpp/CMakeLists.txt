@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
 project("wkuwku")
-add_subdirectory(../../../../extern/libretro-fceumm ${CMAKE_BINARY_DIR}/libretro-fceumm)
+add_subdirectory(../../../../libretro-fceumm ${CMAKE_BINARY_DIR}/libretro-fceumm)
 message(${CMAKE_BINARY_DIR})
 
 # Creates and names a library, sets it as either STATIC
