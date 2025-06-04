@@ -23,6 +23,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.content.FileProvider;
+import androidx.lifecycle.ViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
@@ -50,12 +52,14 @@ public class MainActivity extends BaseActivity {
     private InstallApkReceiver mInstallApkReceiver;
     private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
     private Uri mNewApkUri;
+    private MainViewModel mViewModel;
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+        mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         setSupportActionBar(binding.toolBar);
         setContentView(binding.getRoot());
         ActionBar actionBar = getSupportActionBar();
@@ -75,7 +79,8 @@ public class MainActivity extends BaseActivity {
         mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null);
         });
-        if (SettingsManager.getBoolean(NEW_VERSION_NOTIFICATION, true)) {
+        if (!mViewModel.newVersionChecked && SettingsManager.getBoolean(NEW_VERSION_NOTIFICATION, true)) {
+            mViewModel.newVersionChecked = true;
             checkUpdate();
             mInstallApkReceiver = new InstallApkReceiver();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
