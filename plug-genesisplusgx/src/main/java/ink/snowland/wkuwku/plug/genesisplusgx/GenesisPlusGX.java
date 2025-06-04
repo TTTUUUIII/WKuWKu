@@ -1,6 +1,5 @@
 package ink.snowland.wkuwku.plug.genesisplusgx;
 
-import android.content.Context;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;

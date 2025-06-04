@@ -1,0 +1,389 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Nintendo DS"
+            tag="nds"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>nds</item>
+        <item>ids</item>
+        <item>bin</item>
+    </content-extensions>
+    <options>
+        <option
+            key="desmume_cpu_mode"
+            defaultValue="interpreter"
+            title="CPU Mode">
+            <allow-values>
+                <value>jit</value>
+                <value>interpreter</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_jit_block_size"
+            defaultValue="100"
+            inputType="number"
+            title="Jit block size" />
+        <option
+            key="desmume_use_external_bios"
+            defaultValue="disabled"
+            title="Use external bios">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_boot_into_bios"
+            defaultValue="disabled"
+            title="Boot Into BIOS (interpreter and external bios only)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_opengl_mode"
+            defaultValue="disabled"
+            title="OpenGL Rasterizer (restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_color_depth"
+            defaultValue="16-bit"
+            title="OpenGL: color depth (restart)">
+            <allow-values>
+                <value>16-bit</value>
+                <value>32-bit</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_internal_resolution"
+            defaultValue="256x192"
+            title="Internal Resolution (restart)">
+            <allow-values>
+                <value>256x192</value>
+                <value>512x384</value>
+                <value>768x576</value>
+                <value>1024x768</value>
+                <value>1280x960</value>
+                <value>1536x1152</value>
+                <value>1792x1344</value>
+                <value>2048x1536</value>
+                <value>2304x1728</value>
+                <value>2560x1920</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_num_cores"
+            defaultValue="1"
+            inputType="number"
+            title="CPU Cores (1 - 4)"/>
+        <option
+            key="desmume_screens_layout"
+            defaultValue="top/bottom"
+            title="Screen Layout">
+            <allow-values>
+                <value>top/bottom</value>
+                <value>bottom/top</value>
+                <value>left/right</value>
+                <value>right/left</value>
+                <value>top only</value>
+                <value>bottom only</value>
+                <value>quick switch</value>
+                <value>hybrid/top</value>
+                <value>hybrid/bottom</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_hybrid_layout_ratio"
+            defaultValue="default"
+            title="Hybrid layout ratio">
+            <allow-values>
+                <value>default</value>
+                <value>2:1</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_hybrid_layout_scale"
+            defaultValue="disabled"
+            title="Hybrid layout scale">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_mouse"
+            defaultValue="disabled"
+            title="Mouse/Pointer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_type"
+            defaultValue="touch"
+            title="Pointer Type">
+            <allow-values>
+                <value>mouse</value>
+                <value>touch</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_device_l"
+            defaultValue="none"
+            title="Pointer Mode for Left Analog">
+            <allow-values>
+                <value>none</value>
+                <value>emulated</value>
+                <value>absolute</value>
+                <value>pressed</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_device_r"
+            defaultValue="none"
+            title="Pointer Mode for Right Analog">
+            <allow-values>
+                <value>none</value>
+                <value>emulated</value>
+                <value>absolute</value>
+                <value>pressed</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_device_deadzone"
+            defaultValue="15"
+            inputType="number"
+            title="Emulated Pointer Deadzone Percent (0 - 35)" />
+        <option
+            key="desmume_mouse_speed"
+            defaultValue="1.0"
+            inputType="numberDecimal"
+            title="Mouse Speed" />
+        <option
+            key="desmume_input_rotation"
+            defaultValue="0"
+            title="Pointer Rotation">
+            <allow-values>
+                <value>0</value>
+                <value>90</value>
+                <value>180</value>
+                <value>270</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_frameskip"
+            defaultValue="0"
+            inputType="number"
+            title="Frame skip" />
+        <option
+            key="desmume_firmware_language"
+            defaultValue="Auto"
+            title="Firmware language">
+            <allow-values>
+                <value>Auto</value>
+                <value>Japanese</value>
+                <value>English</value>
+                <value>French</value>
+                <value>German</value>
+                <value>Italian</value>
+                <value>Spanish</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_opengl_shadow_polygon"
+            defaultValue="disabled"
+            title="OpenGL: shadow polygon">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_opengl_special_zero_alpha"
+            defaultValue="disabled"
+            title="OpenGL: special zero alpha">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_opengl_nds_depth_calculation"
+            defaultValue="disabled"
+            title="OpenGL: depth calculation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_opengl_depth_lequal_polygon_facing"
+            defaultValue="enabled"
+            title="OpenGL: lequal polygon facing">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_texture_smoothing"
+            defaultValue="enabled"
+            title="Texture smoothing">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_multisampling"
+            defaultValue="disabled"
+            title="Multisampling">
+            <allow-values>
+                <value>disabled</value>
+                <value>2</value>
+                <value>4</value>
+                <value>8</value>
+                <value>16</value>
+                <value>32</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_highres_interpolate_color"
+            defaultValue="disabled"
+            title="High-res Color Interpolation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_texture_deposterize"
+            defaultValue="disabled"
+            title="Texture Deposterization">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_texture_scaling"
+            defaultValue="1"
+            title="Texture Scaling (xBrz)">
+            <allow-values>
+                <value>1</value>
+                <value>2</value>
+                <value>4</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_edgemark"
+            defaultValue="enabled"
+            title="Edge Marking">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_linehack"
+            defaultValue="enabled"
+            title="Soft3D: Line Hack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_gfx_txthack"
+            defaultValue="disabled"
+            title="Soft3D: Texture Hack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_mic_mode"
+            defaultValue="pattern"
+            title="Microphone Button Noise Type">
+            <allow-values>
+                <value>pattern</value>
+                <value>sample</value>
+                <value>random</value>
+                <value>physical</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_device_acceleration_mod"
+            defaultValue="0"
+            inputType="number"
+            title="Emulated Pointer Acceleration Modifier Percent (0 - 100)" />
+        <option
+            key="desmume_pointer_stylus_pressure"
+            defaultValue="50"
+            inputType="number"
+            title="Emulated Stylus Pressure Modifier Percent (0 - 100)" />
+        <option
+            key="desmume_load_to_memory"
+            defaultValue="disabled"
+            title="Load Game Into Memory (restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_advanced_timing"
+            defaultValue="enabled"
+            title="Enable Advanced Bus-Level Timing">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_screens_gap"
+            defaultValue="1"
+            inputType="number"
+            title="Screen Gap (0 - 100)" />
+        <option
+            key="desmume_hybrid_showboth_screens"
+            defaultValue="enabled"
+            title="Hybrid Layout: Show Both Screens">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_hybrid_cursor_always_smallscreen"
+            defaultValue="enabled"
+            title="Hybrid Layout: Cursor Always on Small Screen">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="desmume_pointer_colour"
+            defaultValue="white"
+            title="Pointer Colour">
+            <allow-values>
+                <value>white</value>
+                <value>black</value>
+                <value>red</value>
+                <value>blue</value>
+                <value>yellow</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
