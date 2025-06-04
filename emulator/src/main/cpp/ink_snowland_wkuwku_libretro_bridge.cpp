@@ -4,21 +4,21 @@
 #include <fstream>
 #include "log.h"
 
-#if defined(FCEUMM)
+//#if defined(FCEUMM)
+//#define TAG "Fceumm_Native"
+//#elif defined(GENESIS_PLUS_GX)
+//#define TAG "Genesis_Plus_GX_Native"
+//#elif defined(BSNES)
+//#define TAG "Bsnes_Native"
+//#elif defined(MESEN)
+//#define TAG "Mesen_Native"
+//#elif defined(MESEN_S)
+//#define TAG "MesenS_Native"
+//#elif defined(PCSX)
+//#define TAG "Pcsx_Native"
+//#else
 #define TAG "Fceumm_Native"
-#elif defined(GENESIS_PLUS_GX)
-#define TAG "Genesis_Plus_GX_Native"
-#elif defined(BSNES)
-#define TAG "Bsnes_Native"
-#elif defined(MESEN)
-#define TAG "Mesen_Native"
-#elif defined(MESEN_S)
-#define TAG "MesenS_Native"
-#elif defined(PCSX)
-#define TAG "Pcsx_Native"
-#else
-#define TAG "LibRetro_Native"
-#endif
+//#endif
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
@@ -160,11 +160,11 @@ video_refresh_callback(const void *data, unsigned width, unsigned height, size_t
             is_attached = true;
         }
     }
-#if defined(MESEN) || defined(MESEN_S) || defined(BSNES)
-    char* buffer = (char*) data;
-    for(int i = 0; i < height * pitch; i += 4)
-        std::swap(buffer[i], buffer[i + 2]);
-#endif
+//#if defined(MESEN) || defined(MESEN_S) || defined(BSNES)
+//    char* buffer = (char*) data;
+//    for(int i = 0; i < height * pitch; i += 4)
+//        std::swap(buffer[i], buffer[i + 2]);
+//#endif
     if (frame_buffer == nullptr || env->GetArrayLength(frame_buffer) != height * pitch) {
         if (frame_buffer != nullptr)
             env->DeleteGlobalRef(frame_buffer);
@@ -682,19 +682,19 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
 
-#if defined(FCEUMM)
+//#if defined(FCEUMM)
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
-#elif defined(GENESIS_PLUS_GX)
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/GenesisPlusGX");
-#elif defined(BSNES)
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Bsnes");
-#elif defined(MESEN)
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Mesen");
-#elif defined(MESEN_S)
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/MesenS");
-#elif defined(PCSX)
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Pcsx");
-#endif
+//#elif defined(GENESIS_PLUS_GX)
+//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/GenesisPlusGX");
+//#elif defined(BSNES)
+//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Bsnes");
+//#elif defined(MESEN)
+//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Mesen");
+//#elif defined(MESEN_S)
+//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/MesenS");
+//#elif defined(PCSX)
+//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Pcsx");
+//#endif
     ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
     ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");
     ctx.environment_method = env->GetMethodID(clazz, "onEnvironment", "(ILjava/lang/Object;)Z");

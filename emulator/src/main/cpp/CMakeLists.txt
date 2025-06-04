@@ -11,6 +11,8 @@ cmake_minimum_required(VERSION 3.22.1)
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
 project("wkuwku")
+add_subdirectory(../../../../extern/libretro-fceumm ${CMAKE_BINARY_DIR}/libretro-fceumm)
+message(${CMAKE_BINARY_DIR})
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -26,22 +28,24 @@ project("wkuwku")
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include_directories(include)
-macro(add_bridge_library name)
-    add_library(${name}-bridge SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
-    target_link_libraries(${name}-bridge android log ${name})
-    string(TOUPPER ${name} tmp)
-    string(REPLACE "-" "_" tag ${tmp})
-    target_compile_definitions(${name}-bridge PRIVATE ${tag})
-endmacro()
-
-add_bridge_library(fceumm)
-#add_bridge_library(mesen)
-#add_bridge_library(mesen-s)
-#add_bridge_library(genesis-plus-gx)
-#add_bridge_library(pcsx)
-#add_bridge_library(bsnes)
-
-foreach(lib IN ITEMS fceumm)
-    add_library(${lib} SHARED IMPORTED)
-    set_target_properties(${lib} PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/lib${lib}.so")
-endforeach()
+add_library(fceumm SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
+target_link_libraries(fceumm android log retro)
+#macro(add_bridge_library name)
+#    add_library(${name}-bridge SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
+#    target_link_libraries(${name}-bridge android log ${name})
+#    string(TOUPPER ${name} tmp)
+#    string(REPLACE "-" "_" tag ${tmp})
+#    target_compile_definitions(${name}-bridge PRIVATE ${tag})
+#endmacro()
+#
+#add_bridge_library(fceumm)
+##add_bridge_library(mesen)
+##add_bridge_library(mesen-s)
+##add_bridge_library(genesis-plus-gx)
+##add_bridge_library(pcsx)
+##add_bridge_library(bsnes)
+#
+#foreach(lib IN ITEMS fceumm)
+#    add_library(${lib} SHARED IMPORTED)
+#    set_target_properties(${lib} PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/lib${lib}.so")
+#endforeach()
