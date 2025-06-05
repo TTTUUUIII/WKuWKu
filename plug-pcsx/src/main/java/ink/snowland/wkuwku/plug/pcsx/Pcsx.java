@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.plug.pcsx;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -67,6 +68,17 @@ public class Pcsx extends Emulator {
     @Override
     public void onPowerOff() {
         nativePowerOff();
+    }
+
+    @Nullable
+    @Override
+    protected byte[] getState() {
+        return nativeGetState();
+    }
+
+    @Override
+    protected boolean setState(final byte[] data) {
+        return nativeSetState(data);
     }
 
     public static void registerAsEmulator(@NonNull Resources resources) {
