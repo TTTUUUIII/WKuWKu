@@ -57,7 +57,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, AudioManager.OnAudioFocusChangeListener {
     private static final String TAG = "PlayFragment";
-    private static final String AUTO_RESTORE_LAST_STATE = "app_emulator_restore_last_state";
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
     private static final String REVERSE_LANDSCAPE = "app_video_reverse_landscape";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
@@ -71,6 +70,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private AudioFocusRequest mAudioFocusRequest;
     private AudioManager mAudioManager;
     private boolean mKeepScreenOn;
+    private boolean mAutoRestoreState;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -108,6 +108,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         Bundle arguments = getArguments();
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
+        mAutoRestoreState = arguments.getBoolean(ARG_AUTO_RESTORE_STATE, false);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -212,7 +213,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
-                if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE, false)) {
+                if (mAutoRestoreState) {
                     loadState(true);
                 }
                 success = true;
@@ -314,7 +315,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     error.printStackTrace(System.err);
                 })
                 .doFinally(() -> {
-                    if (SettingsManager.getBoolean(AUTO_RESTORE_LAST_STATE, false)) {
+                    if (mAutoRestoreState) {
                         saveState(true);
                     }
                     mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
@@ -325,6 +326,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     public static final String ARG_GAME = "game";
+    public static final String ARG_AUTO_RESTORE_STATE = "auto_restore";
 
     private void selectEmulator() {
         String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", mGame.system));

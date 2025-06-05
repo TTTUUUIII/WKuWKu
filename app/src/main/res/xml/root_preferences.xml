@@ -38,17 +38,17 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:iconSpaceReserved="false"
-        app:title="@string/emulator">
+<!--    <PreferenceCategory-->
+<!--        app:iconSpaceReserved="false"-->
+<!--        app:title="@string/emulator">-->
 
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:defaultValue="false"
-            app:key="app_emulator_restore_last_state"
-            app:summary="@string/summary_restore_last_state"
-            app:title="@string/restore_last_state" />
-    </PreferenceCategory>
+<!--        <SwitchPreferenceCompat-->
+<!--            app:iconSpaceReserved="false"-->
+<!--            app:defaultValue="false"-->
+<!--            app:key="app_emulator_restore_last_state"-->
+<!--            app:summary="@string/summary_restore_last_state"-->
+<!--            app:title="@string/restore_last_state" />-->
+<!--    </PreferenceCategory>-->
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
