@@ -254,7 +254,8 @@ static void input_poll_callback() {
         ctx.jvm->DetachCurrentThread();
 }
 
-static bool set_rumble_state_callback(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
+static bool
+set_rumble_state_callback(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
     JNIEnv *env;
     bool handled = false;
     bool is_attached = false;
@@ -295,8 +296,9 @@ static bool environment_callback(unsigned cmd, void *data) {
             log_cb->log = log_print_callback;
             break;
         case RETRO_ENVIRONMENT_SET_ROTATION:
-            set_variable_value(env, (jint)*(unsigned *) data);
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            set_variable_value(env, (jint) *(unsigned *) data);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          variable_object);
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
             if (data != nullptr) {
                 auto *audio_buffer_state = (struct retro_audio_buffer_status_callback *) data;
@@ -361,7 +363,8 @@ static bool environment_callback(unsigned cmd, void *data) {
                                                          (jint) controller_info->types[i].id);
                 env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
             }
-            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          array_list);
         }
         case RETRO_ENVIRONMENT_SET_GEOMETRY: {
             auto geometry = (struct retro_game_geometry *) data;
@@ -412,7 +415,8 @@ static bool environment_callback(unsigned cmd, void *data) {
             break;
         case RETRO_ENVIRONMENT_GET_LANGUAGE: {
             set_variable_value(env, RETRO_LANGUAGE_DUMMY);
-            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
             if (ret) {
                 auto language = get_variable_int_value(env);
                 *(unsigned *) data = language;
@@ -441,12 +445,14 @@ static bool environment_callback(unsigned cmd, void *data) {
                 desc++;
                 index++;
             }
-            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, array_list);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              array_list);
             return ret;
         }
         case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE: {
             set_variable_value(env, 0);
-            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
             if (ret) {
                 jint val = get_variable_int_value(env);
                 *(int *) data = val;
@@ -470,12 +476,13 @@ static bool environment_callback(unsigned cmd, void *data) {
             constructor = env->GetMethodID(clazz, "<init>",
                                            "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
             bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                   env->NewObject(clazz, constructor, o1, o0));
+                                              env->NewObject(clazz, constructor, o1, o0));
             return ret;
         }
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
-            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
             if (ret) {
                 auto path = (jstring) get_variable_value(env);
                 *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
@@ -629,6 +636,28 @@ static jboolean em_load_state(JNIEnv *env, jobject thiz, jstring path) {
     return no_error;
 }
 
+static jbyteArray em_get_state(JNIEnv *env, jobject thiz) {
+    size_t len = retro_serialize_size();
+    if (len == 0) return nullptr;
+    int8_t data[len];
+    if (!retro_serialize((void *) data, len)) {
+        return nullptr;
+    }
+    jbyteArray snapshot = env->NewByteArray((jint) len);
+    env->SetByteArrayRegion(snapshot, 0, (jint) len, data);
+    return snapshot;
+};
+
+static jboolean em_set_state(JNIEnv *env, jobject thiz, jbyteArray jdata) {
+    const size_t &len = retro_serialize_size();
+    if (env->GetArrayLength(jdata) != len)
+        return false;
+    jbyte *snapshot = env->GetByteArrayElements(jdata, JNI_FALSE);
+    bool no_error = retro_unserialize((void *) snapshot, len);
+    env->ReleaseByteArrayElements(jdata, snapshot, 0);
+    return no_error;
+}
+
 static void em_run(JNIEnv *env, jobject thiz) {
     retro_run();
 }
@@ -645,6 +674,8 @@ static const JNINativeMethod methods[] = {
         {"nativeRun",             "()V",                                           (void *) em_run},
         {"nativeSaveState",       "(Ljava/lang/String;)Z",                         (void *) em_save_state},
         {"nativeLoadState",       "(Ljava/lang/String;)Z",                         (void *) em_load_state},
+        {"nativeGetState",        "()[B",                                          (void *) em_get_state},
+        {"nativeLoadState",        "([B)Z",                                          (void *) em_set_state},
         {"nativeSaveMemoryRam",   "(Ljava/lang/String;)Z",                         (void *) em_save_memory_ram},
         {"nativeLoadMemoryRam",   "(Ljava/lang/String;)Z",                         (void *) em_load_memory_ram},
         {"nativeGetSystemInfo",   "()Link/snowland/wkuwku/common/EmSystemInfo;",   (void *) em_get_system_info},

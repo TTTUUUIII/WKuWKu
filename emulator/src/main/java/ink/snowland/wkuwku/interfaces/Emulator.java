@@ -1627,6 +1627,7 @@ public abstract class Emulator {
 
     private volatile int mState = STATE_INVALID;
 
+    protected final byte[] lock = new byte[0];
     protected final EmConfig config;
     protected final Map<String, EmOption> options = new HashMap<>();
     protected EmSystemAvInfo systemAvInfo;
@@ -1746,7 +1747,7 @@ public abstract class Emulator {
 
     public boolean save(int type, @NonNull File file) {
         if (type == SAVE_STATE) {
-            synchronized (this) {
+            synchronized (lock) {
                 return onSaveState(file.getAbsolutePath());
             }
         }
@@ -1756,7 +1757,7 @@ public abstract class Emulator {
     public boolean load(int type, @Nullable File file) {
         if (file == null) return true;
         if (type == LOAD_STATE) {
-            synchronized (this) {
+            synchronized (lock) {
                 onLoadState(file.getAbsolutePath());
             }
         }
@@ -1908,7 +1909,7 @@ public abstract class Emulator {
 
     private void schedule() {
         if (mState == STATE_RUNNING) {
-            synchronized (this) {
+            synchronized (lock) {
                 onNext();
             }
         }
@@ -1969,6 +1970,18 @@ public abstract class Emulator {
         return null;
     }
 
+    public byte[] getSnapshot() {
+        synchronized (lock) {
+            return getState();
+        }
+    }
+
+    public boolean setSnapshot(@NonNull final byte[] snapshot) {
+        synchronized (lock) {
+            return setState(snapshot);
+        }
+    }
+
     public abstract String getTag();
     public abstract EmSystemInfo getSystemInfo();
     protected abstract EmSystemAvInfo getSystemAvInfo();
@@ -1979,6 +1992,15 @@ public abstract class Emulator {
     public abstract void onLoadState(@NonNull String fullPath);
     public abstract boolean onSaveState(@NonNull String savePath);
     public abstract void onPowerOff();
+
+    @Nullable
+    protected byte[] getState() {
+        return null;
+    }
+
+    protected boolean setState(final byte[] data) {
+        return false;
+    }
 
     public interface OnEmulatorEventListener {
         void onShowMessage(EmMessageExt msg);

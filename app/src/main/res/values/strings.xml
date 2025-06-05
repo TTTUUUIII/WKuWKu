@@ -138,4 +138,9 @@
     <string name="install_failed">ERROR: install failed!</string>
     <string name="l3" translatable="false">L3</string>
     <string name="r3" translatable="false">R3</string>
+    <string name="save" translatable="false">SAVE</string>
+    <string name="load" translatable="false">LOAD</string>
+    <string name="fmt_state_saved">State#%d saved!</string>
+    <string name="fmt_state_loaded">State#%d loaded!</string>
+    <string name="load_state_failed">ERROR: state load failed!</string>
 </resources>

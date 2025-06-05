@@ -18,6 +18,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
@@ -33,7 +34,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 import ink.snowland.wkuwku.EmulatorManager;
@@ -55,8 +58,9 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, AudioManager.OnAudioFocusChangeListener {
+public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, AudioManager.OnAudioFocusChangeListener, View.OnClickListener {
     private static final String TAG = "PlayFragment";
+    private static final int MAX_COUNT_OF_SNAPSHOT = 3;
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
     private static final String REVERSE_LANDSCAPE = "app_video_reverse_landscape";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
@@ -71,6 +75,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private AudioManager mAudioManager;
     private boolean mKeepScreenOn;
     private boolean mAutoRestoreState;
+    private final List<byte[]> mSnapshotQueue = new ArrayList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,6 +130,10 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
         mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
+        binding.buttonSave.setOnClickListener(this);
+        binding.buttonLoadState1.setOnClickListener(this);
+        binding.buttonLoadState2.setOnClickListener(this);
+        binding.buttonLoadState3.setOnClickListener(this);
         return binding.getRoot();
     }
 
@@ -213,9 +222,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
-                if (mAutoRestoreState) {
-                    loadState(true);
-                }
+                onAutoLoadState();
                 success = true;
             }
         }
@@ -248,19 +255,22 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mController.setMacros(mViewModel.getMacros());
     }
 
-    private void saveState(boolean auto) {
+    private void onAutoSaveState() {
         if (mEmulator == null) return;
-        if (mGame.system.equals("famicom")) return;
         final String prefix = mEmulator.getTag();
-        final String ext = auto ? ".ast" : ".st";
-        mEmulator.save(SAVE_STATE, FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ext));
+        File stateFile = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
+        if (mAutoRestoreState || !stateFile.exists()) {
+            mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
+            if (mGame.system.equals("famicom")) return;
+            mEmulator.save(SAVE_STATE, stateFile);
+        }
+
     }
 
-    private void loadState(boolean auto) {
-        if (mEmulator == null) return;
+    private void onAutoLoadState() {
+        if (mEmulator == null || !mAutoRestoreState) return;
         final String prefix = mEmulator.getTag();
-        final String ext = auto ? ".ast" : ".st";
-        File file = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ext);
+        File file = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
         if (file.exists()) {
             mEmulator.load(LOAD_STATE, file);
         }
@@ -315,10 +325,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     error.printStackTrace(System.err);
                 })
                 .doFinally(() -> {
-                    if (mAutoRestoreState) {
-                        saveState(true);
-                    }
-                    mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
+                    onAutoSaveState();
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.popBackStack();
                 })
@@ -353,9 +360,53 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mSnackbar.show();
     }
 
+    @MainThread
+    private void showSnackbar(@StringRes int resId, int duration) {
+        showSnackbar(getString(resId), duration);
+    }
+
     @Override
     public void onAudioFocusChange(int focusChange) {
         if (mEmulator == null) return;
         mEmulator.setAudioVolume(focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
+    }
+
+    @Override
+    public void onClick(View v) {
+        int viewId = v.getId();
+        if (viewId == R.id.button_save) {
+            if (mEmulator == null) return;
+            byte[] snapshot = mEmulator.getSnapshot();
+            if (snapshot == null || snapshot.length == 0) return;
+            if (mSnapshotQueue.size() == MAX_COUNT_OF_SNAPSHOT)
+                mSnapshotQueue.remove(0);
+            mSnapshotQueue.add(snapshot);
+            showSnackbar(getString(R.string.fmt_state_saved, mSnapshotQueue.size()), 300);
+        } else if (viewId == R.id.button_load_state3) {
+            if (mSnapshotQueue.isEmpty()) return;
+            byte[] snapshot = mSnapshotQueue.get(mSnapshotQueue.size() - 1);
+            if (snapshot != null) {
+                if (!mEmulator.setSnapshot(snapshot)) {
+                    showSnackbar(R.string.load_state_failed, 300);
+                }
+            }
+        } else if (viewId == R.id.button_load_state2) {
+            if (mSnapshotQueue.isEmpty()) return;
+            final byte[] snapshot;
+            if (mSnapshotQueue.size() > 1) {
+                snapshot = mSnapshotQueue.get(1);
+            } else {
+                snapshot = mSnapshotQueue.get(0);
+            }
+            if (!mEmulator.setSnapshot(snapshot)) {
+                showSnackbar(R.string.load_state_failed, 300);
+            }
+        } else if (viewId == R.id.button_load_state1) {
+            if (mSnapshotQueue.isEmpty()) return;
+            byte[] snapshot = mSnapshotQueue.get(0);
+            if (!mEmulator.setSnapshot(snapshot)) {
+                showSnackbar(R.string.load_state_failed, 300);
+            }
+        }
     }
 }
