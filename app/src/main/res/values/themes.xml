@@ -19,7 +19,7 @@
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
     <style name="Theme.WKuWKu.Snackbar" parent="Widget.Material3.Snackbar">
-        <item name="backgroundTint">?attr/colorSurfaceContainer</item>
+        <item name="backgroundTint">?attr/colorPrimaryContainer</item>
     </style>
     <style name="Theme.WKuWKu.Snackbar.TextView" parent="Widget.Material3.Snackbar.TextView">
     </style>
