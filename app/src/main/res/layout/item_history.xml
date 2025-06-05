@@ -1,68 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:background="?attr/colorSurfaceContainerHigh"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
             name="game"
             type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
     </data>
-        <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="match_parent"
+        <FrameLayout
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            tools:background="?attr/colorSurfaceContainerHigh"
-            xmlns:tools="http://schemas.android.com/tools">
-            <ImageView
-                android:id="@+id/screen_shot"
-                android:layout_width="120dp"
-                android:scaleType="centerCrop"
-                android:layout_gravity="center_vertical"
-                android:layout_height="match_parent" />
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_weight="1"
-                android:paddingHorizontal="15dp"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/title"
+            android:padding="4dp">
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.Material3.CardView.Elevated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textStyle="bold"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:text="@{game.title}"
-                    android:textSize="13sp"
-                    tools:text="Super Mario Bros." />
-                <TextView
-                    android:id="@+id/last_played_time"
-                    android:layout_marginTop="8dp"
-                    android:textStyle="italic"
-                    android:textSize="13sp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <Button
-                        android:id="@+id/button_launch"
-                        android:layout_marginStart="8dp"
-                        style="@style/Theme.WKuWKu.Button.IconButton"
-                        android:layout_width="wrap_content"
+                    android:layout_height="match_parent">
+                    <ImageView
+                        android:id="@+id/screen_shot"
+                        android:layout_width="200dp"
+                        android:layout_height="150dp"
+                        android:layout_gravity="center_vertical"
+                        android:scaleType="centerCrop"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintBottom_toTopOf="@+id/history_detail"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <LinearLayout
+                        android:id="@+id/history_detail"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="@string/emoji_rocket"
-                        android:textSize="18sp" />
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:padding="8dp"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent">
+
+                        <TextView
+                            android:id="@+id/title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textStyle="bold"
+                            android:ellipsize="end"
+                            android:maxLines="1"
+                            android:text="@{game.title}"
+                            tools:text="Super Mario Bros." />
+
+                        <TextView
+                            android:id="@+id/last_played_time"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:textSize="12sp"
+                            android:textColor="@color/material_on_surface_emphasis_medium" />
+                    </LinearLayout>
+
                     <Button
                         android:id="@+id/button_more"
                         style="@style/Theme.WKuWKu.Button.IconButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:icon="@drawable/ic_more_vert" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
+                        app:icon="@drawable/ic_more_vert"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </FrameLayout>
 </layout>
