@@ -629,6 +629,28 @@ static jboolean em_load_state(JNIEnv *env, jobject thiz, jstring path) {
     return no_error;
 }
 
+static jbyteArray em_get_state(JNIEnv *env, jobject thiz) {
+    size_t len = retro_serialize_size();
+    if (len == 0) return nullptr;
+    int8_t data[len];
+    if (!retro_serialize((void *) data, len)) {
+        return nullptr;
+    }
+    jbyteArray snapshot = env->NewByteArray((jint) len);
+    env->SetByteArrayRegion(snapshot, 0, (jint) len, data);
+    return snapshot;
+};
+
+static jboolean em_set_state(JNIEnv *env, jobject thiz, jbyteArray jdata) {
+    const size_t &len = retro_serialize_size();
+    if (env->GetArrayLength(jdata) != len)
+        return false;
+    jbyte *snapshot = env->GetByteArrayElements(jdata, JNI_FALSE);
+    bool no_error = retro_unserialize((void *) snapshot, len);
+    env->ReleaseByteArrayElements(jdata, snapshot, 0);
+    return no_error;
+}
+
 static void em_run(JNIEnv *env, jobject thiz) {
     retro_run();
 }
@@ -645,6 +667,8 @@ static const JNINativeMethod methods[] = {
         {"nativeRun",             "()V",                                           (void *) em_run},
         {"nativeSaveState",       "(Ljava/lang/String;)Z",                         (void *) em_save_state},
         {"nativeLoadState",       "(Ljava/lang/String;)Z",                         (void *) em_load_state},
+        {"nativeGetState",        "()[B",                                          (void *) em_get_state},
+        {"nativeSetState",        "([B)Z",                                          (void *) em_set_state},
         {"nativeSaveMemoryRam",   "(Ljava/lang/String;)Z",                         (void *) em_save_memory_ram},
         {"nativeLoadMemoryRam",   "(Ljava/lang/String;)Z",                         (void *) em_load_memory_ram},
         {"nativeGetSystemInfo",   "()Link/snowland/wkuwku/common/EmSystemInfo;",   (void *) em_get_system_info},

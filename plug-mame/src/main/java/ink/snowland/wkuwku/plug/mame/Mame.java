@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.plug.mame;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -68,6 +69,17 @@ public class Mame extends Emulator {
         nativePowerOff();
     }
 
+    @Nullable
+    @Override
+    protected byte[] getState() {
+        return nativeGetState();
+    }
+
+    @Override
+    protected boolean setState(final byte[] data) {
+        return nativeSetState(data);
+    }
+
     public static void registerAsEmulator(@NonNull Resources resources) {
         if (SHARED_INSTANCE == null) {
             try {
@@ -103,4 +115,6 @@ public class Mame extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+    protected native byte[] nativeGetState();
+    protected native boolean nativeSetState(final byte[] data);
 }

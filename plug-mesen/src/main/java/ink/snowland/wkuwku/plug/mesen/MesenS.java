@@ -53,6 +53,8 @@ public class MesenS extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+    protected native byte[] nativeGetState();
+    protected native boolean nativeSetState(final byte[] data);
 
     @Override
     public String getTag() {

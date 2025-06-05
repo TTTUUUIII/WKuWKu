@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.plug.mesen;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -55,6 +56,20 @@ public class Mesen extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+    protected native byte[] nativeGetState();
+    protected native boolean nativeSetState(final byte[] data);
+
+    @Nullable
+    @Override
+    protected byte[] getState() {
+        return nativeGetState();
+    }
+
+    @Override
+    protected boolean setState(final byte[] data) {
+        return nativeSetState(data);
+    }
+
     @Override
     public String getTag() {
         return "mesen";

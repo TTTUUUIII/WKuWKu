@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.plug.genesisplusgx;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -54,6 +55,19 @@ public class GenesisPlusGX extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+    protected native byte[] nativeGetState();
+    protected native boolean nativeLoadStateData(@NonNull final byte[] data);
+
+    @Override
+    protected boolean setState(byte[] data) {
+        return nativeLoadStateData(data);
+    }
+
+    @Nullable
+    @Override
+    protected byte[] getState() {
+        return nativeGetState();
+    }
 
     @Override
     public String getTag() {

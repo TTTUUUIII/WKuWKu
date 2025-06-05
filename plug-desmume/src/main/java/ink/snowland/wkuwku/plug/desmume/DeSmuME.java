@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.plug.desmume;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -53,6 +54,19 @@ public class DeSmuME extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+    protected native byte[] nativeGetState();
+    protected native boolean nativeSetState(final byte[] data);
+
+    @Override
+    protected boolean setState(final byte[] data) {
+        return nativeSetState(data);
+    }
+
+    @Nullable
+    @Override
+    protected byte[] getState() {
+        return nativeGetState();
+    }
 
     @Override
     public String getTag() {

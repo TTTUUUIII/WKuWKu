@@ -692,3 +692,28 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
         env->DeleteGlobalRef(frame_buffer);
     ctx.jvm = nullptr;
 }
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_ink_snowland_wkuwku_plug_desmume_DeSmuME_nativeGetState(JNIEnv *env, jobject thiz) {
+    size_t len = retro_serialize_size();
+    if (len == 0) return nullptr;
+    int8_t data[len];
+    if (!retro_serialize((void *) data, len)) {
+        return nullptr;
+    }
+    jbyteArray snapshot = env->NewByteArray((jint) len);
+    env->SetByteArrayRegion(snapshot, 0, (jint) len, data);
+    return snapshot;
+}
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_ink_snowland_wkuwku_plug_desmume_DeSmuME_nativeSetState(JNIEnv *env, jobject thiz,
+                                                             jbyteArray jdata) {
+    const size_t &len = retro_serialize_size();
+    if (env->GetArrayLength(jdata) != len)
+        return false;
+    jbyte *snapshot = env->GetByteArrayElements(jdata, JNI_FALSE);
+    bool no_error = retro_unserialize((void *) snapshot, len);
+    env->ReleaseByteArrayElements(jdata, snapshot, 0);
+    return no_error;
+}
