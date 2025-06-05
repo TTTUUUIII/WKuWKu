@@ -10,8 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.GridLayoutManager;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +31,6 @@ import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
 import ink.snowland.wkuwku.util.FileManager;
-import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -62,9 +60,7 @@ public class HistoryFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         binding = FragmentHistoryBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
-        DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
-        binding.recyclerView.addItemDecoration(decoration);
+        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, 2));
         parentActivity.setActionbarTitle(R.string.recent_played);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
@@ -129,12 +125,18 @@ public class HistoryFragment extends BaseFragment {
                     .setDefaultRequestOptions(options)
                     .load(FileManager.getFile(FileManager.IMAGE_DIRECTORY, game.id + ".png"))
                     .into(itemBinding.screenShot);
-            if (game.lastPlayedTime == 0) {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + getString(R.string.never_played));
+            long elapsedRealtimeMillis = System.currentTimeMillis() - game.lastPlayedTime;
+            long elapsedSeconds = (long) (elapsedRealtimeMillis / 1e3);
+            if (elapsedSeconds > 24 * 60 * 60) {
+                itemBinding.lastPlayedTime.setText(getString(R.string.fmt_played_days_ago, elapsedSeconds / 86400));
+            } else if (elapsedSeconds > 60 * 60) {
+                itemBinding.lastPlayedTime.setText(getString(R.string.fmt_played_hours_ago, elapsedSeconds / 3600));
+            } else if (elapsedSeconds > 60) {
+                itemBinding.lastPlayedTime.setText(getString(R.string.fmt_played_minutes_ago, elapsedSeconds / 60));
             } else {
-                itemBinding.lastPlayedTime.setText(getString(R.string.last_played_t) + ": " + TimeUtils.toString("MM/dd HH:mm", game.lastPlayedTime));
+                itemBinding.lastPlayedTime.setText(R.string.played_just_now);
             }
-            itemBinding.buttonLaunch.setOnClickListener(v -> {
+            itemBinding.historyDetail.setOnClickListener(v -> {
                 launch(game);
             });
         }

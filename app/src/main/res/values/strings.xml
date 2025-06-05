@@ -143,4 +143,8 @@
     <string name="fmt_state_saved">State#%d saved!</string>
     <string name="fmt_state_loaded">State#%d loaded!</string>
     <string name="load_state_failed">ERROR: state load failed!</string>
+    <string name="played_just_now">Just played</string>
+    <string name="fmt_played_days_ago">Played at %d days ago</string>
+    <string name="fmt_played_hours_ago">Played at %d hours ago</string>
+    <string name="fmt_played_minutes_ago">Played at %d minutes ago</string>
 </resources>
