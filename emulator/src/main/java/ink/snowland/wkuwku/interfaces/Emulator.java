@@ -1970,13 +1970,13 @@ public abstract class Emulator {
         return null;
     }
 
-    public byte[] getSnapshot() {
+    public final byte[] getSnapshot() {
         synchronized (lock) {
             return getState();
         }
     }
 
-    public boolean setSnapshot(@NonNull final byte[] snapshot) {
+    public final boolean setSnapshot(@NonNull final byte[] snapshot) {
         synchronized (lock) {
             return setState(snapshot);
         }
@@ -1985,13 +1985,13 @@ public abstract class Emulator {
     public abstract String getTag();
     public abstract EmSystemInfo getSystemInfo();
     protected abstract EmSystemAvInfo getSystemAvInfo();
-    public abstract void onPowerOn();
-    public abstract boolean onLoadGame(@NonNull String fullPath);
-    public abstract void onNext();
-    public abstract void onReset();
-    public abstract void onLoadState(@NonNull String fullPath);
-    public abstract boolean onSaveState(@NonNull String savePath);
-    public abstract void onPowerOff();
+    protected abstract void onPowerOn();
+    protected abstract boolean onLoadGame(@NonNull String fullPath);
+    protected abstract void onNext();
+    protected abstract void onReset();
+    protected abstract void onLoadState(@NonNull String fullPath);
+    protected abstract boolean onSaveState(@NonNull String savePath);
+    protected abstract void onPowerOff();
 
     @Nullable
     protected byte[] getState() {
