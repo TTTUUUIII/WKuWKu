@@ -28,10 +28,62 @@
             android:layout_height="match_parent"
             android:layout_weight="1" />
     </LinearLayout>
-    <FrameLayout
-        android:id="@+id/controller_root"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:paddingVertical="8dp"
+        android:paddingHorizontal="15dp"
+        android:orientation="vertical">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <Button
+                android:id="@+id/button_save"
+                app:icon="@drawable/ic_more_time"
+                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:layout_gravity="end"
+                android:id="@+id/state_button_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true">
+                <Button
+                    android:id="@+id/button_load_state1"
+                    app:icon="@drawable/ic_counter_1"
+                    app:iconTint="?attr/colorPrimary"
+                    style="@style/Widget.Material3.Button.IconButton.Outlined"
+                    android:backgroundTint="@android:color/transparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <Button
+                    android:id="@+id/button_load_state2"
+                    app:icon="@drawable/ic_counter_2"
+                    app:iconTint="?attr/colorPrimary"
+                    style="@style/Widget.Material3.Button.IconButton.Outlined"
+                    android:backgroundTint="@android:color/transparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <Button
+                    android:id="@+id/button_load_state3"
+                    app:icon="@drawable/ic_timer_3_alt_1"
+                    app:iconTint="?attr/colorPrimary"
+                    style="@style/Widget.Material3.Button.IconButton.Outlined"
+                    android:backgroundTint="@android:color/transparent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+        </FrameLayout>
+        <FrameLayout
+            android:id="@+id/controller_root"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+    </LinearLayout>
     <include
         android:id="@+id/pending_indicator"
         layout="@layout/layout_loading_indicator" />

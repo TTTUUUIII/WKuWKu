@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.emulator;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -67,6 +68,17 @@ public class Fceumm extends Emulator {
         return nativeSaveState(savePath);
     }
 
+    @Nullable
+    @Override
+    protected byte[] getState() {
+        return nativeGetState();
+    }
+
+    @Override
+    protected boolean setState(@NonNull final byte[] data) {
+        return nativeLoadState(data);
+    }
+
     @Override
     public void onPowerOff() {
         nativePowerOff();
@@ -102,4 +114,6 @@ public class Fceumm extends Emulator {
     protected native boolean nativeLoadMemoryRam(@NonNull String path);
     protected native boolean nativeSaveState(@NonNull String path);
     protected native boolean nativeLoadState(@NonNull String path);
+    protected native byte[] nativeGetState();
+    protected native boolean nativeLoadState(@NonNull final byte[] data);
 }

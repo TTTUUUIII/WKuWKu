@@ -114,4 +114,7 @@
     <string name="fmt_plug_deleted">%s 已删除</string>
     <string name="installing">正在安装</string>
     <string name="install_failed">错误: 安装失败！</string>
+    <string name="fmt_state_saved">状态#%d 已保存！</string>
+    <string name="fmt_state_loaded">状态#%d 已恢复!</string>
+    <string name="load_state_failed">错误：恢复状态失败!</string>
 </resources>
