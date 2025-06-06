@@ -13,6 +13,7 @@
         tools:context=".ui.launch.LaunchFragment">
 
         <View
+            android:id="@+id/start_reserved"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />
@@ -24,6 +25,7 @@
             android:layout_weight="3" />
 
         <View
+            android:id="@+id/end_reserved"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1" />

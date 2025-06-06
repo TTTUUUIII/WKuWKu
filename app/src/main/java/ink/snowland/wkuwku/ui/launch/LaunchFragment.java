@@ -25,7 +25,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import android.os.FileUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -68,6 +67,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
     private static final String REVERSE_LANDSCAPE = "app_video_reverse_landscape";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
+    private static final String VIDEO_RATIO = "app_video_ratio";
     private FragmentLaunchBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
@@ -125,6 +125,10 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
+        final String ratio = SettingsManager.getString(VIDEO_RATIO);
+        binding.startReserved.setVisibility("full screen".equals(ratio) ? View.GONE : View.VISIBLE);
+        binding.endReserved.setVisibility(binding.startReserved.getVisibility());
+        mVideoDevice.setVideoRatio("keep aspect ratio".equals(ratio) ? GLVideoDevice.KEEP_ORIGIN : GLVideoDevice.COVERED);
         binding.glSurfaceView.setEGLContextClientVersion(3);
         binding.glSurfaceView.setRenderer(mVideoDevice.getRenderer());
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
