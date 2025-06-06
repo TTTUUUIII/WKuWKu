@@ -1,8 +1,8 @@
 # WKuWKu ![Application icon](app/src/main/res/drawable/app_icon_mdpi.png)
 
-| <img src="sc_001.png" style="zoom:30%;" /> | <img src="sc_002.png" style="zoom:30%;" /> | <img src="sc_003.png" style="zoom:30%;" /> | <img src="sc_004.png" style="zoom:30%;" /> |
-| ------------------------------------------ | ------------------------------------------ | ------------------------------------------ | ------------------------------------------ |
-
+| <img src="Screenshots/sc_001.png" style="zoom:30%;" /> | <img src="Screenshots/sc_002.png" style="zoom:30%;" /> | <img src="Screenshots/sc_003.png" style="zoom:30%;" /> | <img src="Screenshots/sc_004.png" style="zoom:30%;" /> |
+|--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|
+| <img src="Screenshots/sc_005.png" style="zoom:40%;" /> | <img src="Screenshots/sc_006.png" style="zoom:30%;" /> | <img src="Screenshots/sc_007.png" style="zoom:30%;" /> | <img src="Screenshots/sc_008.png" style="zoom:30%;" /> |
 
 
 ## What is WKuWKu ?
