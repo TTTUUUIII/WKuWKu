@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import ink.snowland.wkuwku.BuildConfig;
@@ -37,32 +38,35 @@ public class CheckLatestVersionWorker extends Worker {
     public Result doWork() {
         Log.d(TAG, "INFO: start check latest version.");
         try (InputStream config = new URL(WEB_URL + "app-version.xml").openStream()){
-            String version = null;
-            List<String> md5List = null;
+            String versionName = null;
+            int versionCode = 0;
+            List<String> md5List = Collections.emptyList();
             XmlPullParser xmlPullParser = Xml.newPullParser();
             xmlPullParser.setInput(config, "utf-8");
             int event = xmlPullParser.getEventType();
             while (event != XmlPullParser.END_DOCUMENT) {
                 String name = xmlPullParser.getName();
                 if (event == XmlPullParser.START_TAG && "tag".equals(name)) {
-                    String tag = xmlPullParser.getAttributeValue(null, "name");
                     String md5 = xmlPullParser.getAttributeValue(null, "md5");
+                    versionName = xmlPullParser.getAttributeValue(null, "name");
+                    try {
+                        versionCode = Integer.parseInt(xmlPullParser.getAttributeValue(null, "code"), 10);
+                    } catch (NumberFormatException ignored) {}
                     if (md5 == null)
                         md5 = "";
                     boolean latest = Boolean.parseBoolean(xmlPullParser.getAttributeValue(null, "latest"));
-                    Log.d(TAG, "INFO: latest tag " + tag);
+                    Log.d(TAG, "INFO: tag " + versionName + ", latest " + latest);
                     if (latest) {
-                        version = tag;
                         md5List = Arrays.asList(md5.split("\\|"));
                         break;
                     }
                 }
                 event = xmlPullParser.next();
             }
-            if (version == null)
+            if (versionName == null)
                 return Result.success();
-            if (!version.equals(BuildConfig.VERSION_NAME)) {
-                File apkFile = new File(FileManager.getCacheDirectory(), version + ".apk");
+            if (versionCode > BuildConfig.VERSION_CODE) {
+                File apkFile = new File(FileManager.getCacheDirectory(), versionName + ".apk");
                 boolean requestInstall = false;
                 if (apkFile.exists()) {
                     String md5 = FileManager.calculateMD5Sum(apkFile);
@@ -70,7 +74,7 @@ public class CheckLatestVersionWorker extends Worker {
                         requestInstall = true;
                 }
                 if (!requestInstall) {
-                    try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", version, Build.SUPPORTED_ABIS[0])).openStream()){
+                    try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", versionName, Build.SUPPORTED_ABIS[0])).openStream()){
                         FileManager.copy(ins, apkFile);
                         String md5 = FileManager.calculateMD5Sum(apkFile);
                         if (md5List.contains(md5))
@@ -80,8 +84,8 @@ public class CheckLatestVersionWorker extends Worker {
                 if (requestInstall) {
                     Intent intent = new Intent(ACTION_UPDATE_APK);
                     intent.putExtra(EXTRA_APK_PATH, apkFile.getAbsolutePath());
-                    intent.putExtra(EXTRA_APK_VERSION, version);
-                    Log.i(TAG, "INFO: request update version: " + version);
+                    intent.putExtra(EXTRA_APK_VERSION, versionName);
+                    Log.i(TAG, "INFO: request update version: " + versionName);
                     getApplicationContext().sendBroadcast(intent);
                 }
             } else {
