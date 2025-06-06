@@ -8,6 +8,6 @@
     <string-array name="video_ratio_entries">
         <item>铺满</item>
         <item>保持比例</item>
-        <item>全屏</item>
+        <item>强制全屏</item>
     </string-array>
 </resources>
