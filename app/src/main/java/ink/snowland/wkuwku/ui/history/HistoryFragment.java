@@ -136,7 +136,7 @@ public class HistoryFragment extends BaseFragment {
             } else {
                 itemBinding.lastPlayedTime.setText(R.string.played_just_now);
             }
-            itemBinding.historyDetail.setOnClickListener(v -> {
+            itemBinding.play.setOnClickListener(v -> {
                 launch(game);
             });
         }
