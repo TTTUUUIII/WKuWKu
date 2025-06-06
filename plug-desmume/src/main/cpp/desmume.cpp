@@ -480,22 +480,27 @@ static bool environment_callback(unsigned cmd, void *data) {
     return true;
 }
 
+static bool core_initialized = false;
+
 extern "C"
 JNIEXPORT void JNICALL
 Java_ink_snowland_wkuwku_plug_desmume_DeSmuME_nativePowerOn(JNIEnv *env, jobject thiz) {
     ctx.emulator_obj = env->NewGlobalRef(thiz);
-    retro_set_environment(environment_callback);
-    retro_init();
-    retro_set_video_refresh(video_refresh_callback);
-    retro_set_audio_sample_batch(audio_sample_batch_callback);
-    retro_set_input_state(input_state_callback);
-    retro_set_input_poll(input_poll_callback);
+    if (!core_initialized) {
+        retro_set_environment(environment_callback);
+        retro_init();
+        retro_set_video_refresh(video_refresh_callback);
+        retro_set_audio_sample_batch(audio_sample_batch_callback);
+        retro_set_input_state(input_state_callback);
+        retro_set_input_poll(input_poll_callback);
+        core_initialized = true;
+    }
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_ink_snowland_wkuwku_plug_desmume_DeSmuME_nativePowerOff(JNIEnv *env, jobject thiz) {
     retro_unload_game();
-    retro_deinit();
+//    retro_deinit();
     env->DeleteGlobalRef(ctx.emulator_obj);
 }
 extern "C"
