@@ -22,10 +22,10 @@ import javax.microedition.khronos.opengles.GL10;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.interfaces.EmVideoDevice;
 import ink.snowland.wkuwku.util.ImageUtils;
-import ink.snowland.wkuwku.util.SettingsManager;
 
 public class GLVideoDevice implements EmVideoDevice {
-    private static final String VIDEO_RATIO = "app_video_ratio";
+    public static final int COVERED = 1;
+    public static final int KEEP_ORIGIN = 2;
     private final byte[] mLock = new byte[0];
     private int mVideoWidth;
     private int mVideoHeight;
@@ -35,6 +35,7 @@ public class GLVideoDevice implements EmVideoDevice {
     private final String mFragmentShaderSource;
     private int mPixelFormat = PIXEL_FORMAT_RGB565;
     private int mBytesPerPixel = 2;
+    private int mVideoRatio = COVERED;
 
     public GLVideoDevice(Context context) {
         mVertexShaderSource = onGetShaderSource(context, GL_VERTEX_SHADER);
@@ -61,6 +62,10 @@ public class GLVideoDevice implements EmVideoDevice {
         if (mRender == null)
             mRender = new RenderImpl();
         return mRender;
+    }
+
+    public void setVideoRatio(int ratio) {
+        mVideoRatio = ratio;
     }
 
     public void exportAsPNG(File file) {
@@ -117,11 +122,7 @@ public class GLVideoDevice implements EmVideoDevice {
         @Override
         public void onSurfaceChanged(GL10 gl10, int width, int height) {
             glViewport(0, 0, width, height);
-
-            String v = SettingsManager.getString(VIDEO_RATIO);
-            if (v.isEmpty() || v.equals("covered")) {
-                Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3, 7);
-            } else {
+            if (mVideoRatio == KEEP_ORIGIN) {
                 // this projection matrix is applied to object coordinates
                 // in the onDrawFrame() method
                 float ratio = (float) width / height;
@@ -131,6 +132,8 @@ public class GLVideoDevice implements EmVideoDevice {
                 } else {
                     Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
                 }
+            } else {
+                Matrix.frustumM(mProjectionMatrix, 0, -1, 1, -1, 1, 3, 7);
             }
         }
 
