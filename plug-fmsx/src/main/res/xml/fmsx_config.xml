@@ -1,0 +1,290 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="MSX"
+            tag="msx"
+            manufacturer="microsoft" />
+        <system
+            name="MSX2"
+            tag="msx2"
+            manufacturer="microsoft" />
+    </systems>
+    <content-extensions>
+        <item>rom</item>
+        <item>mx1</item>
+        <item>mx2</item>
+        <item>dsk</item>
+        <item>cas</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="MSX2+"
+            key="fmsx_mode"
+            title="MSX Mode">
+            <allow-values>
+                <value>MSX1</value>
+                <value>MSX2</value>
+                <value>MSX2+</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Dynamic"
+            key="fmsx_video_mode"
+            title="MSX Video Mode">
+            <allow-values>
+                <value>Dynamic</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Off"
+            key="fmsx_hires"
+            title="Support high resolution">
+            <allow-values>
+                <value>Off</value>
+                <value>Interlaced</value>
+                <value>Progressive</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="No"
+            key="fmsx_overscan"
+            title="Support overscan">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Guess"
+            key="fmsx_mapper_type_mode"
+            title="MSX Mapper Type Mode">
+            <allow-values>
+                <value>Guess</value>
+                <value>Generic 8kB</value>
+                <value>Generic 16kB</value>
+                <value>Konami5 8kB</value>
+                <value>Konami4 8kB</value>
+                <value>ASCII 8kB</value>
+                <value>ASCII 16kB</value>
+                <value>GameMaster2</value>
+                <value>FMPAC</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="No"
+            key="fmsx_simbdos"
+            title="Simulate DiskROM disk access calls">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="No"
+            key="fmsx_game_master"
+            title="Support Game Master">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="No"
+            key="fmsx_phantom_disk"
+            title="Create empty disk when none loaded">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="No"
+            key="fmsx_dos2"
+            title="Load MSXDOS2.ROM when found">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Never"
+            key="fmsx_flush_disk"
+            title="Save disk changes">
+            <allow-values>
+                <value>Never</value>
+                <value>Immediate</value>
+                <value>On close</value>
+                <value>To/From SRAM</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Yes"
+            key="fmsx_autospace"
+            title="Use autofire on SPACE">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Yes"
+            key="fmsx_allsprites"
+            title="Show all sprites">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="fMSX"
+            key="fmsx_ym2413_core"
+            title="YM2413 (FM-PAC / MSX-MUSIC) core">
+            <allow-values>
+                <value>fMSX</value>
+                <value>NukeYKT</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto"
+            key="fmsx_ram_pages"
+            title="MSX Main Memory">
+            <allow-values>
+                <value>Auto</value>
+                <value>64KB</value>
+                <value>128KB</value>
+                <value>256KB</value>
+                <value>512KB</value>
+                <value>4MB</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto"
+            key="fmsx_vram_pages"
+            title="MSX Video Memory">
+            <allow-values>
+                <value>Auto</value>
+                <value>64KB</value>
+                <value>128KB</value>
+                <value>192KB</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Yes"
+            key="fmsx_scci_megaram"
+            title="Enable SCC-I 128kB MegaRAM">
+            <allow-values>
+                <value>No</value>
+                <value>Yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Off"
+            key="fmsx_log_level"
+            title="fMSX logging">
+            <allow-values>
+                <value>Info</value>
+                <value>Debug</value>
+                <value>Spam</value>
+                <value>Off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="standard"
+            key="fmsx_font"
+            title="Text font">
+            <allow-values>
+                <value>standard</value>
+                <value>DEFAULT.FNT</value>
+                <value>ITALIC.FNT</value>
+                <value>INTERNAT.FNT</value>
+                <value>CYRILLIC.FNT</value>
+                <value>CYRILLIC.FNT</value>
+                <value>KOREAN.FNT</value>
+                <value>JAPANESE.FNT</value>
+            </allow-values>
+        </option>
+        <option
+            key="fmsx_custom_keyboard_up"
+            defaultValue="up"
+            inputType="text"
+            title="Custom keyboard RetroPad up" />
+        <option
+            key="fmsx_custom_keyboard_down"
+            defaultValue="down"
+            inputType="text"
+            title="Custom keyboard RetroPad down" />
+        <option
+            key="fmsx_custom_keyboard_left"
+            defaultValue="left"
+            inputType="text"
+            title="Custom keyboard RetroPad left" />
+        <option
+            key="fmsx_custom_keyboard_right"
+            defaultValue="right"
+            inputType="text"
+            title="Custom keyboard RetroPad right" />
+        <option
+            key="fmsx_custom_keyboard_a"
+            defaultValue="space"
+            inputType="text"
+            title="Custom keyboard RetroPad a" />
+        <option
+            key="fmsx_custom_keyboard_b"
+            defaultValue="enter"
+            inputType="text"
+            title="Custom keyboard RetroPad b" />
+        <option
+            key="fmsx_custom_keyboard_x"
+            defaultValue="n"
+            inputType="text"
+            title="Custom keyboard RetroPad x" />
+        <option
+            key="fmsx_custom_keyboard_y"
+            defaultValue="m"
+            inputType="text"
+            title="Custom keyboard RetroPad y" />
+        <option
+            key="fmsx_custom_keyboard_start"
+            defaultValue="f1"
+            inputType="text"
+            title="Custom keyboard RetroPad start" />
+        <option
+            key="fmsx_custom_keyboard_select"
+            defaultValue="f4"
+            inputType="text"
+            title="Custom keyboard RetroPad select" />
+        <option
+            key="fmsx_custom_keyboard_l"
+            defaultValue="f2"
+            inputType="text"
+            title="Custom keyboard RetroPad l" />
+        <option
+            key="fmsx_custom_keyboard_r"
+            defaultValue="f3"
+            inputType="text"
+            title="Custom keyboard RetroPad r" />
+        <option
+            key="fmsx_custom_keyboard_l2"
+            defaultValue="graph"
+            inputType="text"
+            title="Custom keyboard RetroPad l2" />
+        <option
+            key="fmsx_custom_keyboard_r2"
+            defaultValue="ctrl"
+            inputType="text"
+            title="Custom keyboard RetroPad r2" />
+        <option
+            key="fmsx_custom_keyboard_l3"
+            defaultValue="f5"
+            inputType="text"
+            title="Custom keyboard RetroPad l3" />
+        <option
+            key="fmsx_custom_keyboard_r3"
+            defaultValue="escape"
+            inputType="text"
+            title="Custom keyboard RetroPad r3" />
+    </options>
+</em-config>
