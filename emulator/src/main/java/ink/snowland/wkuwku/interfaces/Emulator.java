@@ -1814,6 +1814,7 @@ public abstract class Emulator {
                 variable = (Variable) data;
                 variable.value = 1;
                 break;
+            case RETRO_ENVIRONMENT_SET_MESSAGE:
             case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
                 if (mEventListener != null)
                     mEventListener.onShowMessage((EmMessageExt) data);
@@ -1980,6 +1981,10 @@ public abstract class Emulator {
         synchronized (lock) {
             return setState(snapshot);
         }
+    }
+
+    public boolean setControllerPortDevice(int port, int device) {
+        return false;
     }
 
     public abstract String getTag();

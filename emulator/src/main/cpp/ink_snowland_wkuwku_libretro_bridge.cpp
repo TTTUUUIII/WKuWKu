@@ -302,6 +302,20 @@ static bool environment_callback(unsigned cmd, void *data) {
             set_variable_value(env, (jint) (*(unsigned *) data));
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
                                           variable_object);
+        case RETRO_ENVIRONMENT_SET_MESSAGE: {
+            auto *msg = (struct retro_message *) data;
+            jobject jmsg_ext = env->NewObject(ctx.message_ext_clazz,
+                                              ctx.message_ext_constructor,
+                                              env->NewStringUTF(msg->msg),
+                                              0,
+                                              RETRO_LOG_INFO,
+                                              RETRO_MESSAGE_TARGET_LOG,
+                                              RETRO_MESSAGE_TYPE_NOTIFICATION,
+                                              -1,
+                                              300
+            );
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
+        }
         case RETRO_ENVIRONMENT_SET_MESSAGE_EXT: {
             auto *msg_ext = (struct retro_message_ext *) data;
             jobject jmsg_ext = env->NewObject(ctx.message_ext_clazz,
@@ -654,20 +668,25 @@ static void em_reset(JNIEnv *env, jobject thiz) {
     retro_reset();
 }
 
+static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, jint device) {
+    retro_set_controller_port_device(port, device);
+}
+
 static const JNINativeMethod methods[] = {
-        {"nativePowerOn",         "()V",                                           (void *) em_power_on},
-        {"nativePowerOff",        "()V",                                           (void *) em_power_off},
-        {"nativeReset",           "()V",                                           (void *) em_reset},
-        {"nativeLoad",            "(Ljava/lang/String;)Z",                         (void *) em_load_game},
-        {"nativeRun",             "()V",                                           (void *) em_run},
-        {"nativeSaveState",       "(Ljava/lang/String;)Z",                         (void *) em_save_state},
-        {"nativeLoadState",       "(Ljava/lang/String;)Z",                         (void *) em_load_state},
-        {"nativeGetState",        "()[B",                                          (void *) em_get_state},
-        {"nativeLoadState",        "([B)Z",                                          (void *) em_set_state},
-        {"nativeSaveMemoryRam",   "(Ljava/lang/String;)Z",                         (void *) em_save_memory_ram},
-        {"nativeLoadMemoryRam",   "(Ljava/lang/String;)Z",                         (void *) em_load_memory_ram},
-        {"nativeGetSystemInfo",   "()Link/snowland/wkuwku/common/EmSystemInfo;",   (void *) em_get_system_info},
-        {"nativeGetSystemAvInfo", "()Link/snowland/wkuwku/common/EmSystemAvInfo;", (void *) em_get_system_av_info},
+        {"nativePowerOn",                 "()V",                                           (void *) em_power_on},
+        {"nativePowerOff",                "()V",                                           (void *) em_power_off},
+        {"nativeReset",                   "()V",                                           (void *) em_reset},
+        {"nativeLoad",                    "(Ljava/lang/String;)Z",                         (void *) em_load_game},
+        {"nativeRun",                     "()V",                                           (void *) em_run},
+        {"nativeSaveState",               "(Ljava/lang/String;)Z",                         (void *) em_save_state},
+        {"nativeLoadState",               "(Ljava/lang/String;)Z",                         (void *) em_load_state},
+        {"nativeGetState",                "()[B",                                          (void *) em_get_state},
+        {"nativeLoadState",               "([B)Z",                                         (void *) em_set_state},
+        {"nativeSaveMemoryRam",           "(Ljava/lang/String;)Z",                         (void *) em_save_memory_ram},
+        {"nativeLoadMemoryRam",           "(Ljava/lang/String;)Z",                         (void *) em_load_memory_ram},
+        {"nativeGetSystemInfo",           "()Link/snowland/wkuwku/common/EmSystemInfo;",   (void *) em_get_system_info},
+        {"nativeGetSystemAvInfo",         "()Link/snowland/wkuwku/common/EmSystemAvInfo;", (void *) em_get_system_av_info},
+        {"nativeSetControllerPortDevice", "(II)V",                                         (void *) em_set_controller_port_device}
 };
 
 extern "C"
