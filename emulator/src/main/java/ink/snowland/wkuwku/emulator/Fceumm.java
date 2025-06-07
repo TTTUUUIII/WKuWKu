@@ -97,6 +97,12 @@ public class Fceumm extends Emulator {
         }
     }
 
+    @Override
+    public boolean setControllerPortDevice(int port, int device) {
+        nativeSetControllerPortDevice(port, device);
+        return true;
+    }
+
     private static Fceumm SHARED_INSTANCE;
 
     static {
@@ -116,4 +122,5 @@ public class Fceumm extends Emulator {
     protected native boolean nativeLoadState(@NonNull String path);
     protected native byte[] nativeGetState();
     protected native boolean nativeLoadState(@NonNull final byte[] data);
+    protected native void nativeSetControllerPortDevice(int port, int device);
 }
