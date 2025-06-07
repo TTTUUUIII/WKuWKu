@@ -20,6 +20,12 @@ public class Fmsx extends Emulator {
         super(res, configResId);
     }
 
+    @Override
+    public boolean setControllerPortDevice(int port, int device) {
+        nativeSetControllerPortDevice(port, device);
+        return true;
+    }
+
     public static void registerAsEmulator(@NonNull Resources resources) {
         if (SHARED_INSTANCE == null) {
             try {
@@ -57,6 +63,7 @@ public class Fmsx extends Emulator {
     protected native boolean nativeLoadState(@NonNull String path);
     protected native byte[] nativeGetState();
     protected native boolean nativeLoadState(@NonNull final byte[] data);
+    protected native void nativeSetControllerPortDevice(int port, int device);
 
     @Override
     protected boolean setState(byte[] data) {
@@ -87,6 +94,7 @@ public class Fmsx extends Emulator {
     @Override
     public void onPowerOn() {
         nativePowerOn();
+        setControllerPortDevice(0, RETRO_DEVICE_JOYPAD);
     }
 
     @Override
