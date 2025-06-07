@@ -4,21 +4,9 @@
 #include <fstream>
 #include "log.h"
 
-//#if defined(FCEUMM)
-//#define TAG "Fceumm_Native"
-//#elif defined(GENESIS_PLUS_GX)
-//#define TAG "Genesis_Plus_GX_Native"
-//#elif defined(BSNES)
-//#define TAG "Bsnes_Native"
-//#elif defined(MESEN)
-//#define TAG "Mesen_Native"
-//#elif defined(MESEN_S)
-//#define TAG "MesenS_Native"
-//#elif defined(PCSX)
-//#define TAG "Pcsx_Native"
-//#else
-#define TAG "Fceumm_Native"
-//#endif
+#ifndef EM_TAG
+#define EM_TAG "Fceumm_Native"
+#endif
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
@@ -102,41 +90,41 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
     va_end(args);
     switch (level) {
         case RETRO_LOG_ERROR:
-            LOGE(TAG, "%s", buffer);
+            LOGE(EM_TAG, "%s", buffer);
             break;
         case RETRO_LOG_INFO:
-            LOGI(TAG, "%s", buffer);
+            LOGI(EM_TAG, "%s", buffer);
             break;
         case RETRO_LOG_WARN:
-            LOGW(TAG, "%s", buffer);
+            LOGW(EM_TAG, "%s", buffer);
             break;
         default:
-            LOGD(TAG, "%s", buffer);
+            LOGD(EM_TAG, "%s", buffer);
     }
 }
 
 static bool set_eject_state_t(bool ejected) {
-    LOGD(TAG, "set_eject_state_t: %d", ejected);
+    LOGD(EM_TAG, "set_eject_state_t: %d", ejected);
     return false;
 }
 
 static bool get_eject_state_t() {
-    LOGD(TAG, "get_eject_state_t");
+    LOGD(EM_TAG, "get_eject_state_t");
     return false;
 }
 
 static unsigned get_image_index_t() {
-    LOGD(TAG, "get_image_index_t");
+    LOGD(EM_TAG, "get_image_index_t");
     return 1;
 }
 
 static bool set_image_index_t(unsigned index) {
-    LOGD(TAG, "set_image_index_t: %d", index);
+    LOGD(EM_TAG, "set_image_index_t: %d", index);
     return false;
 }
 
 static unsigned get_num_images_t() {
-    LOGD(TAG, "get_num_images_t");
+    LOGD(EM_TAG, "get_num_images_t");
     return 1;
 }
 
@@ -154,7 +142,7 @@ video_refresh_callback(const void *data, unsigned width, unsigned height, size_t
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return;
         } else {
             is_attached = true;
@@ -182,7 +170,7 @@ static void audio_buffer_state_callback(bool active, unsigned occupancy, bool un
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return;
         } else {
             is_attached = true;
@@ -199,7 +187,7 @@ static size_t audio_sample_batch_callback(const int16_t *data, size_t frames) {
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return false;
         } else {
             is_attached = true;
@@ -223,7 +211,7 @@ static int16_t input_state_callback(unsigned port, unsigned device, unsigned ind
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return 0;
         } else {
             is_attached = true;
@@ -243,7 +231,7 @@ static void input_poll_callback() {
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return;
         } else {
             is_attached = true;
@@ -261,7 +249,7 @@ set_rumble_state_callback(unsigned port, enum retro_rumble_effect effect, uint16
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return false;
         } else {
             is_attached = true;
@@ -278,7 +266,7 @@ static bool environment_callback(unsigned cmd, void *data) {
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
-            LOGE(TAG, "ERROR: unable attach env thread!");
+            LOGE(EM_TAG, "ERROR: unable attach env thread!");
             return false;
         } else {
             is_attached = true;
@@ -494,11 +482,11 @@ static bool environment_callback(unsigned cmd, void *data) {
             env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
             jint version = (jint) get_variable_int_value(env);
             *(int *) data = version;
-            LOGI(TAG, "INFO: message interface version: %d", version);
+            LOGI(EM_TAG, "INFO: message interface version: %d", version);
         }
             break;
         default:
-            LOGW(TAG, "WARN: environment: %d ignored.", cmd);
+            LOGW(EM_TAG, "WARN: environment: %d ignored.", cmd);
             return false;
     }
     if (is_attached)
@@ -686,7 +674,7 @@ extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env;
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-        LOGE(TAG, "ERROR: jni load failed!");
+        LOGE(EM_TAG, "ERROR: jni load failed!");
         return JNI_ERR;
     }
     ctx.jvm = vm;
@@ -713,19 +701,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
 
-//#if defined(FCEUMM)
+#ifndef EM_CLASS
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
-//#elif defined(GENESIS_PLUS_GX)
-//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/GenesisPlusGX");
-//#elif defined(BSNES)
-//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Bsnes");
-//#elif defined(MESEN)
-//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Mesen");
-//#elif defined(MESEN_S)
-//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/MesenS");
-//#elif defined(PCSX)
-//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Pcsx");
-//#endif
+#else
+    clazz = env->FindClass(EM_CLASS);
+#endif
     ctx.video_refresh_method = env->GetMethodID(clazz, "onVideoRefresh", "([BIII)V");
     ctx.audio_sample_batch_method = env->GetMethodID(clazz, "onAudioSampleBatch", "([SI)V");
     ctx.environment_method = env->GetMethodID(clazz, "onEnvironment", "(ILjava/lang/Object;)Z");
