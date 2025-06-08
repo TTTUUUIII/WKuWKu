@@ -1,6 +1,10 @@
 #include <jni.h>
 #include <libretro/libretro.h>
 #include <string>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <fstream>
 #include "log.h"
 
@@ -527,7 +531,21 @@ static void em_power_off(JNIEnv *env, jobject thiz) {
 static jboolean em_load_game(JNIEnv *env, jobject thiz, jstring jpath) {
     const char *path = env->GetStringUTFChars(jpath, JNI_FALSE);
     struct retro_game_info info = {path, nullptr, 0, nullptr};
+#ifdef EM_PRE_LOAD_GAME_DATA
+    int fd = open(path, O_RDONLY);
+    if(fd == -1) return false;
+    struct stat sb;
+    if (fstat(fd, &sb) == -1) {
+        close(fd);
+        return false;
+    }
+    info.size = sb.st_size;
+    info.data = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+#endif
     bool state = retro_load_game(&info);
+    if (info.data != nullptr) {
+        munmap((void*)info.data, info.size);
+    }
     env->ReleaseStringUTFChars(jpath, path);
     return state;
 }
