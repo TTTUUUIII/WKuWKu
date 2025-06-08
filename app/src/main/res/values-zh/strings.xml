@@ -121,4 +121,7 @@
     <string name="fmt_played_days_ago">%d 天前玩过</string>
     <string name="fmt_played_hours_ago">%d 小时前玩过</string>
     <string name="fmt_played_minutes_ago">%d 分钟前玩过</string>
+    <string name="summary_download_optional_bios">下载可选的BIOS</string>
+    <string name="download_optional_bios">下载可选BIOS</string>
+    <string name="saving_status">正在保存状态</string>
 </resources>

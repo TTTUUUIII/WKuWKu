@@ -44,7 +44,7 @@ public abstract class BaseController extends EmInputDevice implements View.OnKey
         view.setOnKeyListener(this);
     }
 
-    protected void vibrator() {
+    public final void vibrator() {
         if (vibrator == null) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));

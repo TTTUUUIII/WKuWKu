@@ -80,6 +80,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private boolean mKeepScreenOn;
     private boolean mAutoRestoreState;
     private final List<byte[]> mSnapshots = new ArrayList<>();
+    private boolean mGameLoaded = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -230,11 +231,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
-                onAutoLoadState();
-                success = true;
+                handler.postDelayed(this::onAutoLoadState, 1000);
+                mGameLoaded = true;
             }
         }
-        if (!success) {
+        if (!mGameLoaded) {
             if (mGame.state != Game.STATE_BROKEN && SettingsManager.getBoolean(AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED)) {
                 mGame.state = Game.STATE_BROKEN;
                 Disposable disposable = mViewModel.update(mGame)
@@ -278,7 +279,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         File stateFile = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
         if (mAutoRestoreState || !stateFile.exists()) {
             mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
-            if (mGame.system.equals("famicom") || mGame.system.equals("saturn")) return;
+            if (mGame.system.equals("saturn")) return;
             mEmulator.save(SAVE_STATE, stateFile);
         }
     }
@@ -343,7 +344,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void exit() {
-        if (mEmulator == null) {
+        if (mEmulator == null || !mGameLoaded) {
             NavController navController = NavHostFragment.findNavController(this);
             navController.popBackStack();
             return;
@@ -406,6 +407,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @Override
     public void onClick(View v) {
         int viewId = v.getId();
+        mController.vibrator();
         if (viewId == R.id.button_save) {
             if (mEmulator == null) return;
             byte[] snapshot = mEmulator.getSnapshot();

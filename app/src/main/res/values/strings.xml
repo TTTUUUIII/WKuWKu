@@ -147,4 +147,7 @@
     <string name="fmt_played_days_ago">Played at %d days ago</string>
     <string name="fmt_played_hours_ago">Played at %d hours ago</string>
     <string name="fmt_played_minutes_ago">Played at %d minutes ago</string>
+    <string name="summary_download_optional_bios">Download optional BIOS</string>
+    <string name="download_optional_bios">Optional BIOS</string>
+    <string name="saving_status">Saving status</string>
 </resources>
