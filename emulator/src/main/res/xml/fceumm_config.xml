@@ -2,7 +2,7 @@
 <em-config>
     <systems>
         <system
-            name="SNES"
+            name="NES"
             tag="nes"
             manufacturer="nintendo" />
         <system
