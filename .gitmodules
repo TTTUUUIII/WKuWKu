@@ -2,6 +2,3 @@
 [submodule "libretro-fceumm"]
 	path = libretro-fceumm
 	url = https://github.com/TTTUUUIII/libretro-fceumm.git
-[submodule "libretro-common"]
-	path = libretro-common
-	url = https://github.com/libretro/libretro-common.git
