@@ -231,7 +231,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
             if (mEmulator.run(mGame.filepath, mGame.system)) {
-                handler.postDelayed(this::onAutoLoadState, 1000);
+                if ("famicom".equals(mGame.system)) {
+                    handler.postDelayed(this::onAutoLoadState, 800);
+                } else {
+                    onAutoLoadState();
+                }
                 mGameLoaded = true;
             }
         }
