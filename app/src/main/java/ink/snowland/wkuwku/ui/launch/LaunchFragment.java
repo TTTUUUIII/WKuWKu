@@ -254,6 +254,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             case "mega-drive":
             case "sega-pico":
             case "sg-1000":
+            case "saturn":
                 mController = new SegaController(0, parentActivity);
                 break;
             default:
@@ -277,7 +278,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         File stateFile = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
         if (mAutoRestoreState || !stateFile.exists()) {
             mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
-            if (mGame.system.equals("famicom")) return;
+            if (mGame.system.equals("famicom") || mGame.system.equals("saturn")) return;
             mEmulator.save(SAVE_STATE, stateFile);
         }
     }
