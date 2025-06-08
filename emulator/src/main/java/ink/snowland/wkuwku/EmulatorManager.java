@@ -48,10 +48,10 @@ public final class EmulatorManager {
 //            case "sega-pico":
 //            case "sg-1000":
 //                return EMULATORS.get("genesis-plus-gx");
-            case "snes":
-            case "game-boy":
-            case "game-boy-color":
-                return EMULATORS.get("mesen-s");
+//            case "snes":
+//            case "game-boy":
+//            case "game-boy-color":
+//                return EMULATORS.get("mesen-s");
 //            case "playstation":
 //                return EMULATORS.get("pcsx");
             default:
