@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Atari 7800"
+            tag="atari-7800"
+            manufacturer="atari" />
+    </systems>
+    <content-extensions>
+        <item>a78</item>
+        <item>bin</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="16bit"
+            key="prosystem_color_depth"
+            title="Color Depth (Restart)">
+            <allow-values>
+                <value>16bit</value>
+                <value>24bit</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="prosystem_low_pass_filter"
+            title="Audio Filter">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="60"
+            key="prosystem_low_pass_range"
+            inputType="number"
+            title="Audio Filter Level (0 - 100, step 5)" />
+        <option
+            defaultValue="disabled"
+            key="prosystem_gamepad_dual_stick_hack"
+            title="Dual Stick Controller">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
