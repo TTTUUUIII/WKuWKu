@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Sega Saturn"
+            tag="saturn"
+            manufacturer="sega" />
+    </systems>
+    <content-extensions>
+        <item>cue</item>
+        <item>chd</item>
+        <item>iso</item>
+        <item>ccd</item>
+        <item>mds</item>
+        <item>m3u</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="disabled"
+            key="yabause_frameskip"
+            title="Frameskip">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="yabause_force_hle_bios"
+            title="Force HLE BIOS (Restart Required)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="none"
+            key="yabause_addon_cartridge"
+            title="Add-on Cartridge (Restart Required)">
+            <allow-values>
+                <value>none</value>
+                <value>1M_ram</value>
+                <value>4M_ram</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="yabause_multitap_port1"
+            title="6Player Adaptor on Port 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="yabause_multitap_port2"
+            title="6Player Adaptor on Port 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="4"
+            key="yabause_numthreads"
+            title="Number of Threads (Restart Required)">
+            <allow-values>
+                <value>1</value>
+                <value>2</value>
+                <value>4</value>
+                <value>8</value>
+                <value>16</value>
+                <value>32</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>

@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
 include_directories(../../../../emulator/src/main/cpp/include)
-project("snes9x")
+project("yabause")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -26,13 +26,12 @@ project("snes9x")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_compile_definitions(EM_TAG="Snes9x_Native" EM_CLASS="ink/snowland/wkuwku/plug/snes9x/Snes9x")
+add_compile_definitions(EM_TAG="Yabause_Native" EM_CLASS="ink/snowland/wkuwku/plug/yabause/Yabause")
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_libretro_bridge.cpp)
 add_library(libretro SHARED IMPORTED)
 set_target_properties(libretro PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libretro.so")
-
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
