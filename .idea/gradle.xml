@@ -19,6 +19,7 @@
             <option value="$PROJECT_DIR$/plug-mame" />
             <option value="$PROJECT_DIR$/plug-mesen" />
             <option value="$PROJECT_DIR$/plug-pcsx" />
+            <option value="$PROJECT_DIR$/plug-snes9x" />
           </set>
         </option>
       </GradleProjectSettings>
