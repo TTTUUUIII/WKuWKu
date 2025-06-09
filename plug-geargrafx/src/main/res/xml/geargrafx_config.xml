@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="PC Engine"
+            tag="pc-engine"
+            manufacturer="nec" />
+    </systems>
+    <content-extensions>
+        <item>pce</item>
+        <item>sgx</item>
+        <item>bin</item>
+        <item>rom</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_turbotap"
+            title="TurboTap">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="1:1 PAR"
+            key="geargrafx_aspect_ratio"
+            title="Aspect Ratio">
+            <allow-values>
+                <value>1:1 PAR</value>
+                <value>4:3 DAR</value>
+                <value>6:5 DAR</value>
+                <value>16:9 DAR</value>
+                <value>16:10 DAR</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_overscan"
+            title="Overscan">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="224p"
+            key="geargrafx_scanline_count"
+            title="Scanline Count">
+            <allow-values>
+                <value>224p</value>
+                <value>240p</value>
+                <value>Manual</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="3"
+            inputType="number"
+            key="geargrafx_scanline_start"
+            title="Scanline Start (Manual)" />
+        <option
+            defaultValue="3"
+            inputType="number"
+            key="geargrafx_scanline_end"
+            title="Scanline End (Manual)" />
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_composite_colors"
+            title="Composite Colors">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Enabled"
+            key="geargrafx_backup_ram"
+            title="Backup RAM (restart)">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_force_pce_jap"
+            title="Force Japanese PC Engine (restart)">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_force_sgx"
+            title="Force SuperGrafx (restart)">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_no_sprite_limit"
+            title="No Sprite Limit">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto"
+            key="geargrafx_avenue_pad_3_switch"
+            title="Avenue Pad 3 Switch">
+            <allow-values>
+                <value>Auto</value>
+                <value>SELECT</value>
+                <value>RUN</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Enabled"
+            key="geargrafx_soft_reset"
+            title="Soft Reset">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Disabled"
+            key="geargrafx_up_down_allowed"
+            title="Allow Up+Down / Left+Right">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>

@@ -11,13 +11,13 @@
       <SelectionState runConfigName="plug-pcsx">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="plug-mesen">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="plug-desmume">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="plug-genesisplusgx">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="plug-prosystem">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="plug-fmsx">
@@ -29,7 +29,7 @@
       <SelectionState runConfigName="plug-yabause">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="plug-prosystem">
+      <SelectionState runConfigName="plug-geargrafx">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

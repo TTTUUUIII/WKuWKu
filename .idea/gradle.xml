@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/plug" />
             <option value="$PROJECT_DIR$/plug-desmume" />
             <option value="$PROJECT_DIR$/plug-fmsx" />
+            <option value="$PROJECT_DIR$/plug-geargrafx" />
             <option value="$PROJECT_DIR$/plug-genesisplusgx" />
             <option value="$PROJECT_DIR$/plug-mame" />
             <option value="$PROJECT_DIR$/plug-mesen" />
@@ -24,6 +25,7 @@
             <option value="$PROJECT_DIR$/plug-yabause" />
           </set>
         </option>
+        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
