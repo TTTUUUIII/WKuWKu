@@ -25,7 +25,8 @@
 | PICO                                | Sega         | genesis plus gx |
 | SG-1000                             | Sega         | genesis plus gx |
 | Play Station                        | Sony         | pcsx            |
-| Arcade                              | NA           | mame2003-plus   |
+| Arcade                              | N/A          | mame2003-plus   |
+| PC Engine                           | NEC          | geargrafx       |
 
 
 

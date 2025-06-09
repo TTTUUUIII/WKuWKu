@@ -219,7 +219,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void launch() {
-        boolean success = false;
         if (mGame.state == Game.STATE_VALID && mEmulator != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mEmulator.setAudioVolume(mAudioManager.requestAudioFocus(mAudioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
