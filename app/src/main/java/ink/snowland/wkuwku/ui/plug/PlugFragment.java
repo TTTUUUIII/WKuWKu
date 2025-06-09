@@ -24,6 +24,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.tabs.TabLayout;
 
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +39,7 @@ import ink.snowland.wkuwku.databinding.ItemPlugResBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugAvailableBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugInstalledBinding;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
+import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -152,6 +156,39 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
                 mPlugInstalledBinding.recyclerView.addItemDecoration(decoration);
                 mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
+                mPlugInstalledBinding.installFromStorage.setOnClickListener(v -> {
+                    parentActivity.openDocument("application/vnd.android.package-archive", plugUri -> {
+                        if (plugUri == null) return;
+                        File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
+                        mViewModel.setPendingIndicator(true, R.string.copying_files);
+                        try(InputStream fis = parentActivity.getContentResolver().openInputStream(plugUri)) {
+                            if (fis == null) return;
+                            FileManager.copy(fis, temp);
+                        } catch (IOException e) {
+                            e.printStackTrace(System.err);
+                            mViewModel.setPendingIndicator(false);
+                            FileManager.delete(temp);
+                        }
+                        if (temp.exists()) {
+                            mViewModel.setPendingMessage(R.string.installing);
+                            PlugManager.install(temp, new PlugManager.ActionListener() {
+                                @Override
+                                public void onSuccess() {
+                                    FileManager.delete(temp);
+                                    mViewModel.setPendingIndicator(false);
+                                }
+
+                                @Override
+                                public void onFailure(Throwable e) {
+                                    e.printStackTrace(System.err);
+                                    Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                    FileManager.delete(temp);
+                                    mViewModel.setPendingIndicator(false);
+                                }
+                            });
+                        }
+                    });
+                });
             } else {
                 mPlugAvailableBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugAvailableBinding.recyclerView.setAdapter(mAvailablePlugAdapter);

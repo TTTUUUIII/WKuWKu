@@ -83,8 +83,12 @@ public class PlugManager {
     }
 
     public static void install(String plugPath, @Nullable ActionListener listener) {
+        install(new File(plugPath), listener);
+    }
+
+    public static void install(File plugFile, @Nullable ActionListener listener) {
         Disposable disposable = Completable.create(emitter -> {
-                    PlugManifest manifest = PlugUtils.install(sApplicationContext, new File(plugPath), FileManager.getPlugDirectory());
+                    PlugManifest manifest = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory());
                     if (manifest == null) {
                         emitter.onError(new RuntimeException("Plug install failed!"));
                         return;

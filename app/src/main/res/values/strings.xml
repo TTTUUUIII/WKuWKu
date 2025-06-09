@@ -153,4 +153,5 @@
     <string name="emoji_workshop_source">Background Emoji Source</string>
     <string name="emoji_size">Background Emoji Size</string>
     <string name="emoji_distance">Distance Between Emojis</string>
+    <string name="install_from_storage">Install from storage</string>
 </resources>
