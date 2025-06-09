@@ -150,6 +150,7 @@ public class GLVideoDevice implements EmVideoDevice {
                 format = GL_RGBA;
                 type = GL_UNSIGNED_BYTE;
             }
+            glPixelStorei(GL_UNPACK_ALIGNMENT, mBytesPerPixel);
             synchronized (mLock) {
                 if (mFirstRender) {
                     glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mVideoWidth, mVideoHeight, 0, format, type, mFrameBuffer);
