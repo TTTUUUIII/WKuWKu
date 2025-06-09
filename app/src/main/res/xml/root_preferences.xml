@@ -1,4 +1,5 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
@@ -53,7 +54,26 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/app_options">
-
+        <EditTextPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="🐢☺️⭐️"
+            app:key="app_emoji_workshop_source"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/emoji_workshop_source" />
+        <SeekBarPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="40"
+            android:max="100"
+            app:key="app_emoji_workshop_emoji_size"
+            app:showSeekBarValue="true"
+            app:title="@string/emoji_size" />
+        <SeekBarPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="40"
+            android:max="100"
+            app:key="app_distance_between_emojis"
+            app:showSeekBarValue="true"
+            app:title="@string/emoji_distance" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="true"

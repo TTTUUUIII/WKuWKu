@@ -150,4 +150,7 @@
     <string name="summary_download_optional_bios">Download optional BIOS</string>
     <string name="download_optional_bios">Optional BIOS</string>
     <string name="saving_status">Saving status</string>
+    <string name="emoji_workshop_source">Background Emoji Source</string>
+    <string name="emoji_size">Background Emoji Size</string>
+    <string name="emoji_distance">Distance Between Emojis</string>
 </resources>
