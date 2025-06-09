@@ -20,6 +20,10 @@ public final class SettingsManager {
         return getString(key, "");
     }
 
+    public static int getInt(@NonNull String key, int defaultValue) {
+        return sSettings.getInt(key, defaultValue);
+    }
+
     public static String getString(@NonNull String key, @Nullable String defaultValue) {
         return sSettings.getString(key, defaultValue);
     }
