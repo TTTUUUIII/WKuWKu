@@ -115,7 +115,7 @@
     <string name="updated">Update</string>
     <string name="ignore_for_now">Ignore</string>
     <string name="new_version_found">New version found!</string>
-    <string name="fmt_update_version">Do you want to update to version %s now?</string>
+    <string name="fmt_update_version">Do you want to update to version &lt;b&gt;%s&lt;/b&gt; now?&lt;br/&gt;&lt;br/&gt;See &lt;a href="%s"&gt;Github&lt;/a&gt; for details.</string>
     <string name="permission_denied">Permission denied!</string>
     <string name="summary_request_install_package_permssion">WkuWku first needs you to grant permission to install apk before it can auto update the app for you</string>
     <string name="grant">Grant</string>

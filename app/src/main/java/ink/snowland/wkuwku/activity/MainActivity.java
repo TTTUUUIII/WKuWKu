@@ -1,5 +1,5 @@
 package ink.snowland.wkuwku.activity;
-
+import static ink.snowland.wkuwku.GlobalConfig.*;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,9 +11,12 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -22,7 +25,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
+import androidx.core.text.HtmlCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -193,10 +198,12 @@ public class MainActivity extends BaseActivity {
     }
 
     private void showUpdateApkDialog(@NonNull String path, @NonNull String version) {
+        String githubReleaseUrl = GITHUB + "releases/tag/" + version;
+        Spanned spanned = HtmlCompat.fromHtml(getString(R.string.fmt_update_version, version, githubReleaseUrl), HtmlCompat.FROM_HTML_MODE_COMPACT);
         mNewApkUri = FileProvider.getUriForFile(this, "ink.snowland.wkuwku.provider", new File(path));
-        new MaterialAlertDialogBuilder(this)
+        AlertDialog updateDialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.new_version_found)
-                .setMessage(getString(R.string.fmt_update_version, version))
+                .setMessage(spanned)
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setPositiveButton(R.string.updated, (dialog, which) -> {
                     boolean request = true;
@@ -213,7 +220,12 @@ public class MainActivity extends BaseActivity {
                 })
                 .setNegativeButton(R.string.ignore_for_now, null)
                 .setCancelable(false)
-                .show();
+                .create();
+        updateDialog.show();
+        TextView dialogTextView = (TextView) updateDialog.findViewById(android.R.id.message);
+        if (dialogTextView != null) {
+            dialogTextView.setMovementMethod(LinkMovementMethod.getInstance());
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
