@@ -146,7 +146,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                 showMorePopupMenu(game, v);
             });
             itemBinding.buttonLaunch.setOnClickListener(v -> {
-                launch(game);
+                handler.postDelayed(() -> launch(game), 340);
             });
         }
     }

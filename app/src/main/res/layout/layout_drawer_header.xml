@@ -6,7 +6,6 @@
         android:id="@+id/hero_image_view"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        android:src="@drawable/snow_bros_genesis"
         android:scaleType="centerCrop"/>
     <LinearLayout
         android:layout_width="match_parent"

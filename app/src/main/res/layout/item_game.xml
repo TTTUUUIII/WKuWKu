@@ -42,14 +42,11 @@
                 android:text="@{String.format(`%s | %s`, game.system, FlagUtils.flag(game.region))}" />
         </LinearLayout>
         <Button
-            style="@style/Theme.WKuWKu.Button.IconButton"
             android:id="@+id/button_launch"
-            android:enabled="@{game.state == Game.STATE_VALID ? true : false}"
-            android:layout_marginStart="8dp"
+            style="@style/Theme.WKuWKu.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:text="@string/emoji_rocket" />
+            app:icon="@drawable/ic_play_arrow" />
         <Button
             android:id="@+id/button_more"
             style="@style/Theme.WKuWKu.Button.IconButton"
