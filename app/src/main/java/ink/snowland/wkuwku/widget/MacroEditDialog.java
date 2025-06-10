@@ -12,19 +12,19 @@ import java.util.List;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.MacroEvent;
-import ink.snowland.wkuwku.databinding.LayoutMacroEditBinding;
+import ink.snowland.wkuwku.databinding.DialogLayoutMacroEditBinding;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;
 
 public class MacroEditDialog {
-    private final LayoutMacroEditBinding binding;
+    private final DialogLayoutMacroEditBinding binding;
     private final AlertDialog mDialog;
     private MacroScript mMacroScript;
     private final Activity mParent;
 
     public MacroEditDialog(@NonNull Activity activity) {
         mParent = activity;
-        binding = LayoutMacroEditBinding.inflate(activity.getLayoutInflater());
+        binding = DialogLayoutMacroEditBinding.inflate(activity.getLayoutInflater());
         mDialog = new MaterialAlertDialogBuilder(activity)
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.add_macro)

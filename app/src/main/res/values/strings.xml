@@ -51,7 +51,7 @@
     <string name="virbration_feedback">vibration feedback</string>
     <string name="via_qr_code">Via QR code</string>
     <string name="invalid_url">Invalid url</string>
-    <string name="connecting">正在连接</string>
+    <string name="connecting">Connecting</string>
     <string name="emulator">Emulator</string>
     <string name="restore_last_state">Restore last state</string>
     <string name="filepath">File path</string>
@@ -154,4 +154,7 @@
     <string name="emoji_size">Background Emoji Size</string>
     <string name="emoji_distance">Distance Between Emojis</string>
     <string name="install_from_storage">Install from storage</string>
+    <string name="exit_emulator">Exit emulator</string>
+    <string name="reset_emulator">Reset emulator</string>
+    <string name="save_progress">Save progress</string>
 </resources>

@@ -4,7 +4,6 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.media.AudioAttributes;
@@ -48,6 +47,7 @@ import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.SegaController;
@@ -296,7 +296,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             }
         }
         File stateFile = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
-        if (mAutoRestoreState || !stateFile.exists()) {
+        if (mExitLayoutBinding.saveState.isChecked() || !stateFile.exists()) {
             mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
             if (mGame.system.equals("saturn")) return;
             mEmulator.save(SAVE_STATE, stateFile);
@@ -340,29 +340,27 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
     }
 
+    private DialogLayoutExitGameBinding mExitLayoutBinding;
+
     private AlertDialog mExitDialog;
 
     private void showExitGameDialog() {
         if (mExitDialog == null) {
+            mExitLayoutBinding = DialogLayoutExitGameBinding.inflate(getLayoutInflater());
+            mExitLayoutBinding.reset.setOnClickListener(this);
+            mExitLayoutBinding.exit.setOnClickListener(this);
             mExitDialog = new MaterialAlertDialogBuilder(requireActivity())
                     .setIcon(R.mipmap.ic_launcher_round)
                     .setTitle(R.string.options)
-                    .setItems(R.array.play_fragment_exit_items, (DialogInterface.OnClickListener) (dialog, which) -> {
-                        if (which == 0) {
-                            if (mEmulator == null) return;
-                            mEmulator.reset();
-                        } else if (which == 1) {
-                            exit();
-                        }
-                        mExitDialog.dismiss();
-                    })
+                    .setView(mExitLayoutBinding.getRoot())
                     .create();
         }
         if (mExitDialog.isShowing()) return;
+        mExitLayoutBinding.saveState.setChecked(mAutoRestoreState);
         mExitDialog.show();
     }
 
-    private void exit() {
+    private void onExit() {
         if (mEmulator == null || !mGameLoaded) {
             NavController navController = NavHostFragment.findNavController(this);
             navController.popBackStack();
@@ -426,6 +424,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @Override
     public void onClick(View v) {
         int viewId = v.getId();
+        if (viewId == R.id.reset) {
+            if (mEmulator == null) return;
+        } else if (viewId == R.id.exit) {
+            onExit();
+        }
         mController.vibrator();
         if (viewId == R.id.button_save) {
             if (mEmulator == null) return;

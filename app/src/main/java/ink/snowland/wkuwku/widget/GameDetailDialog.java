@@ -8,15 +8,15 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.databinding.LayoutGameDetailBinding;
+import ink.snowland.wkuwku.databinding.DialogLayoutGameDetailBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.TimeUtils;
 
 public class GameDetailDialog {
     private final AlertDialog mDialog;
-    private LayoutGameDetailBinding binding;
+    private DialogLayoutGameDetailBinding binding;
     public GameDetailDialog(Activity activity) {
-        binding = LayoutGameDetailBinding.inflate(activity.getLayoutInflater());
+        binding = DialogLayoutGameDetailBinding.inflate(activity.getLayoutInflater());
         mDialog = new MaterialAlertDialogBuilder(activity)
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.game_detail)
