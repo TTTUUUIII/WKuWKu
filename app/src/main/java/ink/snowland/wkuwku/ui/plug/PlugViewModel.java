@@ -17,12 +17,12 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
+import ink.snowland.wkuwku.util.NumberUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -46,15 +46,15 @@ public class PlugViewModel extends BaseViewModel {
         return mInstalledPlugs;
     }
 
-    public boolean installed(@NonNull String packageName) {
+    public PlugManifestExt findInstalledPlug(@NonNull String packageName) {
         List<PlugManifestExt> plugs = mInstalledPlugs.getValue();
-        if (plugs == null) return false;
+        if (plugs == null) return null;
         for (PlugManifestExt plug : plugs) {
             if (plug.packageName.equals(packageName)) {
-                return true;
+                return plug;
             }
         }
-        return false;
+        return null;
     }
 
     public Completable update(@NonNull PlugManifestExt manifest) {
@@ -114,6 +114,7 @@ public class PlugViewModel extends BaseViewModel {
                 } else if ("packageName".equals(tagName)) {
                     info.packageName = xmlPullParser.nextText();
                 } else if ("version".equals(tagName)) {
+                    info.versionCode = NumberUtils.parseInt(xmlPullParser.getAttributeValue(null, "versionCode"), 0);
                     info.version = xmlPullParser.nextText();
                 } else if ("md5".equals(tagName)) {
                     info.md5 = xmlPullParser.nextText();

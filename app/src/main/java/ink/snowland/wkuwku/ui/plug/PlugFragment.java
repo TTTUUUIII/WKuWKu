@@ -277,9 +277,14 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .error(R.drawable.ic_extension)
                             .into(_binding.plugIcon);
                 }
-                _binding.installButton.setEnabled(!mViewModel.installed(res.packageName));
-                _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.install : R.string.installed);
+                final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
+                if (plug != null) {
+                    _binding.installButton.setEnabled(plug.origin.getVersionCode() < res.versionCode);
+                    _binding.installButton.setTag(_binding.installButton.isEnabled() ? "upgrade" : "installed");
+                    _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.upgrade : R.string.installed);
+                }
                 _binding.installButton.setOnClickListener(v -> {
+                    if ("upgrade".equals(v.getTag())) return;
                     _binding.installButton.setText(R.string.connecting);
                     _binding.installButton.setEnabled(false);
                     Disposable disposable = Single.create((SingleOnSubscribe<File>) emitter -> {
@@ -311,6 +316,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .subscribe((file, error) -> {
                                 if (error != null) {
                                     _binding.installButton.setText(R.string.install);
+                                    _binding.installButton.setEnabled(true);
                                     Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
                                     error.printStackTrace(System.err);
                                 }
