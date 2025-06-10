@@ -40,6 +40,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        app:key="emulator_category"
         app:iconSpaceReserved="false"
         app:title="@string/emulator">
 

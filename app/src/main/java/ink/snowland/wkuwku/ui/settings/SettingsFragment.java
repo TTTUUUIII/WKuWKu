@@ -6,6 +6,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.ListPreference;
+import androidx.preference.MultiSelectListPreference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -64,6 +65,21 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 listPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
                 corePreferenceCategory.addPreference(listPreference);
             }
+        }
+        PreferenceCategory emulatorCategory = findPreference("emulator_category");
+        if (emulatorCategory != null) {
+            MultiSelectListPreference autoLoadStateBlackList = new MultiSelectListPreference(requireContext());
+            autoLoadStateBlackList.setIconSpaceReserved(false);
+            autoLoadStateBlackList.setSummary(R.string.summary_black_auto_save_load_state);
+            autoLoadStateBlackList.setTitle(R.string.blacklist_auto_save_load_state);
+            autoLoadStateBlackList.setKey("app_blacklist_auto_save_load_state");
+            String[] entries = EmulatorManager.getEmulators()
+                    .stream()
+                    .map(Emulator::getTag)
+                    .toArray(String[]::new);
+            autoLoadStateBlackList.setEntries(entries);
+            autoLoadStateBlackList.setEntryValues(entries);
+            emulatorCategory.addPreference(autoLoadStateBlackList);
         }
     }
 

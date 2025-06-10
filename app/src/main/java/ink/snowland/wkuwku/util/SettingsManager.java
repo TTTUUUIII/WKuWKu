@@ -5,7 +5,10 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.collection.ArraySet;
 import androidx.preference.PreferenceManager;
+
+import java.util.Set;
 
 public final class SettingsManager {
     private SettingsManager() {}
@@ -18,6 +21,10 @@ public final class SettingsManager {
 
     public static String getString(@NonNull String key) {
         return getString(key, "");
+    }
+
+    public static Set<String> getStringSet(@NonNull String key) {
+        return sSettings.getStringSet(key, new ArraySet<String>());
     }
 
     public static int getInt(@NonNull String key, int defaultValue) {
