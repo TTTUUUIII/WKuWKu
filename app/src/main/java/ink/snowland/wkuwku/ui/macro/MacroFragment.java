@@ -17,8 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.List;
-
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentMacroBinding;
@@ -120,7 +118,7 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
             super(new DiffUtil.ItemCallback<MacroScript>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull MacroScript oldItem, @NonNull MacroScript newItem) {
-                    return oldItem == newItem;
+                    return oldItem.id == newItem.id;
                 }
 
                 @Override

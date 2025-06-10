@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -73,27 +72,13 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             }
         }
     };
-    private Disposable mDisposable;
 
-    private final List<String> mInstalledPlugs = new ArrayList<>();
     private boolean mAvailablePlugListLoaded = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PlugViewModel.class);
-        mDisposable = mViewModel.getInstalledPlug()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(plugs -> {
-                    mInstalledPlugs.clear();
-                    for (PlugManifestExt plug : plugs) {
-                        mInstalledPlugs.add(plug.packageName);
-                    }
-                    mInstalledPlugAdapter.submitList(plugs);
-                }, error -> {
-                    error.printStackTrace(System.err);
-                });
         Disposable disposable = mViewModel.getAvailablePlugInfos()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -104,6 +89,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 .subscribe(mAvailablePlugAdapter::submitList, error -> {
                     error.printStackTrace(System.err);
                 });
+        mViewModel.getAll().observe(this, mInstalledPlugAdapter::submitList);
     }
 
     @Override
@@ -204,12 +190,6 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         }
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mDisposable.dispose();
-    }
-
     private final class PagerAdapter extends RecyclerView.Adapter<PagerViewHolder> {
 
         @NonNull
@@ -297,7 +277,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .error(R.drawable.ic_extension)
                             .into(_binding.plugIcon);
                 }
-                _binding.installButton.setEnabled(!mInstalledPlugs.contains(res.packageName));
+                _binding.installButton.setEnabled(!mViewModel.installed(res.packageName));
                 _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.install : R.string.installed);
                 _binding.installButton.setOnClickListener(v -> {
                     _binding.installButton.setText(R.string.connecting);
@@ -347,7 +327,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             super(new DiffUtil.ItemCallback<T>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull T oldItem, @NonNull T newItem) {
-                    return oldItem == newItem;
+                    return oldItem.equals(newItem);
                 }
 
                 @SuppressLint("DiffUtilEquals")
