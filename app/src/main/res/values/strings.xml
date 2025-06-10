@@ -160,4 +160,6 @@
     <string name="upgrade">Upgrade</string>
     <string name="invalid_package">ERROR: invalid package!</string>
     <string name="plug_already_installed">This extension already installed!</string>
+    <string name="blacklist_auto_save_load_state">Auto save/load state blacklist</string>
+    <string name="summary_black_auto_save_load_state">Auto save/load state is unstable on some cores, add this list to disable it</string>
 </resources>
