@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.ui.history;
 
 import android.annotation.SuppressLint;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -60,7 +61,13 @@ public class HistoryFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         binding = FragmentHistoryBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, 2));
+        final int spanCount;
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            spanCount = 4;
+        } else {
+            spanCount = 2;
+        }
+        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, spanCount));
         parentActivity.setActionbarTitle(R.string.recent_played);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);

@@ -23,11 +23,11 @@ import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.EmSystem;
-import ink.snowland.wkuwku.databinding.LayoutEditGameBinding;
+import ink.snowland.wkuwku.databinding.DialogLayoutEditGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 
 public class GameEditDialog {
-    private final LayoutEditGameBinding binding;
+    private final DialogLayoutEditGameBinding binding;
     private final AlertDialog mDialog;
     private Game mGame = null;
     private final BaseActivity mParent;
@@ -37,7 +37,7 @@ public class GameEditDialog {
 
     public GameEditDialog(@NonNull BaseActivity activity) {
         mParent = activity;
-        binding = LayoutEditGameBinding.inflate(LayoutInflater.from(activity));
+        binding = DialogLayoutEditGameBinding.inflate(LayoutInflater.from(activity));
         mDialog = new MaterialAlertDialogBuilder(activity)
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.add_game)

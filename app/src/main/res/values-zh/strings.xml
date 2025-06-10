@@ -126,6 +126,9 @@
     <string name="saving_status">正在保存状态</string>
     <string name="emoji_workshop_source">背景符号来源</string>
     <string name="emoji_size">背景符号尺寸</string>
-    <string name="emoji_distance">背景符号的间距</string>
+    <string name="emoji_distance">背景符号间距</string>
     <string name="install_from_storage">从本地安装</string>
+    <string name="exit_emulator">关闭模拟器</string>
+    <string name="reset_emulator">重置模拟器</string>
+    <string name="save_progress">保存进度</string>
 </resources>

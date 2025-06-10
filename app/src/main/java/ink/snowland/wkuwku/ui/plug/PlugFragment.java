@@ -64,15 +64,15 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             }
         }
     };
-        private final PlugViewAdapter<PlugRes> mAvailablePlugAdapter = new PlugViewAdapter<>() {
-            @Override
-            public void submitList(@Nullable List<PlugRes> list) {
-                super.submitList(list);
-                if (mPlugAvailableBinding != null) {
-                    mPlugAvailableBinding.emptyListIndicator.setVisibility(list == null || list.isEmpty() ? View.VISIBLE : View.GONE);
-                }
+    private final PlugViewAdapter<PlugRes> mAvailablePlugAdapter = new PlugViewAdapter<>() {
+        @Override
+        public void submitList(@Nullable List<PlugRes> list) {
+            super.submitList(list);
+            if (mPlugAvailableBinding != null) {
+                mPlugAvailableBinding.emptyListIndicator.setVisibility(list == null || list.isEmpty() ? View.VISIBLE : View.GONE);
             }
-        };
+        }
+    };
     private Disposable mDisposable;
 
     private final List<String> mInstalledPlugs = new ArrayList<>();
@@ -164,7 +164,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                         if (plugUri == null) return;
                         File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
                         mViewModel.setPendingIndicator(true, R.string.copying_files);
-                        try(InputStream fis = parentActivity.getContentResolver().openInputStream(plugUri)) {
+                        try (InputStream fis = parentActivity.getContentResolver().openInputStream(plugUri)) {
                             if (fis == null) return;
                             FileManager.copy(fis, temp);
                         } catch (IOException e) {
@@ -302,7 +302,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 _binding.installButton.setOnClickListener(v -> {
                     _binding.installButton.setText(R.string.connecting);
                     _binding.installButton.setEnabled(false);
-                    Disposable disposable = Single.create((SingleOnSubscribe<File>)  emitter -> {
+                    Disposable disposable = Single.create((SingleOnSubscribe<File>) emitter -> {
                                 final File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
                                 URL url = new URL(res.url);
                                 FileManager.copy(url, temp, (progress, max) -> handler.post(() -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100))));
@@ -330,6 +330,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             })
                             .subscribe((file, error) -> {
                                 if (error != null) {
+                                    _binding.installButton.setText(R.string.install);
                                     Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
                                     error.printStackTrace(System.err);
                                 }
