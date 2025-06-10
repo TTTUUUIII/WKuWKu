@@ -23,7 +23,7 @@ rootProject.name = "WKuWKu"
 include ':app'
 include ':emulator'
 include ':plug'
-include ':plug-mame'
+include ':plug-mame2003plus'
 include ':plug-pcsx'
 include ':plug-genesisplusgx'
 include ':plug-mesen'

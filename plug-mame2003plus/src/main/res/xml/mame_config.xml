@@ -13,7 +13,7 @@
     </content-extensions>
     <options>
         <option
-            key="plus_skip_disclaimer"
+            key="mame2003-plus_skip_disclaimer"
             defaultValue="enabled"
             title="Skip Disclaimer">
             <allow-values>
@@ -28,6 +28,30 @@
             <allow-values>
                 <value>disabled</value>
                 <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_vector_beam_width"
+            defaultValue="2"
+            title="Vector Beam Width">
+            <allow-values>
+                <value>1</value>,
+                <value>1.2</value>
+                <value>1.4</value>
+                <value>1.6</value>
+                <value>1.8</value>
+                <value>2</value>
+                <value>2.5</value>
+                <value>3</value>
+                <value>4</value>
+                <value>5</value>
+                <value>6</value>
+                <value>7</value>
+                <value>8</value>
+                <value>9</value>
+                <value>10</value>
+                <value>11</value>
+                <value>12</value>
             </allow-values>
         </option>
         <option
@@ -303,9 +327,13 @@
         </option>
         <option
             key="mame2003-plus_vector_translucency"
-            defaultValue="2"
-            inputType="numberDecimal"
-            title="Vector Beam Width (1 - 12)" />
+            defaultValue="enabled"
+            title="Vector Translucency">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
         <option
             key="mame2003-plus_vector_antialias"
             defaultValue="enabled"
