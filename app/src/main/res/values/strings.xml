@@ -157,4 +157,7 @@
     <string name="exit_emulator">Exit emulator</string>
     <string name="reset_emulator">Reset emulator</string>
     <string name="save_progress">Save progress</string>
+    <string name="upgrade">Upgrade</string>
+    <string name="invalid_package">ERROR: invalid package!</string>
+    <string name="plug_already_installed">This extension already installed!</string>
 </resources>

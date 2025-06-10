@@ -131,4 +131,7 @@
     <string name="exit_emulator">关闭模拟器</string>
     <string name="reset_emulator">重置模拟器</string>
     <string name="save_progress">保存进度</string>
+    <string name="upgrade">更新</string>
+    <string name="invalid_package">错误：无效的包！</string>
+    <string name="plug_already_installed">扩展已经存在，请勿重复安装!</string>
 </resources>

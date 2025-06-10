@@ -11,6 +11,7 @@ public class PlugRes {
     public String url;
     public String packageName;
     public String version;
+    public int versionCode;
     public String md5;
     public String summary;
 
