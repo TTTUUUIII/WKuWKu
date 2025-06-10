@@ -30,24 +30,19 @@ import ink.snowland.wkuwku.ui.launch.LaunchFragment;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class GamesFragment extends BaseFragment implements View.OnClickListener {
     private FragmentGameBinding binding;
     private GamesViewModel mViewModel;
     private final ViewAdapter mAdapter = new ViewAdapter();
-    private Disposable mDisposable;
     private GameDetailDialog mGameDetailDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(GamesViewModel.class);
-        mDisposable = mViewModel.getGameInfos().subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mAdapter::submitList);
+        mViewModel.getAll()
+                .observe(this, mAdapter::submitList);
         mGameDetailDialog = new GameDetailDialog(parentActivity);
     }
 
@@ -66,12 +61,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         binding.pendingIndicator.setLifecycleOwner(this);
         parentActivity.setActionbarTitle(R.string.all_games);
         return binding.getRoot();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mDisposable.dispose();
     }
 
     @Override

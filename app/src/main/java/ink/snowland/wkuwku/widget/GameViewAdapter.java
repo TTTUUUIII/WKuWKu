@@ -17,7 +17,7 @@ public abstract class GameViewAdapter <T extends GameViewAdapter.GameViewHolder>
         super(new DiffUtil.ItemCallback<Game>() {
             @Override
             public boolean areItemsTheSame(@NonNull Game oldItem, @NonNull Game newItem) {
-                return oldItem == newItem;
+                return oldItem.id == newItem.id;
             }
 
             @Override

@@ -6,6 +6,8 @@ import android.app.Application;
 import android.util.Xml;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -15,23 +17,44 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleOnSubscribe;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlugViewModel extends BaseViewModel {
+    private final MutableLiveData<List<PlugManifestExt>> mInstalledPlugs = new MutableLiveData<>();
+    private final Disposable mDisposable;
     public PlugViewModel(@NonNull Application application) {
         super(application);
+        mDisposable = AppDatabase.db.plugManifestExtDao().getAll()
+                .observeOn(Schedulers.io())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .subscribe(mInstalledPlugs::postValue, error -> error.printStackTrace(System.err));
+
     }
 
-    public Observable<List<PlugManifestExt>> getInstalledPlug() {
-        return AppDatabase.db.plugManifestExtDao().getAll();
+    public LiveData<List<PlugManifestExt>> getAll() {
+        return mInstalledPlugs;
+    }
+
+    public boolean installed(@NonNull String packageName) {
+        List<PlugManifestExt> plugs = mInstalledPlugs.getValue();
+        if (plugs == null) return false;
+        for (PlugManifestExt plug : plugs) {
+            if (plug.packageName.equals(packageName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Completable update(@NonNull PlugManifestExt manifest) {
@@ -108,5 +131,11 @@ public class PlugViewModel extends BaseViewModel {
             return info;
         }
         return null;
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        mDisposable.dispose();
     }
 }

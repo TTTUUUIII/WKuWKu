@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +16,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 
+import ink.snowland.wkuwku.App;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
@@ -31,11 +34,19 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import kotlin.io.FileAlreadyExistsException;
 
 public class GamesViewModel extends BaseViewModel {
+    private final MutableLiveData<List<Game>> mAllGames = new MutableLiveData<>();
+    private final Disposable mDisposable;
     public GamesViewModel(@NonNull Application application) {
         super(application);
+        mDisposable = AppDatabase.db.gameInfoDao()
+                .getAll()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(mAllGames::postValue, error -> error.printStackTrace(System.err));
     }
-    public Observable<List<Game>> getGameInfos() {
-        return AppDatabase.db.gameInfoDao().getAll();
+
+    public LiveData<List<Game>> getAll() {
+        return mAllGames;
     }
 
     private Completable copyFiles(@NonNull String filename, @NonNull Uri uri) {
@@ -180,5 +191,11 @@ public class GamesViewModel extends BaseViewModel {
                     }
                 })
                 .subscribe(() -> { }, error -> {/*Ignored*/});
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        mDisposable.dispose();
     }
 }
