@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -31,6 +31,8 @@ import androidx.work.ExistingWorkPolicy;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -38,6 +40,7 @@ import java.io.File;
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
+import ink.snowland.wkuwku.util.BlurTransformation;
 import ink.snowland.wkuwku.widget.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -52,6 +55,7 @@ public class MainActivity extends BaseActivity {
     private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
     private Uri mNewApkUri;
     private MainViewModel mViewModel;
+
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
@@ -69,9 +73,17 @@ public class MainActivity extends BaseActivity {
         binding.drawerLayout.addDrawerListener(mActionBarDrawerToggle);
         binding.navigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         mActionBarDrawerToggle.syncState();
+        ImageView heroImageView = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            View heroImageView = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
-            heroImageView.setRenderEffect(RenderEffect.createBlurEffect(18, 18, Shader.TileMode.MIRROR));
+            Glide.with(this)
+                    .load(R.drawable.snow_bros_genesis)
+                    .into(heroImageView);
+            heroImageView.setRenderEffect(RenderEffect.createBlurEffect(18, 18, Shader.TileMode.CLAMP));
+        } else {
+            Glide.with(this)
+                    .load(R.drawable.snow_bros_genesis)
+                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 18)))
+                    .into(heroImageView);
         }
         assert fragment != null;
         mNavController = fragment.getNavController();
@@ -186,7 +198,7 @@ public class MainActivity extends BaseActivity {
                 .setTitle(R.string.new_version_found)
                 .setMessage(getString(R.string.fmt_update_version, version))
                 .setIcon(R.mipmap.ic_launcher_round)
-                .setPositiveButton(R.string.updated,(dialog, which) -> {
+                .setPositiveButton(R.string.updated, (dialog, which) -> {
                     boolean request = true;
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         if (!getPackageManager().canRequestPackageInstalls()) {
@@ -221,7 +233,8 @@ public class MainActivity extends BaseActivity {
     public void setDrawerLockedMode(int mode) {
         try {
             binding.drawerLayout.setDrawerLockMode(mode);
-        } catch (NullPointerException ignored) {}
+        } catch (NullPointerException ignored) {
+        }
     }
 
     private class InstallApkReceiver extends BroadcastReceiver {

@@ -143,6 +143,26 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         binding.buttonLoadState1.setOnClickListener(this);
         binding.buttonLoadState2.setOnClickListener(this);
         binding.buttonLoadState3.setOnClickListener(this);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            Glide.with(parentActivity)
+//                    .load("https://media.snowland.ink/wkuwku/resources/start_cover.png")
+//                    .into(binding.startReserved);
+//            Glide.with(parentActivity)
+//                    .load("https://media.snowland.ink/wkuwku/resources/start_cover.png")
+//                    .into(binding.endReserved);
+//            RenderEffect blurEffect = RenderEffect.createBlurEffect(13, 13, Shader.TileMode.CLAMP);
+//            binding.startReserved.setRenderEffect(blurEffect);
+//            binding.endReserved.setRenderEffect(blurEffect);
+//        } else {
+//            Glide.with(parentActivity)
+//                    .load(R.drawable.left)
+//                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(parentActivity, 13)))
+//                    .into(binding.startReserved);
+//            Glide.with(parentActivity)
+//                    .load(R.drawable.right)
+//                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(parentActivity, 13)))
+//                    .into(binding.endReserved);
+//        }
         return binding.getRoot();
     }
 

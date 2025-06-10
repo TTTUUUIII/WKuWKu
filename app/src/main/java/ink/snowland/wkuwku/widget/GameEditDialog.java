@@ -67,7 +67,7 @@ public class GameEditDialog {
                     String filename = file.getName();
                     assert mGame != null;
                     mGame.filepath = filename;
-                    if ((mGame.title == null || mGame.title.isEmpty()) && filename != null) {
+                    if (filename != null) {
                         mGame.title = filename.substring(0, filename.lastIndexOf("."));
                         if (mGame.title.endsWith(".tar"))
                             mGame.title = mGame.title.substring(0, mGame.title.lastIndexOf("."));
