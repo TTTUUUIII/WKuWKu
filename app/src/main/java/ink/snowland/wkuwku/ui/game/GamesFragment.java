@@ -116,9 +116,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
 
     private void showAddGameDialog() {
         new GameEditDialog(parentActivity)
-                .show((game, uri) -> {
-                    mViewModel.addGame(game, uri);
-                });
+                .show(mViewModel::addGame);
     }
 
     private void launch(@NonNull Game game) {

@@ -45,16 +45,9 @@ public class GamesViewModel extends BaseViewModel {
                 setPendingIndicator(true, R.string.connecting);
                 try {
                     URL url = new URL(uri.toString());
-                    URLConnection conn = url.openConnection();
-                    conn.setConnectTimeout(1000 * 5);
-                    conn.setReadTimeout(1000 * 8);
-                    try (InputStream from = conn.getInputStream()) {
-                        final long total = NumberUtils.parseLong(conn.getHeaderField("Content-Length"), 0);
-                        FileManager.copy(from, FileManager.ROM_DIRECTORY, filename, (progress, max) -> {
-                            if (total != 0)
-                                setPendingMessage(getString(R.string.fmt_downloading, (float) progress / total * 100));
-                        });
-                    }
+                    FileManager.copy(url, FileManager.getFile(FileManager.ROM_DIRECTORY, filename), (progress, max) -> {
+                        setPendingMessage(getString(R.string.fmt_downloading, (float) progress / max * 100));
+                    });
                 } catch (Exception e) {
                     e.printStackTrace(System.err);
                     post(() -> showErrorToast(e));
