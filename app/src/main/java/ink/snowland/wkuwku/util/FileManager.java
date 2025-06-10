@@ -2,8 +2,6 @@ package ink.snowland.wkuwku.util;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
-import android.os.FileUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -14,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 import java.security.MessageDigest;
 
 import ink.snowland.wkuwku.common.OnProgressListener;
@@ -93,12 +93,27 @@ public class FileManager {
     public static void copy(InputStream from, String type, String filename) throws IOException {
         copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename), null);
     }
+
     public static void copy(InputStream from, String type, String filename, @Nullable OnProgressListener listener) throws IOException {
         copy(from, new File(sApplicationContext.getExternalFilesDir(type), filename), listener);
     }
 
     public static void copy(InputStream from, @NonNull File file) throws IOException {
         copy(from, file, null);
+    }
+
+    public static void copy(@NonNull URL url, @NonNull File file, @Nullable OnProgressListener listener) throws IOException {
+        URLConnection conn = url.openConnection();
+        conn.setConnectTimeout(1000 * 5);
+        conn.setReadTimeout(1000 * 8);
+        final long total = NumberUtils.parseLong(conn.getHeaderField("Content-Length"), 1);
+        if (listener != null) {
+            copy(conn.getInputStream(), file, (progress, max) -> {
+                listener.update(progress, total);
+            });
+        } else {
+            copy(conn.getInputStream(), file, null);
+        }
     }
 
     public static void copy(InputStream from, @NonNull File file, @Nullable OnProgressListener listener) throws IOException {
