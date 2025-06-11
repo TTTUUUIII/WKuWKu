@@ -16,7 +16,11 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
 
+import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.OnProgressListener;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class FileManager {
     public static final String ROM_DIRECTORY = "rom";
@@ -166,6 +170,31 @@ public class FileManager {
             e.printStackTrace(System.err);
         }
         return "";
+    }
+
+    public static void copyAsync(@NonNull Uri uri, @NonNull File file, @Nullable ActionListener listener) {
+        Completable.create(emitter -> {
+                    try (InputStream from = sApplicationContext.getContentResolver().openInputStream(uri)) {
+                        copy(from, file);
+                        emitter.onComplete();
+                    } catch (IOException e) {
+                        emitter.onError(e);
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnComplete(() -> {
+                    if (listener != null) {
+                        listener.onSuccess();
+                    }
+                })
+                .doOnError((error) -> {
+                    delete(file);
+                    if (listener != null) {
+                        listener.onFailure(error);
+                    }
+                })
+                .subscribe();
     }
 
     public static String getExtension(@NonNull String filename, boolean includeDot) {

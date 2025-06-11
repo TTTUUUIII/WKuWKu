@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.plug.mame;
+package ink.snowland.wkuwku.plug.mame2003plus;
 
 import android.content.res.Resources;
 
@@ -21,7 +21,7 @@ public class Mame extends Emulator {
 
     @Override
     public String getTag() {
-        return "mame";
+        return "mame2003plus";
     }
 
     @Override
@@ -101,7 +101,7 @@ public class Mame extends Emulator {
     private static Mame SHARED_INSTANCE;
 
     static {
-        System.loadLibrary("mame");
+        System.loadLibrary("mame2003plus");
     }
 
     protected native void nativePowerOn();

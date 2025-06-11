@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.plug.mame;
+package ink.snowland.wkuwku.plug.mame2003plus;
 
 import android.content.Context;
 import android.content.res.Resources;
