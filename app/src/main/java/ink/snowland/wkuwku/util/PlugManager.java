@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.List;
 
 import ink.snowland.wkuwku.bean.PlugRes;
+import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 import ink.snowland.wkuwku.exception.FileChecksumException;
@@ -87,7 +88,7 @@ public class PlugManager {
     }
 
     public static void install(File plugFile, @Nullable ActionListener listener) {
-        Disposable disposable = Completable.create(emitter -> {
+        Completable.create(emitter -> {
                     PlugManifest manifest = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory());
                     if (manifest == null) {
                         emitter.onError(new RuntimeException("Plug install failed!"));
@@ -103,13 +104,15 @@ public class PlugManager {
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
+                .doOnComplete(() -> {
                     if (listener != null)
                         listener.onSuccess();
-                }, error -> {
+                })
+                .doOnError(error -> {
                     if (listener != null)
                         listener.onFailure(error);
-                });
+                })
+                .subscribe();
     }
 
     public static void install(@NonNull PlugManifest manifest, @Nullable ActionListener listener) {
@@ -173,11 +176,5 @@ public class PlugManager {
                 .subscribe((installed) -> {
                     Log.i(TAG, "INFO: " + installed + " of " + plugs.size() + " auto installed.");
                 });
-    }
-
-    public interface ActionListener {
-        void onSuccess();
-
-        void onFailure(Throwable e);
     }
 }

@@ -25,13 +25,12 @@ import com.google.android.material.tabs.TabLayout;
 
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.PlugRes;
+import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentPlugBinding;
 import ink.snowland.wkuwku.databinding.ItemPlugManifestBinding;
@@ -150,32 +149,32 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                         if (plugUri == null) return;
                         File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
                         mViewModel.setPendingIndicator(true, R.string.copying_files);
-                        try (InputStream fis = parentActivity.getContentResolver().openInputStream(plugUri)) {
-                            if (fis == null) return;
-                            FileManager.copy(fis, temp);
-                        } catch (IOException e) {
-                            e.printStackTrace(System.err);
-                            mViewModel.setPendingIndicator(false);
-                            FileManager.delete(temp);
-                        }
-                        if (temp.exists()) {
-                            mViewModel.setPendingMessage(R.string.installing);
-                            PlugManager.install(temp, new PlugManager.ActionListener() {
-                                @Override
-                                public void onSuccess() {
-                                    FileManager.delete(temp);
-                                    mViewModel.setPendingIndicator(false);
-                                }
+                        FileManager.copyAsync(plugUri, temp, new ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                mViewModel.setPendingMessage(R.string.installing);
+                                PlugManager.install(temp, new ActionListener() {
+                                    @Override
+                                    public void onSuccess() {
+                                        FileManager.delete(temp);
+                                        mViewModel.setPendingIndicator(false);
+                                    }
 
-                                @Override
-                                public void onFailure(Throwable e) {
-                                    e.printStackTrace(System.err);
-                                    Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                    FileManager.delete(temp);
-                                    mViewModel.setPendingIndicator(false);
-                                }
-                            });
-                        }
+                                    @Override
+                                    public void onFailure(Throwable e) {
+                                        e.printStackTrace(System.err);
+                                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                        FileManager.delete(temp);
+                                        mViewModel.setPendingIndicator(false);
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onFailure(Throwable e) {
+                                mViewModel.setPendingIndicator(false);
+                            }
+                        });
                     });
                 });
             } else {
@@ -296,7 +295,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .observeOn(AndroidSchedulers.mainThread())
                             .doOnSuccess(file -> {
                                 _binding.installButton.setText(getString(R.string.installing));
-                                PlugManager.install(file, new PlugManager.ActionListener() {
+                                PlugManager.install(file, new ActionListener() {
                                     @Override
                                     public void onSuccess() {
                                         _binding.installButton.setText(R.string.installed);
