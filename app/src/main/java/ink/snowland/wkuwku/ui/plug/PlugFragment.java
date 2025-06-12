@@ -38,6 +38,7 @@ import ink.snowland.wkuwku.databinding.ItemPlugResBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugAvailableBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugInstalledBinding;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
+import ink.snowland.wkuwku.exception.FileChecksumException;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -290,7 +291,12 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                 final File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
                                 URL url = new URL(res.url);
                                 FileManager.copy(url, temp, (progress, max) -> handler.post(() -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100))));
-                                emitter.onSuccess(temp);
+                                String md5sum = FileManager.calculateMD5Sum(temp);
+                                if (res.md5.equals(md5sum)) {
+                                    emitter.onSuccess(temp);
+                                } else {
+                                    emitter.onError(new FileChecksumException(res.md5, md5sum));
+                                }
                             }).subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .doOnSuccess(file -> {

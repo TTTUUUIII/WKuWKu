@@ -88,7 +88,7 @@ public class PlugManager {
     }
 
     public static void install(File plugFile, @Nullable ActionListener listener) {
-        Completable.create(emitter -> {
+        Disposable disposable = Completable.create(emitter -> {
                     PlugManifest manifest = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory());
                     if (manifest == null) {
                         emitter.onError(new RuntimeException("Plug install failed!"));
@@ -112,7 +112,10 @@ public class PlugManager {
                     if (listener != null)
                         listener.onFailure(error);
                 })
-                .subscribe();
+                .subscribe(() -> {
+                        },
+                        error -> {/*Ignored*/}
+                );
     }
 
     public static void install(@NonNull PlugManifest manifest, @Nullable ActionListener listener) {
