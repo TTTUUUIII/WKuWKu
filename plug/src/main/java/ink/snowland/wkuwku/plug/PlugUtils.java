@@ -166,6 +166,9 @@ public class PlugUtils {
                 if (name.startsWith("lib/" + abi)) {
                     if (!entry.isDirectory()) {
                         File lib = new File(installDir, new File(entry.getName()).getName());
+                        if (lib.exists()) {
+                            boolean ignored = lib.delete();
+                        }
                         try (FileOutputStream fos = new FileOutputStream(lib)){
                             byte[] buffer = new byte[1024];
                             int readNumInBytes;
