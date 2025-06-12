@@ -1,108 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.launch.LaunchFragment">
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="0dp"
+        android:paddingHorizontal="15dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/button_save"
+            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save"
+            app:icon="@drawable/ic_more_time" />
+
+        <com.google.android.material.button.MaterialButtonToggleGroup
+            android:id="@+id/state_button_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            app:singleSelection="true">
+
+            <Button
+                android:id="@+id/button_load_state1"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_counter_1"
+                app:iconTint="?attr/colorPrimary" />
+
+            <Button
+                android:id="@+id/button_load_state2"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_counter_2"
+                app:iconTint="?attr/colorPrimary" />
+
+            <Button
+                android:id="@+id/button_load_state3"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_counter_3"
+                app:iconTint="?attr/colorPrimary" />
+
+            <Button
+                android:id="@+id/button_load_state4"
+                style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                app:icon="@drawable/ic_history"
+                app:iconTint="?attr/colorPrimary" />
+        </com.google.android.material.button.MaterialButtonToggleGroup>
+    </FrameLayout>
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
+        android:id="@+id/linearLayout2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         tools:context=".ui.launch.LaunchFragment">
 
         <ImageView
             android:id="@+id/start_reserved"
-            android:layout_width="0dp"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="centerCrop" />
 
         <android.opengl.GLSurfaceView
             android:id="@+id/gl_surface_view"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="3" />
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="2" />
 
         <ImageView
             android:id="@+id/end_reserved"
-            android:layout_width="0dp"
-            android:scaleType="centerCrop"
-            android:layout_height="match_parent"
-            android:layout_weight="1" />
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingVertical="8dp"
-        android:paddingHorizontal="15dp"
-        android:orientation="vertical">
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-            <Button
-                android:id="@+id/button_save"
-                app:icon="@drawable/ic_more_time"
-                style="@style/Theme.WKuWKu.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/save" />
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:layout_gravity="end"
-                android:id="@+id/state_button_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleSelection="true">
-                <Button
-                    android:id="@+id/button_load_state1"
-                    app:icon="@drawable/ic_counter_1"
-                    app:iconTint="?attr/colorPrimary"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:backgroundTint="@android:color/transparent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <Button
-                    android:id="@+id/button_load_state2"
-                    app:icon="@drawable/ic_counter_2"
-                    app:iconTint="?attr/colorPrimary"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:backgroundTint="@android:color/transparent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <Button
-                    android:id="@+id/button_load_state3"
-                    app:icon="@drawable/ic_counter_3"
-                    app:iconTint="?attr/colorPrimary"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:backgroundTint="@android:color/transparent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-                <Button
-                    android:id="@+id/button_load_state4"
-                    app:icon="@drawable/ic_history"
-                    app:iconTint="?attr/colorPrimary"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:backgroundTint="@android:color/transparent"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-        </FrameLayout>
-        <FrameLayout
-            android:id="@+id/controller_root"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="2"
+            android:scaleType="centerCrop" />
     </LinearLayout>
+    <FrameLayout
+        android:id="@+id/controller_root"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingHorizontal="15dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout" />
     <include
         android:id="@+id/pending_indicator"
         layout="@layout/layout_loading_indicator" />
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/snackbar_container"
-        android:layout_marginTop="15dp"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentTop="true" />
-</RelativeLayout>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

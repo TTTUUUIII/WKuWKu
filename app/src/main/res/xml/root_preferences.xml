@@ -14,12 +14,6 @@
             app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
-            app:defaultValue="false"
-            app:title="@string/reverse_landscape"
-            app:summary="@string/summary_reverse_landscape"
-            app:key="app_video_reverse_landscape" />
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
             app:defaultValue="true"
             app:summary="@string/keep_screen_on_when_gaming"
             app:title="@string/keep_screen_on"

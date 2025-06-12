@@ -18,13 +18,10 @@ import android.view.View;
 import androidx.annotation.NonNull;
 
 import java.util.Collection;
-import java.util.List;
 
 import ink.snowland.wkuwku.bean.MacroEvent;
-import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.interfaces.EmInputDevice;
 import ink.snowland.wkuwku.util.SettingsManager;
-import io.reactivex.rxjava3.core.Single;
 
 public abstract class BaseController extends EmInputDevice implements View.OnKeyListener {
     private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
@@ -72,9 +69,6 @@ public abstract class BaseController extends EmInputDevice implements View.OnKey
 
     protected void postMacroEvents(@NonNull Collection<MacroEvent> events) {
         events.forEach(this::postMacroEvent);
-    }
-
-    public void setMacros(Single<List<MacroScript>> macros) {
     }
 
     @Override
