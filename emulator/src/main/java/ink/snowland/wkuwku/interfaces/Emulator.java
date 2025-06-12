@@ -1679,6 +1679,7 @@ public abstract class Emulator {
         onPowerOff();
         releaseAudioTrack();
         videoDevice = null;
+        inputDevices.clear();
         mEventListener = null;
         Process.setThreadPriority(sMainThread.getThreadId(), Process.THREAD_PRIORITY_LOWEST);
     }

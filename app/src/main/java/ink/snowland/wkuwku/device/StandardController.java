@@ -20,6 +20,7 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
+import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -59,6 +60,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
     @Override
     public View onCreateView(@NonNull Context context) {
         binding = LayoutStandardControllerBinding.inflate(LayoutInflater.from(context));
+        bindMacros();
         bindEvents();
         return binding.getRoot();
     }
@@ -162,10 +164,11 @@ public class StandardController extends BaseController implements View.OnTouchLi
     }
 
     private final Map<String, MacroScript> mAllValidMacros = new HashMap<>();
-    @Override
-    public void setMacros(Single<List<MacroScript>> macros) {
+    private void bindMacros() {
         ArrayList<String> macroTitles = new ArrayList<>();
-        Disposable disposable = macros.subscribeOn(Schedulers.io())
+        Disposable disposable = AppDatabase.db.macroScriptDao()
+                .getList()
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((scripts, throwable) -> {
                     if (throwable == null) {
