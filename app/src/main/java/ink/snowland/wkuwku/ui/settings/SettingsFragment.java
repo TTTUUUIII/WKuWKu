@@ -70,9 +70,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if (emulatorCategory != null) {
             MultiSelectListPreference autoLoadStateBlackList = new MultiSelectListPreference(requireContext());
             autoLoadStateBlackList.setIconSpaceReserved(false);
-            autoLoadStateBlackList.setSummary(R.string.summary_black_auto_save_load_state);
-            autoLoadStateBlackList.setTitle(R.string.blacklist_auto_save_load_state);
-            autoLoadStateBlackList.setKey("app_blacklist_auto_save_load_state");
+            autoLoadStateBlackList.setSummary(R.string.summary_black_auto_load_state);
+            autoLoadStateBlackList.setTitle(R.string.blacklist_auto_load_state);
+            autoLoadStateBlackList.setKey("app_blacklist_auto_load_state");
             String[] entries = EmulatorManager.getEmulators()
                     .stream()
                     .map(Emulator::getTag)

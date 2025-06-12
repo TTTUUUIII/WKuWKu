@@ -31,14 +31,7 @@ public class TrashViewModel extends BaseViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::showErrorToast)
                 .subscribe(() -> {
-                    File parent = new File(game.filepath).getParentFile();
-                    assert parent != null;
-                    if (!parent.equals(FileManager.getFileDirectory(FileManager.ROM_DIRECTORY))) {
-                        FileManager.delete(parent);
-                    } else {
-                        FileManager.delete(game.filepath);
-                    }
-                    FileManager.delete(FileManager.IMAGE_DIRECTORY, game.id + ".png");
+                    clearFiles(game);
                 }, error -> {/*ignored*/});
     }
 
@@ -50,5 +43,29 @@ public class TrashViewModel extends BaseViewModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::showErrorToast)
                 .subscribe(() -> {}, error -> {/*Ignored*/});
+    }
+
+    private void clearFiles(@NonNull Game game) {
+        /*ROM*/
+        File parent = new File(game.filepath).getParentFile();
+        if (parent != null && !parent.equals(FileManager.getFileDirectory(FileManager.ROM_DIRECTORY))) {
+            FileManager.delete(parent);
+        } else {
+            FileManager.delete(game.filepath);
+        }
+
+        /*Screenshot*/
+        FileManager.delete(FileManager.IMAGE_DIRECTORY, game.id + ".png");
+
+        /*Status*/
+        File stateDir = FileManager.getFileDirectory(FileManager.STATE_DIRECTORY);
+        final File[] files = stateDir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            String name = file.getName();
+            if (name.contains(game.md5)) {
+                boolean ignored = file.delete();
+            }
+        }
     }
 }

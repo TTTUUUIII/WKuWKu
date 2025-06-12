@@ -44,6 +44,11 @@ public final class SettingsManager {
     public static boolean getBoolean(@NonNull String key) {
         return getBoolean(key, false);
     }
+    public static void putBoolean(@NonNull String key, boolean value) {
+        sSettings.edit()
+                .putBoolean(key, value)
+                .apply();
+    }
 
     public static boolean getBoolean(@NonNull String key, boolean defaultValue) {
         return sSettings.getBoolean(key, defaultValue);
