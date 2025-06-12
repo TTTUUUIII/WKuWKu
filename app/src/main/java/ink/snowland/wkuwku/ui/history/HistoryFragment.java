@@ -86,7 +86,7 @@ public class HistoryFragment extends BaseFragment {
         assert parent instanceof HomeFragment;
         NavController navController = NavHostFragment.findNavController(parent);
         Bundle args = new Bundle();
-        args.putBoolean(LaunchFragment.ARG_AUTO_RESTORE_STATE, true);
+        args.putBoolean(LaunchFragment.ARG_AUTO_LOAD_STATE, true);
         args.putParcelable(LaunchFragment.ARG_GAME, game);
         navController.navigate(R.id.launch_fragment, args);
     }

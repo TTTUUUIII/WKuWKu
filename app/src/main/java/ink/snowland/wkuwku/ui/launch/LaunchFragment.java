@@ -40,7 +40,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
@@ -64,12 +63,13 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, AudioManager.OnAudioFocusChangeListener, View.OnClickListener {
     private static final String TAG = "PlayFragment";
-    private static final int MAX_COUNT_OF_SNAPSHOT = 3;
+    private static final int MAX_COUNT_OF_SNAPSHOT = 4;
     private static final String AUTO_MARK_BROKEN_WHEN_START_GAME_FAILED = "app_mark_broken_when_start_game_failed";
     private static final String REVERSE_LANDSCAPE = "app_video_reverse_landscape";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String VIDEO_RATIO = "app_video_ratio";
-    private static final String BLACKLIST_AUTO_SAVE_LOAD_STATE = "app_blacklist_auto_save_load_state";
+    private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
+    private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
     private FragmentLaunchBinding binding;
     private Emulator mEmulator;
     private GLVideoDevice mVideoDevice;
@@ -80,8 +80,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private AudioFocusRequest mAudioFocusRequest;
     private AudioManager mAudioManager;
     private boolean mKeepScreenOn;
-    private boolean mAutoRestoreState;
-    private boolean mAutoSaveDisabled;
+    private boolean mAutoLoadState;
+    private boolean mAutoLoadDisabled;
     private final List<byte[]> mSnapshots = new ArrayList<>();
     private boolean mGameLoaded = false;
 
@@ -121,7 +121,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         Bundle arguments = getArguments();
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
-        mAutoRestoreState = arguments.getBoolean(ARG_AUTO_RESTORE_STATE, false);
+        mAutoLoadState = arguments.getBoolean(ARG_AUTO_LOAD_STATE, false);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -146,26 +146,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         binding.buttonLoadState1.setOnClickListener(this);
         binding.buttonLoadState2.setOnClickListener(this);
         binding.buttonLoadState3.setOnClickListener(this);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//            Glide.with(parentActivity)
-//                    .load("https://media.snowland.ink/wkuwku/resources/start_cover.png")
-//                    .into(binding.startReserved);
-//            Glide.with(parentActivity)
-//                    .load("https://media.snowland.ink/wkuwku/resources/start_cover.png")
-//                    .into(binding.endReserved);
-//            RenderEffect blurEffect = RenderEffect.createBlurEffect(13, 13, Shader.TileMode.CLAMP);
-//            binding.startReserved.setRenderEffect(blurEffect);
-//            binding.endReserved.setRenderEffect(blurEffect);
-//        } else {
-//            Glide.with(parentActivity)
-//                    .load(R.drawable.left)
-//                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(parentActivity, 13)))
-//                    .into(binding.startReserved);
-//            Glide.with(parentActivity)
-//                    .load(R.drawable.right)
-//                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(parentActivity, 13)))
-//                    .into(binding.endReserved);
-//        }
+        binding.buttonLoadState4.setOnClickListener(this);
         return binding.getRoot();
     }
 
@@ -180,7 +161,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 Toast.makeText(parentActivity, R.string.no_matching_emulator_found, Toast.LENGTH_SHORT).show();
                 return;
             }
-            mAutoSaveDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_SAVE_LOAD_STATE).contains(mEmulator.getTag());
+            mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(mEmulator.getTag());
             mViewModel.setPendingIndicator(true, getString(R.string.downloading_files));
             Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY))
                     .subscribeOn(Schedulers.io())
@@ -291,19 +272,18 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @SuppressLint("DefaultLocale")
     private void onAutoSaveState() {
         if (mEmulator == null) return;
+        SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
+        if (mExitLayoutBinding.saveState.isChecked()) {
+            mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
+            saveCurrentSate();
+        }
         final String prefix = mEmulator.getTag();
         for (int i = 0; i < mSnapshots.size(); i++) {
-            try (FileOutputStream fos = new FileOutputStream(FileManager.getFile(FileManager.STATE_DIRECTORY, String.format("%s@%s-%02d.st", prefix, mGame.md5, i + 1)))){
-                fos.write(mSnapshots.get(0));
+            try (FileOutputStream fos = new FileOutputStream(FileManager.getFile(FileManager.STATE_DIRECTORY, String.format("%s@%s-%02d.st", prefix, mGame.md5, i + 1)))) {
+                fos.write(mSnapshots.get(i));
             } catch (IOException e) {
                 e.printStackTrace(System.err);
             }
-        }
-        File stateFile = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
-        if (mExitLayoutBinding.saveState.isChecked() || !stateFile.exists()) {
-            mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
-            if (mAutoSaveDisabled) return;
-            mEmulator.save(SAVE_STATE, stateFile);
         }
     }
 
@@ -314,7 +294,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         for (int i = 0; i < MAX_COUNT_OF_SNAPSHOT; ++i) {
             File statFile = FileManager.getFile(FileManager.STATE_DIRECTORY, String.format("%s@%s-%02d.st", prefix, mGame.md5, i + 1));
             if (statFile.exists() && statFile.length() != 0) {
-                try (FileInputStream fis = new FileInputStream(statFile)){
+                try (FileInputStream fis = new FileInputStream(statFile)) {
                     byte[] data = new byte[(int) statFile.length()];
                     int readNumInBytes = fis.read(data, 0, data.length);
                     if (readNumInBytes == statFile.length()) {
@@ -325,10 +305,30 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 }
             }
         }
-        if (!mAutoRestoreState || mAutoSaveDisabled) return;
-        File file = FileManager.getFile(FileManager.STATE_DIRECTORY, prefix + "@" + mGame.md5 + ".ast");
-        if (file.exists()) {
-            mEmulator.load(LOAD_STATE, file);
+        if (!mAutoLoadState || mAutoLoadDisabled) return;
+        loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1);
+    }
+
+    private boolean saveCurrentSate() {
+        if (mEmulator == null) return false;
+        byte[] snapshot = mEmulator.getSnapshot();
+        if (snapshot == null || snapshot.length == 0) return false;
+        if (mSnapshots.size() == MAX_COUNT_OF_SNAPSHOT)
+            mSnapshots.remove(0);
+        mSnapshots.add(snapshot);
+        return true;
+    }
+
+    private void loadStateAt(int at) {
+        if (mSnapshots.isEmpty()) return;
+        final byte[] snapshot;
+        if (at < mSnapshots.size()) {
+            snapshot = mSnapshots.get(at);
+        } else {
+            snapshot = mSnapshots.get(mSnapshots.size() - 1);
+        }
+        if (!mEmulator.setSnapshot(snapshot)) {
+            showSnackbar(R.string.load_state_failed, 300);
         }
     }
 
@@ -359,9 +359,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     .setView(mExitLayoutBinding.getRoot())
                     .create();
         }
+        mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
         if (mExitDialog.isShowing()) return;
-        mExitLayoutBinding.saveState.setChecked(mAutoRestoreState && !mAutoSaveDisabled);
-        mExitLayoutBinding.saveState.setEnabled(!mAutoSaveDisabled);
         mExitDialog.show();
     }
 
@@ -388,7 +387,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     public static final String ARG_GAME = "game";
-    public static final String ARG_AUTO_RESTORE_STATE = "auto_restore";
+    public static final String ARG_AUTO_LOAD_STATE = "auto_load_state";
 
     private void selectEmulator() {
         String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", mGame.system));
@@ -438,39 +437,16 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mExitDialog.dismiss();
         } else {
             mController.vibrator();
-            if (viewId == R.id.button_save) {
-                if (mEmulator == null) return;
-                byte[] snapshot = mEmulator.getSnapshot();
-                if (snapshot == null || snapshot.length == 0) return;
-                if (mSnapshots.size() == MAX_COUNT_OF_SNAPSHOT)
-                    mSnapshots.remove(0);
-                mSnapshots.add(snapshot);
+            if (viewId == R.id.button_save && saveCurrentSate()) {
                 showSnackbar(getString(R.string.fmt_state_saved, mSnapshots.size()), 300);
+            } else if (viewId == R.id.button_load_state4) {
+                loadStateAt(3);
             } else if (viewId == R.id.button_load_state3) {
-                if (mSnapshots.isEmpty()) return;
-                byte[] snapshot = mSnapshots.get(mSnapshots.size() - 1);
-                if (snapshot != null) {
-                    if (!mEmulator.setSnapshot(snapshot)) {
-                        showSnackbar(R.string.load_state_failed, 300);
-                    }
-                }
+                loadStateAt(2);
             } else if (viewId == R.id.button_load_state2) {
-                if (mSnapshots.isEmpty()) return;
-                final byte[] snapshot;
-                if (mSnapshots.size() > 1) {
-                    snapshot = mSnapshots.get(1);
-                } else {
-                    snapshot = mSnapshots.get(0);
-                }
-                if (!mEmulator.setSnapshot(snapshot)) {
-                    showSnackbar(R.string.load_state_failed, 300);
-                }
+                loadStateAt(1);
             } else if (viewId == R.id.button_load_state1) {
-                if (mSnapshots.isEmpty()) return;
-                byte[] snapshot = mSnapshots.get(0);
-                if (!mEmulator.setSnapshot(snapshot)) {
-                    showSnackbar(R.string.load_state_failed, 300);
-                }
+                loadStateAt(0);
             }
         }
     }
