@@ -109,7 +109,6 @@ public class PlugUtils {
     }
 
     public static @Nullable Drawable getPlugIcon(@NonNull Context context, @NonNull PlugManifest manifest) {
-        System.out.println(manifest);
         PackageManager packageManager = context.getPackageManager();
         String plugPath = new File(manifest.installPath, BASE_DEX_NAME).getAbsolutePath();
         PackageInfo packageInfo = packageManager.getPackageArchiveInfo(plugPath, PackageManager.GET_META_DATA);
