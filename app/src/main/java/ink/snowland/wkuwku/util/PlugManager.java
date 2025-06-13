@@ -39,14 +39,14 @@ public class PlugManager {
 
     public static void install(File plugFile, @Nullable ActionListener listener) {
         Disposable disposable = Completable.create(emitter -> {
-                    final PlugManifest manifest = PlugUtils.readManifest(sApplicationContext, plugFile);
+                    PlugManifest manifest = PlugUtils.readManifest(sApplicationContext, plugFile);
                     if (manifest == null) {
                         emitter.onError(new RuntimeException("Invalid package!"));
                         return;
                     }
                     boolean upgrade = new File(FileManager.getPlugDirectory(), manifest.packageName).exists();
-                    boolean installed = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory()) != null;
-                    if (!upgrade && installed) {
+                    manifest = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory());
+                    if (!upgrade && manifest != null) {
                         try {
                             AppDatabase.db.plugManifestExtDao()
                                     .insert(new PlugManifestExt(manifest));
@@ -56,7 +56,7 @@ public class PlugManager {
                             emitter.onError(e);
                         }
                     }
-                    if (!installed) {
+                    if (manifest == null) {
                         emitter.onError(new RuntimeException("Plug install failed!"));
                     }
                 }).subscribeOn(Schedulers.io())
