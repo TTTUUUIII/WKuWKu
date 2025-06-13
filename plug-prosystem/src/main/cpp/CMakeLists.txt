@@ -26,7 +26,7 @@ project("prosystem")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_compile_definitions(EM_TAG="ProSystem_Native" EM_CLASS="ink/snowland/wkuwku/plug/prosystem/ProSystem" EM_PRE_LOAD_GAME_DATA)
+add_compile_definitions(EM_TAG="ProSystem_Native" EM_CLASS="ink/snowland/wkuwku/plug/prosystem/ProSystem")
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_libretro_bridge.cpp)

@@ -29,7 +29,6 @@ project("sameboy")
 add_compile_definitions(
         EM_TAG="SameBoy_Native"
         EM_CLASS="ink/snowland/wkuwku/plug/sameboy/SameBoy"
-        EM_PRE_LOAD_GAME_DATA
 )
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.

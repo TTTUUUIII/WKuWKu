@@ -3,11 +3,11 @@
     <systems>
         <system
             name="Game Boy"
-            tag="game-boy"
+            tag="gb"
             manufacturer="nintendo" />
         <system
             name="Game Boy Color"
-            tag="game-boy-color"
+            tag="gbc"
             manufacturer="nintendo" />
         <system
             name="Super Nintendo Entertainment System"
