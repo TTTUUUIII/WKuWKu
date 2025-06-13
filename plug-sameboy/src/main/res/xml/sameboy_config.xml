@@ -1,0 +1,543 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Game Boy"
+            tag="game-boy"
+            manufacturer="nintendo" />
+        <system
+            name="Game Boy Color"
+            tag="game-boy-color"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>gb</item>
+        <item>gbc</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="Auto"
+            key="sameboy_model"
+            title="System - Emulated Model (Requires Restart)">
+            <allow-values>
+                <value>Auto</value>
+                <value>Auto (SGB)</value>
+                <value>Game Boy</value>
+                <value>Game Boy Color C</value>
+                <value>Game Boy Color</value>
+                <value>Game Boy Advance</value>
+                <value>Super Game Boy</value>
+                <value>Super Game Boy PAL</value>
+                <value>Super Game Boy 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Super Game Boy"
+            key="sameboy_auto_sgb_model"
+            title="System - Auto Detected SGB Model (Requires Restart)">
+            <allow-values>
+                <value>Super Game Boy</value>
+                <value>Super Game Boy PAL</value>
+                <value>Super Game Boy 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="sync to system clock"
+            key="sameboy_rtc"
+            title="System - Real Time Clock Emulation">
+            <allow-values>
+                <value>sync to system clock</value>
+                <value>accurate</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="greyscale"
+            key="sameboy_mono_palette"
+            title="Video - GB Mono Palette">
+            <allow-values>
+                <value>greyscale</value>
+                <value>lime</value>
+                <value>olive</value>
+                <value>teal</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="sameboy_color_correction_mode"
+            title="Video - GBC Color Correction">
+            <allow-values>
+                <value>emulate hardware</value>
+                <value>accurate</value>
+                <value>preserve brightness</value>
+                <value>reduce contrast</value>
+                <value>correct curves</value>
+                <value>harsh reality</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="sameboy_light_temperature"
+            inputType="numberDecimal"
+            title="Video - Ambient Light Temperature (-1.0 - 1.0)" />
+        <option
+            defaultValue="Super Game Boy only"
+            key="sameboy_border"
+            title="Video - Display Border">
+            <allow-values>
+                <value>always</value>
+                <value>Super Game Boy only</value>
+                <value>never</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="accurate"
+            key="sameboy_high_pass_filter_mode"
+            title="Audio - Highpass Filter">
+            <allow-values>
+                <value>accurate</value>
+                <value>remove dc offset</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="sameboy_audio_interference"
+            inputType="number"
+            title="Audio - Interference Volume (0 - 100)" />
+        <option
+            defaultValue="rumble-enabled games"
+            key="sameboy_rumble"
+            title="Input - Rumble Mode">
+            <allow-values>
+                <value>all games</value>
+                <value>rumble-enabled games</value>
+                <value>never</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="sameboy_link"
+            title="System - Link Cable Emulation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="top-down"
+            key="sameboy_screen_layout"
+            title="System - Screen Layout">
+            <allow-values>
+                <value>top-down</value>
+                <value>left-right</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Game Boy #1"
+            key="sameboy_audio_output"
+            title="System - Audio Output">
+            <allow-values>
+                <value>Game Boy #1</value>
+                <value>Game Boy #2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto"
+            key="sameboy_model_1"
+            title="System - Emulated Model for Game Boy #1 (Requires Restart)">
+            <allow-values>
+                <value>Auto</value>
+                <value>Auto (SGB)</value>
+                <value>Game Boy</value>
+                <value>Game Boy Color C</value>
+                <value>Game Boy Color</value>
+                <value>Game Boy Advance</value>
+                <value>Super Game Boy</value>
+                <value>Super Game Boy PAL</value>
+                <value>Super Game Boy 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Super Game Boy"
+            key="sameboy_auto_sgb_model_1"
+            title="System - Auto Detected SGB Model for Game Boy #1 (Requires Restart)">
+            <allow-values>
+                <value>Super Game Boy</value>
+                <value>Super Game Boy PAL</value>
+                <value>Super Game Boy 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto"
+            key="sameboy_model_2"
+            title="System - Emulated Model for Game Boy #2 (Requires Restart)">
+            <allow-values>
+                <value>Auto</value>
+                <value>Auto (SGB)</value>
+                <value>Game Boy</value>
+                <value>Game Boy Color C</value>
+                <value>Game Boy Color</value>
+                <value>Game Boy Advance</value>
+                <value>Super Game Boy</value>
+                <value>Super Game Boy PAL</value>
+                <value>Super Game Boy 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Super Game Boy"
+            key="sameboy_auto_sgb_model_2"
+            title="System - Auto Detected SGB Model for Game Boy #2 (Requires Restart)">
+            <allow-values>
+                <value>Super Game Boy</value>
+                <value>Super Game Boy PAL</value>
+                <value>Super Game Boy 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="greyscale"
+            key="sameboy_mono_palette_1"
+            title="Video - GB Mono Palette for Game Boy #1">
+            <allow-values>
+                <value>greyscale</value>
+                <value>lime</value>
+                <value>olive</value>
+                <value>teal</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="greyscale"
+            key="sameboy_mono_palette_2"
+            title="Video - GB Mono Palette for Game Boy #2">
+            <allow-values>
+                <value>greyscale</value>
+                <value>lime</value>
+                <value>olive</value>
+                <value>teal</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="emulate hardware"
+            key="sameboy_color_correction_mode_1"
+            title="Video - GBC Color Correction for Game Boy #1">
+            <allow-values>
+                <value>emulate hardware</value>
+                <value>accurate</value>
+                <value>preserve brightness</value>
+                <value>reduce contrast</value>
+                <value>correct curves</value>
+                <value>harsh reality</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="emulate hardware"
+            key="sameboy_color_correction_mode_2"
+            title="Reduce Flickering (Hack, Unsafe)">
+            <allow-values>
+                <value>emulate hardware</value>
+                <value>accurate</value>
+                <value>preserve brightness</value>
+                <value>reduce contrast</value>
+                <value>correct curves</value>
+                <value>harsh reality</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="sameboy_light_temperature_1"
+            inputType="numberDecimal"
+            title="Video - Ambient Light Temperature for Game Boy #1 (-1.0 - 1.0)" />
+        <option
+            defaultValue="0"
+            key="sameboy_light_temperature_2"
+            inputType="numberDecimal"
+            title="Video - Ambient Light Temperature for Game Boy #2 (-1.0 - 1.0)" />
+        <option
+            defaultValue="accurate"
+            key="sameboy_high_pass_filter_mode_1"
+            title="Audio - Highpass Filter for Game Boy #1">
+            <allow-values>
+                <value>accurate</value>
+                <value>remove dc offset</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="accurate"
+            key="sameboy_high_pass_filter_mode_2"
+            title="Audio - Highpass Filter for Game Boy #2">
+            <allow-values>
+                <value>accurate</value>
+                <value>remove dc offset</value>
+                <value>off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="sameboy_audio_interference_1"
+            inputType="number"
+            title="Audio - Interference Volume for Game Boy #1 (0 - 100)" />
+        <option
+            defaultValue="0"
+            key="sameboy_audio_interference_2"
+            inputType="number"
+            title="Audio - Interference Volume for Game Boy #2 (0 - 100)" />
+        <option
+            defaultValue="rumble-enabled games"
+            key="sameboy_rumble_1"
+            title="Input - Rumble Mode for Game Boy #1">
+            <allow-values>
+                <value>all games</value>
+                <value>rumble-enabled games</value>
+                <value>never</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="rumble-enabled games"
+            key="sameboy_rumble_2"
+            title="Input - Rumble Mode for Game Boy #2">
+            <allow-values>
+                <value>all games</value>
+                <value>rumble-enabled games</value>
+                <value>never</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Lightgun"
+            key="snes9x_lightgun_mode"
+            title="Light Gun Mode">
+            <allow-values>
+                <value>Lightgun</value>
+                <value>Touchscreen</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="snes9x_superscope_reverse_buttons"
+            title="Super Scope Reverse Trigger Buttons">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="2"
+            key="snes9x_superscope_crosshair"
+            inputType="number"
+            title="Super Scope Crosshair (0 - 16)" />
+        <option
+            defaultValue="White"
+            key="snes9x_superscope_color"
+            title="Super Scope Color">
+            <allow-values>
+                <value>White</value>
+                <value>White (blend)</value>
+                <value>Red</value>
+                <value>Red (blend)</value>
+                <value>Orange</value>
+                <value>Orange (blend)</value>
+                <value>Yellow</value>
+                <value>Yellow (blend)</value>
+                <value>Green</value>
+                <value>Green (blend)</value>
+                <value>Cyan</value>
+                <value>Cyan (blend)</value>
+                <value>Sky</value>
+                <value>Sky (blend)</value>
+                <value>Blue</value>
+                <value>Blue (blend)</value>
+                <value>Violet</value>
+                <value>Violet (blend)</value>
+                <value>Pink</value>
+                <value>Pink (blend)</value>
+                <value>Purple</value>
+                <value>Purple (blend)</value>
+                <value>Black</value>
+                <value>Black (blend)</value>
+                <value>25% Grey</value>
+                <value>25% Grey (blend)</value>
+                <value>50% Grey</value>
+                <value>50% Grey (blend)</value>
+                <value>75% Grey</value>
+                <value>75% Grey (blend)</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="4"
+            key="snes9x_justifier1_crosshair"
+            inputType="number"
+            title="Justifier 1 Crosshair (0 - 16)" />
+        <option
+            defaultValue="Blue"
+            key="snes9x_justifier1_color"
+            title="Justifier 1 Color">
+            <allow-values>
+                <value>Blue</value>
+                <value>Blue (blend)</value>
+                <value>Violet</value>
+                <value>Violet (blend)</value>
+                <value>Pink</value>
+                <value>Pink (blend)</value>
+                <value>Purple</value>
+                <value>Purple (blend)</value>
+                <value>Black</value>,
+                <value>Black (blend)</value>,
+                <value>25% Grey</value>,
+                <value>25% Grey (blend)</value>,
+                <value>50% Grey</value>,
+                <value>50% Grey (blend)</value>,
+                <value>75% Grey</value>,
+                <value>75% Grey (blend)</value>,
+                <value>White</value>,
+                <value>White (blend)</value>,
+                <value>Red</value>,
+                <value>Red (blend)</value>,
+                <value>Orange</value>,
+                <value>Orange (blend)</value>,
+                <value>Yellow</value>,
+                <value>Yellow (blend)</value>,
+                <value>Green</value>,
+                <value>Green (blend)</value>,
+                <value>Cyan</value>,
+                <value>Cyan (blend)</value>,
+                <value>Sky</value>,
+                <value>Sky (blend)</value>,
+            </allow-values>
+        </option>
+        <option
+            defaultValue="4"
+            key="snes9x_justifier2_crosshair"
+            inputType="number"
+            title="Justifier 2 Crosshair (0 - 16)" />
+        <option
+            defaultValue="Pink"
+            key="snes9x_justifier2_color"
+            title="Justifier 2 Color">
+            <allow-values>
+                <value>Blue</value>
+                <value>Blue (blend)</value>
+                <value>Violet</value>
+                <value>Violet (blend)</value>
+                <value>Pink</value>
+                <value>Pink (blend)</value>
+                <value>Purple</value>
+                <value>Purple (blend)</value>
+                <value>Black</value>,
+                <value>Black (blend)</value>,
+                <value>25% Grey</value>,
+                <value>25% Grey (blend)</value>,
+                <value>50% Grey</value>,
+                <value>50% Grey (blend)</value>,
+                <value>75% Grey</value>,
+                <value>75% Grey (blend)</value>,
+                <value>White</value>,
+                <value>White (blend)</value>,
+                <value>Red</value>,
+                <value>Red (blend)</value>,
+                <value>Orange</value>,
+                <value>Orange (blend)</value>,
+                <value>Yellow</value>,
+                <value>Yellow (blend)</value>,
+                <value>Green</value>,
+                <value>Green (blend)</value>,
+                <value>Cyan</value>,
+                <value>Cyan (blend)</value>,
+                <value>Sky</value>,
+                <value>Sky (blend)</value>,
+            </allow-values>
+        </option>
+        <option
+            defaultValue="2"
+            key="snes9x_rifle_crosshair"
+            inputType="number"
+            title="M.A.C.S. Rifle Crosshair (0 - 16)" />
+        <option
+            defaultValue="White"
+            key="snes9x_rifle_color"
+            title="M.A.C.S. Rifle Color">
+            <allow-values>
+                <value>White</value>,
+                <value>White (blend)</value>,
+                <value>Red</value>,
+                <value>Red (blend)</value>,
+                <value>Orange</value>,
+                <value>Orange (blend)</value>,
+                <value>Yellow</value>,
+                <value>Yellow (blend)</value>,
+                <value>Green</value>,
+                <value>Green (blend)</value>,
+                <value>Cyan</value>,
+                <value>Cyan (blend)</value>,
+                <value>Sky</value>,
+                <value>Sky (blend)</value>,
+                <value>Blue</value>,
+                <value>Blue (blend)</value>,
+                <value>Violet</value>,
+                <value>Violet (blend)</value>,
+                <value>Pink</value>,
+                <value>Pink (blend)</value>,
+                <value>Purple</value>,
+                <value>Purple (blend)</value>,
+                <value>Black</value>,
+                <value>Black (blend)</value>,
+                <value>25% Grey</value>,
+                <value>25% Grey (blend)</value>,
+                <value>50% Grey</value>,
+                <value>50% Grey (blend)</value>,
+                <value>75% Grey</value>,
+                <value>75% Grey (blend)</value>,
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="snes9x_block_invalid_vram_access"
+            title="Block Invalid VRAM Access">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="snes9x_echo_buffer_hack"
+            title="Echo Buffer Hack (Unsafe, only enable for old addmusic hacks)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="snes9x_show_lightgun_settings"
+            title="Show Light Gun Settings">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="snes9x_blargg"
+            title="Blargg NTSC Filter">
+            <allow-values>
+                <value>disabled</value>
+                <value>monochrome</value>
+                <value>rf</value>
+                <value>composite</value>
+                <value>s-video</value>
+                <value>rgb</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="snes9x_show_advanced_av_settings"
+            title="Show Advanced Audio/Video Settings">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>

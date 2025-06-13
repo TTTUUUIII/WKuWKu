@@ -287,7 +287,7 @@
             key="fceumm_overscan_h_left"
             title="Crop overscan HL" />
         <option
-            defaultValue="enabled"
+            defaultValue="disabled"
             key="fceumm_sndlowpass"
             title="Sound low pass">
             <allow-values>

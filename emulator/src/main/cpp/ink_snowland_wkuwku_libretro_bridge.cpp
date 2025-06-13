@@ -8,6 +8,10 @@
 #include <fstream>
 #include "log.h"
 
+#define SWAP_RGBA_PIXEL(data, width, height, pitch) char* fb = (char*) data; \
+            for(int i = 0; i < height * pitch; i += 4) \
+                std::swap(fb[i], fb[i + 2]);
+
 #ifndef EM_TAG
 #define EM_TAG "Fceumm_Native"
 #endif
@@ -152,11 +156,14 @@ video_refresh_callback(const void *data, unsigned width, unsigned height, size_t
             is_attached = true;
         }
     }
+#ifdef EM_VF
+    EM_VF(data, width, height, pitch);
+#endif
 //#if defined(MESEN) || defined(MESEN_S) || defined(BSNES)
-//    char* buffer = (char*) data;
-//    for(int i = 0; i < height * pitch; i += 4)
-//        std::swap(buffer[i], buffer[i + 2]);
-//#endif
+//char* fb = (char*) data;
+//for(int i = 0; i < height * pitch; i += 4)
+//    std::swap(fb[i], fb[i + 2]);
+////#endif
     if (frame_buffer == nullptr || env->GetArrayLength(frame_buffer) != height * pitch) {
         if (frame_buffer != nullptr)
             env->DeleteGlobalRef(frame_buffer);
