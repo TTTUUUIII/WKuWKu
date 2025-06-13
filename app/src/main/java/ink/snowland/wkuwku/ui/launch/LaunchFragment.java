@@ -49,6 +49,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener {
     private static final String TAG = "PlayFragment";
+    private static final int SNACKBAR_LENGTH_SHORT = 500;
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String VIDEO_RATIO = "app_video_ratio";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
@@ -137,12 +138,12 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         if (status == LaunchViewModel.NO_ERR) {
             attachToEmulator();
             if (mAutoLoadState && !mAutoLoadDisabled) {
-                handler.postDelayed(mViewModel::loadStateAtLast, 300);
+                handler.postDelayed(mViewModel::loadStateAtLast, SNACKBAR_LENGTH_SHORT);
             }
         } else if (status == ERR_LOAD_FAILED){
-            showSnackbar(R.string.load_game_failed, 300);
+            showSnackbar(R.string.load_game_failed, SNACKBAR_LENGTH_SHORT);
         } else if (status == ERR_EMULATOR_NOT_FOUND) {
-            showSnackbar(R.string.no_matching_emulator_found, 300);
+            showSnackbar(R.string.no_matching_emulator_found, SNACKBAR_LENGTH_SHORT);
         }
     }
 
@@ -314,7 +315,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         } else {
             mController.vibrator();
             if (viewId == R.id.button_save && mViewModel.saveCurrentSate()) {
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), 300);
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
             } else if (viewId == R.id.button_load_state4) {
                 mViewModel.loadStateAt(3);
             } else if (viewId == R.id.button_load_state3) {
