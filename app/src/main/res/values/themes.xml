@@ -43,6 +43,7 @@
     </style>
     <style name="Theme.WKuWKu.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
         <item name="backgroundTint">@color/outlined_button_tint</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
     <style name="Theme.WKuWKu.Button.IconButton" parent="Widget.Material3.Button.IconButton">
         <item name="iconSize">25dp</item>

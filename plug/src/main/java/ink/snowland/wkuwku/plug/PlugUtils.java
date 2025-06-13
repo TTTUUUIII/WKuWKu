@@ -136,7 +136,7 @@ public class PlugUtils {
         }
     }
 
-    private static @Nullable PlugManifest readManifest(@NonNull Context context, @NonNull File plug) {
+    public static @Nullable PlugManifest readManifest(@NonNull Context context, @NonNull File plug) {
         PackageManager packageManager = context.getPackageManager();
         PackageInfo packageInfo = packageManager.getPackageArchiveInfo(plug.getAbsolutePath(), PackageManager.GET_META_DATA);
         if (packageInfo == null) return null;

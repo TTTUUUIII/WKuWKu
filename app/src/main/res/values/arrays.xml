@@ -7,12 +7,10 @@
         <item>WORLD</item>
     </string-array>
     <string-array name="video_ratio_entries">
-        <item>Covered</item>
         <item>Keep aspect ratio</item>
         <item>Full screen</item>
     </string-array>
     <string-array name="video_ratio_values">
-        <item>covered</item>
         <item>keep aspect ratio</item>
         <item>full screen</item>
     </string-array>

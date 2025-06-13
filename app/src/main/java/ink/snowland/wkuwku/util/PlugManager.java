@@ -8,15 +8,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 
-import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
-import ink.snowland.wkuwku.exception.FileChecksumException;
 import ink.snowland.wkuwku.plug.PlugManifest;
 import ink.snowland.wkuwku.plug.PlugUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -41,66 +37,27 @@ public class PlugManager {
                 });
     }
 
-    public static void install(@NonNull PlugRes res, @Nullable ActionListener listener) {
-        Disposable disposable = Completable.create(emitter -> {
-                    URL url = new URL(res.url);
-                    String filename = new File(url.getPath()).getName();
-                    if (!filename.endsWith(".apk")) {
-                        emitter.onError(new UnsupportedOperationException("Unknown plug file type!"));
-                        return;
-                    }
-                    File temp = new File(FileManager.getCacheDirectory(), filename);
-                    try (InputStream from = url.openStream()) {
-                        FileManager.copy(from, temp);
-                        String md5sum = FileManager.calculateMD5Sum(temp);
-                        if (!md5sum.equals(res.md5)) {
-                            emitter.onError(new FileChecksumException(res.md5, md5sum));
-                            FileManager.delete(temp);
-                            return;
-                        }
-                        install(temp.getAbsolutePath(), new ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                emitter.onComplete();
-                                FileManager.delete(temp);
-                            }
-
-                            @Override
-                            public void onFailure(Throwable e) {
-                                emitter.onError(e);
-                                FileManager.delete(temp);
-                            }
-                        });
-                    }
-                }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
-                    if (listener != null)
-                        listener.onSuccess();
-                }, error -> {
-                    if (listener != null)
-                        listener.onFailure(error);
-                });
-    }
-
-    public static void install(String plugPath, @Nullable ActionListener listener) {
-        install(new File(plugPath), listener);
-    }
-
     public static void install(File plugFile, @Nullable ActionListener listener) {
         Disposable disposable = Completable.create(emitter -> {
-                    PlugManifest manifest = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory());
+                    final PlugManifest manifest = PlugUtils.readManifest(sApplicationContext, plugFile);
                     if (manifest == null) {
-                        emitter.onError(new RuntimeException("Plug install failed!"));
+                        emitter.onError(new RuntimeException("Invalid package!"));
                         return;
                     }
-                    try {
-                        AppDatabase.db.plugManifestExtDao()
-                                .insert(new PlugManifestExt(manifest));
-                        emitter.onComplete();
-                    } catch (Exception e) {
-                        PlugUtils.uninstall(manifest);
-                        emitter.onError(e);
+                    boolean upgrade = new File(FileManager.getPlugDirectory(), manifest.packageName).exists();
+                    boolean installed = PlugUtils.install(sApplicationContext, plugFile, FileManager.getPlugDirectory()) != null;
+                    if (!upgrade && installed) {
+                        try {
+                            AppDatabase.db.plugManifestExtDao()
+                                    .insert(new PlugManifestExt(manifest));
+                            emitter.onComplete();
+                        } catch (Exception e) {
+                            PlugUtils.uninstall(manifest);
+                            emitter.onError(e);
+                        }
+                    }
+                    if (!installed) {
+                        emitter.onError(new RuntimeException("Plug install failed!"));
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

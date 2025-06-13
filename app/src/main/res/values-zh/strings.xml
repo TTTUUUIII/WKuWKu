@@ -135,5 +135,5 @@
     <string name="invalid_package">错误：无效的包！</string>
     <string name="plug_already_installed">扩展已经存在，请勿重复安装!</string>
     <string name="blacklist_auto_load_state">自动加载状态黑名单</string>
-    <string name="summary_black_auto_load_state">该功能在某些核心上不稳定，加入这个列表可禁用该功能</string>
+    <string name="summary_black_auto_load_state">该功能在某些核心上不稳定，加入这个列表可禁用它</string>
 </resources>

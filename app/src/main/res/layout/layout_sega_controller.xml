@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:paddingBottom="80dp"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingHorizontal="15dp"
+    android:paddingBottom="80dp">
     <ink.snowland.wkuwku.view.JoystickView
         android:id="@+id/joystick_view"
         android:layout_width="140dp"
@@ -11,6 +12,7 @@
         app:JV_borderWidth="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
+
     <Button
         android:id="@+id/button_a"
         style="@style/Theme.WKuWKu.GPButton"
@@ -18,7 +20,7 @@
         android:layout_height="60dp"
         android:text="@string/a"
         android:textSize="24sp"
-        android:layout_marginEnd="140dp"
+        android:layout_marginEnd="135dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -48,10 +50,10 @@
     <Button
         android:id="@+id/button_x"
         style="@style/Theme.WKuWKu.GPButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="15dp"
-        android:layout_marginEnd="170dp"
+        android:layout_marginEnd="155dp"
         android:text="@string/x"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/button_a"
@@ -60,10 +62,10 @@
     <Button
         android:id="@+id/button_y"
         style="@style/Theme.WKuWKu.GPButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="15dp"
-        android:layout_marginEnd="100dp"
+        android:layout_marginEnd="95dp"
         android:text="@string/y"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/button_b"
@@ -72,9 +74,9 @@
     <Button
         android:id="@+id/button_z"
         style="@style/Theme.WKuWKu.GPButton"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginEnd="30dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="25dp"
         android:layout_marginBottom="15dp"
         android:text="@string/z"
         android:textSize="18sp"
@@ -82,21 +84,21 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.button.MaterialButtonToggleGroup
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
         <Button
             android:id="@+id/button_mode"
             style="@style/Theme.WKuWKu.Button.OutlinedButton"
-            android:layout_width="110dp"
+            android:layout_width="wrap_content"
             android:textColor="?attr/colorPrimary"
             android:layout_height="wrap_content"
             android:text="@string/mode" />
         <Button
             android:id="@+id/button_start"
             style="@style/Theme.WKuWKu.Button.OutlinedButton"
-            android:layout_width="110dp"
+            android:layout_width="wrap_content"
             android:textColor="?attr/colorPrimary"
             android:layout_height="wrap_content"
             android:text="@string/start" />
