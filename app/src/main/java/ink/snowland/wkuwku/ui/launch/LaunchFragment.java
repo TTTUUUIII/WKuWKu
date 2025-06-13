@@ -4,6 +4,7 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
 
 import android.annotation.SuppressLint;
+import android.content.res.Configuration;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
@@ -18,6 +19,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -82,17 +84,14 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
-        final String ratio = SettingsManager.getString(VIDEO_RATIO);
-        binding.startReserved.setVisibility("full screen".equals(ratio) ? View.GONE : View.VISIBLE);
-        binding.endReserved.setVisibility(binding.startReserved.getVisibility());
         mVideoDevice = new GLVideoDevice(requireContext()) {
             @Override
             public void refresh(byte[] data, int width, int height, int pitch) {
                 super.refresh(data, width, height, pitch);
+                adjustScreenSize(width, height);
                 binding.glSurfaceView.requestRender();
             }
         };
-        mVideoDevice.setVideoRatio("keep aspect ratio".equals(ratio) ? GLVideoDevice.KEEP_ORIGIN : GLVideoDevice.COVERED);
         binding.glSurfaceView.setEGLContextClientVersion(3);
         binding.glSurfaceView.setRenderer(mVideoDevice.getRenderer());
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
@@ -154,6 +153,33 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         emulator.attachDevice(INPUT_DEVICE, mController);
         emulator.setEmulatorEventListener(this);
         mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
+    }
+
+    private int mCurrentWidth;
+    private int mCurrentHeight;
+    private void adjustScreenSize(int width, int height) {
+        if (mCurrentWidth == width && mCurrentHeight == height) return;
+        float ratio = (float) width / height;
+        mCurrentWidth = width;
+        mCurrentHeight = height;
+        binding.glSurfaceView.post(() -> {
+            ViewGroup.LayoutParams lp = binding.glSurfaceView.getLayoutParams();
+            if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            } else {
+                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+                boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+                if (landscape) {
+                    lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                    lp.width = (int) (displayMetrics.heightPixels * ratio);
+                } else {
+                    lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    lp.height = (int) (displayMetrics.widthPixels / ratio);
+                }
+            }
+            binding.glSurfaceView.setLayoutParams(lp);
+        });
     }
 
     private final OnBackPressedCallback mBackPressedCallback = new OnBackPressedCallback(true) {
@@ -229,10 +255,14 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             navController.popBackStack();
             return;
         }
+        boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
             mViewModel.pauseEmulator();
-            mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
             mViewModel.saveCurrentSate();
+            captureScreen = true;
+        }
+        if (captureScreen) {
+            mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
         }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();

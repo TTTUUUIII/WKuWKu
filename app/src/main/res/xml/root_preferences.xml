@@ -6,7 +6,7 @@
         app:title="@string/video_options">
         <ListPreference
             app:iconSpaceReserved="false"
-            app:defaultValue="covered"
+            app:defaultValue="keep aspect ratio"
             app:entries="@array/video_ratio_entries"
             app:entryValues="@array/video_ratio_values"
             app:key="app_video_ratio"
