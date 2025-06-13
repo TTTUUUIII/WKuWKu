@@ -4,7 +4,6 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import static android.opengl.GLES30.*;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
@@ -64,14 +63,15 @@ public class GLVideoDevice implements EmVideoDevice {
 
     public void exportAsPNG(File file) {
         if (mFrameBuffer == null) return;
-        final byte[] pixels;
+        final byte[] pixels = new byte[mFrameBuffer.capacity()];
         synchronized (mLock) {
-            pixels = mFrameBuffer.array();
+            mFrameBuffer.rewind();
+            mFrameBuffer.get(pixels);
         }
         if (mPixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
-            ImageUtils.saveAsPng(Bitmap.Config.RGB_565, pixels, mVideoWidth, mVideoHeight, file);
-        } else {
-            ImageUtils.saveAsPng(Bitmap.Config.ARGB_8888, pixels, mVideoWidth, mVideoHeight, file);
+            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGB565, pixels, mVideoWidth, mVideoHeight, file);
+        } else if (mPixelFormat == RETRO_PIXEL_FORMAT_XRGB8888) {
+            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGBA8888, pixels, mVideoWidth, mVideoHeight, file);
         }
     }
 
