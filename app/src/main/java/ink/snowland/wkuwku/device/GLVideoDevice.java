@@ -67,6 +67,7 @@ public class GLVideoDevice implements EmVideoDevice {
         synchronized (mLock) {
             mFrameBuffer.rewind();
             mFrameBuffer.get(pixels);
+            mFrameBuffer.rewind();
         }
         if (mPixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
             ImageUtils.saveAsPng(ImageUtils.FORMAT_RGB565, pixels, mVideoWidth, mVideoHeight, file);
