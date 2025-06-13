@@ -1639,6 +1639,7 @@ public abstract class Emulator {
     protected String systemTag;
     private AudioTrack mAudioTrack;
     private float mVolume = 1.0f;
+    private int mPixelFormat = RETRO_PIXEL_FORMAT_RGB565;
 
     public boolean run(@NonNull String fullPath, @NonNull String systemTag) {
         if (mState != STATE_INVALID)
@@ -1703,6 +1704,7 @@ public abstract class Emulator {
         switch (target) {
             case VIDEO_DEVICE:
                 videoDevice = (EmVideoDevice) device;
+                videoDevice.setPixelFormat(mPixelFormat);
                 break;
             case INPUT_DEVICE:
                 if (device instanceof EmInputDevice) {
@@ -1822,8 +1824,10 @@ public abstract class Emulator {
                 break;
             case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
                 variable = (Variable) data;
-                if ((int) variable.value == RETRO_PIXEL_FORMAT_XRGB8888)
-                    videoDevice.setPixelFormat(EmVideoDevice.PIXEL_FORMAT_RGBA);
+                mPixelFormat = (int) variable.value;
+                if (videoDevice != null) {
+                    videoDevice.setPixelFormat(mPixelFormat);
+                }
                 break;
             case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
                 variable = (Variable) data;

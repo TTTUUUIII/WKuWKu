@@ -1,9 +1,9 @@
 package ink.snowland.wkuwku.device;
 
+import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import static android.opengl.GLES30.*;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
@@ -31,7 +31,7 @@ public class GLVideoDevice implements EmVideoDevice {
     private RenderImpl mRender;
     private final String mVertexShaderSource;
     private final String mFragmentShaderSource;
-    private int mPixelFormat = PIXEL_FORMAT_RGB565;
+    private int mPixelFormat = RETRO_PIXEL_FORMAT_RGB565;
     private int mBytesPerPixel = 2;
 
     public GLVideoDevice(Context context) {
@@ -50,7 +50,7 @@ public class GLVideoDevice implements EmVideoDevice {
     @Override
     public void setPixelFormat(int format) {
         mPixelFormat = format;
-        if (mPixelFormat == PIXEL_FORMAT_RGBA) {
+        if (mPixelFormat == RETRO_PIXEL_FORMAT_XRGB8888) {
             mBytesPerPixel = 4;
         }
     }
@@ -63,14 +63,15 @@ public class GLVideoDevice implements EmVideoDevice {
 
     public void exportAsPNG(File file) {
         if (mFrameBuffer == null) return;
-        final byte[] pixels;
+        final byte[] pixels = new byte[mFrameBuffer.capacity()];
         synchronized (mLock) {
-            pixels = mFrameBuffer.array();
+            mFrameBuffer.rewind();
+            mFrameBuffer.get(pixels);
         }
-        if (mPixelFormat == PIXEL_FORMAT_RGB565) {
-            ImageUtils.saveAsPng(Bitmap.Config.RGB_565, pixels, mVideoWidth, mVideoHeight, file);
-        } else {
-            ImageUtils.saveAsPng(Bitmap.Config.ARGB_8888, pixels, mVideoWidth, mVideoHeight, file);
+        if (mPixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
+            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGB565, pixels, mVideoWidth, mVideoHeight, file);
+        } else if (mPixelFormat == RETRO_PIXEL_FORMAT_XRGB8888) {
+            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGBA8888, pixels, mVideoWidth, mVideoHeight, file);
         }
     }
 
@@ -133,7 +134,7 @@ public class GLVideoDevice implements EmVideoDevice {
             int internalFormat = GL_RGB565;
             int format = GL_RGB;
             int type = GL_UNSIGNED_SHORT_5_6_5;
-            if (mPixelFormat == PIXEL_FORMAT_RGBA) {
+            if (mPixelFormat == RETRO_PIXEL_FORMAT_XRGB8888) {
                 internalFormat = GL_RGBA;
                 format = GL_RGBA;
                 type = GL_UNSIGNED_BYTE;

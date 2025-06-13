@@ -1,6 +1,10 @@
 #include <jni.h>
 #include <libretro/libretro.h>
 #include <string>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
 #include <fstream>
 #include "log.h"
 
@@ -36,6 +40,8 @@ static jobject variable_object;
 static jobject variable_entry_object;
 static jbyteArray frame_buffer = nullptr;
 static jshortArray audio_buffer = nullptr;
+static int pixel_format = RETRO_PIXEL_FORMAT_RGB565;
+static int need_fullpath = true;
 
 static void set_variable_value(JNIEnv *env, jobject value) {
     env->SetObjectField(variable_object, ctx.variable_value_field, value);
@@ -83,7 +89,7 @@ static jobject get_variable_entry_value(JNIEnv *env) {
 }
 
 static void log_print_callback(enum retro_log_level level, const char *fmt, ...) {
-    char buffer[512];  // 缓冲区存储格式化日志
+    char buffer[512];
     va_list args;
     va_start(args, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, args);
@@ -148,11 +154,11 @@ video_refresh_callback(const void *data, unsigned width, unsigned height, size_t
             is_attached = true;
         }
     }
-//#if defined(MESEN) || defined(MESEN_S) || defined(BSNES)
-//    char* buffer = (char*) data;
-//    for(int i = 0; i < height * pitch; i += 4)
-//        std::swap(buffer[i], buffer[i + 2]);
-//#endif
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        char *fb = (char *) data;
+        for (int i = 0; i < height * pitch; i += 4)
+            std::swap(fb[i], fb[i + 2]);
+    }
     if (frame_buffer == nullptr || env->GetArrayLength(frame_buffer) != height * pitch) {
         if (frame_buffer != nullptr)
             env->DeleteGlobalRef(frame_buffer);
@@ -426,7 +432,8 @@ static bool environment_callback(unsigned cmd, void *data) {
             return ret;
         }
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-            set_variable_value(env, *((jint *) data));
+            pixel_format = *((int *) data);
+            set_variable_value(env, pixel_format);
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
                                           variable_object);
         case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: {
@@ -527,7 +534,21 @@ static void em_power_off(JNIEnv *env, jobject thiz) {
 static jboolean em_load_game(JNIEnv *env, jobject thiz, jstring jpath) {
     const char *path = env->GetStringUTFChars(jpath, JNI_FALSE);
     struct retro_game_info info = {path, nullptr, 0, nullptr};
+    if (!need_fullpath) {
+        int fd = open(path, O_RDONLY);
+        if(fd == -1) return false;
+        struct stat sb = {0};
+        if (fstat(fd, &sb) == -1) {
+            close(fd);
+            return false;
+        }
+        info.size = sb.st_size;
+        info.data = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    }
     bool state = retro_load_game(&info);
+    if (info.data != nullptr) {
+        munmap((void *) info.data, info.size);
+    }
     env->ReleaseStringUTFChars(jpath, path);
     return state;
 }
@@ -554,6 +575,7 @@ static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
 static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
     struct retro_system_info system_info = {};
     retro_get_system_info(&system_info);
+    need_fullpath = system_info.need_fullpath;
     jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemInfo");
     jmethodID constructor = env->GetMethodID(clazz, "<init>",
                                              "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
