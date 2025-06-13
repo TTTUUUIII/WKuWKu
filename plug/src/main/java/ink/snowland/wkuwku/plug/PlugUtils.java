@@ -38,7 +38,11 @@ public class PlugUtils {
         PlugManifest manifest = readManifest(context, plugFile);
         if (manifest == null) return null;
         installDir = new File(installDir, manifest.packageName);
-        if (!installDir.exists() && !installDir.mkdirs()) {
+        if (installDir.exists() && !installDir.delete()) {
+            Log.e(TAG, "ERROR: failed to delete old dir");
+            return null;
+        }
+        if (!installDir.mkdirs()) {
             Log.e(TAG, "ERROR: failed to create dir: " + installDir);
             return null;
         }
@@ -166,9 +170,6 @@ public class PlugUtils {
                 if (name.startsWith("lib/" + abi)) {
                     if (!entry.isDirectory()) {
                         File lib = new File(installDir, new File(entry.getName()).getName());
-                        if (lib.exists()) {
-                            boolean ignored = lib.delete();
-                        }
                         try (FileOutputStream fos = new FileOutputStream(lib)){
                             byte[] buffer = new byte[1024];
                             int readNumInBytes;
