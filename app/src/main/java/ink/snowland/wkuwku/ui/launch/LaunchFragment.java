@@ -138,7 +138,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         if (status == LaunchViewModel.NO_ERR) {
             attachToEmulator();
             if (mAutoLoadState && !mAutoLoadDisabled) {
-                handler.postDelayed(mViewModel::loadStateAtLast, SNACKBAR_LENGTH_SHORT);
+                handler.postDelayed(mViewModel::loadStateAtLast, 300);
             }
         } else if (status == ERR_LOAD_FAILED){
             showSnackbar(R.string.load_game_failed, SNACKBAR_LENGTH_SHORT);
