@@ -12,7 +12,7 @@
         android:paddingHorizontal="15dp"
         android:orientation="vertical">
         <com.google.android.material.textfield.TextInputLayout
-            style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <com.google.android.material.textfield.MaterialAutoCompleteTextView

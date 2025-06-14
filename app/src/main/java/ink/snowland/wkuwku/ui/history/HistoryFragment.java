@@ -88,7 +88,7 @@ public class HistoryFragment extends BaseFragment {
         Bundle args = new Bundle();
         args.putBoolean(LaunchFragment.ARG_AUTO_LOAD_STATE, true);
         args.putParcelable(LaunchFragment.ARG_GAME, game);
-        navController.navigate(R.id.launch_fragment, args);
+        navController.navigate(R.id.launch_fragment, args, navAnimOptions);
     }
 
     private void showMorePopupMenu(@NonNull View view, @NonNull Game game) {
@@ -143,9 +143,7 @@ public class HistoryFragment extends BaseFragment {
             } else {
                 itemBinding.lastPlayedTime.setText(R.string.played_just_now);
             }
-            itemBinding.play.setOnClickListener(v -> {
-                handler.postDelayed(() -> launch(game), 340);
-            });
+            itemBinding.play.setOnClickListener(v -> launch(game));
         }
     }
 

@@ -7,7 +7,7 @@
 
     <Button
         android:id="@+id/reset"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/reset_emulator"
@@ -19,7 +19,7 @@
 
     <Button
         android:id="@+id/exit"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/exit_emulator"

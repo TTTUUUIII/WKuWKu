@@ -164,7 +164,7 @@ public class CoreFragment extends BaseFragment {
             super(new DiffUtil.ItemCallback<EmOption>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull EmOption oldItem, @NonNull EmOption newItem) {
-                    return oldItem == newItem;
+                    return oldItem.key.equals(newItem.key);
                 }
 
                 @Override

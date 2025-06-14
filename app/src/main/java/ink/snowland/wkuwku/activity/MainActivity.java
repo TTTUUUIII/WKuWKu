@@ -15,9 +15,11 @@ import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IdRes;
@@ -28,6 +30,9 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 import androidx.core.text.HtmlCompat;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -66,7 +71,17 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+        ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout, new OnApplyWindowInsetsListener() {
+            @NonNull
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+                int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                v.setPadding(v.getPaddingLeft(), top, v.getPaddingRight(), v.getPaddingBottom());
+                return insets;
+            }
+        });
         mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         setSupportActionBar(binding.toolBar);
         setContentView(binding.getRoot());
@@ -143,20 +158,13 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
-    /*private final NavOptions navAnimOptions = new NavOptions.Builder()
-            .setEnterAnim(R.anim.slide_in_right)
-            .setExitAnim(R.anim.slide_out_left)
-            .setPopEnterAnim(R.anim.slide_in_left)
-            .setPopExitAnim(R.anim.slide_out_right)
-            .build();*/
-
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (mActionBarDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         } else if (item.getItemId() == R.id.action_settings) {
             if (isNavigateAble(R.id.settings_fragment)) {
-                mNavController.navigate(R.id.settings_fragment/*, null, navAnimOptions*/);
+                mNavController.navigate(R.id.settings_fragment, null, navAnimOptions);
             }
         }
         return super.onOptionsItemSelected(item);

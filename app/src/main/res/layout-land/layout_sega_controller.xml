@@ -85,7 +85,7 @@
 
     <Button
         android:id="@+id/button_start"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="110dp"
         android:layout_height="wrap_content"
         android:text="@string/start"
@@ -95,7 +95,7 @@
 
     <Button
         android:id="@+id/button_mode"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="110dp"
         android:layout_height="wrap_content"
         android:text="@string/mode"
