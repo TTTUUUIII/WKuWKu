@@ -148,12 +148,10 @@ public class MainActivity extends BaseActivity {
             } else {
                 navResId = 0;
             }
-            binding.drawerLayout.closeDrawers();
             if (navResId != 0 && isNavigateAble(navResId)) {
-                postDelayed(() -> {
-                    mNavController.navigate(navResId);
-                }, 200);
+                mNavController.navigate(navResId, null, navAnimOptions);
             }
+            binding.drawerLayout.closeDrawers();
         }
         return true;
     }

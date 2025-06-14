@@ -79,6 +79,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PlugViewModel.class);
+        final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
         Disposable disposable = mViewModel.getAvailablePlugInfos()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -86,10 +87,13 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     mAvailablePlugListLoaded = true;
                     mViewModel.setPendingIndicator(false);
                 })
-                .subscribe(mAvailablePlugAdapter::submitList, error -> {
-                    error.printStackTrace(System.err);
-                });
-        mViewModel.getAll().observe(this, mInstalledPlugAdapter::submitList);
+                .subscribe(
+                        data -> submitDelayed(data, mAvailablePlugAdapter, submitDelayedMillis)
+                );
+        mViewModel.getAll().observe(
+                this,
+                data -> submitDelayed(data, mInstalledPlugAdapter, submitDelayedMillis)
+                );
     }
 
     @Override
