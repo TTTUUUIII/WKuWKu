@@ -14,14 +14,14 @@ import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.navigation.NavOptions;
 
-import java.io.File;
 import java.util.Objects;
 
+import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.activity.QRScannerActivity;
 
 public abstract class BaseActivity extends AppCompatActivity {
@@ -30,6 +30,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     private OnResultCallback<Uri> mOpenDocumentCallback;
     private OnResultCallback<String> mOnQRScanResultCallback;
     private final Handler handler = new Handler(Looper.getMainLooper());
+    protected NavOptions navAnimOptions = null;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,6 +50,10 @@ public abstract class BaseActivity extends AppCompatActivity {
                 }
             }
         });
+        navAnimOptions = new NavOptions.Builder()
+                .setEnterAnim(R.anim.zoom_in_right)
+                .setPopEnterAnim(R.anim.zoom_in_left)
+                .build();
     }
 
     public void setStatusBarVisibility(boolean visibility) {

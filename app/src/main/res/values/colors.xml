@@ -5,10 +5,11 @@
     <color name="white">#FFFFFFFF</color>
     <color name="white_alpha_800">#C8FFFFFF</color>
     <color name="primary">#DF491E</color>
-    <color name="primary_700">#E8805F</color>
-    <color name="primary_500">#E89E89</color>
-    <color name="primary_300">#F4C5B0</color>
-    <color name="primary_100">#F9E8D9</color>
+    <color name="primary_container">#E8805F</color>
+    <color name="surface">#FFECDB</color>
+    <color name="background">#F4C5B0</color>
+    <color name="secondary_container">#E8805F</color>
+
     <color name="primary_dark">@color/black</color>
     <color name="secondary">#A0C878</color>
     <color name="secondary_500">#C9DDB6</color>

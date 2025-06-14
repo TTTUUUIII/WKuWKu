@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class EmOption implements Cloneable , Comparable<EmOption>{
@@ -86,17 +87,16 @@ public class EmOption implements Cloneable , Comparable<EmOption>{
         }
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        EmOption emOption = (EmOption) o;
-        return Objects.equals(key, emOption.key);
+        EmOption option = (EmOption) o;
+        return enable == option.enable && Objects.equals(key, option.key) && Objects.equals(val, option.val) && Objects.equals(title, option.title) && Objects.deepEquals(allowVals, option.allowVals) && Objects.equals(inputType, option.inputType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(key);
+        return Objects.hash(key, val, title, Arrays.hashCode(allowVals), enable, inputType);
     }
 
     @Override

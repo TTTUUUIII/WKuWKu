@@ -74,20 +74,24 @@
         android:layout_height="wrap_content">
         <Button
             android:id="@+id/button_l2"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            android:backgroundTint="@android:color/transparent"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="?attr/colorPrimary"
             android:text="@string/l2" />
         <Button
             android:id="@+id/button_l3"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            android:backgroundTint="@android:color/transparent"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textColor="?attr/colorPrimary"
             android:text="@string/l3" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
     <Button
         android:id="@+id/button_l"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/l"
@@ -103,25 +107,29 @@
 
         <Button
             android:id="@+id/button_r3"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:backgroundTint="@android:color/transparent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/r3"
+            android:textColor="?attr/colorPrimary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/button_r2"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:backgroundTint="@android:color/transparent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/r2"
+            android:textColor="?attr/colorPrimary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/button_r3" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
     <Button
         android:id="@+id/button_r"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/r"
@@ -204,7 +212,7 @@
 
     <Button
         android:id="@+id/button_a_b"
-        style="@style/Theme.WKuWKu.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.OutlinedButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/a_b"
@@ -222,24 +230,21 @@
 
         <Button
             android:id="@+id/button_select"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:backgroundTint="@android:color/transparent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/select"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/button_start"
-            app:layout_constraintHorizontal_chainStyle="packed"
-            app:layout_constraintStart_toStartOf="parent" />
+            android:textColor="?attr/colorPrimary" />
 
         <Button
             android:id="@+id/button_start"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@android:color/transparent"
             android:layout_marginStart="15dp"
-            android:text="@string/start"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/button_select" />
+            android:textColor="?attr/colorPrimary"
+            android:text="@string/start" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 </androidx.constraintlayout.widget.ConstraintLayout>

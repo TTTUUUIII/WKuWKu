@@ -85,7 +85,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/uninstall"
-                style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:backgroundTint="@android:color/transparent"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/error"

@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     tools:context=".ui.launch.LaunchFragment">
 
     <android.opengl.GLSurfaceView
@@ -26,7 +27,7 @@
 
         <Button
             android:id="@+id/button_save"
-            style="@style/Theme.WKuWKu.Button.OutlinedButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/save"

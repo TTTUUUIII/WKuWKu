@@ -9,11 +9,11 @@
     <item
         android:id="@+id/action_edit"
         android:icon="@drawable/ic_edit"
-        android:iconTint="@color/primary_700"
+        android:iconTint="?attr/colorPrimary"
         android:title="@string/edit" />
     <item
         android:id="@+id/action_delete"
         android:icon="@drawable/ic_recycling"
-        android:iconTint="@color/error_700"
+        android:iconTint="?attr/colorError"
         android:title="@string/move_to_trash" />
 </menu>

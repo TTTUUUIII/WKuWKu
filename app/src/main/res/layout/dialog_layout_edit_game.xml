@@ -16,7 +16,7 @@
             android:orientation="vertical">
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/title_layout"
-                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:hint="@string/title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -30,7 +30,7 @@
                 android:id="@+id/system_layout"
                 android:hint="@string/system"
                 android:layout_marginTop="15dp"
-                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/title_layout">
@@ -46,7 +46,7 @@
                 android:id="@+id/region_layout"
                 android:hint="@string/region"
                 android:layout_marginTop="15dp"
-                style="@style/Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/system_layout">
@@ -76,7 +76,7 @@
                     android:text="@={game.filepath}"/>
                 <Button
                     android:id="@+id/button_select_file"
-                    style="@style/Theme.WKuWKu.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/select_file" />

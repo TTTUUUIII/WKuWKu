@@ -3,52 +3,29 @@
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryContainer">@color/primary_700</item>
-        <item name="colorContainer">@color/primary_500</item>
-        <item name="colorSurface">@color/primary_500</item>
-        <item name="colorSurfaceContainer">@color/primary_300</item>
-        <item name="colorSecondaryContainer">@color/primary_700</item>
-        <item name="colorSurfaceContainerHigh">@color/primary_100</item>
-        <item name="backgroundColor">@color/primary_300</item>
-        <item name="popupMenuBackground">@color/primary_500</item>
-        <item name="snackbarStyle">@style/Theme.WKuWKu.Snackbar</item>
-        <item name="snackbarButtonStyle">@style/Widget.Material3.Button.TextButton.Snackbar</item>
-        <item name="snackbarTextViewStyle">@style/Theme.WKuWKu.Snackbar.TextView</item>
+        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorSurfaceContainer">@color/surface</item>
+        <item name="colorSecondaryContainer">@color/secondary_container</item>
+        <item name="colorSurfaceContainerHigh">@color/surface</item>
+        <item name="backgroundColor">@color/background</item>
+        <item name="popupMenuBackground">@color/surface</item>
         <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
-<!--        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>-->
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
-    <style name="Theme.WKuWKu.Snackbar" parent="Widget.Material3.Snackbar">
-        <item name="backgroundTint">?attr/colorPrimaryContainer</item>
-    </style>
-    <style name="Theme.WKuWKu.Snackbar.TextView" parent="Widget.Material3.Snackbar.TextView">
-    </style>
-    <style name="Theme.WKuWKu.TextInputLayout.OutlinedBox" parent="Widget.Material3.TextInputLayout.OutlinedBox">
-
-    </style>
-    <style name="Theme.WKuWKu.TextInputLayout.OutlinedBox.ExposedDropdownMenu" parent="Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
-
-    </style>
     <style name="Theme.WKuWKu.TextInputEditText.OutlinedBox" parent="Widget.Material3.TextInputEditText.OutlinedBox">
         <item name="android:paddingTop">13dp</item>
         <item name="android:paddingBottom">12dp</item>
     </style>
-    <style name="Theme.WKuWKu.AutoCompleteTextView.OutlinedBox" parent="ThemeOverlay.Material3.AutoCompleteTextView.OutlinedBox">
+    <style name="Theme.WKuWKu.AutoCompleteTextView.OutlinedBox" parent="Widget.Material3.AutoCompleteTextView.OutlinedBox">
         <item name="android:paddingTop">0dp</item>
         <item name="android:paddingBottom">0dp</item>
-    </style>
-    <style name="Theme.WKuWKu.Button" parent="Widget.Material3.Button">
-        <item name="backgroundTint">@color/button_tint</item>
-    </style>
-    <style name="Theme.WKuWKu.Button.OutlinedButton" parent="Widget.Material3.Button.OutlinedButton">
-        <item name="backgroundTint">@color/outlined_button_tint</item>
-        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
     <style name="Theme.WKuWKu.Button.IconButton" parent="Widget.Material3.Button.IconButton">
         <item name="iconSize">25dp</item>
     </style>
-    <style name="Theme.WKuWKu.GPButton" parent="Theme.WKuWKu.Button.OutlinedButton">
+    <style name="Theme.WKuWKu.GPButton" parent="Widget.Material3.Button.OutlinedButton">
         <item name="android:insetTop">0dp</item>
         <item name="android:insetBottom">0dp</item>
         <item name="android:paddingLeft">0dp</item>

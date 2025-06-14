@@ -7,7 +7,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <RelativeLayout
-        android:id="@+id/main"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".activity.MainActivity">
@@ -15,20 +14,25 @@
             android:id="@+id/emoji_workshop_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/tool_bar"
-            android:background="?attr/colorSurfaceContainer"
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/app_bar_layout"
             android:layout_width="match_parent"
-            android:elevation="4dp"
-            style="@style/ThemeOverlay.Material3.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.Material3.DynamicColors.Light"
-            android:layout_height="?attr/actionBarSize" />
+            android:layout_height="wrap_content">
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/tool_bar"
+                android:layout_width="match_parent"
+                android:minHeight="?attr/actionBarSize"
+                android:elevation="4dp"
+                style="@style/Widget.Material3.Toolbar"
+                app:popupTheme="@style/ThemeOverlay.Material3.DynamicColors.Light"
+                android:layout_height="?attr/actionBarSize" />
+        </com.google.android.material.appbar.AppBarLayout>
         <androidx.fragment.app.FragmentContainerView
             android:id="@+id/nav_host_fragment"
             android:name="androidx.navigation.fragment.NavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/tool_bar"
+            android:layout_below="@id/app_bar_layout"
             app:navGraph="@navigation/app_navigation"
             app:defaultNavHost="true" />
     </RelativeLayout>

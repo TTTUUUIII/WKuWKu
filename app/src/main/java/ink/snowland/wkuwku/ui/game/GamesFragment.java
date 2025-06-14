@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -115,7 +116,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         NavController navController = NavHostFragment.findNavController(parent);
         Bundle args = new Bundle();
         args.putParcelable(LaunchFragment.ARG_GAME, game);
-        navController.navigate(R.id.launch_fragment, args);
+        navController.navigate(R.id.launch_fragment, args, navAnimOptions);
     }
 
     private class ViewHolder extends GameViewAdapter.GameViewHolder {
@@ -132,9 +133,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             itemBinding.buttonMore.setOnClickListener(v -> {
                 showMorePopupMenu(game, v);
             });
-            itemBinding.buttonLaunch.setOnClickListener(v -> {
-                handler.postDelayed(() -> launch(game), 340);
-            });
+            itemBinding.buttonLaunch.setOnClickListener(v -> launch(game));
         }
     }
 
