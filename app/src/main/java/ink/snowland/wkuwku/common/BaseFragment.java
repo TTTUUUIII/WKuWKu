@@ -8,6 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavOptions;
+import androidx.recyclerview.widget.ListAdapter;
+
+import java.util.List;
 
 import ink.snowland.wkuwku.R;
 
@@ -37,5 +40,9 @@ public class BaseFragment extends Fragment {
 
     protected void run(@NonNull Runnable r) {
         handler.post(r);
+    }
+
+    protected  <T> void submitDelayed(@Nullable List<T> data, ListAdapter<T, ?> adapter, int delayed) {
+        runAtDelayed(() -> adapter.submitList(data), delayed);
     }
 }

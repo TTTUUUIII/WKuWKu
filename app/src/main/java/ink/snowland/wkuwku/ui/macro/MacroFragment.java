@@ -12,7 +12,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,22 +22,21 @@ import ink.snowland.wkuwku.databinding.FragmentMacroBinding;
 import ink.snowland.wkuwku.databinding.ItemMacroBinding;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.widget.MacroEditDialog;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class MacroFragment extends BaseFragment implements View.OnClickListener {
     private MacroViewModel mViewModel;
     private FragmentMacroBinding binding;
     private MacroEditDialog mMacroEditDialog;
     private ViewAdapter mAdapter;
-    private Disposable mDisposable;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
         mViewModel = new ViewModelProvider(this).get(MacroViewModel.class);
         mAdapter = new ViewAdapter();
+        mViewModel.getAll()
+                .observe(this, data -> submitDelayed(data, mAdapter, submitDelayedMillis));
     }
 
     @Override
@@ -70,27 +68,6 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
         } else {
             mMacroEditDialog.show(mViewModel::update, base);
         }
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        mDisposable = mViewModel.getAll()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(scripts -> {
-                    handler.postAtTime(() -> {
-                        mAdapter.submitList(scripts);
-                    }, SystemClock.uptimeMillis() + 300);
-                }, error -> {
-                    error.printStackTrace(System.err);
-                });
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        mDisposable.dispose();
     }
 
     private class ViewHolder extends RecyclerView.ViewHolder {

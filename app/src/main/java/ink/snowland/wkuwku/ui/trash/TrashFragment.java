@@ -35,14 +35,15 @@ public class TrashFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
         mViewModel = new ViewModelProvider(this).get(TrashViewModel.class);
         mDisposable = mViewModel.getTrash().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mAdapter::submitList);
+                .subscribe((data) -> submitDelayed(data, mAdapter, submitDelayedMillis));
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentTrashBinding.inflate(inflater, container, false);
         binding.setViewModel(mViewModel);
