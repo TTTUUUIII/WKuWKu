@@ -16,7 +16,7 @@
     <string name="confirm">确认</string>
     <string name="cancel">取消</string>
     <string name="title">标题</string>
-    <string name="select_file">选择</string>
+    <string name="select_file">选择文件</string>
     <string name="please_select_file">请选择一个文件</string>
     <string name="input_remark_info">备注信息（可选）</string>
     <string name="system">系统</string>
@@ -44,8 +44,8 @@
     <string name="emulator">模拟器</string>
     <string name="restore_last_state">恢复上一次的状态</string>
     <string name="filepath">文件路径</string>
-    <string name="modified">上次修改</string>
-    <string name="added_date">添加时间</string>
+    <string name="modified">最近修改</string>
+    <string name="added_date">添加日期</string>
 
     <string name="game_detail">游戏详细</string>
     <string name="close">关闭</string>
@@ -136,4 +136,5 @@
     <string name="plug_already_installed">扩展已经存在，请勿重复安装!</string>
     <string name="blacklist_auto_load_state">自动加载状态黑名单</string>
     <string name="summary_black_auto_load_state">该功能在某些核心上不稳定，加入这个列表可禁用它</string>
+    <string name="publisher">发行商</string>
 </resources>

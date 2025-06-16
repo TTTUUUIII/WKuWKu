@@ -39,6 +39,8 @@ public class Game implements Parcelable, Cloneable {
     public String remark;
     @ColumnInfo(name = "md5")
     public String md5;
+    @ColumnInfo(name = "publisher")
+    public String publisher = "";
 
     public Game() {
 

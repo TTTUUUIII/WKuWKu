@@ -24,7 +24,7 @@
     <string name="confirm">Confirm</string>
     <string name="cancel">Cancel</string>
     <string name="title">Title</string>
-    <string name="select_file">Select</string>
+    <string name="select_file">Select File</string>
     <string name="please_select_file">Please select a file.</string>
     <string name="input_remark_info">Remarks (Optional)</string>
     <string name="system">System</string>
@@ -162,4 +162,5 @@
     <string name="plug_already_installed">This extension already installed!</string>
     <string name="blacklist_auto_load_state">Auto load state blacklist</string>
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
+    <string name="publisher">Publisher</string>
 </resources>
