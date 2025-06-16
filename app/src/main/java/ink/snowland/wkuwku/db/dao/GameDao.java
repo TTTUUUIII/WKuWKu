@@ -16,6 +16,8 @@ import io.reactivex.rxjava3.core.Single;
 
 @Dao
 public interface GameDao {
+    @Query("SELECT publisher FROM tb_game ORDER BY LOWER(publisher) ASC")
+    Single<List<String>> getPublisherList();
     @Query("SELECT * FROM tb_game WHERE state != 3 ORDER BY LOWER(title) ASC")
     Observable<List<Game>> getAll();
     @Query("SELECT * FROM tb_game WHERE filepath IS :path AND state == :state")

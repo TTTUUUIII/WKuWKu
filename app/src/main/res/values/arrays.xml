@@ -4,7 +4,6 @@
         <item>US</item>
         <item>JP</item>
         <item>EU</item>
-        <item>WORLD</item>
     </string-array>
     <string-array name="video_ratio_entries">
         <item>Keep aspect ratio</item>

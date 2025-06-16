@@ -21,6 +21,14 @@
         <TableRow>
             <TextView
                 android:layout_width="88dp"
+                android:text="@string/publisher" />
+            <TextView
+                android:layout_weight="1"
+                android:text="@{game.publisher}" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:layout_width="88dp"
                 android:text="@string/filepath" />
             <TextView
                 android:layout_weight="1"

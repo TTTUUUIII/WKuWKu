@@ -38,8 +38,8 @@
                 android:textSize="13sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="NES"
-                android:text="@{String.format(`%s | %s`, game.system, FlagUtils.flag(game.region))}" />
+                tools:text="Nintendo"
+                android:text="@{game.publisher}" />
         </LinearLayout>
         <Button
             android:id="@+id/button_launch"

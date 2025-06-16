@@ -15,11 +15,8 @@
         android:id="@+id/button_cancel"
         android:layout_marginTop="28dp"
         android:layout_marginStart="15dp"
-        style="@style/Widget.Material3.Button.OutlinedButton"
+        style="@style/Widget.Material3.Button.IconButton.Filled"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:iconTint="@color/error"
-        app:iconSize="24dp"
-        android:text="@string/cancel"
-        app:icon="@drawable/ic_cancel" />
+        app:icon="@drawable/ic_arrow_back" />
 </FrameLayout>

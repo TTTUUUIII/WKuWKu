@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,7 @@ import androidx.documentfile.provider.DocumentFile;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,7 +26,11 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.databinding.DialogLayoutEditGameBinding;
+import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class GameEditDialog {
     private final DialogLayoutEditGameBinding binding;
@@ -34,6 +40,7 @@ public class GameEditDialog {
     private Uri mUri;
     private final Map<String, EmSystem> mAllSupportedSystems = new LinkedHashMap<>();
     private final String[] mAllSupportedRegions;
+    private final ArrayAdapter<String> mPushlisherAdapter;
 
     public GameEditDialog(@NonNull BaseActivity activity) {
         mParent = activity;
@@ -57,9 +64,10 @@ public class GameEditDialog {
             mAllSupportedSystems.put(system.name, system);
         }
         binding.systemTextView.setAdapter(new NoFilterArrayAdapter<String>(mParent, R.layout.layout_simple_text, allSupportedSystemNames));
-        binding.systemTextView.setText(allSupportedSystemNames[0], false);
         mAllSupportedRegions = activity.getResources().getStringArray(R.array.all_regions);
         binding.regionTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, mAllSupportedRegions));
+        mPushlisherAdapter = new ArrayAdapter<String>(mParent, R.layout.layout_simple_text, new ArrayList<String>());
+        binding.publisherTextView.setAdapter(mPushlisherAdapter);
         binding.buttonSelectFile.setOnClickListener(v -> {
             activity.openDocument("*/*"/*"application/octet-stream"*/, uri -> {
                 DocumentFile file = DocumentFile.fromSingleUri(activity, uri);
@@ -83,6 +91,7 @@ public class GameEditDialog {
 
     public void show(@NonNull OnConfirmCallback callback, @NonNull Game base) {
         if (mDialog.isShowing()) return;
+        updatePublisherAdapter();
         mGame = base.clone();
         binding.buttonQrCode.setVisibility(View.GONE);
         binding.selectFileLayout.setVisibility(View.GONE);
@@ -106,8 +115,10 @@ public class GameEditDialog {
             }
         });
     }
+
     public void show(@NonNull OnConfirmCallback callback) {
         if (mDialog.isShowing()) return;
+        updatePublisherAdapter();
         mGame = new Game();
         mGame.region = mAllSupportedRegions[0];
         binding.setGame(mGame);
@@ -174,6 +185,17 @@ public class GameEditDialog {
         }
         binding.errorTextView.setText("");
         return true;
+    }
+
+    private void updatePublisherAdapter() {
+        Disposable disposable = AppDatabase.db.gameInfoDao().getPublisherList()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess(publisters -> {
+                    mPushlisherAdapter.clear();
+                    mPushlisherAdapter.addAll(publisters);
+                })
+                .subscribe((publisters, error) -> {/*Ignored*/});
     }
 
     public interface OnConfirmCallback {
