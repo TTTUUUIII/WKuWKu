@@ -1,6 +1,6 @@
 package ink.snowland.wkuwku.ui.plug;
 
-import static ink.snowland.wkuwku.GlobalConfig.*;
+import static ink.snowland.wkuwku.AppConfig.*;
 
 import android.app.Application;
 import android.util.Xml;

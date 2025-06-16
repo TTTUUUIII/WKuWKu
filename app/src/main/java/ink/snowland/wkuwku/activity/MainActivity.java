@@ -1,5 +1,5 @@
 package ink.snowland.wkuwku.activity;
-import static ink.snowland.wkuwku.GlobalConfig.*;
+import static ink.snowland.wkuwku.AppConfig.*;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;

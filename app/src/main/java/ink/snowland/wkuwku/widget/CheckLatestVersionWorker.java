@@ -1,5 +1,5 @@
 package ink.snowland.wkuwku.widget;
-import static ink.snowland.wkuwku.GlobalConfig.*;
+import static ink.snowland.wkuwku.AppConfig.*;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
