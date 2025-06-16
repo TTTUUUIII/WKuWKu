@@ -13,7 +13,7 @@ import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 
-@Database(entities = {Game.class, MacroScript.class, PlugManifestExt.class}, version = 2)
+@Database(entities = {Game.class, MacroScript.class, PlugManifestExt.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract GameDao gameInfoDao();
     public abstract MacroScriptDao macroScriptDao();
