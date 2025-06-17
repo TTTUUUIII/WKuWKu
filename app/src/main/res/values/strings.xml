@@ -163,4 +163,5 @@
     <string name="blacklist_auto_load_state">Auto load state blacklist</string>
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
     <string name="publisher">Publisher</string>
+    <string name="screenshot_saved">Screenshot saved</string>
 </resources>

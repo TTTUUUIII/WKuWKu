@@ -4,7 +4,10 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
@@ -19,6 +22,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +32,9 @@ import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
@@ -102,7 +110,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
         mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
-        binding.buttonSave.setOnClickListener(this);
+        binding.buttonSavestate.setOnClickListener(this);
+        binding.buttonScreenshot.setOnClickListener(this);
         binding.buttonLoadState1.setOnClickListener(this);
         binding.buttonLoadState2.setOnClickListener(this);
         binding.buttonLoadState3.setOnClickListener(this);
@@ -314,7 +323,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             mExitDialog.dismiss();
         } else {
             mController.vibrator();
-            if (viewId == R.id.button_save && mViewModel.saveCurrentSate()) {
+            if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
                 showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
             } else if (viewId == R.id.button_load_state4) {
                 mViewModel.loadStateAt(3);
@@ -324,7 +333,30 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 mViewModel.loadStateAt(1);
             } else if (viewId == R.id.button_load_state1) {
                 mViewModel.loadStateAt(0);
+            } else if (viewId == R.id.button_screenshot) {
+                takeScreenshot();
             }
+        }
+    }
+
+    private void takeScreenshot() {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
+        values.put(MediaStore.Images.Media.IS_PENDING, 1);
+        ContentResolver contentResolver = requireContext().getContentResolver();
+        Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        if (uri == null) return;
+        try (OutputStream fos = contentResolver.openOutputStream(uri)){
+            if (fos == null) return;
+            mVideoDevice.exportAsPNG(fos);
+            values.clear();
+            values.put(MediaStore.Images.Media.IS_PENDING, 0);
+            contentResolver.update(uri, values, null, null);
+            showSnackbar(R.string.screenshot_saved, SNACKBAR_LENGTH_SHORT);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
     }
 }
