@@ -1,17 +1,20 @@
 package ink.snowland.wkuwku.view;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.util.ArraySet;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -25,8 +28,8 @@ public class EmojiWorkshopView extends View {
     private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
     private static final String DEFAULT_SOURCE = "\uD83D\uDC22☺️⭐️";
     private static Typeface typeface;
+    private static final SparseArray<List<Icon>> sIconsCache = new SparseArray<>();
     private final Paint mPaint = new Paint();
-    private List<PoissonDiskSampler.Point> mPoints;
     private final int mDistanceBetweenEmojis = SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, 40);
     private String[] mCharacters;
     public EmojiWorkshopView(Context context) {
@@ -49,25 +52,25 @@ public class EmojiWorkshopView extends View {
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        if (mPoints == null) {
-            int width = getMeasuredWidth();
-            int height = getMeasuredHeight();
-            float textWidth = mPaint.measureText("⭐️");
-            PoissonDiskSampler sampler = new PoissonDiskSampler(width, height, TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDistanceBetweenEmojis, getResources().getDisplayMetrics()) + textWidth / 2, 10);
-            mPoints = sampler.generatePoints();
-        }
-    }
-
-    @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
         if (mCharacters == null || mCharacters.length == 0) return;
         Paint.FontMetrics fontMetrics = mPaint.getFontMetrics();
-        for (PoissonDiskSampler.Point point : mPoints) {
-            double baseLine = point.y - (fontMetrics.ascent + fontMetrics.descent) / 2;
-            canvas.drawText(mCharacters[ThreadLocalRandom.current().nextInt(mCharacters.length)], (float) point.x, (int)baseLine, mPaint);
+        int orientation = getResources().getConfiguration().orientation;
+        List<Icon> icons = sIconsCache.get(orientation);
+        if (icons == null) {
+            float textWidth = mPaint.measureText("⭐️");
+            PoissonDiskSampler sampler = new PoissonDiskSampler(getWidth(), getHeight(), TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDistanceBetweenEmojis, getResources().getDisplayMetrics()) + textWidth / 2, 10);
+            List<PoissonDiskSampler.Point> points = sampler.generatePoints();
+            icons = new ArrayList<>();
+            for (PoissonDiskSampler.Point point : points) {
+                icons.add(new Icon(point, mCharacters[ThreadLocalRandom.current().nextInt(mCharacters.length)]));
+            }
+            sIconsCache.put(orientation, icons);
+        }
+        for (Icon icon : icons) {
+            double baseLine = icon.pos.y - (fontMetrics.ascent + fontMetrics.descent) / 2;
+            canvas.drawText(icon.cha, (float) icon.pos.x, (int)baseLine, mPaint);
         }
     }
 
@@ -85,6 +88,16 @@ public class EmojiWorkshopView extends View {
         mPaint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, textSize, getResources().getDisplayMetrics()));
         if (invalidate) {
             invalidate();
+        }
+    }
+
+    private static class Icon {
+        final PoissonDiskSampler.Point pos;
+        final String cha;
+
+        public Icon(PoissonDiskSampler.Point pos, String cha) {
+            this.pos = pos;
+            this.cha = cha;
         }
     }
 }
