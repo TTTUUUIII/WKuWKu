@@ -177,6 +177,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                binding.getRoot().setFitsSystemWindows(false);
             } else {
                 DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
                 boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
@@ -187,7 +188,9 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
                     lp.height = (int) (displayMetrics.widthPixels / ratio);
                 }
+                binding.getRoot().setFitsSystemWindows(true);
             }
+            binding.getRoot().requestApplyInsets();
             binding.glSurfaceView.setLayoutParams(lp);
         });
     }
