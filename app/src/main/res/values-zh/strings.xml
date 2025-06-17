@@ -137,5 +137,5 @@
     <string name="blacklist_auto_load_state">自动加载状态黑名单</string>
     <string name="summary_black_auto_load_state">该功能在某些核心上不稳定，加入这个列表可禁用它</string>
     <string name="publisher">发行商</string>
-    <string name="screenshot_saved">Screenshot saved</string>
+    <string name="screenshot_saved">截图已保存！</string>
 </resources>

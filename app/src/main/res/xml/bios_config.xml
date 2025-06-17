@@ -29,4 +29,24 @@
             md5="af5828fdff51384f99b3c4926be27762"
             url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/saturn_bios.bin" />
     </system>
+    <system tag="playstation">
+        <bios-file
+            required="true"
+            name="PSXONPSP660.BIN"
+            md5="c53ca5908936d412331790f4426c6c33"
+            url="https://github.com/gingerbeardman/PSX/raw/master/PSXONPSP660.BIN" />
+        <bios-file
+            name="scph5500.bin"
+            md5="8dd7d5296a650fac7319bce665a6a53c"
+            url="https://github.com/Abdess/retroarch_system/raw/libretro/Sony%20-%20PlayStation/scph5500.bin" />
+        <bios-file
+            required="true"
+            name="scph5501.bin"
+            md5="490f666e1afb15b7362b406ed1cea246"
+            url="https://github.com/Abdess/retroarch_system/raw/libretro/Sony%20-%20PlayStation/scph5501.bin" />
+        <bios-file
+            name="scph5502.bin"
+            md5="32736f17079d0b2b7024407c39bd3050"
+            url="https://github.com/Abdess/retroarch_system/raw/libretro/Sony%20-%20PlayStation/scph5502.bin" />
+    </system>
 </bios-config>
