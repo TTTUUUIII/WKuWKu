@@ -4,14 +4,19 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import static android.opengl.GLES30.*;
 
 import android.content.Context;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 
 
+import androidx.annotation.NonNull;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -61,7 +66,15 @@ public class GLVideoDevice implements EmVideoDevice {
         return mRender;
     }
 
-    public void exportAsPNG(File file) {
+    public void exportAsPNG(@NonNull File file) {
+        try (FileOutputStream fos = new FileOutputStream(file)){
+            exportAsPNG(fos);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    public void exportAsPNG(@NonNull OutputStream fos) {
         if (mFrameBuffer == null) return;
         final byte[] pixels = new byte[mFrameBuffer.capacity()];
         synchronized (mLock) {
@@ -70,9 +83,9 @@ public class GLVideoDevice implements EmVideoDevice {
             mFrameBuffer.rewind();
         }
         if (mPixelFormat == RETRO_PIXEL_FORMAT_RGB565) {
-            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGB565, pixels, mVideoWidth, mVideoHeight, file);
+            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGB565, pixels, mVideoWidth, mVideoHeight, fos);
         } else if (mPixelFormat == RETRO_PIXEL_FORMAT_XRGB8888) {
-            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGBA8888, pixels, mVideoWidth, mVideoHeight, file);
+            ImageUtils.saveAsPng(ImageUtils.FORMAT_RGBA8888, pixels, mVideoWidth, mVideoHeight, fos);
         }
     }
 

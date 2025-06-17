@@ -1,16 +1,26 @@
 package ink.snowland.wkuwku.util;
 
 import android.graphics.Bitmap;
+import android.net.Uri;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 public class ImageUtils {
     public static final int FORMAT_RGB565   = 1;
     public static final int FORMAT_RGBA8888 = 2;
     public static void saveAsPng(int pixelFormat, final byte[] data, int width, int height, File file) {
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            saveAsPng(pixelFormat, data, width, height, fos);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+    }
+
+    public static void saveAsPng(int pixelFormat, final byte[] data, int width, int height, OutputStream out) {
         final Bitmap bitmap;
         if (pixelFormat == FORMAT_RGB565) {
             bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
@@ -29,10 +39,6 @@ public class ImageUtils {
         } else {
             throw new UnsupportedOperationException("Unsupported format " + pixelFormat);
         }
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-        }
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
     }
 }

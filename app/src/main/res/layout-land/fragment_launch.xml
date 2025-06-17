@@ -26,13 +26,18 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
-            android:id="@+id/button_save"
-            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:id="@+id/button_savestate"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/save"
             app:icon="@drawable/ic_more_time" />
-
+        <Button
+            android:id="@+id/button_screenshot"
+            style="@style/Widget.Material3.Button.IconButton.Outlined"
+            android:layout_marginStart="48dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:icon="@drawable/ic_add_a_photo" />
         <com.google.android.material.button.MaterialButtonToggleGroup
             android:id="@+id/state_button_group"
             android:layout_width="wrap_content"
