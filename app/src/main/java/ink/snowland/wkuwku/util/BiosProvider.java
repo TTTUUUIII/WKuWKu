@@ -64,7 +64,9 @@ public class BiosProvider {
                         return;
                     }
                 } catch (Exception e) {
-                    emitter.onError(e);
+                    if (!emitter.isDisposed()) {
+                        emitter.onError(e);
+                    }
                     e.printStackTrace(System.err);
                 }
             }
