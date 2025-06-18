@@ -58,13 +58,15 @@ public abstract class BaseController extends EmInputDevice implements View.OnKey
 
     protected void postMacroEvent(@NonNull MacroEvent event) {
         handler.postDelayed(() -> {
-            for (int key : event.keys)
+            for (int key : event.keys) {
                 setState(key, KEY_DOWN);
+            }
+            handler.postDelayed(() -> {
+                for (int key : event.keys) {
+                    setState(key, KEY_UP);
+                }
+            }, event.duration);
         }, event.delayed);
-        handler.postDelayed(() -> {
-            for (int key : event.keys)
-                setState(key, KEY_UP);
-        }, event.duration);
     }
 
     protected void postMacroEvents(@NonNull Collection<MacroEvent> events) {

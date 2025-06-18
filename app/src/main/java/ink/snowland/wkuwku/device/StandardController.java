@@ -24,7 +24,6 @@ import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -43,7 +42,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
             return mState;
         }
         if (id < 0 || id > RETRO_DEVICE_ID_JOYPAD_R3) return 0;
-        return (short) (mState >> id & 0x01);
+        return (short) ((mState >> id) & 0x01);
     }
 
     @Override
