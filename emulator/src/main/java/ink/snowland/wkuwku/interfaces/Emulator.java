@@ -1677,11 +1677,6 @@ public abstract class Emulator {
     public void suspend() {
         if (mState == STATE_INVALID) return;
         mState = STATE_INVALID;
-        onPowerOff();
-        releaseAudioTrack();
-        videoDevice = null;
-        inputDevices.clear();
-        mEventListener = null;
         Process.setThreadPriority(sMainThread.getThreadId(), Process.THREAD_PRIORITY_LOWEST);
     }
 
@@ -1914,13 +1909,19 @@ public abstract class Emulator {
     }
 
     private void schedule() {
-        if (mState == STATE_RUNNING) {
-            synchronized (lock) {
-                onNext();
+        if (mState == STATE_INVALID) {
+            release();
+        } else {
+            int delayed = 0;
+            if (mState == STATE_RUNNING) {
+                synchronized (lock) {
+                    onNext();
+                }
+            } else {
+                delayed = 300;
             }
+            sHandler.postDelayed(this::schedule, delayed);
         }
-        if (mState != STATE_INVALID)
-            sHandler.post(this::schedule);
     }
 
     private void createAudioTrack() {
@@ -1952,6 +1953,15 @@ public abstract class Emulator {
             mAudioTrack.release();
             mAudioTrack = null;
         }
+    }
+
+    private void release() {
+        onPowerOff();
+        releaseAudioTrack();
+        videoDevice = null;
+        inputDevices.clear();
+        mEventListener = null;
+        Log.i(TAG, "released");
     }
 
     public @Nullable File findContent(@NonNull File src) {

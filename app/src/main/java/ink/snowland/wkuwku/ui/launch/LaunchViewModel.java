@@ -11,7 +11,6 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.lifecycle.MutableLiveData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -27,13 +26,10 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
