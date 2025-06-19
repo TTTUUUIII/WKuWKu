@@ -51,6 +51,7 @@ import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.util.BlurTransformation;
+import ink.snowland.wkuwku.view.EmojiWorkshopView;
 import ink.snowland.wkuwku.widget.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -58,6 +59,9 @@ import ink.snowland.wkuwku.util.SettingsManager;
 public class MainActivity extends BaseActivity {
     private static final String CHECK_UPDATE_WORK = "check_update";
     private static final String NEW_VERSION_NOTIFICATION = "app_new_version_notification";
+    private static final String EMOJI_WORKSHOP_SOURCE = "app_emoji_workshop_source";
+    private static final String EMOJI_WORKSHOP_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
+    private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
@@ -65,6 +69,7 @@ public class MainActivity extends BaseActivity {
     private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
     private Uri mNewApkUri;
     private MainViewModel mViewModel;
+    private final EmojiWorkshopView.Options mEmojiWorkshopOptions = new EmojiWorkshopView.Options(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, "\uD83D\uDC22☺️⭐️"), SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, 40), SettingsManager.getInt(EMOJI_WORKSHOP_EMOJI_SIZE, 40));
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -73,6 +78,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
+        binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
         ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout, new OnApplyWindowInsetsListener() {
             @NonNull
             @Override
@@ -179,10 +185,36 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        SettingsManager.addSettingChangedListener(this::onSettingChanged);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SettingsManager.removeSettingChangedListener(this::onSettingChanged);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mInstallApkReceiver != null)
             unregisterReceiver(mInstallApkReceiver);
+    }
+
+    private void onSettingChanged(@NonNull String key) {
+        switch (key) {
+            case EMOJI_WORKSHOP_EMOJI_SIZE:
+            case EMOJI_WORKSHOP_SOURCE:
+            case DISTANCE_BETWEEN_EMOJIS:
+                mEmojiWorkshopOptions.setFontSize(SettingsManager.getInt(EMOJI_WORKSHOP_EMOJI_SIZE, mEmojiWorkshopOptions.getFontSize()));
+                mEmojiWorkshopOptions.setMinDistance(SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, mEmojiWorkshopOptions.getMinDistance()));
+                mEmojiWorkshopOptions.setSource(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, mEmojiWorkshopOptions.getSource()));
+                binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
+                break;
+            default:
+        }
     }
 
     private void showAboutDialog() {
