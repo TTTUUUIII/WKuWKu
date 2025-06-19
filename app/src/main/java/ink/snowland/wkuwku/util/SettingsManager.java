@@ -8,15 +8,25 @@ import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.preference.PreferenceManager;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public final class SettingsManager {
     private SettingsManager() {}
+    private static final List<OnSettingChangedListener> mClientListeners = new ArrayList<>();
+    private static final SharedPreferences.OnSharedPreferenceChangeListener sListener = (sharedPreferences, key) -> {
+        if (key == null) return;
+        for (OnSettingChangedListener listener : mClientListeners) {
+            listener.onSettingChanged(key);
+        }
+    };
 
     private static SharedPreferences sSettings;
 
     public static void initialize(@NonNull Context applicationContext) {
         sSettings = PreferenceManager.getDefaultSharedPreferences(applicationContext);
+        sSettings.registerOnSharedPreferenceChangeListener(sListener);
     }
 
     public static String getString(@NonNull String key) {
@@ -52,5 +62,18 @@ public final class SettingsManager {
 
     public static boolean getBoolean(@NonNull String key, boolean defaultValue) {
         return sSettings.getBoolean(key, defaultValue);
+    }
+
+    public static void addSettingChangedListener(OnSettingChangedListener listener) {
+        if (mClientListeners.contains(listener)) return;
+        mClientListeners.add(listener);
+    }
+
+    public static void removeSettingChangedListener(OnSettingChangedListener listener) {
+        mClientListeners.remove(listener);
+    }
+
+    public interface OnSettingChangedListener {
+        void onSettingChanged(@NonNull String key);
     }
 }
