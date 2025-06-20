@@ -1,0 +1,190 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Arcade"
+            tag="arcade"
+            manufacturer="mame" />
+    </systems>
+    <content-extensions>
+        <item>zip</item>
+        <item>7z</item>
+        <item>chd</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="enabled"
+            key="fbneo-allow-depth-32"
+            title="Use 32-bits color depth when available">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fbneo-vertical-mode"
+            title="Vertical mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fbneo-force-60hz"
+            title="Force 60Hz">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="fbneo-fixed-frameskip"
+            inputType="number"
+            title="Fixed Frameskip" />
+        <option
+            defaultValue="disabled"
+            key="fbneo-frameskip-type"
+            title="Frameskip">
+            <allow-values>
+                <value>disabled</value>
+                <value>Fixed</value>
+                <value>Auto</value>
+                <value>Manual</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="33"
+            key="fbneo-frameskip-manual-threshold"
+            inputType="number"
+            title="Frameskip Threshold (%)" />
+        <option
+            defaultValue="100%"
+            key="fbneo-cpu-speed-adjust"
+            inputType="text"
+            title="CPU clock" />
+        <option
+            defaultValue="Hold Start"
+            key="fbneo-diagnostic-input"
+            title="Diagnostic Input">
+            <allow-values>
+                <value>None</value>
+                <value>Hold Start</value>
+                <value>Start + A + B</value>
+                <value>Hold Start + A + B</value>
+                <value>Start + L + R</value>
+                <value>Hold Start + L + R</value>
+                <value>Hold Select</value>
+                <value>Select + A + B</value>
+                <value>Hold Select + A + B</value>
+                <value>Select + L + R</value>
+                <value>Hold Select + L + R</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fbneo-hiscores"
+            title="Hiscores">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="fbneo-allow-patched-romsets"
+            title="Allow patched romsets">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="48000"
+            key="fbneo-samplerate"
+            title="Samplerate">
+            <allow-values>
+                <value>44100</value>
+                <value>48000</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="4-point 3rd order"
+            key="fbneo-sample-interpolation"
+            title="Sample Interpolation">
+            <allow-values>
+                <value>disabled</value>
+                <value>2-point 1st order</value>
+                <value>4-point 3rd order</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="4-point 3rd order"
+            key="fbneo-fm-interpolation"
+            title="FM Interpolation">
+            <allow-values>
+                <value>disabled</value>
+                <value>4-point 3rd order</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fbneo-lowpass-filter"
+            title="LowPass Filter">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="100%"
+            key="fbneo-analog-speed"
+            inputType="text"
+            title="Analog Speed" />
+        <option
+            defaultValue="hide with lightgun device"
+            key="fbneo-lightgun-crosshair-emulation"
+            title="Crosshair emulation">
+            <allow-values>
+                <value>hide with lightgun device</value>
+                <value>always hide</value>
+                <value>always show</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fbneo-cyclone"
+            title="Enable cyclone">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="DIPSWITCH"
+            key="fbneo-neogeo-mode"
+            title="Neo-Geo mode">
+            <allow-values>
+                <value>DIPSWITCH</value>
+                <value>MVS_EUR</value>
+                <value>MVS_USA</value>
+                <value>MVS_JAP</value>
+                <value>AES_EUR</value>
+                <value>AES_JAP</value>
+                <value>UNIBIOS</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="fbneo-memcard-mode"
+            title="Memory card mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>shared</value>
+                <value>per-game</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
