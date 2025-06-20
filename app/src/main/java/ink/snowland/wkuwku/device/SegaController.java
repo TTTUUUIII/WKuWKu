@@ -14,19 +14,13 @@ import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.databinding.LayoutSegaControllerBinding;
 
 public class SegaController extends BaseController implements View.OnTouchListener {
-    private LayoutSegaControllerBinding binding;
+    private final LayoutSegaControllerBinding binding;
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
     public SegaController(int port, @NonNull Context context) {
         super(context, port, RETRO_DEVICE_JOYPAD);
-    }
-
-    @NonNull
-    @Override
-    public View onCreateView(@NonNull Context context) {
         binding = LayoutSegaControllerBinding.inflate(LayoutInflater.from(context));
         bindEvents();
-        return binding.getRoot();
     }
 
     @Override
