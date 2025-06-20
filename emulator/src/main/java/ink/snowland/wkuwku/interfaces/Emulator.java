@@ -1640,6 +1640,7 @@ public abstract class Emulator {
     private AudioTrack mAudioTrack;
     private float mVolume = 1.0f;
     private int mPixelFormat = RETRO_PIXEL_FORMAT_RGB565;
+    private int mScreenRotation = 0;
 
     public boolean run(@NonNull String fullPath, @NonNull String systemTag) {
         if (mState != STATE_INVALID)
@@ -1700,6 +1701,7 @@ public abstract class Emulator {
             case VIDEO_DEVICE:
                 videoDevice = (EmVideoDevice) device;
                 videoDevice.setPixelFormat(mPixelFormat);
+                videoDevice.setScreenRotation(mScreenRotation);
                 break;
             case INPUT_DEVICE:
                 if (device instanceof EmInputDevice) {
@@ -1792,6 +1794,13 @@ public abstract class Emulator {
                 } else {
                     Log.w(TAG, "WARN: option \"" + entry.key + "\" requested but not found in config!");
                     return false;
+                }
+                break;
+            case RETRO_ENVIRONMENT_SET_ROTATION:
+                variable = (Variable) data;
+                mScreenRotation = (int) variable.value;
+                if (videoDevice != null) {
+                    videoDevice.setScreenRotation(mScreenRotation);
                 }
                 break;
             case RETRO_ENVIRONMENT_SET_VARIABLE:
