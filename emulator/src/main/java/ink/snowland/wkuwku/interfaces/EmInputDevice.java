@@ -4,9 +4,6 @@ public abstract class EmInputDevice implements EmulatorDevice {
 
     protected final int RETRO_RUMBLE_STRONG = 0;
     protected final int RETRO_RUMBLE_WEAK   = 1;
-
-    public static final int KEY_UP = 0;
-    public static final int KEY_DOWN = 1;
     public final int port;
     public final int device;
 

@@ -25,6 +25,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,6 +38,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.EmMessageExt;
@@ -55,7 +57,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener {
+public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener {
     private static final String TAG = "PlayFragment";
     private static final int SNACKBAR_LENGTH_SHORT = 500;
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
@@ -205,12 +207,14 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @Override
     public void onResume() {
         super.onResume();
+        parentActivity.addOnKeyEventListener(this);
         mViewModel.resumeEmulator();
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        parentActivity.removeOnKeyEventListener(this);
         mViewModel.pauseEmulator();
     }
 
@@ -361,5 +365,10 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         } catch (IOException e) {
             e.printStackTrace(System.err);
         }
+    }
+
+    @Override
+    public boolean onKeyEvent(@NonNull KeyEvent event) {
+        return mController.dispatchKeyEvent(event);
     }
 }

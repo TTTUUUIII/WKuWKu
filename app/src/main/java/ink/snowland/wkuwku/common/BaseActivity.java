@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -19,6 +20,8 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.navigation.NavOptions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import ink.snowland.wkuwku.R;
@@ -31,6 +34,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     private OnResultCallback<String> mOnQRScanResultCallback;
     private final Handler handler = new Handler(Looper.getMainLooper());
     protected NavOptions navAnimOptions = null;
+    private final List<OnKeyEventListener> mKeyListeners = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -54,6 +58,35 @@ public abstract class BaseActivity extends AppCompatActivity {
                 .setEnterAnim(R.anim.zoom_in_right)
                 .setPopEnterAnim(R.anim.zoom_in_left)
                 .build();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        for (OnKeyEventListener listener : mKeyListeners) {
+            if (listener.onKeyEvent(event)) {
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        for (OnKeyEventListener listener : mKeyListeners) {
+            if (listener.onKeyEvent(event)) {
+                return true;
+            }
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+    public void addOnKeyEventListener(OnKeyEventListener listener) {
+        if (mKeyListeners.contains(listener)) return;
+        mKeyListeners.add(listener);
+    }
+
+    public void removeOnKeyEventListener(OnKeyEventListener listener) {
+        mKeyListeners.remove(listener);
     }
 
     public void setStatusBarVisibility(boolean visibility) {
@@ -129,5 +162,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     protected void postDelayed(Runnable r, long delayMillis) {
         handler.postDelayed(r, delayMillis);
+    }
+
+    public interface OnKeyEventListener {
+        boolean onKeyEvent(@NonNull KeyEvent event);
     }
 }
