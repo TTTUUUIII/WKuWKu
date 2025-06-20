@@ -38,10 +38,13 @@ public class GLVideoDevice implements EmVideoDevice {
     private final String mFragmentShaderSource;
     private int mPixelFormat = RETRO_PIXEL_FORMAT_RGB565;
     private int mBytesPerPixel = 2;
+    private int mScreenRotation = 0;
+    private final float[] mModelMatrix = new float[16];
 
     public GLVideoDevice(Context context) {
         mVertexShaderSource = onGetShaderSource(context, GL_VERTEX_SHADER);
         mFragmentShaderSource = onGetShaderSource(context, GL_FRAGMENT_SHADER);
+        Matrix.setIdentityM(mModelMatrix, 0);
     }
 
     @Override
@@ -58,6 +61,13 @@ public class GLVideoDevice implements EmVideoDevice {
         if (mPixelFormat == RETRO_PIXEL_FORMAT_XRGB8888) {
             mBytesPerPixel = 4;
         }
+    }
+
+    @Override
+    public void setScreenRotation(int rotation) {
+        if (rotation == mScreenRotation) return;
+        mScreenRotation = rotation;
+        Matrix.rotateM(mModelMatrix, 0, 90 * mScreenRotation, 0, 0, 1);
     }
 
     public GLSurfaceView.Renderer getRenderer() {
@@ -165,6 +175,7 @@ public class GLVideoDevice implements EmVideoDevice {
             glUseProgram(mProgram);
             glUniformMatrix4fv(glGetUniformLocation(mProgram, "projection"), 1, false, mProjectionMatrix, 0);
             glUniformMatrix4fv(glGetUniformLocation(mProgram, "view"), 1, false, mViewMatrix, 0);
+            glUniformMatrix4fv(glGetUniformLocation(mProgram, "model"), 1, false, mModelMatrix, 0);
             glBindVertexArray(mBuffers[0]);
             glDrawArrays(GL_TRIANGLES, 0, 6);
             glBindVertexArray(0);

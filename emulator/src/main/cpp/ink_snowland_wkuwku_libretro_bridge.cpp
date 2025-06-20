@@ -144,6 +144,7 @@ static bool add_image_index_t() {
 
 static void
 video_refresh_callback(const void *data, unsigned width, unsigned height, size_t pitch) {
+    if (data == nullptr) return;
     JNIEnv *env;
     bool is_attached = false;
     if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
@@ -515,19 +516,26 @@ static bool environment_callback(unsigned cmd, void *data) {
     return true;
 }
 
+static bool initialized = false;
 static void em_power_on(JNIEnv *env, jobject thiz) {
     ctx.emulator_obj = env->NewGlobalRef(thiz);
-    retro_set_environment(environment_callback);
-    retro_init();
-    retro_set_video_refresh(video_refresh_callback);
-    retro_set_audio_sample_batch(audio_sample_batch_callback);
-    retro_set_input_state(input_state_callback);
-    retro_set_input_poll(input_poll_callback);
+    if (!initialized) {
+        retro_set_environment(environment_callback);
+        retro_init();
+        retro_set_video_refresh(video_refresh_callback);
+        retro_set_audio_sample_batch(audio_sample_batch_callback);
+        retro_set_input_state(input_state_callback);
+        retro_set_input_poll(input_poll_callback);
+#ifdef EM_DO_NOT_REINIT
+        initialized = true;
+#endif
+    }
 }
 
 static void em_power_off(JNIEnv *env, jobject thiz) {
     retro_unload_game();
-    retro_deinit();
+    if (!initialized)
+        retro_deinit();
     env->DeleteGlobalRef(ctx.emulator_obj);
 }
 
