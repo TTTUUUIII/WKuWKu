@@ -1,6 +1,5 @@
 package ink.snowland.wkuwku.db.dao;
 
-import androidx.annotation.NonNull;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -16,7 +15,7 @@ import io.reactivex.rxjava3.core.Single;
 
 @Dao
 public interface GameDao {
-    @Query("SELECT publisher FROM tb_game ORDER BY LOWER(publisher) ASC")
+    @Query("SELECT DISTINCT publisher FROM tb_game ORDER BY LOWER(publisher) ASC")
     Single<List<String>> getPublisherList();
     @Query("SELECT * FROM tb_game WHERE state != 3 ORDER BY LOWER(title) ASC")
     Observable<List<Game>> getAll();
