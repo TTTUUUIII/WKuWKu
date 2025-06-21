@@ -83,8 +83,9 @@ public class PlugViewModel extends BaseViewModel {
                     String tagName = xmlPullParser.getName();
                     if (eventType == XmlPullParser.START_TAG && "plug".equals(tagName)) {
                         PlugRes plugInfo = parsePlugInfo(xmlPullParser);
-                        if (plugInfo == null) continue;
-                        list.add(plugInfo);
+                        if (plugInfo != null) {
+                            list.add(plugInfo);
+                        }
                     }
                     eventType = xmlPullParser.next();
                 }
