@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Process;
 import android.util.Log;
-import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -1633,9 +1632,7 @@ public abstract class Emulator {
     protected EmSystemAvInfo systemAvInfo;
     protected String systemDir;
     protected String saveDir;
-    protected EmVideoDevice videoDevice;
-    protected final SparseArray<EmInputDevice> inputDevices = new SparseArray<>();
-    private OnEmulatorEventListener mEventListener;
+    protected OnEmulatorEventListener mEventListener;
     protected String systemTag;
     private AudioTrack mAudioTrack;
     private float mVolume = 1.0f;
@@ -1696,21 +1693,8 @@ public abstract class Emulator {
         }
     }
 
-    public void attachDevice(int target, @Nullable EmulatorDevice device) {
-        switch (target) {
-            case VIDEO_DEVICE:
-                videoDevice = (EmVideoDevice) device;
-                videoDevice.setPixelFormat(mPixelFormat);
-                videoDevice.setScreenRotation(mScreenRotation);
-                break;
-            case INPUT_DEVICE:
-                if (device instanceof EmInputDevice) {
-                    EmInputDevice it = (EmInputDevice) device;
-                    inputDevices.put(it.port, it);
-                }
-                break;
-            default:
-        }
+    public void setOnEmulatorEventListener(OnEmulatorEventListener listener) {
+        mEventListener = listener;
     }
 
     public Emulator(@NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
@@ -1774,10 +1758,6 @@ public abstract class Emulator {
             mAudioTrack.setVolume(mVolume);
     }
 
-    public void setEmulatorEventListener(@Nullable OnEmulatorEventListener listener) {
-        mEventListener = listener;
-    }
-
     @CallFromJni
     protected boolean onEnvironment(int cmd, Object data) {
         if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE || cmd == RETRO_ENVIRONMENT_GET_FASTFORWARDING) {
@@ -1799,8 +1779,8 @@ public abstract class Emulator {
             case RETRO_ENVIRONMENT_SET_ROTATION:
                 variable = (Variable) data;
                 mScreenRotation = (int) variable.value;
-                if (videoDevice != null) {
-                    videoDevice.setScreenRotation(mScreenRotation);
+                if (mEventListener != null) {
+                    mEventListener.onRotationChanged(mScreenRotation);
                 }
                 break;
             case RETRO_ENVIRONMENT_SET_VARIABLE:
@@ -1824,13 +1804,13 @@ public abstract class Emulator {
             case RETRO_ENVIRONMENT_SET_MESSAGE:
             case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
                 if (mEventListener != null)
-                    mEventListener.onShowMessage((EmMessageExt) data);
+                    mEventListener.onMessage((EmMessageExt) data);
                 break;
             case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
                 variable = (Variable) data;
                 mPixelFormat = (int) variable.value;
-                if (videoDevice != null) {
-                    videoDevice.setPixelFormat(mPixelFormat);
+                if (mEventListener != null) {
+                    mEventListener.onPixelFormatChanged(mPixelFormat);
                 }
                 break;
             case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
@@ -1871,8 +1851,8 @@ public abstract class Emulator {
     }
     @CallFromJni
     protected void onVideoRefresh(final byte[] data, int width, int height, int pitch) {
-        if (videoDevice == null) return;
-        videoDevice.refresh(data, width, height, pitch);
+        if (mEventListener == null) return;
+        mEventListener.onDrawFramebuffer(data, width, height, pitch);
     }
 
     @CallFromJni
@@ -1893,11 +1873,8 @@ public abstract class Emulator {
 
     @CallFromJni
     protected int onInputState(int port, int device, int index, int id) {
-        EmInputDevice it = inputDevices.get(port);
-        if (it != null && it.device == device) {
-            return it.getState(id);
-        }
-        return 0;
+        if (mEventListener == null) return 0;
+        return mEventListener.onGetInputState(port, device, index, id);
     }
 
     @CallFromJni
@@ -1907,10 +1884,8 @@ public abstract class Emulator {
 
     @CallFromJni
     protected boolean onRumbleState(int port, int effect, int strength) {
-        EmInputDevice device = inputDevices.get(port);
-        if (device != null)
-            return device.onRumbleEvent(effect, strength);
-        return false;
+        if (mEventListener == null) return false;
+        return mEventListener.onRumbleEvent(port, effect, strength);
     }
 
     protected void post(@NonNull Runnable r) {
@@ -1967,8 +1942,7 @@ public abstract class Emulator {
     private void release() {
         onPowerOff();
         releaseAudioTrack();
-        videoDevice = null;
-        inputDevices.clear();
+        mEventListener = null;
         mEventListener = null;
         Log.i(TAG, "released");
     }
@@ -2029,10 +2003,6 @@ public abstract class Emulator {
 
     protected boolean setState(final byte[] data) {
         return false;
-    }
-
-    public interface OnEmulatorEventListener {
-        void onShowMessage(EmMessageExt msg);
     }
 
     private static final HandlerThread sMainThread;

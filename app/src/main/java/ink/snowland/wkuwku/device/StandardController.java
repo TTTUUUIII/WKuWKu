@@ -4,14 +4,18 @@ import static ink.snowland.wkuwku.interfaces.Emulator.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.view.InputDevice;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,37 +34,25 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
-    private final LayoutStandardControllerBinding binding;
+    private LayoutStandardControllerBinding binding;
+    private final View mView;
 
-    public StandardController(int port, @NonNull Context context) {
-        super(context, port, RETRO_DEVICE_JOYPAD);
-        binding = LayoutStandardControllerBinding.inflate(LayoutInflater.from(context));
+    public StandardController(@NonNull Context context) {
+        super(context, RETRO_DEVICE_JOYPAD);
+        mView = onCreateView();
+    }
+
+    @Nullable
+    protected View onCreateView() {
+        binding = LayoutStandardControllerBinding.inflate(getLayoutInflater());
         bindMacros();
         bindEvents();
-    }
-
-    @Override
-    public short getState(int id) {
-        if (id == RETRO_DEVICE_ID_JOYPAD_MASK) {
-            return mState;
-        }
-        if (id < 0 || id > RETRO_DEVICE_ID_JOYPAD_R3) return 0;
-        return (short) ((mState >> id) & 0x01);
-    }
-
-    @Override
-    public void setState(int id, int v) {
-        if (id < 0 || (id > RETRO_DEVICE_ID_JOYPAD_R3)) return;
-        if (v == KEY_DOWN) {
-            mState |= (short) (0x01 << id);
-        } else {
-            mState &= (short) ~(0x01 << id);
-        }
+        return binding.getRoot();
     }
 
     @Override
     public View getView() {
-        return binding.getRoot();
+        return mView;
     }
 
     @Override
@@ -208,5 +200,112 @@ public class StandardController extends BaseController implements View.OnTouchLi
             binding.layoutMacrosControl.setVisibility(View.VISIBLE);
         }
         return true;
+    }
+
+    @Override
+    protected boolean onKeyEvent(KeyEvent event) {
+        if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
+                || (event.getSource() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
+                || (event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
+            int[] keys = null;
+            switch (event.getKeyCode()) {
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_UP};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_LEFT};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP_LEFT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_LEFT, RETRO_DEVICE_ID_JOYPAD_UP};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_RIGHT};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP_RIGHT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_RIGHT, RETRO_DEVICE_ID_JOYPAD_UP};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_DOWN};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN_LEFT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_LEFT, RETRO_DEVICE_ID_JOYPAD_DOWN};
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN_RIGHT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_RIGHT, RETRO_DEVICE_ID_JOYPAD_DOWN};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_A:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_A};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_B:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_B};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_X:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_X};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_Y:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_Y};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_L1:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_L};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_L2:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_L2};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_R1:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_R};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_R2:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_R2};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_SELECT:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_SELECT};
+                    break;
+                case KeyEvent.KEYCODE_BUTTON_START:
+                    keys = new int[]{RETRO_DEVICE_ID_JOYPAD_START};
+                    break;
+                default:
+            }
+            if (keys != null) {
+                for (int key : keys) {
+                    setState(key, event.getAction() == MotionEvent.ACTION_DOWN ? KEY_DOWN : KEY_UP);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public short getState(int id) {
+        if (id == RETRO_DEVICE_ID_JOYPAD_MASK) {
+            return mState;
+        }
+        if (id < 0 || id > RETRO_DEVICE_ID_JOYPAD_R3) return 0;
+        return (short) ((mState >> id) & 0x01);
+    }
+
+    public void setState(int id, int v) {
+        if (id < 0 || (id > RETRO_DEVICE_ID_JOYPAD_R3)) return;
+        if (v == KEY_DOWN) {
+            mState |= (short) (0x01 << id);
+        } else {
+            mState &= (short) ~(0x01 << id);
+        }
+    }
+
+    protected void postMacroEvent(@NonNull MacroEvent event) {
+        handler.postDelayed(() -> {
+            for (int key : event.keys) {
+                setState(key, KEY_DOWN);
+            }
+            handler.postDelayed(() -> {
+                for (int key : event.keys) {
+                    setState(key, KEY_UP);
+                }
+            }, event.duration);
+        }, event.delayed);
+    }
+
+    protected void postMacroEvents(@NonNull Collection<MacroEvent> events) {
+        events.forEach(this::postMacroEvent);
     }
 }

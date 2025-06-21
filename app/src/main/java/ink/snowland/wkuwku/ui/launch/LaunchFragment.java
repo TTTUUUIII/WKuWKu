@@ -1,6 +1,5 @@
 package ink.snowland.wkuwku.ui.launch;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.*;
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
 
 import android.annotation.SuppressLint;
@@ -25,6 +24,7 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -46,10 +46,11 @@ import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
+import ink.snowland.wkuwku.device.GLRenderer;
 import ink.snowland.wkuwku.device.SegaController;
 import ink.snowland.wkuwku.device.StandardController;
 import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.device.GLVideoDevice;
+import ink.snowland.wkuwku.interfaces.OnEmulatorEventListener;
 import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -59,20 +60,22 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener {
     private static final String TAG = "PlayFragment";
+    private static final int PLAYER_1 = 0;
+    private static final int PLAYER_2 = 0;
     private static final int SNACKBAR_LENGTH_SHORT = 500;
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String VIDEO_RATIO = "app_video_ratio";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
     private FragmentLaunchBinding binding;
-    private GLVideoDevice mVideoDevice;
-    private BaseController mController;
+    private GLRenderer mRenderer;
     private LaunchViewModel mViewModel;
     private Game mGame;
     private Snackbar mSnackbar;
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
+    private final SparseArray<BaseController> mControllers = new SparseArray<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,16 +98,9 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
-        mVideoDevice = new GLVideoDevice(requireContext()) {
-            @Override
-            public void refresh(byte[] data, int width, int height, int pitch) {
-                super.refresh(data, width, height, pitch);
-                adjustScreenSize(width, height);
-                binding.glSurfaceView.requestRender();
-            }
-        };
+        mRenderer = new GLRenderer(requireContext());
         binding.glSurfaceView.setEGLContextClientVersion(3);
-        binding.glSurfaceView.setRenderer(mVideoDevice.getRenderer());
+        binding.glSurfaceView.setRenderer(mRenderer);
         binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
@@ -125,7 +121,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         parentActivity.setActionBarVisibility(false);
-        selectController();
+        selectDefaultController();
         if (savedInstanceState == null) {
             mViewModel.setPendingIndicator(true, getString(R.string.downloading_files));
             Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY))
@@ -161,9 +157,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private void attachToEmulator() {
         if (mViewModel.getEmulator() == null) return;
         final Emulator emulator = mViewModel.getEmulator();
-        emulator.attachDevice(VIDEO_DEVICE, mVideoDevice);
-        emulator.attachDevice(INPUT_DEVICE, mController);
-        emulator.setEmulatorEventListener(this);
+        emulator.setOnEmulatorEventListener(this);
         mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
     }
 
@@ -229,7 +223,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
     }
 
-    private void selectController() {
+    private void selectDefaultController() {
+        BaseController controller;
         switch (mGame.system) {
             case "game-gear":
             case "master-system":
@@ -238,12 +233,15 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             case "sega-pico":
             case "sg-1000":
             case "saturn":
-                mController = new SegaController(0, parentActivity);
+                controller = new SegaController(parentActivity);
                 break;
             default:
-                mController = new StandardController(0, parentActivity);
+                controller = new StandardController(parentActivity);
         }
-        binding.controllerRoot.addView(mController.getView());
+        if (controller.getView() != null) {
+            binding.controllerRoot.addView(controller.getView());
+        }
+        mControllers.put(PLAYER_1, controller);
     }
 
     private DialogLayoutExitGameBinding mExitLayoutBinding;
@@ -279,7 +277,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             captureScreen = true;
         }
         if (captureScreen) {
-            mVideoDevice.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
+            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
         }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
@@ -299,13 +297,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     public static final String ARG_GAME = "game";
     public static final String ARG_AUTO_LOAD_STATE = "auto_load_state";
-
-    @Override
-    public void onShowMessage(@NonNull EmMessageExt msg) {
-        if (msg.type == EmMessageExt.MESSAGE_TARGET_OSD) {
-            handler.post(() -> showSnackbar(msg.msg, msg.duration));
-        }
-    }
 
     @MainThread
     private void showSnackbar(@NonNull String msg, int duration) {
@@ -329,7 +320,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             onExit();
             mExitDialog.dismiss();
         } else {
-            mController.vibrator();
+            mControllers.get(PLAYER_1).vibrator();
             if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
                 showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
             } else if (viewId == R.id.button_load_state4) {
@@ -357,7 +348,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         if (uri == null) return;
         try (OutputStream fos = contentResolver.openOutputStream(uri)){
             if (fos == null) return;
-            mVideoDevice.exportAsPNG(fos);
+            mRenderer.exportAsPNG(fos);
             values.clear();
             values.put(MediaStore.Images.Media.IS_PENDING, 0);
             contentResolver.update(uri, values, null, null);
@@ -369,6 +360,42 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
-        return mController.dispatchKeyEvent(event);
+        return mControllers.get(PLAYER_1).dispatchKeyEvent(event);
+    }
+
+    @Override
+    public void onPixelFormatChanged(int format) {
+        mRenderer.setPixelFormat(format);
+    }
+
+    @Override
+    public void onRotationChanged(int rotation) {
+        mRenderer.setScreenRotation(rotation);
+    }
+
+    @Override
+    public void onDrawFramebuffer(final byte[] data, int width, int height, int pitch) {
+        adjustScreenSize(width, height);
+        mRenderer.updateFramebuffer(data, width, height, pitch);
+        binding.glSurfaceView.requestRender();
+    }
+
+    @Override
+    public short onGetInputState(int port, int device, int index, int id) {
+        BaseController controller = mControllers.get(port);
+        if (controller == null || controller.type != device) return 0;
+        return controller.getState(id);
+    }
+
+    @Override
+    public boolean onRumbleEvent(int port, int effect, int streng) {
+        return false;
+    }
+
+    @Override
+    public void onMessage(@NonNull EmMessageExt message) {
+        if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
+            handler.post(() -> showSnackbar(message.msg, message.duration));
+        }
     }
 }
