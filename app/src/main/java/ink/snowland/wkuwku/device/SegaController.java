@@ -8,43 +8,30 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.databinding.LayoutSegaControllerBinding;
 
-public class SegaController extends BaseController implements View.OnTouchListener {
-    private final LayoutSegaControllerBinding binding;
+public class SegaController extends StandardController implements View.OnTouchListener {
+    private LayoutSegaControllerBinding binding;
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
-    private short mState = 0;
-    public SegaController(int port, @NonNull Context context) {
-        super(context, port, RETRO_DEVICE_JOYPAD);
-        binding = LayoutSegaControllerBinding.inflate(LayoutInflater.from(context));
+    public SegaController(@NonNull Context context) {
+        super(context);
+
+    }
+
+    @Nullable
+    @Override
+    protected View onCreateView() {
+        binding = LayoutSegaControllerBinding.inflate(getLayoutInflater());
         bindEvents();
+        return binding.getRoot();
     }
 
     @Override
     public View getView() {
         return binding.getRoot();
-    }
-
-    @Override
-    public void setState(int id, int v) {
-        if (id < 0 || (id > RETRO_DEVICE_ID_JOYPAD_R)) return;
-        if (v == KEY_DOWN) {
-            mState |= (short) (0x01 << id);
-        } else {
-            mState &= (short) ~(0x01 << id);
-        }
-    }
-
-    @Override
-    public short getState(int id) {
-        if (id == RETRO_DEVICE_ID_JOYPAD_MASK) {
-            return mState;
-        }
-        if (id < 0 || id > RETRO_DEVICE_ID_JOYPAD_R) return 0;
-        return (short) (mState >> id & 0x01);
     }
 
     @Override
