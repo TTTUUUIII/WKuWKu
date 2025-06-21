@@ -67,13 +67,13 @@ public class Yabause extends Emulator {
 
     @Override
     protected boolean setState(byte[] data) {
-        return nativeLoadState(data);
+        return /*nativeLoadState(data)*/ false;
     }
 
     @Nullable
     @Override
     protected byte[] getState() {
-        return nativeGetState();
+        return /*nativeGetState()*/ null;
     }
 
     @Override
@@ -114,12 +114,12 @@ public class Yabause extends Emulator {
 
     @Override
     public void onLoadState(@NonNull String fullPath) {
-        nativeLoadState(fullPath);
+        /*nativeLoadState(fullPath);*/
     }
 
     @Override
     public boolean onSaveState(@NonNull String savePath) {
-        return nativeSaveState(savePath);
+        return /*nativeSaveState(savePath)*/ false;
     }
 
     @Override
