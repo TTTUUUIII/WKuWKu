@@ -13,6 +13,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/emulator" />
             <option value="$PROJECT_DIR$/plug" />
+            <option value="$PROJECT_DIR$/plug-beetlesaturn" />
             <option value="$PROJECT_DIR$/plug-desmume" />
             <option value="$PROJECT_DIR$/plug-fbneo" />
             <option value="$PROJECT_DIR$/plug-fmsx" />
@@ -27,7 +28,6 @@
             <option value="$PROJECT_DIR$/plug-yabause" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

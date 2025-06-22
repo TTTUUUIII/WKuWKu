@@ -1,0 +1,219 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Sega Saturn"
+            tag="saturn"
+            manufacturer="sega" />
+    </systems>
+    <content-extensions>
+        <item>cue</item>
+        <item>toc</item>
+        <item>m3u</item>
+        <item>ccd</item>
+        <item>chd</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="0"
+            key="beetle_saturn_horizontal_overscan"
+            inputType="number"
+            title="Horizontal Overscan Mask" />
+        <option
+            defaultValue="0"
+            key="beetle_saturn_initial_scanline"
+            inputType="number"
+            title="Initial scanline" />
+        <option
+            defaultValue="239"
+            key="beetle_saturn_last_scanline"
+            title="Last scanline"
+            inputType="number" />
+        <option
+            defaultValue="0"
+            key="beetle_saturn_initial_scanline_pal"
+            title="Initial scanline (PAL)"
+            inputType="number" />
+        <option
+            defaultValue="239"
+            key="beetle_saturn_last_scanline_pal"
+            title="Last scanline (PAL)"
+            inputType="number" />
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_horizontal_blend"
+            title="Enable Horizontal Blend(blur)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_multitap_port1"
+            title="6Player Adaptor on Port 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_multitap_port2"
+            title="6Player Adaptor on Port 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_opposite_directions"
+            title="Allow Up+Down and Left+Right">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="15%"
+            key="beetle_saturn_analog_stick_deadzone"
+            title="Analog Stick Deadzone">
+            <allow-values>
+                <value>0%</value>
+                <value>5%</value>
+                <value>10%</value>
+                <value>15%</value>
+                <value>20%</value>
+                <value>25%</value>
+                <value>30%</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="15%"
+            key="beetle_saturn_trigger_deadzone"
+            title="Trigger Deadzone">
+            <allow-values>
+                <value>0%</value>
+                <value>5%</value>
+                <value>10%</value>
+                <value>15%</value>
+                <value>20%</value>
+                <value>25%</value>
+                <value>30%</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="100%"
+            key="beetle_saturn_mouse_sensitivity"
+            title="Mouse Sensitivity"
+            inputType="text" />
+        <option
+            defaultValue="Cross"
+            key="beetle_saturn_virtuagun_crosshair"
+            title="Gun Crosshair">
+            <allow-values>
+                <value>Cross</value>
+                <value>Dot</value>
+                <value>Off</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Lightgun"
+            key="beetle_saturn_virtuagun_input"
+            title="Gun Input Mode">
+            <allow-values>
+                <value>Lightgun</value>
+                <value>Touchscreen</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto Detect"
+            key="beetle_saturn_cart"
+            title="Cartridge">
+            <allow-values>
+                <value>Auto Detect</value>
+                <value>None</value>
+                <value>Backup Memory</value>
+                <value>Extended RAM (1MB)</value>
+                <value>Extended RAM (4MB)</value>
+                <value>The King of Fighters '95"</value>
+                <value>Ultraman: Hikari no Kyojin Densetsu</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_shared_int"
+            title="Shared Internal Memory (Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_shared_ext"
+            title="Shared Backup Memory (Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Auto Detect"
+            key="beetle_saturn_region"
+            title="System Region">
+            <allow-values>
+                <value>Auto Detect</value>
+                <value>Japan</value>
+                <value>North America</value>
+                <value>Europe</value>
+                <value>South Korea</value>
+                <value>Asia (NTSC)</value>
+                <value>Asia (PAL)</value>
+                <value>Brazil</value>
+                <value>Latin America</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="english"
+            key="beetle_saturn_autortc_lang"
+            title="BIOS language">
+            <allow-values>
+                <value>english</value>
+                <value>german</value>
+                <value>french</value>
+                <value>spanish</value>
+                <value>italian</value>
+                <value>japanese</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_cdimagecache"
+            title="CD Image Cache (Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="beetle_saturn_midsync"
+            title="Mid-frame Input Synchronization">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="beetle_saturn_autortc"
+            title="Automatically set RTC on game load">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
