@@ -22,8 +22,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import android.os.Environment;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -300,9 +302,18 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     @MainThread
     private void showSnackbar(@NonNull String msg, int duration) {
-        mSnackbar.setText(msg);
-        mSnackbar.setDuration(duration);
-        mSnackbar.show();
+        if (!Looper.getMainLooper().isCurrentThread()) {
+            handler.post(() -> {
+                mSnackbar.setText(msg);
+                mSnackbar.setDuration(duration);
+                mSnackbar.show();
+            });
+        } else {
+            mSnackbar.setText(msg);
+            mSnackbar.setDuration(duration);
+            mSnackbar.show();
+        }
+
     }
 
     @MainThread
@@ -358,9 +369,35 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
     }
 
+    private int mL1ButtonState = KeyEvent.ACTION_UP;
+    private int mR1ButtonState = KeyEvent.ACTION_UP;
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
-        return mControllers.get(PLAYER_1).dispatchKeyEvent(event);
+        if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L1 && mL1ButtonState != event.getAction()) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                mViewModel.saveCurrentSate();
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
+            }
+            mL1ButtonState = event.getAction();
+        } else if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R1 && mR1ButtonState != event.getAction()) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN) {
+                mViewModel.loadStateAtLast();
+            }
+            mR1ButtonState = event.getAction();
+        }
+        return dispatchKeyEvent(event);
+    }
+
+    private boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        int size = mControllers.size();
+        boolean handled = false;
+        for (int i = 0; i < size; ++i) {
+            if (mControllers.valueAt(i).onKeyEvent(event)) {
+                handled = true;
+                break;
+            }
+        }
+        return handled;
     }
 
     @Override

@@ -61,11 +61,7 @@ public abstract class BaseController {
         }
     }
 
-    public boolean dispatchKeyEvent(KeyEvent event) {
-        return onKeyEvent(event);
-    }
-
-    protected boolean onKeyEvent(KeyEvent event) {
+    public boolean onKeyEvent(KeyEvent event) {
         return false;
     }
 
