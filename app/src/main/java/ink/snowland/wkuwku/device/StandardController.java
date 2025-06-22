@@ -203,7 +203,7 @@ public class StandardController extends BaseController implements View.OnTouchLi
     }
 
     @Override
-    protected boolean onKeyEvent(KeyEvent event) {
+    public boolean onKeyEvent(KeyEvent event) {
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
                 || (event.getSource() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
                 || (event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
