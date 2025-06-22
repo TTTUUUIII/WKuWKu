@@ -42,6 +42,8 @@ static jbyteArray frame_buffer = nullptr;
 static jshortArray audio_buffer = nullptr;
 static int pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static int need_fullpath = true;
+static struct retro_disk_control_callback *disk_control;
+static struct retro_disk_control_ext_callback *dis_control_ext;
 
 static void set_variable_value(JNIEnv *env, jobject value) {
     env->SetObjectField(variable_object, ctx.variable_value_field, value);
@@ -107,39 +109,6 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
         default:
             LOGD(EM_TAG, "%s", buffer);
     }
-}
-
-static bool set_eject_state_t(bool ejected) {
-    LOGD(EM_TAG, "set_eject_state_t: %d", ejected);
-    return false;
-}
-
-static bool get_eject_state_t() {
-    LOGD(EM_TAG, "get_eject_state_t");
-    return false;
-}
-
-static unsigned get_image_index_t() {
-    LOGD(EM_TAG, "get_image_index_t");
-    return 1;
-}
-
-static bool set_image_index_t(unsigned index) {
-    LOGD(EM_TAG, "set_image_index_t: %d", index);
-    return false;
-}
-
-static unsigned get_num_images_t() {
-    LOGD(EM_TAG, "get_num_images_t");
-    return 1;
-}
-
-static bool replace_image_index_t(unsigned index, const struct retro_game_info *info) {
-    return false;
-}
-
-static bool add_image_index_t() {
-    return false;
 }
 
 static void
@@ -408,19 +377,17 @@ static bool environment_callback(unsigned cmd, void *data) {
             return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
                                           variable_object);
         case RETRO_ENVIRONMENT_GET_DISK_CONTROL_INTERFACE_VERSION:
-            /*use legacy interface*/
-            return false;
-        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE: {
-            if (data == nullptr) return true;
-            auto *disk_control = (struct retro_disk_control_callback *) data;
-            disk_control->set_image_index = set_image_index_t;
-            disk_control->add_image_index = add_image_index_t;
-            disk_control->replace_image_index = replace_image_index_t;
-            disk_control->get_eject_state = get_eject_state_t;
-            disk_control->set_eject_state = set_eject_state_t;
-            disk_control->get_image_index = get_image_index_t;
-            disk_control->get_num_images = get_num_images_t;
-        }
+            *(unsigned *)data = 2;
+            break;
+        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE:
+            if (data) {
+                dis_control_ext = (struct retro_disk_control_ext_callback*) data;
+            }
+            break;
+        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
+            if (data) {
+                disk_control = (struct retro_disk_control_callback *) data;
+            }
             break;
         case RETRO_ENVIRONMENT_GET_LANGUAGE: {
             set_variable_value(env, RETRO_LANGUAGE_DUMMY);
