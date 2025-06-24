@@ -38,9 +38,6 @@
       <SelectionState runConfigName="plug-fbneo">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="plug-beetlestaturn">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
     </selectionStates>
   </component>
 </project>
