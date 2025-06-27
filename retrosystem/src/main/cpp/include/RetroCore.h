@@ -12,6 +12,12 @@ class RetroCore {
 private:
     void* handle;
 public:
+    struct retro_disk_control_callback *disk_control = nullptr;
+    struct retro_disk_control_ext_callback *disk_control_ext = nullptr;
+    struct retro_hw_render_callback *hw_render_cb = nullptr;
+    struct retro_rumble_interface *rumble_interface = nullptr;
+    retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
+
     decltype(&retro_set_environment) set_environment_cb;
     decltype(&retro_set_video_refresh) set_video_refresh_cb;
     decltype(&retro_set_audio_sample) set_audio_sample_cb;

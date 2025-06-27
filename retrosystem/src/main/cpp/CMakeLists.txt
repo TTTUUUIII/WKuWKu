@@ -30,6 +30,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         RetroCore.cpp
         GLWindow.cpp
+        GLUtils.cpp
         com_outlook_wn123o_RetroSystem.cpp)
 
 # Specifies libraries CMake should link to your target library. You
