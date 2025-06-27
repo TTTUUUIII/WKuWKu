@@ -13,9 +13,9 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/emulator" />
             <option value="$PROJECT_DIR$/plug" />
+            <option value="$PROJECT_DIR$/retrosystem" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>
