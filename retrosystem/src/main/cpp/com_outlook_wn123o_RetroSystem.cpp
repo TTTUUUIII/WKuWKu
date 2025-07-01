@@ -132,6 +132,12 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     retro_system.input_cb = env->GetStaticMethodID(clazz, "onNativeInputCallback", "(IIII)I");
     retro_system.input_poll_cb = env->GetStaticMethodID(clazz, "onNativeInputPollCallback", "()V");
     current_audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
+    clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Option");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "()V");
+    retro_system.option_obj = env->NewGlobalRef(env->NewObject(clazz, constructor));
+    clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Value");
+    constructor = env->GetMethodID(clazz, "<init>", "()V");
+    retro_system.value_obj = env->NewGlobalRef(env->NewObject(clazz, constructor));
     return JNI_VERSION_1_6;
 }
 
@@ -163,6 +169,7 @@ static bool environment_cb(unsigned cmd, void* data) {
         return false;
     }
 
+    jobject option, value;
     switch (cmd) {
         case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
             struct retro_log_callback *log_callback;
@@ -171,25 +178,21 @@ static bool environment_cb(unsigned cmd, void* data) {
             break;
         case RETRO_ENVIRONMENT_GET_VARIABLE:
             variable = reinterpret_cast<struct retro_variable*>(data);
-            option_obj = new_option(env, variable->key, "");
+            option = new_option(env, variable->key);
             is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, option);
             if (is_supported) {
-                const std::string &val = get_option_value(env, option_obj);
+                const std::string &val = get_option_value(env, option);
                 variable->value = val.c_str();
             }
             break;
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
-            value_obj = new_value(env);
-            is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, value_obj);
-            if (is_supported) {
-                *(const char**)data = get_string_value(env, value_obj).c_str();
-            }
-            break;
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-            *(const char**)data = retro_system.save_directory.c_str();
-            break;
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
-            *(const char**)data = retro_system.assets_directory.c_str();
+            value = new_value(env);
+            is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, value);
+            if (is_supported) {
+                *(const char**)data = get_string_value(env, value).c_str();
+            }
             break;
         case RETRO_ENVIRONMENT_GET_LANGUAGE:
             *(unsigned*)data = RETRO_LANGUAGE_ENGLISH;
@@ -408,9 +411,7 @@ static retro_proc_address_t get_proc_address(const char* sym) {
 }
 
 static jobject new_value(JNIEnv  *env) {
-    jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Value");
-    jmethodID constructor = env->GetMethodID(clazz, "<init>", "()V");
-    return env->NewObject(clazz, constructor);
+    return retro_system.value_obj;
 }
 
 static std::string  get_string_value(JNIEnv *env, jobject obj) {
@@ -423,10 +424,22 @@ static std::string  get_string_value(JNIEnv *env, jobject obj) {
     return ret;
 }
 
+static jobject new_option(JNIEnv *env, const char* key) {
+    jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Option");
+    jfieldID field_id = env->GetFieldID(clazz, "key", "Ljava/lang/String;");
+    env->SetObjectField(retro_system.option_obj, field_id, env->NewStringUTF(key));
+    field_id = env->GetFieldID(clazz, "value", "Ljava/lang/String;");
+    env->SetObjectField(retro_system.option_obj, field_id, nullptr);
+    return retro_system.option_obj;
+}
+
 static jobject new_option(JNIEnv *env, const char* key, const char* val) {
     jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Option");
-    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
-    return env->NewObject(clazz, constructor, env->NewStringUTF(key), env->NewStringUTF(val));
+    jfieldID field_id = env->GetFieldID(clazz, "key", "Ljava/lang/String;");
+    env->SetObjectField(retro_system.option_obj, field_id, env->NewStringUTF(key));
+    field_id = env->GetFieldID(clazz, "value", "Ljava/lang/String;");
+    env->SetObjectField(retro_system.option_obj, field_id, env->NewStringUTF(val));
+    return retro_system.option_obj;
 }
 
 static std::string get_option_value(JNIEnv *env, jobject obj) {

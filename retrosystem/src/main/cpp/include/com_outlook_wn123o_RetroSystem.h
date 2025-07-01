@@ -50,6 +50,7 @@ static void log_cb(enum retro_log_level level, const char *fmt, ...);
 static bool rumble_cb(unsigned, enum retro_rumble_effect, uint16_t);
 static uintptr_t get_current_framebuffer();
 static retro_proc_address_t get_proc_address(const char*);
+static jobject new_option(JNIEnv *, const char*)
 static jobject new_option(JNIEnv *, const char*, const char*);
 static std::string get_option_value(JNIEnv *, jobject);
 static void notify_video_size_changed();

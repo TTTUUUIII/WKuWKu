@@ -27,12 +27,9 @@ public class App extends Application {
         PlugManager.initialize(getApplicationContext());
         Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
 
-        RetroSystem.add("fceumm", "/data/data/ink.snowland.wkuwku/files/libretro.so");
-//        RetroSystem.add("mupen64plus", "/data/data/ink.snowland.wkuwku/files/libretro_mupen64plus.so");
-        RetroSystem.add("parallel", "/data/data/ink.snowland.wkuwku/files/parallel_n64_libretro.so");
-        RetroSystem.configure(RetroSystem.SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
-        RetroSystem.configure(RetroSystem.SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY).getAbsolutePath());
-        RetroSystem.configure(RetroSystem.CORE_ASSETS_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
+        RetroSystem.setDirectory(RetroSystem.TYPE_SYSTEM, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
+        RetroSystem.setDirectory(RetroSystem.TYPE_SAVE, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY).getAbsolutePath());
+        RetroSystem.setDirectory(RetroSystem.TYPE_CORE_ASSETS, FileManager.getCacheDirectory().getAbsolutePath());
     }
 
     private final Thread.UncaughtExceptionHandler mUncaughtExceptionHandler = (thread, throwable) -> {

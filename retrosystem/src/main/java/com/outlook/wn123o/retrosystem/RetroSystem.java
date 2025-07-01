@@ -5,6 +5,7 @@ import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.Build;
+import android.util.SparseArray;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -12,32 +13,25 @@ import androidx.annotation.NonNull;
 import com.outlook.wn123o.retrosystem.common.MediaInfo;
 import com.outlook.wn123o.retrosystem.common.Option;
 import com.outlook.wn123o.retrosystem.common.SystemInfo;
+import com.outlook.wn123o.retrosystem.common.Value;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 
 public class RetroSystem {
 
-    public static final int SYSTEM_DIRECTORY        = 1;
-    public static final int SAVE_DIRECTORY          = 2;
-    public static final int CORE_ASSETS_DIRECTORY   = 3;
+    public static final int TYPE_SYSTEM        = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
+    public static final int TYPE_SAVE          = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
+    public static final int TYPE_CORE_ASSETS   = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
 
-    private static final HashMap<String, String> sOptions = new HashMap<>();
+    private static final SparseArray<String> sDirectories = new SparseArray<>();
 
-    static {
-        sOptions.put("mupen64plus-rdp-plugin", "gliden64");
-        sOptions.put("mupen64plus-rsp-plugin", "hle");
-    }
     private static float sAudioVolume = 1.f;
     private static AudioTrack sAudioTrack = null;
     private static WeakReference<OnEventListener> sListener = new WeakReference<>(null);
 
     static {
         System.loadLibrary("retrosystem");
-    }
-
-    public static void configure(int k, Object v) {
-        nativeConfigure(k, (String) v);
     }
 
     /**
@@ -141,6 +135,15 @@ public class RetroSystem {
         }
     }
 
+
+    public static void setDirectory(int type, String path) {
+        File file = new File(path);
+        if (!file.exists()) {
+            boolean mkdirs = file.mkdirs();
+        }
+        sDirectories.put(type, path);
+    }
+
     private static void createAudioTrack() {
         MediaInfo mediaInfo = nativeGetMediaInfo();
         int sampleRate = (int) mediaInfo.timing.sampleRate;
@@ -166,7 +169,6 @@ public class RetroSystem {
         sAudioTrack.setVolume(sAudioVolume);
     }
 
-    private static native void nativeConfigure(int id, String val);
     private static native void nativeAdd(@NonNull String alias, @NonNull String path);
     private static native boolean nativeUse(@NonNull String alias);
     private static native boolean nativeAttachSurface(@NonNull Surface surface);
@@ -185,13 +187,16 @@ public class RetroSystem {
     private static boolean onNativeEnvironmentCallback(int cmd, Object data) {
         boolean supported = false;
         Option option;
+        Value value;
         switch (cmd) {
-            case RETRO_ENVIRONMENT_GET_VARIABLE:
-                option = (Option) data;
-                String value = sOptions.get(option.key);
-                if (value != null) {
-                    option.value = value;
+            case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+            case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+            case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
+                String path = sDirectories.get(cmd);
+                if (path != null) {
                     supported = true;
+                    value = (Value) data;
+                    value.v = path;
                 }
                 break;
             default:
