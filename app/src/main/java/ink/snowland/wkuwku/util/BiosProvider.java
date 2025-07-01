@@ -42,7 +42,7 @@ public class BiosProvider {
 
     public static Completable downloadBiosForGame(@NonNull Game game, @NonNull File systemDir) {
         return Completable.create(emitter -> {
-            List<BiosFile> files = BIOS_SOURCE.get(game.system);
+            List<BiosFile> files = BIOS_SOURCE.get(game.coreAlias);
             if (files == null || files.isEmpty()) {
                 emitter.onComplete();
                 return;

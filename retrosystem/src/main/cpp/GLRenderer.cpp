@@ -2,12 +2,12 @@
 // Created by wn123 on 2025-06-24.
 //
 
-#include "include/GLWindow.h"
+#include "include/GLRenderer.h"
 #include <android/log.h>
 #define LOGI(tag, ...) __android_log_print(ANDROID_LOG_INFO,  tag, __VA_ARGS__)
 #define LOGE(tag, ...) __android_log_print(ANDROID_LOG_ERROR, tag, __VA_ARGS__)
 
-GLWindow::GLWindow(ANativeWindow *wd): window(wd) {
+GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     vw = ANativeWindow_getWidth(window);
     vh = ANativeWindow_getHeight(window);
@@ -32,24 +32,24 @@ GLWindow::GLWindow(ANativeWindow *wd): window(wd) {
     state = PREPARED;
 }
 
-GLWindow::~GLWindow() = default;
+GLRenderer::~GLRenderer() = default;
 
-void GLWindow::adjust_viewport(uint16_t w, uint16_t h) {
+void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
     vw = w;
     vh = h;
 }
 
-void GLWindow::set_renderer(const GLRenderer * rdp) {
-    renderer = *rdp;
+GLRendererInterface* GLRenderer::get_renderer_interface() {
+    return &interface;
 }
 
-bool GLWindow::start() {
+bool GLRenderer::start() {
     if (state != PREPARED) return false;
     gl_thread = std::thread([this]() {
         uint16_t current_vw = vw, current_vh = vh;
         eglMakeCurrent(display, surface, surface, context);
-        if (renderer.on_create) {
-            renderer.on_create(display, surface);
+        if (interface.on_create) {
+            interface.on_create(display, surface);
         }
         while (state != INVALID) {
             if (current_vw != vw || current_vh != vh) {
@@ -58,15 +58,15 @@ bool GLWindow::start() {
                 current_vh = vh;
             }
             if (state == RUNNING) {
-                if (renderer.on_draw) {
-                    renderer.on_draw();
+                if (interface.on_draw) {
+                    interface.on_draw();
                 }
             } else if (state == PAUSED) {
                 wait();
             }
         }
-        if (renderer.on_destroy) {
-            renderer.on_destroy();
+        if (interface.on_destroy) {
+            interface.on_destroy();
         }
         notify();
     });
@@ -75,29 +75,29 @@ bool GLWindow::start() {
     return true;
 }
 
-void GLWindow::pause() {
+void GLRenderer::pause() {
     if (state == RUNNING) {
         state = PAUSED;
     }
 }
 
-void GLWindow::resume() {
+void GLRenderer::resume() {
     if (state == PAUSED) {
         state = RUNNING;
         notify();
     }
 }
 
-void GLWindow::wait() {
+void GLRenderer::wait() {
     std::unique_lock<std::mutex> lock(mtx);
     cv.wait(lock);
 }
 
-void GLWindow::notify() {
+void GLRenderer::notify() {
     cv.notify_one();
 }
 
-void GLWindow::stop() {
+void GLRenderer::stop() {
     state = INVALID;
     wait();
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);

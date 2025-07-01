@@ -4,7 +4,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "GLWindow.h"
+#include "GLRenderer.h"
 #include "GLUtils.h"
 #include "RetroCore.h"
 #include "Log.h"
@@ -27,21 +27,19 @@ static jshortArray current_audio_buffer;
 
 static EGLDisplay current_dyp;
 static EGLSurface current_sf;
-static std::unique_ptr<GLWindow> current_window;
-static GLRenderer renderer = {
-        on_create,
-        on_draw,
-        on_destroy
-};
+static std::unique_ptr<GLRenderer> current_renderer;
 
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAttachSurface(JNIEnv *env, jclass clazz,
                                                               jobject surface) {
-    current_window = std::make_unique<GLWindow>(ANativeWindow_fromSurface(env, surface));
-    current_window->set_renderer(&renderer);
+    current_renderer = std::make_unique<GLRenderer>(ANativeWindow_fromSurface(env, surface));
+    GLRendererInterface *interface = current_renderer->get_renderer_interface();
+    interface->on_create = on_create;
+    interface->on_draw = on_draw;
+    interface->on_destroy = on_destroy;
     if (current_state == STATE_RUNNING) {
-        current_window->start();
+        current_renderer->start();
     }
     return true;
 }
@@ -49,12 +47,12 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAdjustSurface(JNIEnv *env, jclass clazz, jint vw,
                                                               jint vh) {
-    current_window->adjust_viewport(vw, vh);
+    current_renderer->adjust_viewport(vw, vh);
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeDetachSurface(JNIEnv *env, jclass clazz) {
-    current_window->stop();
+    current_renderer->stop();
 }
 
 static void on_create(EGLDisplay dyp, EGLSurface sr) {
@@ -476,8 +474,8 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStart(JNIEnv *env, jclass 
     }
     no_error = current_core->load_game(&game_info);
     if (no_error) {
-        if (current_window) {
-            current_window->start();
+        if (current_renderer) {
+            current_renderer->start();
         }
         current_state = RUNNING;
     }

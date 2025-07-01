@@ -22,10 +22,10 @@ typedef struct {
     std::function<void(EGLDisplay, EGLSurface)> on_create;
     std::function<void()> on_draw;
     std::function<void()> on_destroy;
-} GLRenderer;
+} GLRendererInterface;
 
 
-class GLWindow {
+class GLRenderer {
 private:
     std::mutex mtx;
     std::condition_variable cv;
@@ -37,20 +37,20 @@ private:
     EGLint version_major, version_minor;
     std::thread gl_thread;
     WindowState state = INVALID;
-    GLRenderer renderer = {nullptr};
+    GLRendererInterface interface = {};
 
     void wait();
 
     void notify();
 
 public:
-    explicit GLWindow(ANativeWindow *wd);
+    explicit GLRenderer(ANativeWindow *wd);
 
-    ~GLWindow();
+    ~GLRenderer();
 
     void adjust_viewport(uint16_t w, uint16_t h);
 
-    void set_renderer(const GLRenderer *rd);
+    GLRendererInterface* get_renderer_interface();
 
     bool start();
 
