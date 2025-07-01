@@ -11,11 +11,19 @@
 #include "com_outlook_wn123o_RetroSystem.h"
 
 #define TAG "RetroSystem"
+#define STATE_IDLE        1
+#define STATE_RUNNING     2
+#define STATE_PAUSED      3
 
 static RetroSystem retro_system = {nullptr};
 static std::unordered_map<std::string, std::string> all_cores;
 static std::unordered_map<std::string, std::shared_ptr<RetroCore>> all_loaded_cores;
 static std::shared_ptr<RetroCore> current_core;
+static unsigned current_vw = 0;
+static unsigned current_vh = 0;
+static int current_state = STATE_IDLE;
+static std::unique_ptr<Buffer<void*>> current_framebuffer = nullptr;
+static jshortArray current_audio_buffer;
 
 static EGLDisplay current_dyp;
 static EGLSurface current_sf;
@@ -32,21 +40,21 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAttachSurface(JNIEnv *env,
                                                               jobject surface) {
     current_window = std::make_unique<GLWindow>(ANativeWindow_fromSurface(env, surface));
     current_window->set_renderer(&renderer);
+    if (current_state == STATE_RUNNING) {
+        current_window->start();
+    }
+    return true;
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAdjustSurface(JNIEnv *env, jclass clazz, jint vw,
                                                               jint vh) {
-    if (current_window) {
-        current_window->adjust_viewport(vw, vh);
-    }
+    current_window->adjust_viewport(vw, vh);
 }
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeDetachSurface(JNIEnv *env, jclass clazz) {
-    if (current_window) {
-        current_window->release();
-    }
+    current_window->stop();
 }
 
 static void on_create(EGLDisplay dyp, EGLSurface sr) {
@@ -60,7 +68,7 @@ static void on_create(EGLDisplay dyp, EGLSurface sr) {
 }
 
 static void on_draw() {
-    if (current_core->hw_render_cb != nullptr) {
+    if (current_state == RUNNING) {
         current_core->run();
     }
 }
@@ -93,7 +101,7 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeUse(JNIEnv *env, jclass cl
         current_core = all_loaded_cores[core_alias];
         no_error = true;
     } else if (all_cores.count(core_alias) > 0) {
-        std::shared_ptr<RetroCore> new_core = std::make_shared<RetroCore>(all_cores[core_alias], &no_error);
+        std::shared_ptr<RetroCore> new_core = std::make_shared<RetroCore>(core_alias, all_cores[core_alias], &no_error);
         if (no_error) {
             current_core = new_core;
             new_core->set_environment_cb(environment_cb);
@@ -110,7 +118,7 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeUse(JNIEnv *env, jclass cl
 }
 
 extern "C"
-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     JNIEnv *env;
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
@@ -119,11 +127,11 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/RetroSystem");
     retro_system.clazz = (jclass) env->NewGlobalRef(clazz);
     retro_system.environment_cb = env->GetStaticMethodID(clazz, "onNativeEnvironmentCallback", "(ILjava/lang/Object;)Z");
+    retro_system.video_size_cb = env->GetStaticMethodID(clazz, "onNativeVideoSizeChanged", "(II)V");
     retro_system.audio_cb = env->GetStaticMethodID(clazz, "onNativeAudioCallback", "([SI)I");
     retro_system.input_cb = env->GetStaticMethodID(clazz, "onNativeInputCallback", "(IIII)I");
     retro_system.input_poll_cb = env->GetStaticMethodID(clazz, "onNativeInputPollCallback", "()V");
-    retro_system.string_buffer = env->NewByteArray(512);
-    retro_system.audio_buffer = env->NewShortArray(0);
+    current_audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
     return JNI_VERSION_1_6;
 }
 
@@ -134,6 +142,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
         return;
     }
     env->DeleteGlobalRef(retro_system.clazz);
+    env->DeleteGlobalRef(current_audio_buffer);
     retro_system.jvm = nullptr;
 }
 
@@ -150,18 +159,31 @@ static bool environment_cb(unsigned cmd, void* data) {
         }
     }
     struct retro_variable *variable = nullptr;
+    if (cmd == RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE) {
+        return false;
+    }
+
     switch (cmd) {
+        case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
+            struct retro_log_callback *log_callback;
+            log_callback = (struct retro_log_callback *) data;
+            log_callback->log = log_cb;
+            break;
         case RETRO_ENVIRONMENT_GET_VARIABLE:
-            jobject option;
             variable = reinterpret_cast<struct retro_variable*>(data);
-            option = new_option(env, variable->key, "");
+            option_obj = new_option(env, variable->key, "");
             is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, option);
             if (is_supported) {
-                variable->value = get_option_value(env, option).c_str();
+                const std::string &val = get_option_value(env, option_obj);
+                variable->value = val.c_str();
             }
             break;
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
-            *(const char**)data = retro_system.system_directory.c_str();
+            value_obj = new_value(env);
+            is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, value_obj);
+            if (is_supported) {
+                *(const char**)data = get_string_value(env, value_obj).c_str();
+            }
             break;
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
             *(const char**)data = retro_system.save_directory.c_str();
@@ -191,9 +213,11 @@ static bool environment_cb(unsigned cmd, void* data) {
             *(unsigned*)data = FLAG_ENABLE_AUDIO | FLAG_ENABLE_VIDEO | FLAG_ENABLE_FAST_SAVESTATES;
             break;
         case RETRO_ENVIRONMENT_SET_VARIABLE:
-            variable = (struct retro_variable*) data;
-            option = new_option(env, variable->key, variable->value);
-            is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, option);
+            if (data != nullptr) {
+                variable = (struct retro_variable*) data;
+                option = new_option(env, variable->key, variable->value);
+                is_supported = env->CallStaticBooleanMethod(retro_system.clazz, retro_system.environment_cb, cmd, option);
+            }
             break;
         case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
             current_core->disk_control = reinterpret_cast<struct retro_disk_control_callback*>(data);
@@ -225,37 +249,95 @@ static bool environment_cb(unsigned cmd, void* data) {
     return is_supported;
 }
 
+static void log_cb(enum retro_log_level level, const char *fmt, ...) {
+    char buffer[512];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    switch (level) {
+        case RETRO_LOG_ERROR:
+            LOGE(TAG, "%s", buffer);
+            break;
+        case RETRO_LOG_INFO:
+            LOGI(TAG, "%s", buffer);
+            break;
+        case RETRO_LOG_WARN:
+            LOGW(TAG, "%s", buffer);
+            break;
+        default:
+            LOGD(TAG, "%s", buffer);
+    }
+}
+
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
-    current_window->adjust_viewport(width, height);
     if (current_core->hw_render_cb == nullptr && data != nullptr) {
-        if (current_core->pixel_format == GL_RGB565) {
-            texture(GL_RGB, width, height, data);
+        fill_framebuffer(data, width, height, pitch);
+        if (current_core->pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+            texture(GL_RGB, width, height, current_framebuffer->data);
         } else {
-            texture(GL_RGBA, width, height, data);
+            texture(GL_RGBA, width, height, current_framebuffer->data);
         }
     }
     eglSwapBuffers(current_dyp, current_sf);
+    if (current_vw != width || current_vh != height) {
+        current_vw = width;
+        current_vh = height;
+        notify_video_size_changed();
+    }
+}
+
+static void fill_framebuffer(const void *data, unsigned width, unsigned height, size_t pitch) {
+    size_t bytes_per_pixel = 2;
+    if(current_core->pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        bytes_per_pixel = 4;
+    }
+    size_t size = width * height * bytes_per_pixel;
+    if(!current_framebuffer || current_framebuffer->size != size) {
+        current_framebuffer = std::make_unique<Buffer<void*>>(malloc(size), size);
+    }
+    for (int i = 0; i < height; ++i) {
+        memcpy((void*)(static_cast<const char*>(current_framebuffer->data) + i * width * bytes_per_pixel), static_cast<const char*>(data) + i * pitch, width * bytes_per_pixel);
+    }
+}
+
+static void notify_video_size_changed() {
+    JNIEnv *env;
+    bool is_attached = false;
+    if (retro_system.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        if (retro_system.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "Failed to attach env thread!");
+            return;
+        } else {
+            is_attached = true;
+        }
+    }
+    env->CallStaticVoidMethod(retro_system.clazz, retro_system.video_size_cb, current_vw, current_vh);
+    if (is_attached) {
+        retro_system.jvm->DetachCurrentThread();
+    }
 }
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
+    if (data == nullptr) return 0;
     JNIEnv *env;
     bool is_attached = false;
     size_t ret = 0;
     if (retro_system.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         if (retro_system.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
             LOGE(TAG, "Failed to attach env thread!");
-            return false;
+            return frames;
         } else {
             is_attached = true;
         }
     }
-
-    jsize capacity = env->GetArrayLength(retro_system.audio_buffer);
+    jsize capacity = env->GetArrayLength(current_audio_buffer);
     if (capacity < frames * 2) {
-        retro_system.audio_buffer = env->NewShortArray((int) frames * 2);
+        env->DeleteGlobalRef(current_audio_buffer);
+        current_audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray((int) frames * 2));
     }
-    env->SetShortArrayRegion(retro_system.audio_buffer, 0, (int) frames * 2, data);
-    ret = env->CallStaticIntMethod(retro_system.clazz, retro_system.audio_cb, retro_system.audio_buffer, frames);
+    env->SetShortArrayRegion(current_audio_buffer, 0, (int) frames * 2, data);
+    ret = env->CallStaticIntMethod(retro_system.clazz, retro_system.audio_cb, current_audio_buffer, frames);
     if (is_attached) {
         retro_system.jvm->DetachCurrentThread();
     }
@@ -325,6 +407,22 @@ static retro_proc_address_t get_proc_address(const char* sym) {
     return eglGetProcAddress(sym);
 }
 
+static jobject new_value(JNIEnv  *env) {
+    jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Value");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "()V");
+    return env->NewObject(clazz, constructor);
+}
+
+static std::string  get_string_value(JNIEnv *env, jobject obj) {
+    jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Value");
+    jfieldID field_id = env->GetFieldID(clazz, "v", "Ljava/lang/Object;");
+    jstring v = (jstring ) env->GetObjectField(obj, field_id);
+    const char *chars = env->GetStringUTFChars(v, JNI_FALSE);
+    std::string ret(chars);
+    env->ReleaseStringUTFChars(v, chars);
+    return ret;
+}
+
 static jobject new_option(JNIEnv *env, const char* key, const char* val) {
     jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Option");
     jmethodID constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;Ljava/lang/String;)V");
@@ -346,7 +444,7 @@ JNIEXPORT jboolean JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStart(JNIEnv *env, jclass clazz,
                                                             jstring path) {
     const char *game_path = env->GetStringUTFChars(path, JNI_FALSE);
-    bool no_error = true;
+    bool no_error;
     struct retro_system_info system_info = {nullptr};
     struct retro_game_info game_info = {
             .path = game_path
@@ -365,7 +463,10 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStart(JNIEnv *env, jclass 
     }
     no_error = current_core->load_game(&game_info);
     if (no_error) {
-        current_window->prepare();
+        if (current_window) {
+            current_window->start();
+        }
+        current_state = RUNNING;
     }
     if (game_info.data) {
         munmap((void *) game_info.data, game_info.size);
@@ -378,6 +479,96 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStop(JNIEnv *env, jclass clazz) {
     if (current_core) {
+        current_state = STATE_IDLE;
+        current_vw = 0;
+        current_vh = 0;
         current_core->unload_game();
     }
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativePause(JNIEnv *env, jclass clazz) {
+    if (current_state == STATE_RUNNING) {
+        current_state = STATE_PAUSED;
+    }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeResume(JNIEnv *env, jclass clazz) {
+    if (current_state == STATE_PAUSED) {
+        current_state = STATE_RUNNING;
+    }
+}
+
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetSystemInfo(JNIEnv *env, jclass clazz) {
+    struct retro_system_info system_info = {};
+    current_core->get_system_info(&system_info);
+    jclass system_info_clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/SystemInfo");
+    jmethodID constructor = env->GetMethodID(system_info_clazz, "<init>",
+                                             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+    jobject obj = env->NewObject(system_info_clazz, constructor, env->NewStringUTF(system_info.library_name),
+                                 env->NewStringUTF(system_info.library_version),
+                                 env->NewStringUTF(system_info.valid_extensions));
+    jfieldID need_full_path_filed = env->GetFieldID(system_info_clazz, "needFullpath", "Z");
+    env->SetBooleanField(obj, need_full_path_filed, system_info.need_fullpath);
+    jfieldID block_extract = env->GetFieldID(system_info_clazz, "blockExtract", "Z");
+    env->SetBooleanField(obj, block_extract, system_info.block_extract);
+    return obj;
+}
+extern "C"
+JNIEXPORT jobject JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetMediaInfo(JNIEnv *env, jclass clazz) {
+    struct retro_system_av_info av_info = {0};
+    current_core->get_system_av_info(&av_info);
+    jclass obj_clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Timing");
+    jmethodID constructor = env->GetMethodID(obj_clazz, "<init>", "(DD)V");
+    jobject o0 = env->NewObject(obj_clazz, constructor, av_info.timing.fps,
+                                av_info.timing.sample_rate);
+    obj_clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Geometry");
+    constructor = env->GetMethodID(obj_clazz, "<init>", "(IIIIF)V");
+    jobject o1 = env->NewObject(obj_clazz, constructor, (jint) av_info.geometry.base_width,
+                                (jint) av_info.geometry.base_height,
+                                (jint) av_info.geometry.max_width,
+                                (jint) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
+    obj_clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/MediaInfo");
+    constructor = env->GetMethodID(obj_clazz, "<init>", "(Lcom/outlook/wn123o/retrosystem/common/Geometry;Lcom/outlook/wn123o/retrosystem/common/Timing;)V");
+    return env->NewObject(obj_clazz, constructor, o1, o0);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeReset(JNIEnv *env, jclass clazz) {
+    current_core->reset();
+}
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetSerializeData(JNIEnv *env, jclass clazz) {
+    size_t len = current_core->get_serialize_size();
+    if (len == 0) return nullptr;
+    int8_t buffer[len];
+    bool no_error = current_core->get_serialize_data((void *) buffer, len);
+    if (no_error) {
+        jbyteArray data = env->NewByteArray((jint) len);
+        env->SetByteArrayRegion(data, 0, (jint) len, buffer);
+        return data;
+    }
+    return nullptr;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeSetSerializeData(JNIEnv *env, jclass clazz,
+                                                                 jbyteArray data) {
+    bool no_error = false;
+    const size_t &len = current_core->get_serialize_size();
+    if (env->GetArrayLength(data) == len) {
+        jbyte *serialize_data = env->GetByteArrayElements(data, JNI_FALSE);
+        no_error = current_core->set_serialize_data((void *) serialize_data, len);
+        env->ReleaseByteArrayElements(data, serialize_data, 0);
+    }
+    return no_error;
 }

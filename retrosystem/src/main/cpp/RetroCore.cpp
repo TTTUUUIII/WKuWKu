@@ -3,19 +3,16 @@
 //
 
 #include <dlfcn.h>
-#include <android/log.h>
+#include "Log.h"
 #include "RetroCore.h"
 
-#define TAG "RetroCore"
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO,  TAG, __VA_ARGS__)
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
-
-RetroCore::RetroCore(const std::string &lib, bool* status) {
+RetroCore::RetroCore(const std::string alias, const std::string &lib, bool* status) {
     handle = dlopen(lib.c_str(), RTLD_LOCAL | RTLD_LAZY);
     if (!handle) {
         *status = false;
         return;
     }
+    this->alias = std::string(alias);
     set_environment_cb = reinterpret_cast<decltype(set_environment_cb)>(dlsym(handle, "retro_set_environment"));
     set_video_refresh_cb = reinterpret_cast<decltype(set_video_refresh_cb)>(dlsym(handle, "retro_set_video_refresh"));
     set_audio_sample_cb = reinterpret_cast<decltype(set_audio_sample_cb)>(dlsym(handle, "retro_set_audio_sample"));
@@ -43,6 +40,7 @@ RetroCore::RetroCore(const std::string &lib, bool* status) {
     get_memory_data = reinterpret_cast<decltype(get_memory_data)>(dlsym(handle, "retro_get_memory_data"));
     get_memory_size = reinterpret_cast<decltype(get_memory_size)>(dlsym(handle, "retro_get_memory_size"));
     *status = true;
+    LOGI(__FILE_NAME__, "[LOADED] => %s", lib.c_str());
 }
 
 RetroCore::~RetroCore() {

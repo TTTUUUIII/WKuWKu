@@ -6,8 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.launch.LaunchFragment">
 
-    <android.opengl.GLSurfaceView
-        android:id="@+id/gl_surface_view"
+    <SurfaceView
+        android:id="@+id/surface_view"
         android:layout_width="match_parent"
         android:layout_height="340dp"
         app:layout_constraintVertical_bias="0.35"

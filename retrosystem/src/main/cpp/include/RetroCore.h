@@ -7,11 +7,11 @@
 
 #include <string>
 #include "libretro.h"
-
 class RetroCore {
 private:
     void* handle;
 public:
+    std::string alias;
     struct retro_disk_control_callback *disk_control = nullptr;
     struct retro_disk_control_ext_callback *disk_control_ext = nullptr;
     struct retro_hw_render_callback *hw_render_cb = nullptr;
@@ -43,7 +43,7 @@ public:
     decltype(&retro_get_region) get_region;
     decltype(&retro_get_memory_data) get_memory_data;
     decltype(&retro_get_memory_size) get_memory_size;
-    explicit RetroCore(const std::string &lib, bool *status);
+    explicit RetroCore(const std::string alias, const std::string &lib, bool *status);
     ~RetroCore();
 };
 

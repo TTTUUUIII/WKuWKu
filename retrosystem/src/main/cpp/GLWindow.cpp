@@ -43,7 +43,7 @@ void GLWindow::set_renderer(const GLRenderer * rdp) {
     renderer = *rdp;
 }
 
-bool GLWindow::prepare() {
+bool GLWindow::start() {
     if (state != PREPARED) return false;
     gl_thread = std::thread([this]() {
         uint16_t current_vw = vw, current_vh = vh;
@@ -97,7 +97,7 @@ void GLWindow::notify() {
     cv.notify_one();
 }
 
-void GLWindow::release() {
+void GLWindow::stop() {
     state = INVALID;
     wait();
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);

@@ -5,9 +5,14 @@ import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.res.Configuration;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -29,12 +34,14 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
+import com.outlook.wn123o.retrosystem.RetroSystem;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -60,7 +67,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener {
+public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener, AudioManager.OnAudioFocusChangeListener {
     private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 0;
@@ -93,6 +100,19 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
         mAutoLoadState = arguments.getBoolean(ARG_AUTO_LOAD_STATE, false);
+        RetroSystem.setOnEventListener(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            AudioFocusRequest fq = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setOnAudioFocusChangeListener(this)
+                    .setAudioAttributes(new AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_GAME)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build())
+                    .setAcceptsDelayedFocusGain(true)
+                    .build();
+            AudioManager am = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
+            RetroSystem.setAudioVolume(am.requestAudioFocus(fq) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
+        }
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -101,9 +121,22 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
         mRenderer = new GLRenderer(requireContext());
-        binding.glSurfaceView.setEGLContextClientVersion(3);
-        binding.glSurfaceView.setRenderer(mRenderer);
-        binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                RetroSystem.attachSurface(holder.getSurface());
+            }
+
+            @Override
+            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                RetroSystem.adjustSurface(width, height);
+            }
+
+            @Override
+            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                RetroSystem.detachSurface();
+            }
+        });
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
         mSnackbar = Snackbar.make(binding.snackbarContainer, "", Snackbar.LENGTH_SHORT);
@@ -143,35 +176,27 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void launch() {
-        int status = mViewModel.startEmulator(mGame);
-        if (status == LaunchViewModel.NO_ERR) {
-            attachToEmulator();
-            if (mAutoLoadState && !mAutoLoadDisabled) {
-                handler.postDelayed(mViewModel::loadStateAtLast, 300);
-            }
-        } else if (status == ERR_LOAD_FAILED){
-            showSnackbar(R.string.load_game_failed, SNACKBAR_LENGTH_SHORT);
-        } else if (status == ERR_EMULATOR_NOT_FOUND) {
-            showSnackbar(R.string.no_matching_emulator_found, SNACKBAR_LENGTH_SHORT);
-        }
+        RetroSystem.use("parallel");
+        boolean noError = RetroSystem.start("/sdcard/Android/data/ink.snowland.wkuwku/files/rom/Gauntlet Legends (Europe).n64");
+//        if (status == LaunchViewModel.NO_ERR) {
+//            attachToEmulator();
+//            if (mAutoLoadState && !mAutoLoadDisabled) {
+//                handler.postDelayed(mViewModel::loadStateAtLast, 300);
+//            }
+//        } else if (status == ERR_LOAD_FAILED){
+//            showSnackbar(R.string.load_game_failed, SNACKBAR_LENGTH_SHORT);
+//        } else if (status == ERR_EMULATOR_NOT_FOUND) {
+//            showSnackbar(R.string.no_matching_emulator_found, SNACKBAR_LENGTH_SHORT);
+//        }
     }
 
     private void attachToEmulator() {
-        if (mViewModel.getEmulator() == null) return;
-        final Emulator emulator = mViewModel.getEmulator();
-        emulator.setOnEmulatorEventListener(this);
-        mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
+//        mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
     }
-
-    private int mCurrentWidth;
-    private int mCurrentHeight;
     private void adjustScreenSize(int width, int height) {
-        if (mCurrentWidth == width && mCurrentHeight == height) return;
         float ratio = (float) width / height;
-        mCurrentWidth = width;
-        mCurrentHeight = height;
-        binding.glSurfaceView.post(() -> {
-            ViewGroup.LayoutParams lp = binding.glSurfaceView.getLayoutParams();
+        binding.surfaceView.post(() -> {
+            ViewGroup.LayoutParams lp = binding.surfaceView.getLayoutParams();
             if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -189,7 +214,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 binding.getRoot().setFitsSystemWindows(true);
             }
             binding.getRoot().requestApplyInsets();
-            binding.glSurfaceView.setLayoutParams(lp);
+            binding.surfaceView.setLayoutParams(lp);
         });
     }
 
@@ -204,14 +229,14 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onResume() {
         super.onResume();
         parentActivity.addOnKeyEventListener(this);
-        mViewModel.resumeEmulator();
+        RetroSystem.resume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
         parentActivity.removeOnKeyEventListener(this);
-        mViewModel.pauseEmulator();
+        RetroSystem.pause();
     }
 
     @Override
@@ -227,7 +252,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     private void selectDefaultController() {
         BaseController controller;
-        switch (mGame.system) {
+        switch (mGame.coreAlias) {
             case "game-gear":
             case "master-system":
             case "mega-cd":
@@ -267,22 +292,21 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void onExit() {
-        if (mViewModel.getEmulator() == null) {
-            NavController navController = NavHostFragment.findNavController(this);
-            navController.popBackStack();
-            return;
-        }
-        boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
+//        if (mViewModel.getEmulator() == null) {
+//            NavController navController = NavHostFragment.findNavController(this);
+//            navController.popBackStack();
+//            return;
+//        }
+//        boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
-            mViewModel.pauseEmulator();
             mViewModel.saveCurrentSate();
-            captureScreen = true;
+//            captureScreen = true;
         }
-        if (captureScreen) {
-            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
-        }
+//        if (captureScreen) {
+//            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
+//        }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
-        mViewModel.stopEmulator();
+        RetroSystem.stop();
         mGame.lastPlayedTime = System.currentTimeMillis();
         Disposable disposable = AppDatabase.db.gameInfoDao().update(mGame)
                 .subscribeOn(Schedulers.io())
@@ -325,7 +349,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.reset) {
-            mViewModel.resetEmulator();
+            RetroSystem.reset();
             mExitDialog.dismiss();
         } else if (viewId == R.id.exit) {
             onExit();
@@ -401,38 +425,19 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     @Override
-    public void onPixelFormatChanged(int format) {
-        mRenderer.setPixelFormat(format);
-    }
-
-    @Override
-    public void onRotationChanged(int rotation) {
-        mRenderer.setScreenRotation(rotation);
-    }
-
-    @Override
-    public void onDrawFramebuffer(final byte[] data, int width, int height, int pitch) {
+    public void onVideoSizeChanged(int width, int height) {
         adjustScreenSize(width, height);
-        mRenderer.updateFramebuffer(data, width, height, pitch);
-        binding.glSurfaceView.requestRender();
     }
 
     @Override
-    public short onGetInputState(int port, int device, int index, int id) {
+    public int onInputCallback(int port, int device, int index, int id) {
         BaseController controller = mControllers.get(port);
         if (controller == null || controller.type != device) return 0;
         return controller.getState(id);
     }
 
     @Override
-    public boolean onRumbleEvent(int port, int effect, int streng) {
-        return false;
-    }
-
-    @Override
-    public void onMessage(@NonNull EmMessageExt message) {
-        if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
-            handler.post(() -> showSnackbar(message.msg, message.duration));
-        }
+    public void onAudioFocusChange(int focusChange) {
+        RetroSystem.setAudioVolume(focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
     }
 }

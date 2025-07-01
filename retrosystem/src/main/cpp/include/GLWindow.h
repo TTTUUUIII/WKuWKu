@@ -52,13 +52,13 @@ public:
 
     void set_renderer(const GLRenderer *rd);
 
-    bool prepare();
+    bool start();
 
     void pause();
 
     void resume();
 
-    void release();
+    void stop();
 };
 
 

@@ -3,6 +3,8 @@ package ink.snowland.wkuwku;
 import android.app.Application;
 import android.os.Process;
 
+import com.outlook.wn123o.retrosystem.RetroSystem;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -24,6 +26,13 @@ public class App extends Application {
         BiosProvider.initialize(getApplicationContext());
         PlugManager.initialize(getApplicationContext());
         Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
+
+        RetroSystem.add("fceumm", "/data/data/ink.snowland.wkuwku/files/libretro.so");
+//        RetroSystem.add("mupen64plus", "/data/data/ink.snowland.wkuwku/files/libretro_mupen64plus.so");
+        RetroSystem.add("parallel", "/data/data/ink.snowland.wkuwku/files/parallel_n64_libretro.so");
+        RetroSystem.configure(RetroSystem.SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
+        RetroSystem.configure(RetroSystem.SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY).getAbsolutePath());
+        RetroSystem.configure(RetroSystem.CORE_ASSETS_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
     }
 
     private final Thread.UncaughtExceptionHandler mUncaughtExceptionHandler = (thread, throwable) -> {

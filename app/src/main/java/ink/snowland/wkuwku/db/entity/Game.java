@@ -23,8 +23,8 @@ public class Game implements Parcelable, Cloneable {
     public String title;
     @ColumnInfo(name = "filepath")
     public String filepath;
-    @ColumnInfo(name = "system")
-    public String system;
+    @ColumnInfo(name = "core_alias")
+    public String coreAlias;
     @ColumnInfo(name = "state")
     public int state;
     @ColumnInfo(name = "region", defaultValue = "unknown")
@@ -50,7 +50,7 @@ public class Game implements Parcelable, Cloneable {
         id = in.readInt();
         title = in.readString();
         filepath = in.readString();
-        system = in.readString();
+        coreAlias = in.readString();
         state = in.readInt();
         region = in.readString();
         addedTime = in.readLong();
@@ -76,12 +76,12 @@ public class Game implements Parcelable, Cloneable {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Game game = (Game) o;
-        return id == game.id && state == game.state && addedTime == game.addedTime && lastModifiedTime == game.lastModifiedTime && lastPlayedTime == game.lastPlayedTime && Objects.equals(title, game.title) && Objects.equals(filepath, game.filepath) && Objects.equals(system, game.system) && Objects.equals(region, game.region) && Objects.equals(remark, game.remark) && Objects.equals(md5, game.md5);
+        return id == game.id && state == game.state && addedTime == game.addedTime && lastModifiedTime == game.lastModifiedTime && lastPlayedTime == game.lastPlayedTime && Objects.equals(title, game.title) && Objects.equals(filepath, game.filepath) && Objects.equals(coreAlias, game.coreAlias) && Objects.equals(region, game.region) && Objects.equals(remark, game.remark) && Objects.equals(md5, game.md5);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, filepath, system, state, region, addedTime, lastModifiedTime, lastPlayedTime, remark, md5);
+        return Objects.hash(id, title, filepath, coreAlias, state, region, addedTime, lastModifiedTime, lastPlayedTime, remark, md5);
     }
 
     @Override
@@ -94,7 +94,7 @@ public class Game implements Parcelable, Cloneable {
         dest.writeInt(id);
         dest.writeString(title);
         dest.writeString(filepath);
-        dest.writeString(system);
+        dest.writeString(coreAlias);
         dest.writeInt(state);
         dest.writeString(region);
         dest.writeLong(addedTime);
@@ -109,7 +109,7 @@ public class Game implements Parcelable, Cloneable {
         return "Game{" +
                 "title='" + title + '\'' +
                 ", filepath='" + filepath + '\'' +
-                ", system='" + system + '\'' +
+                ", coreAlias='" + coreAlias + '\'' +
                 ", state=" + state +
                 ", region='" + region + '\'' +
                 ", remark='" + remark + '\'' +
