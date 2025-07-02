@@ -152,6 +152,8 @@ public abstract class Emulator {
 
     public void setOnEmulatorEventListener(OnEmulatorEventListener listener) {
         mEventListener = listener;
+        mEventListener.onRotationChanged(mScreenRotation);
+        mEventListener.onPixelFormatChanged(mPixelFormat);
     }
 
     public Emulator(@NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
