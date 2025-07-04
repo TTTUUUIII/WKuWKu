@@ -1,23 +1,25 @@
 package ink.snowland.wkuwku.ui.coremag;
 
 import android.app.Application;
+import android.content.res.XmlResourceParser;
 
 import androidx.annotation.NonNull;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
+import org.xmlpull.v1.XmlPullParserException;
 
-import ink.snowland.wkuwku.AppConfig;
+import java.io.IOException;
+
+import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.bean.CoreSource;
 import ink.snowland.wkuwku.common.BaseViewModel;
 
 public class CoreMagViewModel extends BaseViewModel {
     public CoreMagViewModel(@NonNull Application application) {
         super(application);
 
-        try (InputStream ins = new URL(AppConfig.WEB_URL + "all_cores_config.xml").openStream()){
-
-        } catch (IOException e) {
+        try (XmlResourceParser xml = application.getResources().getXml(R.xml.core_list)){
+            CoreSource source = CoreSource.fromConfig(xml);
+        } catch (IOException | XmlPullParserException e) {
             e.printStackTrace(System.err);
         }
     }

@@ -1,0 +1,20 @@
+<all-cores>
+	<manufacturer name="nintendo">
+		<system name="NES">
+			<core alias="fceumm" url="" md5sum="" />
+			<core alias="mesen" url="" md5sum="" />
+		</system>
+		<system name="SNES">
+			<core alias="mesen-s" url="" md5sum="" />
+			<core alias="snes9x" url="" md5sum="" />
+		</system>
+		<system name="Game Boy">
+			<core alias="mesen-s" url="" md5sum="" />
+			<core alias="sameboy" url="" md5sum="" />
+		</system>
+		<system name="Game Boy Color">
+			<core alias="mesen-s" url="" md5sum="" />
+			<core alias="sameboy" url="" md5sum="" />
+		</system>
+	</manufacturer>
+</all-cores>
