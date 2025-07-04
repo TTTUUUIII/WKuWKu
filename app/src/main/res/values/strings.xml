@@ -164,4 +164,7 @@
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
     <string name="publisher">Publisher</string>
     <string name="screenshot_saved">Screenshot saved</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="core_manage">Core Manage</string>
 </resources>

@@ -87,62 +87,62 @@ public class GamesViewModel extends BaseViewModel {
             });
             return;
         }
-        Disposable disposable = copyFiles(filename, uri)
-                .subscribeOn(Schedulers.io())
-                .doOnComplete(() -> {
-                    boolean noError = true;
-                    Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
-                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
-                    if (emulator == null) return;
-                    if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
-                            && (infoMask & ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) {
-                        boolean emulatorSupportedArchive = emulator.findContent(file) != null;
-                        if (!emulatorSupportedArchive) {
-                            setPendingIndicator(true, R.string.unzipping_files);
-                            File originFile = file;
-                            try {
-                                String unzippedPath = ArchiveUtils.extract(originFile);
-                                file = new File(unzippedPath);
-                            } catch (IOException e) {
-                                e.printStackTrace(System.err);
-                                if (e instanceof FileAlreadyExistsException) {
-                                    post(() -> {
-                                        Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
-                                    });
-                                } else {
-                                    post(() -> {
-                                        showErrorToast(e);
-                                    });
-                                }
-                                noError = false;
-                            } finally {
-                                FileManager.delete(originFile);
-                            }
-                        }
-                    }
-                    if (!noError) return;
-                    if (file.isDirectory()) {
-                        File romFile = emulator.findContent(file);
-                        if (romFile == null) {
-                            FileManager.delete(file);
-                        }
-                        file = romFile;
-                    }
-                    if (file == null || !file.exists()) {
-                        post(() -> {
-                            Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_SHORT).show();
-                        });
-                        return;
-                    }
-                    game.filepath = file.getAbsolutePath();
-                    game.addedTime = System.currentTimeMillis();
-                    game.lastModifiedTime = game.addedTime;
-                    game.state = Game.STATE_VALID;
-                    game.md5 = FileManager.calculateMD5Sum(file);
-                    insert(game);
-                })
-                .subscribe(() -> {
-                }, (error) -> {/*Ignored*/});
+//        Disposable disposable = copyFiles(filename, uri)
+//                .subscribeOn(Schedulers.io())
+//                .doOnComplete(() -> {
+//                    boolean noError = true;
+//                    Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
+//                    File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
+//                    if (emulator == null) return;
+//                    if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
+//                            && (infoMask & ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) {
+//                        boolean emulatorSupportedArchive = emulator.findContent(file) != null;
+//                        if (!emulatorSupportedArchive) {
+//                            setPendingIndicator(true, R.string.unzipping_files);
+//                            File originFile = file;
+//                            try {
+//                                String unzippedPath = ArchiveUtils.extract(originFile);
+//                                file = new File(unzippedPath);
+//                            } catch (IOException e) {
+//                                e.printStackTrace(System.err);
+//                                if (e instanceof FileAlreadyExistsException) {
+//                                    post(() -> {
+//                                        Toast.makeText(getApplication(), getString(R.string.file_already_exists), Toast.LENGTH_SHORT).show();
+//                                    });
+//                                } else {
+//                                    post(() -> {
+//                                        showErrorToast(e);
+//                                    });
+//                                }
+//                                noError = false;
+//                            } finally {
+//                                FileManager.delete(originFile);
+//                            }
+//                        }
+//                    }
+//                    if (!noError) return;
+//                    if (file.isDirectory()) {
+//                        File romFile = emulator.findContent(file);
+//                        if (romFile == null) {
+//                            FileManager.delete(file);
+//                        }
+//                        file = romFile;
+//                    }
+//                    if (file == null || !file.exists()) {
+//                        post(() -> {
+//                            Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_SHORT).show();
+//                        });
+//                        return;
+//                    }
+//                    game.filepath = file.getAbsolutePath();
+//                    game.addedTime = System.currentTimeMillis();
+//                    game.lastModifiedTime = game.addedTime;
+//                    game.state = Game.STATE_VALID;
+//                    game.md5 = FileManager.calculateMD5Sum(file);
+//                    insert(game);
+//                })
+//                .subscribe(() -> {
+//                }, (error) -> {/*Ignored*/});
     }
 
     public void update(@NonNull Game game) {

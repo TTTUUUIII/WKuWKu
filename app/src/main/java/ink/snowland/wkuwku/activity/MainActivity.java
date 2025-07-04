@@ -144,15 +144,17 @@ public class MainActivity extends BaseActivity {
         if (itemId == R.id.action_about) {
             showAboutDialog();
         } else {
-            final int navResId;
+            int navResId = 0;
             if (itemId == R.id.action_macro) {
                 navResId = R.id.macro_fragment;
             } else if (itemId == R.id.action_trash) {
                 navResId = R.id.trash_fragment;
-            } else if (itemId == R.id.action_extension) {
-                navResId = R.id.plug_fragment;
-            } else {
-                navResId = 0;
+            }
+//            else if (itemId == R.id.action_extension) {
+//                navResId = R.id.plug_fragment;
+//            }
+            else if (itemId == R.id.action_core_manage) {
+                navResId = R.id.coremag_fragment;
             }
             if (navResId != 0 && isNavigateAble(navResId)) {
                 mNavController.navigate(navResId, null, navAnimOptions);

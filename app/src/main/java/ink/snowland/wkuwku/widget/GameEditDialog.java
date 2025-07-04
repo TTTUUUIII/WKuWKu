@@ -96,10 +96,10 @@ public class GameEditDialog {
         binding.buttonQrCode.setVisibility(View.GONE);
         binding.selectFileLayout.setVisibility(View.GONE);
         for (EmSystem system : mAllSupportedSystems.values()) {
-            if (mGame.system.equals(system.tag)) {
-                binding.systemTextView.setText(system.name, false);
-                break;
-            }
+//            if (mGame.system.equals(system.tag)) {
+//                binding.systemTextView.setText(system.name, false);
+//                break;
+//            }
         }
         binding.setGame(mGame);
         binding.invalidateAll();
@@ -108,7 +108,7 @@ public class GameEditDialog {
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
             if (system != null)
-                mGame.system = system.tag;
+//                mGame.system = system.tag;
             if (checkValid()) {
                 mCallback.onConfirm(mGame, null);
                 mDialog.dismiss();
@@ -129,13 +129,13 @@ public class GameEditDialog {
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
-            if (system != null)
-                mGame.system = system.tag;
-            if (checkValid()) {
-                assert mUri != null;
-                mCallback.onConfirm(mGame, mUri);
-                mDialog.dismiss();
-            }
+//            if (system != null)
+//                mGame.system = system.tag;
+//            if (checkValid()) {
+//                assert mUri != null;
+//                mCallback.onConfirm(mGame, mUri);
+//                mDialog.dismiss();
+//            }
         });
         binding.buttonQrCode.setOnClickListener(v -> {
             mParent.scanQrCode(this::parseFromUrl);
@@ -179,10 +179,11 @@ public class GameEditDialog {
         } else if (mGame.filepath == null || mGame.filepath.trim().isEmpty()) {
             binding.errorTextView.setText(mParent.getString(R.string.please_select_file) + " !");
             return false;
-        } else if (mGame.system == null || mGame.system.trim().isEmpty()) {
-            binding.errorTextView.setText(mParent.getString(R.string.please_select_system) + " !");
-            return false;
         }
+//        else if (mGame.system == null || mGame.system.trim().isEmpty()) {
+//            binding.errorTextView.setText(mParent.getString(R.string.please_select_system) + " !");
+//            return false;
+//        }
         binding.errorTextView.setText("");
         return true;
     }

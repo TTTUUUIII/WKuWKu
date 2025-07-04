@@ -56,5 +56,5 @@ static std::string get_option_value(JNIEnv *, jobject);
 static void notify_video_size_changed();
 static void fill_framebuffer(const void *, unsigned, unsigned, size_t);
 static jobject new_value(JNIEnv  *);
-static std::string  get_string_value(JNIEnv *, jobject)
+static std::string  get_string_value(JNIEnv *, jobject);
 #endif //WKUWKU_COM_OUTLOOK_WN123O_RETROSYSTEM_H

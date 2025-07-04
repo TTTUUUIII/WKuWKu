@@ -176,8 +176,8 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
     }
 
     private void launch() {
-        RetroSystem.use("parallel");
-        boolean noError = RetroSystem.start("/sdcard/Android/data/ink.snowland.wkuwku/files/rom/Gauntlet Legends (Europe).n64");
+        RetroSystem.use(mGame.coreAlias);
+        boolean noError = RetroSystem.start(mGame.filepath);
 //        if (status == LaunchViewModel.NO_ERR) {
 //            attachToEmulator();
 //            if (mAutoLoadState && !mAutoLoadDisabled) {

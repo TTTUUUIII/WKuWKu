@@ -32,4 +32,7 @@
     <fragment android:id="@+id/plug_fragment"
         android:name="ink.snowland.wkuwku.ui.plug.PlugFragment"
         android:label="fragment_plug" />
+    <fragment android:id="@+id/coremag_fragment"
+        android:name="ink.snowland.wkuwku.ui.coremag.CoreMagFragment"
+        android:label="fragment_coremag" />
 </navigation>

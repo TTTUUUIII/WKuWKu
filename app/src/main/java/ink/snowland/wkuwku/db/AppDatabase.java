@@ -6,16 +6,19 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
+import ink.snowland.wkuwku.db.dao.GameCoreDao;
 import ink.snowland.wkuwku.db.dao.GameDao;
 import ink.snowland.wkuwku.db.dao.MacroScriptDao;
 import ink.snowland.wkuwku.db.dao.PlugManifestExtDao;
 import ink.snowland.wkuwku.db.entity.Game;
+import ink.snowland.wkuwku.db.entity.GameCore;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 
-@Database(entities = {Game.class, MacroScript.class, PlugManifestExt.class}, version = 1)
+@Database(entities = {Game.class, MacroScript.class, PlugManifestExt.class, GameCore.class}, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract GameDao gameInfoDao();
+    public abstract GameCoreDao gameCoreDao();
     public abstract MacroScriptDao macroScriptDao();
     public abstract PlugManifestExtDao plugManifestExtDao();
     public static AppDatabase db;
