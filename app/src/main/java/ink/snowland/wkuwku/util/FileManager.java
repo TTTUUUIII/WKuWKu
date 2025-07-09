@@ -28,6 +28,7 @@ public class FileManager {
     public static final String SAVE_DIRECTORY = "save";
     public static final String IMAGE_DIRECTORY = "img";
     public static final String SYSTEM_DIRECTORY = "system";
+    public static final String CORE_DIRECTORY = "core";
 
     private FileManager() {
     }
@@ -48,6 +49,10 @@ public class FileManager {
 
     public static File getFile(String type, String filename) {
         return new File(sApplicationContext.getExternalFilesDir(type), filename);
+    }
+
+    public static File getPrivateFile(String type, String filename) {
+        return new File(sApplicationContext.getDir(type, Context.MODE_PRIVATE), filename);
     }
 
     public static void delete(String type, String filename) {
