@@ -25,11 +25,11 @@ import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -67,7 +67,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener {
+public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener {
     private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
@@ -133,6 +133,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         return binding.getRoot();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -198,6 +199,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private void attachToEmulator() {
         if (mViewModel.getEmulator() == null) return;
         final Emulator emulator = mViewModel.getEmulator();
+        mRenderer.setPixelFormat(emulator.getPixelFormat());
+        mRenderer.setScreenRotation(emulator.getRotation());
         emulator.setOnEmulatorEventListener(this);
         mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
     }
@@ -243,6 +246,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onResume() {
         super.onResume();
         parentActivity.addOnKeyEventListener(this);
+        resetHideTimer();
+        parentActivity.addOnTouchEventListener(this);
         mViewModel.resumeEmulator();
     }
 
@@ -250,6 +255,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onPause() {
         super.onPause();
         parentActivity.removeOnKeyEventListener(this);
+        parentActivity.removeOnTouchEventListener(this);
+        handler.removeCallbacks(mHideTimerTask);
         mViewModel.pauseEmulator();
     }
 
@@ -469,7 +476,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     @Override
     public void onDrawFramebuffer(final byte[] data, int width, int height, int pitch) {
-        adjustScreenSize(width, height);
+        if (mRenderer.getScreenRotation() == 1 || mRenderer.getScreenRotation() == 3) {
+            adjustScreenSize(height, width);
+        } else {
+            adjustScreenSize(width, height);
+        }
         mRenderer.updateFramebuffer(data, width, height, pitch);
         binding.glSurfaceView.requestRender();
     }

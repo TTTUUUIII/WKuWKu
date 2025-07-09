@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.WindowManager;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -35,6 +36,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     protected NavOptions navAnimOptions = null;
     private final List<OnKeyEventListener> mKeyListeners = new ArrayList<>();
+    private final List<OnTouchEventListener> mTouchEventListener = new ArrayList<>();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,6 +73,14 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        for (OnTouchEventListener listener : mTouchEventListener) {
+            listener.onTouchEvent(ev);
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         for (OnKeyEventListener listener : mKeyListeners) {
             if (listener.onKeyEvent(event)) {
@@ -87,6 +97,15 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public void removeOnKeyEventListener(OnKeyEventListener listener) {
         mKeyListeners.remove(listener);
+    }
+
+    public void addOnTouchEventListener(OnTouchEventListener listener) {
+        if (mTouchEventListener.contains(listener)) return;
+        mTouchEventListener.add(listener);
+    }
+
+    public void removeOnTouchEventListener(OnTouchEventListener listener) {
+        mTouchEventListener.remove(listener);
     }
 
     public void setStatusBarVisibility(boolean visibility) {
@@ -166,5 +185,9 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     public interface OnKeyEventListener {
         boolean onKeyEvent(@NonNull KeyEvent event);
+    }
+
+    public interface OnTouchEventListener {
+        void onTouchEvent(MotionEvent ev);
     }
 }
