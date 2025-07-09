@@ -28,6 +28,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.FileProvider;
 import androidx.core.text.HtmlCompat;
 import androidx.core.view.OnApplyWindowInsetsListener;
@@ -62,6 +63,7 @@ public class MainActivity extends BaseActivity {
     private static final String EMOJI_WORKSHOP_SOURCE = "app_emoji_workshop_source";
     private static final String EMOJI_WORKSHOP_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
     private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
+    private static final String APP_THEME = "app_theme";
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
@@ -77,6 +79,7 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
+        updateAppTheme();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
         ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout, new OnApplyWindowInsetsListener() {
@@ -213,7 +216,21 @@ public class MainActivity extends BaseActivity {
                 mEmojiWorkshopOptions.setSource(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, mEmojiWorkshopOptions.getSource()));
                 binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
                 break;
+            case APP_THEME:
+                updateAppTheme();
+                break;
             default:
+        }
+    }
+
+    private void updateAppTheme() {
+        String theme = SettingsManager.getString(APP_THEME, "system");
+        if (theme.equals("dark")) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else if (theme.equals("light")) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         }
     }
 
