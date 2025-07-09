@@ -1,5 +1,7 @@
 package ink.snowland.wkuwku.bean;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -9,13 +11,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CoreSource {
+public class CoreManifest {
     public final List<ManufacturerElement> manufacturers = new ArrayList<>();
 
-    @NonNull
     @Override
     public String toString() {
-        return "CoreSource{" +
+        return "CoreManifest{" +
                 "manufacturers=" + manufacturers +
                 '}';
     }
@@ -50,24 +51,32 @@ public class CoreSource {
 
     public static class CoreElement {
         public String alias;
-        public String url;
-        public String md5sum;
+        public List<FileElement> files = new ArrayList<>();
 
-        @NonNull
         @Override
         public String toString() {
             return "CoreElement{" +
                     "alias='" + alias + '\'' +
-                    ", url='" + url + '\'' +
-                    ", md5sum='" + md5sum + '\'' +
+                    ", files=" + files +
                     '}';
         }
     }
 
-    public static CoreSource fromConfig(XmlPullParser parser) throws XmlPullParserException, IOException {
+    public static class FileElement {
+        public String path;
+
+        @Override
+        public String toString() {
+            return "FileElement{" +
+                    "path='" + path + '\'' +
+                    '}';
+        }
+    }
+
+    public static CoreManifest fromConfig(XmlPullParser parser) throws XmlPullParserException, IOException {
         int event = parser.getEventType();
         String tagName;
-        CoreSource source = new CoreSource();
+        CoreManifest source = new CoreManifest();
         while (event != XmlPullParser.END_DOCUMENT) {
             tagName = parser.getName();
             if (event == XmlPullParser.START_TAG && "manufacturer".equals(tagName)) {
@@ -100,15 +109,37 @@ public class CoreSource {
         String tagName = parser.getName();
         while (event != XmlPullParser.END_TAG || !"system".equals(tagName)) {
             if (event == XmlPullParser.START_TAG && "core".equals(tagName)) {
-                CoreElement core = new CoreElement();
-                core.alias = parser.getAttributeValue(null, "alias");
-                core.url = parser.getAttributeValue(null, "url");
-                core.md5sum = parser.getAttributeValue(null, "md5sum");
-                system.cores.add(core);
+                CoreElement it = parseCoreElement(parser);
+                if (it != null) {
+                    system.cores.add(it);
+                }
             }
             event = parser.next();
             tagName = parser.getName();
         }
         return system;
+    }
+
+    private static CoreElement parseCoreElement(XmlPullParser parser) throws XmlPullParserException, IOException {
+        CoreElement core = new CoreElement();
+        core.alias = parser.getAttributeValue(null, "alias");
+        int event = parser.getEventType();
+        String tagName = parser.getName();
+        while (event != XmlPullParser.END_TAG || !"core".equals(tagName)) {
+            if (event == XmlPullParser.START_TAG && "file".equals(tagName)) {
+                FileElement it = new FileElement();
+                it.path = parser.getAttributeValue(null, "path");
+                if (it.path != null) {
+                    it.path = it.path.replace("${ABI}", Build.SUPPORTED_ABIS[0]);
+                }
+                core.files.add(it);
+            }
+            event = parser.next();
+            tagName = parser.getName();
+        }
+        if (core.files.isEmpty()) {
+            return null;
+        }
+        return core;
     }
 }

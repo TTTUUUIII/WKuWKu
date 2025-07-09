@@ -40,7 +40,6 @@ RetroCore::RetroCore(const std::string alias, const std::string &lib, bool* stat
     get_memory_data = reinterpret_cast<decltype(get_memory_data)>(dlsym(handle, "retro_get_memory_data"));
     get_memory_size = reinterpret_cast<decltype(get_memory_size)>(dlsym(handle, "retro_get_memory_size"));
     *status = true;
-    LOGI(__FILE_NAME__, "[LOADED] => %s", lib.c_str());
 }
 
 RetroCore::~RetroCore() {
