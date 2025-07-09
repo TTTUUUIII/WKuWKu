@@ -1639,6 +1639,14 @@ public abstract class Emulator {
     private int mPixelFormat = RETRO_PIXEL_FORMAT_RGB565;
     private int mScreenRotation = 0;
 
+    public int getRotation() {
+        return mScreenRotation;
+    }
+
+    public int getPixelFormat() {
+        return mPixelFormat;
+    }
+
     public boolean run(@NonNull String fullPath, @NonNull String systemTag) {
         if (mState != STATE_INVALID)
             return false;
@@ -1695,8 +1703,6 @@ public abstract class Emulator {
 
     public void setOnEmulatorEventListener(OnEmulatorEventListener listener) {
         mEventListener = listener;
-        mEventListener.onRotationChanged(mScreenRotation);
-        mEventListener.onPixelFormatChanged(mPixelFormat);
     }
 
     public Emulator(@NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {

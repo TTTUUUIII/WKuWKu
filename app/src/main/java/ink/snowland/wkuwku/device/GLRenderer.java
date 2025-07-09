@@ -68,6 +68,10 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
+    public int getScreenRotation() {
+        return mScreenRotation;
+    }
+
     public void setScreenRotation(int rotation) {
         if (rotation == mScreenRotation) return;
         mScreenRotation = rotation;

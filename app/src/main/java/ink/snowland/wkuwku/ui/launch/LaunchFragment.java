@@ -25,10 +25,10 @@ import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -60,7 +60,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener {
+public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener {
     private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 0;
@@ -119,6 +119,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         return binding.getRoot();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -156,9 +157,40 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
     }
 
+    private final Runnable mHideTimerTask = () -> {
+        int duration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
+        if (binding.topControlMenu != null) {
+            binding.topControlMenu.animate()
+                    .alpha(0.f)
+                    .setDuration(duration)
+                    .withEndAction(() -> {
+                binding.topControlMenu.setVisibility(View.GONE);
+            });
+        }
+        binding.controllerRoot.animate()
+                .alpha(0.f)
+                .setDuration(duration)
+                .withEndAction(() -> {
+            binding.controllerRoot.setVisibility(View.GONE);
+        });
+    };
+
+    private void resetHideTimer() {
+        handler.removeCallbacks(mHideTimerTask);
+        if (binding.topControlMenu != null) {
+            binding.topControlMenu.setVisibility(View.VISIBLE);
+            binding.topControlMenu.setAlpha(1.f);
+        }
+        binding.controllerRoot.setVisibility(View.VISIBLE);
+        binding.controllerRoot.setAlpha(1.f);
+        handler.postDelayed(mHideTimerTask, 5000);
+    }
+
     private void attachToEmulator() {
         if (mViewModel.getEmulator() == null) return;
         final Emulator emulator = mViewModel.getEmulator();
+        mRenderer.setPixelFormat(emulator.getPixelFormat());
+        mRenderer.setScreenRotation(emulator.getRotation());
         emulator.setOnEmulatorEventListener(this);
         mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
     }
@@ -204,6 +236,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onResume() {
         super.onResume();
         parentActivity.addOnKeyEventListener(this);
+        resetHideTimer();
+        parentActivity.addOnTouchEventListener(this);
         mViewModel.resumeEmulator();
     }
 
@@ -211,6 +245,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public void onPause() {
         super.onPause();
         parentActivity.removeOnKeyEventListener(this);
+        parentActivity.removeOnTouchEventListener(this);
+        handler.removeCallbacks(mHideTimerTask);
         mViewModel.pauseEmulator();
     }
 
@@ -412,7 +448,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     @Override
     public void onDrawFramebuffer(final byte[] data, int width, int height, int pitch) {
-        adjustScreenSize(width, height);
+        if (mRenderer.getScreenRotation() == 1 || mRenderer.getScreenRotation() == 3) {
+            adjustScreenSize(height, width);
+        } else {
+            adjustScreenSize(width, height);
+        }
         mRenderer.updateFramebuffer(data, width, height, pitch);
         binding.glSurfaceView.requestRender();
     }
@@ -434,5 +474,10 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
             handler.post(() -> showSnackbar(message.msg, message.duration));
         }
+    }
+
+    @Override
+    public void onTouchEvent(MotionEvent ev) {
+        resetHideTimer();
     }
 }
