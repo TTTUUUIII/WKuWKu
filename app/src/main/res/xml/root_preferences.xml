@@ -49,6 +49,14 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/app_options">
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="system"
+            app:entries="@array/theme_entries"
+            app:entryValues="@array/theme_values"
+            app:key="app_theme"
+            app:title="@string/theme"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:iconSpaceReserved="false"
             app:defaultValue="🐢☺️⭐️"
