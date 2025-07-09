@@ -13,5 +13,5 @@
     <item
         android:id="@+id/core_fragment"
         android:icon="@drawable/ic_memory"
-        android:title="@string/core" />
+        android:title="@string/core_options" />
 </menu>
