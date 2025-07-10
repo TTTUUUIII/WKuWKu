@@ -24,9 +24,12 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +41,9 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
@@ -49,13 +55,14 @@ import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.GLRenderer;
-import ink.snowland.wkuwku.device.SegaController;
-import ink.snowland.wkuwku.device.StandardController;
+import ink.snowland.wkuwku.device.HwController;
+import ink.snowland.wkuwku.device.VirtualController;
 import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorEventListener;
 import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
+import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -63,7 +70,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener {
     private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
-    private static final int PLAYER_2 = 0;
+    private static final int PLAYER_2 = 1;
     private static final int SNACKBAR_LENGTH_SHORT = 500;
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String VIDEO_RATIO = "app_video_ratio";
@@ -77,7 +84,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
-    private final SparseArray<BaseController> mControllers = new SparseArray<>();
+    private final SparseArray<BaseController> mControllerMapper = new SparseArray<>();
+    private final List<BaseController> mControllers = new ArrayList<>();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -156,6 +164,31 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
     }
 
+    private final Runnable mHideTimerTask = () -> {
+        int duration = getResources().getInteger(android.R.integer.config_mediumAnimTime);
+        binding.topControlMenu.animate()
+                .alpha(0.f)
+                .setDuration(duration)
+                .withEndAction(() -> {
+                    binding.topControlMenu.setVisibility(View.GONE);
+                });
+        binding.controllerRoot.animate()
+                .alpha(0.f)
+                .setDuration(duration)
+                .withEndAction(() -> {
+            binding.controllerRoot.setVisibility(View.GONE);
+        });
+    };
+
+    private void resetHideTimer() {
+        handler.removeCallbacks(mHideTimerTask);
+        binding.topControlMenu.setVisibility(View.VISIBLE);
+        binding.topControlMenu.setAlpha(1.f);
+        binding.controllerRoot.setVisibility(View.VISIBLE);
+        binding.controllerRoot.setAlpha(1.f);
+        handler.postDelayed(mHideTimerTask, 5000);
+    }
+
     private void attachToEmulator() {
         if (mViewModel.getEmulator() == null) return;
         final Emulator emulator = mViewModel.getEmulator();
@@ -226,30 +259,40 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void selectDefaultController() {
-        BaseController controller;
-        switch (mGame.system) {
-            case "game-gear":
-            case "master-system":
-            case "mega-cd":
-            case "mega-drive":
-            case "sega-pico":
-            case "sg-1000":
-            case "saturn":
-                controller = new SegaController(parentActivity);
-                break;
-            default:
-                controller = new StandardController(parentActivity);
+//        BaseController controller;
+//        switch (mGame.system) {
+//            case "game-gear":
+//            case "master-system":
+//            case "mega-cd":
+//            case "mega-drive":
+//            case "sega-pico":
+//            case "sg-1000":
+//            case "saturn":
+//                controller = new SegaController(parentActivity);
+//                break;
+//            default:
+//                controller = new VirtualController(parentActivity);
+//        }
+        BaseController controller = new VirtualController(parentActivity);
+        List<InputDevice> devices = getInputDevices();
+        for (InputDevice device : devices) {
+            if (device.isVirtual()) continue;
+            if ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
+            || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+            || ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
+                mControllers.add(new HwController(parentActivity, device.getName(), device.getId()));
+            }
         }
-        if (controller.getView() != null) {
-            binding.controllerRoot.addView(controller.getView());
-        }
-        mControllers.put(PLAYER_1, controller);
+        mControllers.add(controller);
+        binding.controllerRoot.addView(controller.getView());
+        mControllerMapper.put(PLAYER_1, controller);
     }
 
     private DialogLayoutExitGameBinding mExitLayoutBinding;
 
     private AlertDialog mExitDialog;
 
+    @SuppressLint("SetTextI18n")
     private void showExitGameDialog() {
         if (mExitDialog == null) {
             mExitLayoutBinding = DialogLayoutExitGameBinding.inflate(getLayoutInflater());
@@ -260,9 +303,77 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     .setTitle(R.string.options)
                     .setView(mExitLayoutBinding.getRoot())
                     .create();
+            mExitLayoutBinding.player1Dropdown.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String text = s.toString();
+                    if (text.contains("@")) {
+                        try {
+                            int deviceId = Integer.parseInt(text.split("@")[0]);
+                            for (BaseController controller : mControllers) {
+                                if (controller.getDeviceId() == deviceId) {
+                                    mControllerMapper.put(PLAYER_1, controller);
+                                    break;
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+
+                }
+            });
+
+            mExitLayoutBinding.player2Dropdown.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    String text = s.toString();
+                    if (text.contains("@")) {
+                        try {
+                            int deviceId = Integer.parseInt(text.split("@")[0]);
+                            for (BaseController controller : mControllers) {
+                                if (controller.getDeviceId() == deviceId) {
+                                    mControllerMapper.put(PLAYER_2, controller);
+                                    break;
+                                }
+                            }
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+
+                }
+            });
         }
-        mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
         if (mExitDialog.isShowing()) return;
+        mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
+        List<String> sources = mControllers.stream().map(it -> it.getDeviceId() + "@" + it.getName()).collect(Collectors.toList());
+        mExitLayoutBinding.player1Dropdown.setAdapter(new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, sources));
+        BaseController primaryController = mControllerMapper.get(PLAYER_1);
+        String primarySource = primaryController.getDeviceId() + "@" + primaryController.getName();
+        mExitLayoutBinding.player1Dropdown.setText(primarySource);
+        sources = sources.stream().filter(it -> !it.equals(primarySource)).collect(Collectors.toList());
+        mExitLayoutBinding.player2Dropdown.setAdapter(new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, sources));
+        BaseController controller = mControllerMapper.get(PLAYER_2);
+        if (controller != null) {
+            mExitLayoutBinding.player2Dropdown.setText(controller.getDeviceId() + "@" + controller.getName());
+        } else {
+            mExitLayoutBinding.player2Dropdown.setText("N/A");
+        }
         mExitDialog.show();
     }
 
@@ -373,6 +484,8 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private int mR1ButtonState = KeyEvent.ACTION_UP;
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
+        int deviceId = event.getDeviceId();
+        boolean handled = false;
         if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L1 && mL1ButtonState != event.getAction()) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) {
                 mViewModel.saveCurrentSate();
@@ -385,17 +498,9 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             }
             mR1ButtonState = event.getAction();
         }
-        return dispatchKeyEvent(event);
-    }
-
-    private boolean dispatchKeyEvent(@NonNull KeyEvent event) {
-        int size = mControllers.size();
-        boolean handled = false;
-        for (int i = 0; i < size; ++i) {
-            if (mControllers.valueAt(i).onKeyEvent(event)) {
-                handled = true;
-                break;
-            }
+        for (BaseController controller : mControllers) {
+            if (controller.getDeviceId() != deviceId) continue;
+            handled = controller.onKeyEvent(event);;
         }
         return handled;
     }
@@ -419,7 +524,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     @Override
     public short onGetInputState(int port, int device, int index, int id) {
-        BaseController controller = mControllers.get(port);
+        BaseController controller = mControllerMapper.get(port);
         if (controller == null || controller.type != device) return 0;
         return controller.getState(id);
     }

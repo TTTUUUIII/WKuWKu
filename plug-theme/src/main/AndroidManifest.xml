@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true">
+        <meta-data
+            android:name="plugMainClass"
+            android:value="ink.snowland.plug.theme.Main" />
+        <meta-data
+            android:name="plugAuthor"
+            android:value="wn123o" />
+        <meta-data
+            android:name="plugSummary"
+            android:value="This extension provides some high-quality theme colors for the application" />
+    </application>
+
+</manifest>
