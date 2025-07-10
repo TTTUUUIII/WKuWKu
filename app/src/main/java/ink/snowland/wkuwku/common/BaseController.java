@@ -44,6 +44,12 @@ public abstract class BaseController {
         }
     }
 
+    public int getDeviceId() {
+        return 0;
+    }
+
+    public abstract String getName();
+
     public boolean onKeyEvent(KeyEvent event) {
         return false;
     }

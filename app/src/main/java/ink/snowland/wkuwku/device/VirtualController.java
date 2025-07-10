@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -23,7 +22,7 @@ import java.util.Map;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.bean.MacroEvent;
-import ink.snowland.wkuwku.databinding.LayoutStandardControllerBinding;
+import ink.snowland.wkuwku.databinding.LayoutVirtualControllerBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;
@@ -31,20 +30,20 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class StandardController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
+public class VirtualController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     private short mState = 0;
-    private LayoutStandardControllerBinding binding;
+    private LayoutVirtualControllerBinding binding;
     private final View mView;
 
-    public StandardController(@NonNull Context context) {
+    public VirtualController(@NonNull Context context) {
         super(context, RETRO_DEVICE_JOYPAD);
         mView = onCreateView();
     }
 
     @Nullable
     protected View onCreateView() {
-        binding = LayoutStandardControllerBinding.inflate(getLayoutInflater());
+        binding = LayoutVirtualControllerBinding.inflate(getLayoutInflater());
         bindMacros();
         bindEvents();
         return binding.getRoot();
@@ -200,6 +199,11 @@ public class StandardController extends BaseController implements View.OnTouchLi
             binding.layoutMacrosControl.setVisibility(View.VISIBLE);
         }
         return true;
+    }
+
+    @Override
+    public String getName() {
+        return "Virtual Controller";
     }
 
     @Override

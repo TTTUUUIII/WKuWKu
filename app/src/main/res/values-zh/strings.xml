@@ -139,4 +139,6 @@
     <string name="publisher">发行商</string>
     <string name="screenshot_saved">截图已保存！</string>
     <string name="theme">主题</string>
+    <string name="player_1">玩家 1</string>
+    <string name="player_2">玩家 2</string>
 </resources>

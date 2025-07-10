@@ -210,7 +210,7 @@ public abstract class Emulator {
                 if (option != null) {
                     entry.value = option.val;
                 } else {
-                    Log.w(TAG, "WARN: option \"" + entry.key + "\" requested but not found in config!");
+                    Log.w(TAG, "Option \"" + entry.key + "\" requested but not found in config!");
                     return false;
                 }
                 break;
@@ -229,7 +229,7 @@ public abstract class Emulator {
                 break;
             case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
                 variable = (Variable) data;
-                Log.i(TAG, "INFO: core options version: " + variable.value);
+                Log.i(TAG, "Core options version: " + variable.value);
                 break;
             case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
                 systemAvInfo = (EmSystemAvInfo) data;
@@ -257,7 +257,7 @@ public abstract class Emulator {
                 break;
             case RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY:
                 variable = (Variable) data;
-                Log.i(TAG, "INFO: minimum audio latency: " + variable.value);
+                Log.i(TAG, "Minimum audio latency: " + variable.value);
                 break;
             case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
                 break;
@@ -381,8 +381,6 @@ public abstract class Emulator {
         onPowerOff();
         releaseAudioTrack();
         mEventListener = null;
-        mEventListener = null;
-        Log.i(TAG, "released");
     }
 
     public @Nullable File findContent(@NonNull File src) {
