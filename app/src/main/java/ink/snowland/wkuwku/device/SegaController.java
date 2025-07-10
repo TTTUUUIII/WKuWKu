@@ -1,5 +1,5 @@
 package ink.snowland.wkuwku.device;
-import static ink.snowland.wkuwku.interfaces.Emulator.*;
+import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
