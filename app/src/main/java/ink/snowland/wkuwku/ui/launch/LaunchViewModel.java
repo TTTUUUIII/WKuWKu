@@ -76,9 +76,9 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
                 mEmulator.setAudioVolume(mAudioManager.requestAudioFocus(mAudioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
             }
             onApplyOptions();
-            mEmulator.setSystemDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
-            mEmulator.setSystemDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
-            if (mEmulator.run(game.filepath, game.system)) {
+            mEmulator.setDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
+            mEmulator.setDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
+            if (mEmulator.start(game.filepath)) {
                 mCurrentGame = game;
                 handler.postDelayed(this::onStarted, 300);
                 return NO_ERR;
@@ -120,7 +120,7 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
                 e.printStackTrace(System.err);
             }
         }
-        mEmulator.suspend();
+        mEmulator.stop();
         mEmulator = null;
         mCurrentGame = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

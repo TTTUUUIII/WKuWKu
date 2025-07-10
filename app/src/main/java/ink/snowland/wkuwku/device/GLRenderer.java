@@ -1,6 +1,6 @@
 package ink.snowland.wkuwku.device;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.*;
+import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 import static android.opengl.GLES30.*;
 
 import android.content.Context;

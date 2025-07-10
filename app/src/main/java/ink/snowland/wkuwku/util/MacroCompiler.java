@@ -1,6 +1,6 @@
 package ink.snowland.wkuwku.util;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.*;
+import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 import androidx.annotation.NonNull;
 

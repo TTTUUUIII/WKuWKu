@@ -1,30 +1,13 @@
 package ink.snowland.wkuwku.common;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_A;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_B;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_DOWN;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_L;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_L2;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_LEFT;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_R;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_R2;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_RIGHT;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_SELECT;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_START;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_UP;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_X;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ID_JOYPAD_Y;
-
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;

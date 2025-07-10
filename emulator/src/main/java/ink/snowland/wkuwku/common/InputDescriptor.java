@@ -1,11 +1,6 @@
 package ink.snowland.wkuwku.common;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_ANALOG;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_JOYPAD;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_KEYBOARD;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_LIGHTGUN;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_MOUSE;
-import static ink.snowland.wkuwku.interfaces.Emulator.RETRO_DEVICE_POINTER;
+import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 public class InputDescriptor {
     public final int port;
