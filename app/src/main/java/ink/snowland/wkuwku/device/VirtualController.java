@@ -50,6 +50,11 @@ public class VirtualController extends BaseController implements View.OnTouchLis
     }
 
     @Override
+    public int getDeviceId() {
+        return 0;
+    }
+
+    @Override
     public View getView() {
         return mView;
     }

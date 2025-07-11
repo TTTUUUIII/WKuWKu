@@ -73,6 +73,10 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
         return inputDevices;
     }
 
+    protected InputDevice getInputDevice(int deviceId) {
+        return mInputManager.getInputDevice(deviceId);
+    }
+
     @Override
     public void onInputDeviceAdded(int deviceId) {
 

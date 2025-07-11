@@ -84,7 +84,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
-    private final SparseArray<BaseController> mControllerMapper = new SparseArray<>();
+    private final SparseArray<BaseController> mControllerRoutes = new SparseArray<>();
     private final List<BaseController> mControllers = new ArrayList<>();
 
     @Override
@@ -292,7 +292,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         }
         mControllers.add(controller);
         binding.controllerRoot.addView(controller.getView());
-        mControllerMapper.put(PLAYER_1, controller);
+        mControllerRoutes.put(PLAYER_1, controller);
     }
 
     private DialogLayoutExitGameBinding mExitLayoutBinding;
@@ -324,7 +324,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                             int deviceId = Integer.parseInt(text.split("@")[0]);
                             for (BaseController controller : mControllers) {
                                 if (controller.getDeviceId() == deviceId) {
-                                    mControllerMapper.put(PLAYER_1, controller);
+                                    mControllerRoutes.put(PLAYER_1, controller);
                                     break;
                                 }
                             }
@@ -352,7 +352,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                             int deviceId = Integer.parseInt(text.split("@")[0]);
                             for (BaseController controller : mControllers) {
                                 if (controller.getDeviceId() == deviceId) {
-                                    mControllerMapper.put(PLAYER_2, controller);
+                                    mControllerRoutes.put(PLAYER_2, controller);
                                     break;
                                 }
                             }
@@ -370,12 +370,12 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
         List<String> sources = mControllers.stream().map(it -> it.getDeviceId() + "@" + it.getName()).collect(Collectors.toList());
         mExitLayoutBinding.player1Dropdown.setAdapter(new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, sources));
-        BaseController primaryController = mControllerMapper.get(PLAYER_1);
+        BaseController primaryController = mControllerRoutes.get(PLAYER_1);
         String primarySource = primaryController.getDeviceId() + "@" + primaryController.getName();
         mExitLayoutBinding.player1Dropdown.setText(primarySource);
         sources = sources.stream().filter(it -> !it.equals(primarySource)).collect(Collectors.toList());
         mExitLayoutBinding.player2Dropdown.setAdapter(new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, sources));
-        BaseController controller = mControllerMapper.get(PLAYER_2);
+        BaseController controller = mControllerRoutes.get(PLAYER_2);
         if (controller != null) {
             mExitLayoutBinding.player2Dropdown.setText(controller.getDeviceId() + "@" + controller.getName());
         } else {
@@ -535,7 +535,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
 
     @Override
     public short onGetInputState(int port, int device, int index, int id) {
-        BaseController controller = mControllerMapper.get(port);
+        BaseController controller = mControllerRoutes.get(port);
         if (controller == null || controller.type != device) return 0;
         return controller.getState(id);
     }
@@ -555,5 +555,28 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     @Override
     public void onTouchEvent(MotionEvent ev) {
         resetHideTimer();
+    }
+
+    @Override
+    public void onInputDeviceAdded(int deviceId) {
+        super.onInputDeviceAdded(deviceId);
+        InputDevice device = getInputDevice(deviceId);
+        if (device.isVirtual()) return;
+        if ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
+        || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+        || (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+            mControllers.add(new HwController(requireContext(), device.getName(), device.getId()));
+        }
+    }
+
+    @Override
+    public void onInputDeviceRemoved(int deviceId) {
+        super.onInputDeviceRemoved(deviceId);
+        for (BaseController controller : mControllers) {
+            if (controller.getDeviceId() == deviceId) {
+                mControllers.remove(controller);
+                break;
+            }
+        }
     }
 }
