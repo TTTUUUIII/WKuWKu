@@ -4,12 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
+    tools:context=".activity.MainActivity"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".activity.MainActivity">
+        android:layout_height="match_parent">
         <ink.snowland.wkuwku.view.EmojiWorkshopView
             android:id="@+id/emoji_workshop_view"
             android:layout_width="match_parent"

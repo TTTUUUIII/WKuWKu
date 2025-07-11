@@ -44,9 +44,7 @@ public abstract class BaseController {
         }
     }
 
-    public int getDeviceId() {
-        return 0;
-    }
+    public abstract int getDeviceId();
 
     public abstract String getName();
 
