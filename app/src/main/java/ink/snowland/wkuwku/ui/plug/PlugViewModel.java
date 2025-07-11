@@ -29,9 +29,12 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleOnSubscribe;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import kotlinx.coroutines.flow.MutableSharedFlow;
+import kotlinx.coroutines.flow.MutableStateFlow;
 
 public class PlugViewModel extends BaseViewModel {
     private final MutableLiveData<List<PlugManifestExt>> mInstalledPlugs = new MutableLiveData<>();
+    private final MutableLiveData<Integer> mCurrentPagePosition = new MutableLiveData<>(0);
     private final Disposable mDisposable;
     public PlugViewModel(@NonNull Application application) {
         super(application);
@@ -44,6 +47,14 @@ public class PlugViewModel extends BaseViewModel {
 
     public LiveData<List<PlugManifestExt>> getAll() {
         return mInstalledPlugs;
+    }
+
+    public LiveData<Integer> getPagePosition() {
+        return mCurrentPagePosition;
+    }
+
+    public void updatePagePosition(int position) {
+        mCurrentPagePosition.postValue(position);
     }
 
     public PlugManifestExt findInstalledPlug(@NonNull String packageName) {
