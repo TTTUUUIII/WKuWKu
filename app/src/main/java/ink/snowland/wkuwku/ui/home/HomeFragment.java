@@ -5,10 +5,9 @@ import android.os.Bundle;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
-import androidx.navigation.NavOptions;
-import androidx.navigation.fragment.NavHostFragment;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,10 +19,29 @@ import com.google.android.material.navigation.NavigationBarView;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHomeBinding;
+import ink.snowland.wkuwku.ui.core.CoreFragment;
+import ink.snowland.wkuwku.ui.game.GamesFragment;
+import ink.snowland.wkuwku.ui.history.HistoryFragment;
 
 public class HomeFragment extends BaseFragment implements NavigationBarView.OnItemSelectedListener {
 
     private FragmentHomeBinding binding;
+    private final Fragment[] mPages = new Fragment[] {
+            new GamesFragment(),
+            new HistoryFragment(),
+            new CoreFragment()
+    };
+
+    private final ViewPager2.OnPageChangeCallback mPageChangedCallback = new ViewPager2.OnPageChangeCallback() {
+        @Override
+        public void onPageSelected(int position) {
+            super.onPageSelected(position);
+            int itemId = binding.bottomNavView.getSelectedItemId();
+            if (position != getDestinationIndex(itemId)) {
+                binding.bottomNavView.setSelectedItemId(getItemId(position));
+            }
+        }
+    };
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -32,42 +50,27 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         return binding.getRoot();
     }
 
-    private NavController mNavController;
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        NavHostFragment fragment = (NavHostFragment) getChildFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        assert fragment != null;
-        mNavController = fragment.getNavController();
+        binding.viewPager.setAdapter(new PagerSlideAdapter());
+        binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
         binding.bottomNavView.setOnItemSelectedListener(this);
     }
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int destId = item.getItemId();
-        NavDestination currentDestination = mNavController.getCurrentDestination();
-        if (currentDestination == null) return false;
-        if (!mNavController.popBackStack(destId, false)) {
-            int startIndex = getDestinationIndex(currentDestination.getId());
-            int destIndex = getDestinationIndex(destId);
-            NavOptions navOptions;
-            if (startIndex < destIndex) {
-                navOptions = new NavOptions.Builder()
-                        .setEnterAnim(R.anim.slide_in_right)
-                        .setExitAnim(R.anim.slide_out_left)
-                        .setPopEnterAnim(R.anim.slide_in_left)
-                        .setPopExitAnim(R.anim.slide_out_right)
-                        .build();
-            } else {
-                navOptions = new NavOptions.Builder()
-                        .setEnterAnim(R.anim.slide_in_left)
-                        .setExitAnim(R.anim.slide_out_right)
-                        .setPopEnterAnim(R.anim.slide_in_right)
-                        .setPopExitAnim(R.anim.slide_out_left)
-                        .build();
-            }
-            mNavController.navigate(destId, null, navOptions);
+        int itemId = item.getItemId();
+        int position = getDestinationIndex(itemId);
+        if (position != binding.viewPager.getCurrentItem()) {
+            binding.viewPager.setCurrentItem(position);
         }
         return true;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding.viewPager.unregisterOnPageChangeCallback(mPageChangedCallback);
     }
 
     private int getDestinationIndex(@IdRes int resId) {
@@ -79,6 +82,36 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
             return 2;
         } else {
             throw new RuntimeException();
+        }
+    }
+
+    private int getItemId(int position) {
+        if (position == 0) {
+            return R.id.game_fragment;
+        } else if (position == 1) {
+            return R.id.history_fragment;
+        } else if (position == 2) {
+            return R.id.core_fragment;
+        } else {
+            throw new IndexOutOfBoundsException();
+        }
+    }
+
+    private class PagerSlideAdapter extends FragmentStateAdapter {
+
+        public PagerSlideAdapter() {
+            super(parentActivity);
+        }
+
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            return mPages[position];
+        }
+
+        @Override
+        public int getItemCount() {
+            return mPages.length;
         }
     }
 }
