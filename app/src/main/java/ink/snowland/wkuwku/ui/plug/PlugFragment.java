@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -73,6 +74,19 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         }
     };
 
+    private final ViewPager2.OnPageChangeCallback mPageChangedCallback = new ViewPager2.OnPageChangeCallback() {
+        @Override
+        public void onPageSelected(int position) {
+            super.onPageSelected(position);
+            if (position != binding.tabLayout.getSelectedTabPosition()) {
+                TabLayout.Tab tab = binding.tabLayout.getTabAt(position);
+                if (tab != null) {
+                    tab.select();
+                }
+            }
+        }
+    };
+
     private boolean mAvailablePlugListLoaded = false;
 
     @Override
@@ -110,15 +124,20 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         super.onViewCreated(view, savedInstanceState);
         binding.tabLayout.addOnTabSelectedListener(this);
         binding.viewPager.setAdapter(mPagerAdapter);
-        binding.viewPager.setUserInputEnabled(false);
+        binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
         parentActivity.setActionbarTitle(R.string.extension_manage);
+        mViewModel.getPagePosition().observe(getViewLifecycleOwner(), position -> {
+            if (position != binding.viewPager.getCurrentItem()) {
+                binding.viewPager.setCurrentItem(position);
+            }
+        });
     }
 
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
-        int screen = tab.getPosition();
-        binding.viewPager.setCurrentItem(screen);
-        if (screen == AVAILABLE_SCREEN && !mAvailablePlugListLoaded) {
+        int position = tab.getPosition();
+        mViewModel.updatePagePosition(position);
+        if (position == AVAILABLE_SCREEN && !mAvailablePlugListLoaded) {
             mViewModel.setPendingIndicator(true, R.string.loading);
         }
     }
@@ -131,6 +150,12 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     @Override
     public void onTabReselected(TabLayout.Tab tab) {
 
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding.viewPager.unregisterOnPageChangeCallback(mPageChangedCallback);
     }
 
     private LayoutPlugInstalledBinding mPlugInstalledBinding;
