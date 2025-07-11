@@ -109,10 +109,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
 
     private void launch(@NonNull Game game) {
-        Fragment parent = requireParentFragment()
-                .getParentFragment();
-        assert parent instanceof HomeFragment;
-        NavController navController = NavHostFragment.findNavController(parent);
+        NavController navController = NavHostFragment.findNavController(this);
         Bundle args = new Bundle();
         args.putParcelable(LaunchFragment.ARG_GAME, game);
         navController.navigate(R.id.launch_fragment, args, navAnimOptions);
