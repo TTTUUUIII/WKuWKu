@@ -81,10 +81,7 @@ public class HistoryFragment extends BaseFragment {
     }
 
     private void launch(@NonNull Game game) {
-        Fragment parent = requireParentFragment()
-                .getParentFragment();
-        assert parent instanceof HomeFragment;
-        NavController navController = NavHostFragment.findNavController(parent);
+        NavController navController = NavHostFragment.findNavController(this);
         Bundle args = new Bundle();
         args.putBoolean(LaunchFragment.ARG_AUTO_LOAD_STATE, true);
         args.putParcelable(LaunchFragment.ARG_GAME, game);
