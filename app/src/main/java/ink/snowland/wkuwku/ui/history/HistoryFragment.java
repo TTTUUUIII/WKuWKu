@@ -68,7 +68,6 @@ public class HistoryFragment extends BaseFragment {
             spanCount = 2;
         }
         binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, spanCount));
-        parentActivity.setActionbarTitle(R.string.recent_played);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
         return binding.getRoot();
@@ -78,6 +77,11 @@ public class HistoryFragment extends BaseFragment {
     public void onDestroy() {
         super.onDestroy();
         mDisposable.dispose();
+    }
+
+    @Override
+    public int getTitleRes() {
+        return R.string.recent_played;
     }
 
     private void launch(@NonNull Game game) {

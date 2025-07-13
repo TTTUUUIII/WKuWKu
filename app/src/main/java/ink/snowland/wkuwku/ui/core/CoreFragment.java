@@ -48,7 +48,6 @@ public class CoreFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         binding = FragmentCoreBinding.inflate(inflater, container, false);
         mViewModel = new ViewModelProvider(this).get(CoreViewModel.class);
-        parentActivity.setActionbarTitle(R.string.core_options);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         binding.pendingIndicator.setDataModel(mViewModel);
@@ -74,6 +73,11 @@ public class CoreFragment extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         onSaveOptions();
+    }
+
+    @Override
+    public int getTitleRes() {
+        return R.string.core_options;
     }
 
     private void onReloadOptions() {
