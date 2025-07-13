@@ -45,6 +45,12 @@ public final class SettingsManager {
         return sSettings.getString(key, defaultValue);
     }
 
+    public static void remove(@NonNull String key) {
+        sSettings.edit()
+                .remove(key)
+                .apply();
+    }
+
     public static void putString(@NonNull String key, @NonNull String value) {
         sSettings.edit()
                 .putString(key, value)

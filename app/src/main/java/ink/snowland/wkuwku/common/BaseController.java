@@ -48,6 +48,8 @@ public abstract class BaseController {
 
     public abstract String getName();
 
+    public abstract boolean isVirtual();
+
     public boolean onKeyEvent(KeyEvent event) {
         return false;
     }
@@ -62,4 +64,9 @@ public abstract class BaseController {
 
     public abstract short getState(int id);
     public abstract void setState(int id, int v);
+
+    @Override
+    public String toString() {
+        return "BaseController{deviceId=" + getDeviceId() + ", deviceName=" + getName() + "}";
+    }
 }

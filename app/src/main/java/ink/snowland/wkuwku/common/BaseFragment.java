@@ -9,6 +9,7 @@ import android.view.InputDevice;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavOptions;
 import androidx.recyclerview.widget.ListAdapter;
@@ -90,5 +91,9 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     @Override
     public void onInputDeviceChanged(int deviceId) {
 
+    }
+
+    public @StringRes int getTitleRes() {
+        return R.string.app_name;
     }
 }

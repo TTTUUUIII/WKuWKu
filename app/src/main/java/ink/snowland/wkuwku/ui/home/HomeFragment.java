@@ -26,7 +26,7 @@ import ink.snowland.wkuwku.ui.history.HistoryFragment;
 public class HomeFragment extends BaseFragment implements NavigationBarView.OnItemSelectedListener {
 
     private FragmentHomeBinding binding;
-    private final Fragment[] mPages = new Fragment[] {
+    private final BaseFragment[] mPages = new BaseFragment[] {
             new GamesFragment(),
             new HistoryFragment(),
             new CoreFragment()
@@ -36,6 +36,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         @Override
         public void onPageSelected(int position) {
             super.onPageSelected(position);
+            final BaseFragment fragment = mPages[position];
+            parentActivity.setActionbarTitle(fragment.getTitleRes());
             int itemId = binding.bottomNavView.getSelectedItemId();
             if (position != getDestinationIndex(itemId)) {
                 binding.bottomNavView.setSelectedItemId(getItemId(position));

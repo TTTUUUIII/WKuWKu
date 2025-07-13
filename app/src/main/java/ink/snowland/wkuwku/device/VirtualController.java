@@ -32,6 +32,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class VirtualController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
+    public static final String NAME = "Virtual Controller";
     private short mState = 0;
     private LayoutVirtualControllerBinding binding;
     private final View mView;
@@ -208,7 +209,12 @@ public class VirtualController extends BaseController implements View.OnTouchLis
 
     @Override
     public String getName() {
-        return "Virtual Controller";
+        return NAME;
+    }
+
+    @Override
+    public boolean isVirtual() {
+        return true;
     }
 
     @Override

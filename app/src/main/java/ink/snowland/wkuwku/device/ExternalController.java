@@ -4,10 +4,10 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-public class HwController extends VirtualController {
+public class ExternalController extends VirtualController {
     private final String mName;
     private final int mDeviceId;
-    public HwController(@NonNull Context context, String name, int deviceId) {
+    public ExternalController(@NonNull Context context, String name, int deviceId) {
         super(context);
         mName = name;
         mDeviceId = deviceId;
@@ -21,5 +21,10 @@ public class HwController extends VirtualController {
     @Override
     public int getDeviceId() {
         return mDeviceId;
+    }
+
+    @Override
+    public boolean isVirtual() {
+        return false;
     }
 }
