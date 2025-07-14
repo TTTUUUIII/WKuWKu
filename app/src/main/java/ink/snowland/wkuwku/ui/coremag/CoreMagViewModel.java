@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.ui.coremag;
 
 import android.app.Application;
+import android.os.Build;
 import android.util.Xml;
 
 import androidx.annotation.NonNull;
@@ -8,7 +9,9 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
@@ -45,7 +48,7 @@ public class CoreMagViewModel extends BaseViewModel {
             try (InputStream fis = new URL(AppConfig.WEB_URL + "core-list.xml").openStream()){
                 XmlPullParser parser = Xml.newPullParser();
                 parser.setInput(fis, "utf8");
-                CoreManifest manifest = CoreManifest.fromConfig(parser);
+                CoreManifest manifest = CoreManifest.fromXml(parser);
                 emitter.onSuccess(manifest);
             }
         });

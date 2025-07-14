@@ -12,20 +12,28 @@ import androidx.annotation.NonNull;
 
 import com.outlook.wn123o.retrosystem.common.MediaInfo;
 import com.outlook.wn123o.retrosystem.common.Option;
+import com.outlook.wn123o.retrosystem.common.RetroConfig;
+import com.outlook.wn123o.retrosystem.common.RetroOption;
 import com.outlook.wn123o.retrosystem.common.SystemInfo;
 import com.outlook.wn123o.retrosystem.common.Value;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RetroSystem {
+public class RetroConsole {
 
-    public static final int TYPE_SYSTEM        = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
-    public static final int TYPE_SAVE          = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
-    public static final int TYPE_CORE_ASSETS   = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
+    public static final int SET_SYSTEM_DIRECTORY        = 1;
+    public static final int SET_SAVE_DIRECTORY          = 2;
+    public static final int SET_CORE_ASSETS_DIRECTORY   = 3;
+    public static final int SET_AUDIO_VOLUME            = 4;
 
     private static final SparseArray<String> sDirectories = new SparseArray<>();
+    private static final Map<String, RetroConfig> sRetroConfigs = new HashMap<>();
+    private static final Map<String, String> sConfigs = new HashMap<>();
 
+    private static String sCurrentAlias;
     private static float sAudioVolume = 1.f;
     private static AudioTrack sAudioTrack = null;
     private static WeakReference<OnEventListener> sListener = new WeakReference<>(null);
@@ -41,6 +49,14 @@ public class RetroSystem {
      */
     public static void add(@NonNull String alias, @NonNull String path) {
         nativeAdd(alias, path);
+        int index = path.lastIndexOf(".");
+        RetroConfig config = RetroConfig.fromXml(new File(path.substring(0, index) + ".xml"));
+        if (config != null) {
+            sRetroConfigs.put(alias, config);
+            for (RetroOption option : config.options) {
+                sConfigs.put(option.key, option.val);
+            }
+        }
     }
 
     /**
@@ -49,7 +65,11 @@ public class RetroSystem {
      * @return true if switch success
      */
     public static boolean use(@NonNull String alias) {
-        return nativeUse(alias);
+        boolean noError = nativeUse(alias);
+        if (noError) {
+            sCurrentAlias = alias;
+        }
+        return noError;
     }
 
     /**
@@ -128,20 +148,25 @@ public class RetroSystem {
         sListener = new WeakReference<>(listener);
     }
 
-    public static void setAudioVolume(float volume) {
-        sAudioVolume = volume;
-        if (sAudioTrack != null) {
-            sAudioTrack.setVolume(volume);
+    public static void set(int what, Object arg) {
+        switch (what) {
+            case SET_SYSTEM_DIRECTORY:
+                sDirectories.put(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, (String) arg);
+                break;
+            case SET_SAVE_DIRECTORY:
+                sDirectories.put(RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY, (String) arg);
+                break;
+            case SET_CORE_ASSETS_DIRECTORY:
+                sDirectories.put(RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY, (String) arg);
+                break;
+            case SET_AUDIO_VOLUME:
+                sAudioVolume = (float) arg;
+                if (sAudioTrack != null) {
+                    sAudioTrack.setVolume(sAudioVolume);
+                }
+                break;
+            default:
         }
-    }
-
-
-    public static void setDirectory(int type, String path) {
-        File file = new File(path);
-        if (!file.exists()) {
-            boolean mkdirs = file.mkdirs();
-        }
-        sDirectories.put(type, path);
     }
 
     private static void createAudioTrack() {
@@ -194,10 +219,16 @@ public class RetroSystem {
             case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
                 String path = sDirectories.get(cmd);
                 if (path != null) {
-                    supported = true;
+                    path = path.replace("${alias}", sCurrentAlias);
                     value = (Value) data;
                     value.v = path;
+                    supported = true;
                 }
+                break;
+            case RETRO_ENVIRONMENT_GET_VARIABLE:
+                option = (Option) data;
+                option.value = sConfigs.get(option.key);
+                supported = option.value != null;
                 break;
             default:
         }

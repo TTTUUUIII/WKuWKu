@@ -16,20 +16,19 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/fold_button"
+                app:layout_constraintEnd_toStartOf="@id/download"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
             <Button
-                android:id="@+id/fold_button"
-                style="@style/Widget.Material3.Button.IconButton"
+                android:id="@+id/download"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:iconSize="24dp"
-                app:icon="@drawable/ic_expand_circle_right" />
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:text="@string/download" />
         </LinearLayout>
         <LinearLayout
             android:id="@+id/cores_container"

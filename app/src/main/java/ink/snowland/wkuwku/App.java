@@ -1,9 +1,10 @@
 package ink.snowland.wkuwku;
 
+import static com.outlook.wn123o.retrosystem.RetroConsole.*;
+
 import android.app.Application;
 import android.os.Process;
-
-import com.outlook.wn123o.retrosystem.RetroSystem;
+import com.outlook.wn123o.retrosystem.RetroConsole;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -14,7 +15,6 @@ import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Scheduler;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class App extends Application {
@@ -30,13 +30,13 @@ public class App extends Application {
         PlugManager.initialize(getApplicationContext());
         Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
 
-        RetroSystem.setDirectory(RetroSystem.TYPE_SYSTEM, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
-        RetroSystem.setDirectory(RetroSystem.TYPE_SAVE, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY).getAbsolutePath());
-        RetroSystem.setDirectory(RetroSystem.TYPE_CORE_ASSETS, FileManager.getCacheDirectory().getAbsolutePath());
+        RetroConsole.set(SET_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY).getAbsolutePath());
+        RetroConsole.set(SET_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY).getAbsolutePath());
+        RetroConsole.set(SET_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory().getAbsolutePath());
         AppDatabase.db.gameCoreDao().getList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(it -> it.forEach(core -> RetroSystem.add(core.alias, core.path)))
+                .doOnSuccess(it -> it.forEach(core -> RetroConsole.add(core.alias, core.path)))
                 .subscribe();
     }
 

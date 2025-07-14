@@ -31,8 +31,8 @@ static std::unique_ptr<GLRenderer> current_renderer;
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAttachSurface(JNIEnv *env, jclass clazz,
-                                                              jobject surface) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeAttachSurface(JNIEnv *env, jclass clazz,
+                                                                     jobject surface) {
     current_renderer = std::make_unique<GLRenderer>(ANativeWindow_fromSurface(env, surface));
     GLRendererInterface *interface = current_renderer->get_renderer_interface();
     interface->on_create = on_create;
@@ -45,13 +45,13 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAttachSurface(JNIEnv *env,
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAdjustSurface(JNIEnv *env, jclass clazz, jint vw,
-                                                              jint vh) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeAdjustSurface(JNIEnv *env, jclass clazz, jint vw,
+                                                                     jint vh) {
     current_renderer->adjust_viewport(vw, vh);
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeDetachSurface(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeDetachSurface(JNIEnv *env, jclass clazz) {
     current_renderer->stop();
 }
 
@@ -81,8 +81,8 @@ static void on_destroy() {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAdd(JNIEnv *env, jclass clazz, jstring alias,
-                                                    jstring path) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeAdd(JNIEnv *env, jclass clazz, jstring alias,
+                                                           jstring path) {
     const char *core_alias = env->GetStringUTFChars(alias, JNI_FALSE);
     const char *core_path = env->GetStringUTFChars(path, JNI_FALSE);
     all_cores[core_alias] = core_path;
@@ -92,7 +92,7 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeAdd(JNIEnv *env, jclass cl
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeUse(JNIEnv *env, jclass clazz, jstring alias) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeUse(JNIEnv *env, jclass clazz, jstring alias) {
     const char *core_alias = env->GetStringUTFChars(alias, JNI_FALSE);
     bool no_error = false;
     if (all_loaded_cores.count(core_alias) > 0) {
@@ -122,7 +122,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
         return JNI_ERR;
     }
     retro_system.jvm = vm;
-    jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/RetroSystem");
+    jclass clazz = env->FindClass("com/outlook/wn123o/retrosystem/RetroConsole");
     retro_system.clazz = (jclass) env->NewGlobalRef(clazz);
     retro_system.environment_cb = env->GetStaticMethodID(clazz, "onNativeEnvironmentCallback", "(ILjava/lang/Object;)Z");
     retro_system.video_size_cb = env->GetStaticMethodID(clazz, "onNativeVideoSizeChanged", "(II)V");
@@ -452,8 +452,8 @@ static std::string get_option_value(JNIEnv *env, jobject obj) {
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStart(JNIEnv *env, jclass clazz,
-                                                            jstring path) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeStart(JNIEnv *env, jclass clazz,
+                                                             jstring path) {
     const char *game_path = env->GetStringUTFChars(path, JNI_FALSE);
     bool no_error;
     struct retro_system_info system_info = {nullptr};
@@ -488,7 +488,7 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStart(JNIEnv *env, jclass 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStop(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeStop(JNIEnv *env, jclass clazz) {
     if (current_core) {
         current_state = STATE_IDLE;
         current_vw = 0;
@@ -499,14 +499,14 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeStop(JNIEnv *env, jclass c
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativePause(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativePause(JNIEnv *env, jclass clazz) {
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
     }
 }
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeResume(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeResume(JNIEnv *env, jclass clazz) {
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
     }
@@ -514,7 +514,7 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeResume(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetSystemInfo(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeGetSystemInfo(JNIEnv *env, jclass clazz) {
     struct retro_system_info system_info = {};
     current_core->get_system_info(&system_info);
     jclass system_info_clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/SystemInfo");
@@ -531,7 +531,7 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetSystemInfo(JNIEnv *env,
 }
 extern "C"
 JNIEXPORT jobject JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetMediaInfo(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeGetMediaInfo(JNIEnv *env, jclass clazz) {
     struct retro_system_av_info av_info = {0};
     current_core->get_system_av_info(&av_info);
     jclass obj_clazz = env->FindClass("com/outlook/wn123o/retrosystem/common/Timing");
@@ -551,13 +551,13 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetMediaInfo(JNIEnv *env, 
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeReset(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeReset(JNIEnv *env, jclass clazz) {
     current_core->reset();
 }
 
 extern "C"
 JNIEXPORT jbyteArray JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetSerializeData(JNIEnv *env, jclass clazz) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeGetSerializeData(JNIEnv *env, jclass clazz) {
     size_t len = current_core->get_serialize_size();
     if (len == 0) return nullptr;
     int8_t buffer[len];
@@ -572,8 +572,8 @@ Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeGetSerializeData(JNIEnv *e
 
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_outlook_wn123o_retrosystem_RetroSystem_nativeSetSerializeData(JNIEnv *env, jclass clazz,
-                                                                 jbyteArray data) {
+Java_com_outlook_wn123o_retrosystem_RetroConsole_nativeSetSerializeData(JNIEnv *env, jclass clazz,
+                                                                        jbyteArray data) {
     bool no_error = false;
     const size_t &len = current_core->get_serialize_size();
     if (env->GetArrayLength(data) == len) {

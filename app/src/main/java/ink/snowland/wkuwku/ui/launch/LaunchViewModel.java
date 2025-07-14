@@ -1,39 +1,16 @@
 package ink.snowland.wkuwku.ui.launch;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.SAVE_DIR;
-import static ink.snowland.wkuwku.interfaces.Emulator.SYSTEM_DIR;
 import android.app.Application;
-import android.content.Context;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
-import android.media.AudioManager;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import com.outlook.wn123o.retrosystem.RetroSystem;
+import com.outlook.wn123o.retrosystem.RetroConsole;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Locale;
 
-import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.BaseViewModel;
-import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.util.FileManager;
-import ink.snowland.wkuwku.util.SettingsManager;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchViewModel extends BaseViewModel {
     public static final int NO_ERR = 0;
@@ -48,7 +25,7 @@ public class LaunchViewModel extends BaseViewModel {
     }
 
     public int startEmulator(@NonNull Game game) {
-        RetroSystem.start(game.filepath);
+        RetroConsole.start(game.filepath);
 //        onSelectEmulator(game);
 //        if (mEmulator != null) {
 //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -70,7 +47,7 @@ public class LaunchViewModel extends BaseViewModel {
     }
 
     public boolean saveCurrentSate() {
-        byte[] data = RetroSystem.getSerializeData();
+        byte[] data = RetroConsole.getSerializeData();
         if (data == null || data.length == 0) return false;
         if (mSnapshots.size() == MAX_COUNT_OF_SNAPSHOT)
             mSnapshots.remove(0);
@@ -88,7 +65,7 @@ public class LaunchViewModel extends BaseViewModel {
         } else {
             snapshot = mSnapshots.get(mSnapshots.size() - 1);
         }
-        RetroSystem.setSerializeData(snapshot);
+        RetroConsole.setSerializeData(snapshot);
     }
 
     public int getSnapshotsCount() {

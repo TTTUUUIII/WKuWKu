@@ -1,6 +1,6 @@
 package ink.snowland.wkuwku.ui.launch;
 
-import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
+import static com.outlook.wn123o.retrosystem.RetroConsole.*;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -11,7 +11,6 @@ import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -30,7 +29,6 @@ import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -41,7 +39,7 @@ import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
-import com.outlook.wn123o.retrosystem.RetroSystem;
+import com.outlook.wn123o.retrosystem.RetroConsole;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,7 +48,6 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
-import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
@@ -58,8 +55,6 @@ import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.GLRenderer;
 import ink.snowland.wkuwku.device.SegaController;
 import ink.snowland.wkuwku.device.StandardController;
-import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.interfaces.OnEmulatorEventListener;
 import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -67,7 +62,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener, AudioManager.OnAudioFocusChangeListener {
+public class LaunchFragment extends BaseFragment implements RetroConsole.OnEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener, AudioManager.OnAudioFocusChangeListener {
     private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 0;
@@ -100,7 +95,7 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
         mAutoLoadState = arguments.getBoolean(ARG_AUTO_LOAD_STATE, false);
-        RetroSystem.setOnEventListener(this);
+        RetroConsole.setOnEventListener(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             AudioFocusRequest fq = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
                     .setOnAudioFocusChangeListener(this)
@@ -111,7 +106,7 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
                     .setAcceptsDelayedFocusGain(true)
                     .build();
             AudioManager am = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
-            RetroSystem.setAudioVolume(am.requestAudioFocus(fq) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
+            RetroConsole.set(SET_AUDIO_VOLUME, am.requestAudioFocus(fq) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
         }
     }
 
@@ -124,17 +119,17 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
         binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
             @Override
             public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                RetroSystem.attachSurface(holder.getSurface());
+                RetroConsole.attachSurface(holder.getSurface());
             }
 
             @Override
             public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                RetroSystem.adjustSurface(width, height);
+                RetroConsole.adjustSurface(width, height);
             }
 
             @Override
             public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                RetroSystem.detachSurface();
+                RetroConsole.detachSurface();
             }
         });
         binding.pendingIndicator.setDataModel(mViewModel);
@@ -176,8 +171,8 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
     }
 
     private void launch() {
-        RetroSystem.use(mGame.coreAlias);
-        boolean noError = RetroSystem.start(mGame.filepath);
+        RetroConsole.use(mGame.coreAlias);
+        boolean noError = RetroConsole.start(mGame.filepath);
 //        if (status == LaunchViewModel.NO_ERR) {
 //            attachToEmulator();
 //            if (mAutoLoadState && !mAutoLoadDisabled) {
@@ -229,14 +224,14 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
     public void onResume() {
         super.onResume();
         parentActivity.addOnKeyEventListener(this);
-        RetroSystem.resume();
+        RetroConsole.resume();
     }
 
     @Override
     public void onPause() {
         super.onPause();
         parentActivity.removeOnKeyEventListener(this);
-        RetroSystem.pause();
+        RetroConsole.pause();
     }
 
     @Override
@@ -306,7 +301,7 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
 //            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
 //        }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
-        RetroSystem.stop();
+        RetroConsole.stop();
         mGame.lastPlayedTime = System.currentTimeMillis();
         Disposable disposable = AppDatabase.db.gameInfoDao().update(mGame)
                 .subscribeOn(Schedulers.io())
@@ -349,7 +344,7 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.reset) {
-            RetroSystem.reset();
+            RetroConsole.reset();
             mExitDialog.dismiss();
         } else if (viewId == R.id.exit) {
             onExit();
@@ -438,6 +433,6 @@ public class LaunchFragment extends BaseFragment implements RetroSystem.OnEventL
 
     @Override
     public void onAudioFocusChange(int focusChange) {
-        RetroSystem.setAudioVolume(focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
+        RetroConsole.set(SET_AUDIO_VOLUME, focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
     }
 }
