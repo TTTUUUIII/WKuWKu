@@ -11,8 +11,6 @@
     <color name="secondary_container">#E8805F</color>
 
     <color name="primary_dark">@color/black</color>
-    <color name="secondary">#A0C878</color>
-    <color name="secondary_500">#C9DDB6</color>
     <color name="info">#3D90D7</color>
     <color name="error">#E52020</color>
     <color name="error_700">#E96262</color>
