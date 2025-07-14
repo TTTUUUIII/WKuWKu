@@ -1,5 +1,5 @@
 package ink.snowland.wkuwku.plug.yabause;
-
+import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 import android.content.res.Resources;
 
 import androidx.annotation.NonNull;
