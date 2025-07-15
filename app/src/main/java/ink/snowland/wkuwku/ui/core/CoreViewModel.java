@@ -10,8 +10,7 @@ import java.util.Map;
 
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.interfaces.Emulator;
-import ink.snowland.wkuwku.interfaces.IEmulatorV2;
+import ink.snowland.wkuwku.interfaces.IEmulator;
 
 public class CoreViewModel extends BaseViewModel {
     private final Map<String, List<EmOption>> mEmulatorOptions = new HashMap<>();
@@ -19,11 +18,11 @@ public class CoreViewModel extends BaseViewModel {
         super(application);
     }
 
-    public void putEmulatorOptions(IEmulatorV2 emulator, List<EmOption> options) {
-        mEmulatorOptions.put((String) emulator.getProp(IEmulatorV2.PROP_ALIAS), options);
+    public void putEmulatorOptions(IEmulator emulator, List<EmOption> options) {
+        mEmulatorOptions.put((String) emulator.getProp(IEmulator.PROP_ALIAS), options);
     }
 
-    public List<EmOption> getEmulatorOptions(IEmulatorV2 emulator) {
-        return mEmulatorOptions.get((String) emulator.getProp(IEmulatorV2.PROP_ALIAS));
+    public List<EmOption> getEmulatorOptions(IEmulator emulator) {
+        return mEmulatorOptions.get((String) emulator.getProp(IEmulator.PROP_ALIAS));
     }
 }

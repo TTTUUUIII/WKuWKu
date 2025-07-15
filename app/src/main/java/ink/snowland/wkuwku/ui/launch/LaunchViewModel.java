@@ -1,6 +1,6 @@
 package ink.snowland.wkuwku.ui.launch;
 
-import static ink.snowland.wkuwku.interfaces.IEmulatorV2.*;
+import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 import android.app.Application;
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -25,7 +25,7 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.interfaces.IEmulatorV2;
+import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -37,7 +37,7 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
     public static final int ERR_EMULATOR_NOT_FOUND = 1;
     public static final int ERR_LOAD_FAILED = 2;
     public static final int MAX_COUNT_OF_SNAPSHOT = 4;
-    private IEmulatorV2 mEmulator;
+    private IEmulator mEmulator;
     private AudioManager mAudioManager = null;
     private AudioFocusRequest mAudioFocusRequest = null;
     private final List<byte[]> mSnapshots = new ArrayList<>();
@@ -115,7 +115,7 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
         mEmulator.reset();
     }
 
-    public @Nullable IEmulatorV2 getEmulator() {
+    public @Nullable IEmulator getEmulator() {
         return mEmulator;
     }
 
@@ -159,7 +159,7 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
         } else {
             data = mSnapshots.get(mSnapshots.size() - 1);
         }
-        mEmulator.setSerializeData(data);
+        boolean noError = mEmulator.setSerializeData(data);
 //        showSnackbar(R.string.load_state_failed, 300);
     }
 

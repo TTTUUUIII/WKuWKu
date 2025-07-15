@@ -28,13 +28,11 @@ message(${CMAKE_BINARY_DIR})
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include_directories(include)
-add_library(fceumm SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
-add_library(fceummv2 SHARED
+add_library(fceumm SHARED
         GLUtils.cpp
         GLRenderer.cpp
         ink_snowland_wkuwku_EmulatorV2.cpp)
-target_link_libraries(fceumm android log retro)
-target_link_libraries(fceummv2 android log retro EGL GLESv3)
+target_link_libraries(fceumm android log retro EGL GLESv3)
 #macro(add_bridge_library name)
 #    add_library(${name}-bridge SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
 #    target_link_libraries(${name}-bridge android log ${name})
