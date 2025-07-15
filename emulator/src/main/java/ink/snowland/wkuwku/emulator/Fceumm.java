@@ -93,7 +93,7 @@ public class Fceumm extends Emulator {
             }
         }
         if (SHARED_INSTANCE != null) {
-            EmulatorManager.registerEmulator(SHARED_INSTANCE);
+//            EmulatorManager.registerEmulator(SHARED_INSTANCE);
         }
     }
 

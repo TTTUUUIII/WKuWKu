@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.launch.LaunchFragment">
 
-    <android.opengl.GLSurfaceView
+    <SurfaceView
         android:id="@+id/gl_surface_view"
         android:layout_width="430dp"
         android:layout_height="match_parent"

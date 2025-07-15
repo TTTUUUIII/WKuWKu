@@ -1,0 +1,52 @@
+package ink.snowland.wkuwku.interfaces;
+
+import android.view.Surface;
+
+import androidx.annotation.NonNull;
+
+import java.io.File;
+import java.util.List;
+
+import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.common.EmSystem;
+import ink.snowland.wkuwku.common.EmSystemAvInfo;
+import ink.snowland.wkuwku.common.EmSystemInfo;
+
+public interface IEmulatorV2 extends RetroDefine {
+
+    int PROP_SYSTEM_DIRECTORY       = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
+    int PROP_SAVE_DIRECTORY         = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
+    int PROP_CORE_ASSETS_DIRECTORY  = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
+    int PROP_AUDIO_VOLUME           = 100;
+    int PROP_ALIAS                  = 101;
+
+    void setProp(int what, Object data);
+    Object getProp(int what);
+    List<EmOption> getOptions();
+    void setOption(EmOption option);
+    void setOnEventListener(@NonNull OnEmulatorV2EventListener listener);
+    boolean isSupportedSystem(@NonNull EmSystem system);
+    boolean isSupportedSystem(@NonNull String systemTag);
+    List<EmSystem> getSupportedSystems();
+    File searchSupportedContent(File file);
+    boolean attachSurface(@NonNull Surface surface);
+    void adjustSurface(int vw, int vh);
+    void detachSurface();
+    boolean start(@NonNull String path);
+    void pause();
+    void resume();
+    void stop();
+    void reset();
+    EmSystemInfo getSystemInfo();
+    EmSystemAvInfo getSystemAvInfo();
+    byte[] getSerializeData();
+    boolean setSerializeData(final byte[] data);
+    byte[] getMemoryData(int type);
+    void setMemoryData(int type, final byte[] data);
+    void setControllerPortDevice(int port, int device);
+
+    boolean onNativeEnvironment(int cmd, Object data);
+    void onNativeVideoSizeChanged(int vw, int vh);
+    int onNativePollInput(int port, int device, int index, int id);
+    int onNativeAudioBuffer(final short[] data, int frames);
+}

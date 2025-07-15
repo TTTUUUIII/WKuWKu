@@ -20,6 +20,7 @@ import ink.snowland.wkuwku.App;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
+import ink.snowland.wkuwku.interfaces.IEmulatorV2;
 import ink.snowland.wkuwku.util.NumberUtils;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
@@ -91,12 +92,12 @@ public class GamesViewModel extends BaseViewModel {
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> {
                     boolean noError = true;
-                    Emulator emulator = EmulatorManager.getDefaultEmulator(game.system);
+                    IEmulatorV2 emulator = EmulatorManager.getDefaultEmulator(game.system);
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
                     if (emulator == null) return;
                     if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE
                             && (infoMask & ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_SUPPORTED_ARCHIVE_FILE_TYPE) {
-                        boolean emulatorSupportedArchive = emulator.findContent(file) != null;
+                        boolean emulatorSupportedArchive = emulator.searchSupportedContent(file) != null;
                         if (!emulatorSupportedArchive) {
                             setPendingIndicator(true, R.string.unzipping_files);
                             File originFile = file;
@@ -122,7 +123,7 @@ public class GamesViewModel extends BaseViewModel {
                     }
                     if (!noError) return;
                     if (file.isDirectory()) {
-                        File romFile = emulator.findContent(file);
+                        File romFile = emulator.searchSupportedContent(file);
                         if (romFile == null) {
                             FileManager.delete(file);
                         }

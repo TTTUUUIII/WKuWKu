@@ -6,7 +6,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
-#include "log.h"
+#include "Log.h"
 
 #ifndef EM_TAG
 #define EM_TAG "Fceumm_Native"

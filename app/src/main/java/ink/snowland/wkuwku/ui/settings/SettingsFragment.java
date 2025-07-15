@@ -21,6 +21,7 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.interfaces.IEmulatorV2;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
@@ -41,27 +42,27 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     .stream()
                     .sorted(Comparator.comparing(it -> it.manufacturer))
                     .collect(Collectors.toList());
-            Collection<Emulator> emulators = EmulatorManager.getEmulators();
+            Collection<IEmulatorV2> emulators = EmulatorManager.getEmulators();
             for (EmSystem system : systems) {
                 ListPreference listPreference = new ListPreference(requireContext());
-                List<Emulator> supportedEmulators = new ArrayList<>();
-                for (Emulator emulator : emulators) {
+                List<IEmulatorV2> supportedEmulators = new ArrayList<>();
+                for (IEmulatorV2 emulator : emulators) {
                     if (emulator.isSupportedSystem(system)) {
                         supportedEmulators.add(emulator);
                     }
                 }
                 String[] values = new String[supportedEmulators.size()];
                 for (int i = 0; i < supportedEmulators.size(); i++) {
-                    values[i] = supportedEmulators.get(i).getTag();
+                    values[i] = (String) supportedEmulators.get(i).getProp(IEmulatorV2.PROP_ALIAS);
                 }
                 listPreference.setKey("app_" + system.tag + "_core");
                 listPreference.setTitle(system.name);
                 listPreference.setEntryValues(values);
                 listPreference.setEntries(values);
                 listPreference.setIconSpaceReserved(false);
-                Emulator emulator = EmulatorManager.getDefaultEmulator(system);
+                IEmulatorV2 emulator = EmulatorManager.getDefaultEmulator(system);
                 if (emulator != null)
-                    listPreference.setDefaultValue(emulator.getTag());
+                    listPreference.setDefaultValue(emulator.getProp(IEmulatorV2.PROP_ALIAS));
                 listPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
                 corePreferenceCategory.addPreference(listPreference);
             }
@@ -75,7 +76,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             autoLoadStateBlackList.setKey("app_blacklist_auto_load_state");
             String[] entries = EmulatorManager.getEmulators()
                     .stream()
-                    .map(Emulator::getTag)
+                    .map(it -> (String) it.getProp(IEmulatorV2.PROP_ALIAS))
                     .toArray(String[]::new);
             autoLoadStateBlackList.setEntries(entries);
             autoLoadStateBlackList.setEntryValues(entries);

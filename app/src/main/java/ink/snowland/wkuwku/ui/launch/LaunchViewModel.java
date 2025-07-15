@@ -1,7 +1,6 @@
 package ink.snowland.wkuwku.ui.launch;
 
-import static ink.snowland.wkuwku.interfaces.Emulator.SAVE_DIR;
-import static ink.snowland.wkuwku.interfaces.Emulator.SYSTEM_DIR;
+import static ink.snowland.wkuwku.interfaces.IEmulatorV2.*;
 import android.app.Application;
 import android.content.Context;
 import android.media.AudioAttributes;
@@ -26,7 +25,7 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.interfaces.IEmulatorV2;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -38,7 +37,7 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
     public static final int ERR_EMULATOR_NOT_FOUND = 1;
     public static final int ERR_LOAD_FAILED = 2;
     public static final int MAX_COUNT_OF_SNAPSHOT = 4;
-    private Emulator mEmulator;
+    private IEmulatorV2 mEmulator;
     private AudioManager mAudioManager = null;
     private AudioFocusRequest mAudioFocusRequest = null;
     private final List<byte[]> mSnapshots = new ArrayList<>();
@@ -69,18 +68,29 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
                 });
     }
 
-    public int startEmulator(@NonNull Game game) {
-        onSelectEmulator(game);
+    public void selectEmulator(@NonNull Game game) {
+        String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", game.system));
+        if (tag.isEmpty()) {
+            mEmulator = EmulatorManager.getDefaultEmulator(game.system);
+        } else {
+            mEmulator = EmulatorManager.getEmulator(tag);
+            if (mEmulator == null)
+                mEmulator = EmulatorManager.getDefaultEmulator(game.system);
+        }
+        mCurrentGame = game;
+    }
+
+    public int startEmulator() {
         if (mEmulator != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mEmulator.setAudioVolume(mAudioManager.requestAudioFocus(mAudioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
+                mEmulator.setProp(PROP_AUDIO_VOLUME, mAudioManager.requestAudioFocus(mAudioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
             }
             onApplyOptions();
-            mEmulator.setDirectory(SYSTEM_DIR, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
-            mEmulator.setDirectory(SAVE_DIR, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY + "/" + mEmulator.getTag()));
-            if (mEmulator.start(game.filepath)) {
-                mCurrentGame = game;
-                handler.postDelayed(this::onStarted, 300);
+            mEmulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
+            mEmulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
+            mEmulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
+            if (mEmulator.start(mCurrentGame.filepath)) {
+                loadAllStates();
                 return NO_ERR;
             } else {
                 mEmulator = null;
@@ -105,14 +115,14 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
         mEmulator.reset();
     }
 
-    public @Nullable Emulator getEmulator() {
+    public @Nullable IEmulatorV2 getEmulator() {
         return mEmulator;
     }
 
     public void stopEmulator() {
         if (mEmulator == null) return;
         mEmulator.pause();
-        final String prefix = mEmulator.getTag();
+        final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
         for (int i = 0; i < mSnapshots.size(); i++) {
             try (FileOutputStream fos = new FileOutputStream(FileManager.getFile(FileManager.STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1)))) {
                 fos.write(mSnapshots.get(i));
@@ -130,11 +140,11 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
 
     public boolean saveCurrentSate() {
         if (mEmulator == null) return false;
-        byte[] snapshot = mEmulator.getSnapshot();
-        if (snapshot == null || snapshot.length == 0) return false;
+        byte[] data = mEmulator.getSerializeData();
+        if (data == null || data.length == 0) return false;
         if (mSnapshots.size() == MAX_COUNT_OF_SNAPSHOT)
             mSnapshots.remove(0);
-        mSnapshots.add(snapshot);
+        mSnapshots.add(data);
         return true;
     }
 
@@ -143,13 +153,13 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
     }
     public void loadStateAt(int at) {
         if (mSnapshots.isEmpty() || mEmulator == null) return;
-        final byte[] snapshot;
+        final byte[] data;
         if (at < mSnapshots.size()) {
-            snapshot = mSnapshots.get(at);
+            data = mSnapshots.get(at);
         } else {
-            snapshot = mSnapshots.get(mSnapshots.size() - 1);
+            data = mSnapshots.get(mSnapshots.size() - 1);
         }
-        mEmulator.setSnapshot(snapshot);
+        mEmulator.setSerializeData(data);
 //        showSnackbar(R.string.load_state_failed, 300);
     }
 
@@ -157,9 +167,9 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
         return mSnapshots.size();
     }
 
-    private void onStarted() {
+    private void loadAllStates() {
         if (mEmulator == null) return;
-        final String prefix = mEmulator.getTag();
+        final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
         for (int i = 0; i < MAX_COUNT_OF_SNAPSHOT; ++i) {
             File statFile = FileManager.getFile(FileManager.STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1));
             if (statFile.exists() && statFile.length() != 0) {
@@ -173,17 +183,6 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
                     e.printStackTrace(System.err);
                 }
             }
-        }
-    }
-
-    private void onSelectEmulator(@NonNull Game game) {
-        String tag = SettingsManager.getString(String.format(Locale.ROOT, "app_%s_core", game.system));
-        if (tag.isEmpty()) {
-            mEmulator = EmulatorManager.getDefaultEmulator(game.system);
-        } else {
-            mEmulator = EmulatorManager.getEmulator(tag);
-            if (mEmulator == null)
-                mEmulator = EmulatorManager.getDefaultEmulator(game.system);
         }
     }
 
@@ -202,6 +201,6 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
     @Override
     public void onAudioFocusChange(int focusChange) {
         if (mEmulator == null) return;
-        mEmulator.setAudioVolume(focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
+        mEmulator.setProp(PROP_AUDIO_VOLUME, focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
     }
 }

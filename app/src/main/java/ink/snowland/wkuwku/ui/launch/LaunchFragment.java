@@ -1,13 +1,10 @@
 package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
+import static ink.snowland.wkuwku.interfaces.IEmulatorV2.*;
 
 import android.annotation.SuppressLint;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.res.Configuration;
-import android.net.Uri;
-import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -21,15 +18,14 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
-import android.os.Environment;
 import android.os.Looper;
-import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -38,12 +34,11 @@ import android.widget.Toast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
@@ -54,11 +49,11 @@ import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.device.GLRenderer;
 import ink.snowland.wkuwku.device.ExternalController;
 import ink.snowland.wkuwku.device.VirtualController;
-import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.interfaces.IEmulatorV2;
 import ink.snowland.wkuwku.interfaces.OnEmulatorEventListener;
+import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
 import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -67,7 +62,7 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements OnEmulatorEventListener, View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener {
+public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener {
     private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
@@ -80,7 +75,7 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     private static final String PLAYER_1_CONTROLLER = "player_1_controller";
     private static final String PLAYER_2_CONTROLLER = "player_2_controller";
     private FragmentLaunchBinding binding;
-    private GLRenderer mRenderer;
+//    private GLRenderer mRenderer;
     private LaunchViewModel mViewModel;
     private Game mGame;
     private Snackbar mSnackbar;
@@ -106,6 +101,9 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         Bundle arguments = getArguments();
         assert arguments != null;
         mGame = arguments.getParcelable(ARG_GAME);
+        if (mGame != null) {
+            mViewModel.selectEmulator(mGame);
+        }
         mAutoLoadState = arguments.getBoolean(ARG_AUTO_LOAD_STATE, false);
     }
 
@@ -114,10 +112,11 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
-        mRenderer = new GLRenderer(requireContext());
-        binding.glSurfaceView.setEGLContextClientVersion(3);
-        binding.glSurfaceView.setRenderer(mRenderer);
-        binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+//        mRenderer = new GLRenderer(requireContext());
+//        binding.glSurfaceView.setEGLContextClientVersion(3);
+//        binding.glSurfaceView.setRenderer(mRenderer);
+//        binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        attachToEmulator();
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
         mSnackbar = Snackbar.make(binding.snackbarContainer, "", Snackbar.LENGTH_SHORT);
@@ -151,16 +150,13 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                     .doFinally(() -> {
                         mViewModel.setPendingIndicator(false);
                     })
-                    .subscribe(this::launch, error -> {/*Ignored*/});
-        } else {
-            attachToEmulator();
+                    .subscribe(this::startEmulator, error -> {/*Ignored*/});
         }
     }
 
-    private void launch() {
-        int status = mViewModel.startEmulator(mGame);
+    private void startEmulator() {
+        int status = mViewModel.startEmulator();
         if (status == LaunchViewModel.NO_ERR) {
-            attachToEmulator();
             if (mAutoLoadState && !mAutoLoadDisabled) {
                 handler.postDelayed(mViewModel::loadStateAtLast, 300);
             }
@@ -197,21 +193,32 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void attachToEmulator() {
-        if (mViewModel.getEmulator() == null) return;
-        final Emulator emulator = mViewModel.getEmulator();
-        mRenderer.setPixelFormat(emulator.getPixelFormat());
-        mRenderer.setScreenRotation(emulator.getRotation());
-        emulator.setOnEmulatorEventListener(this);
-        mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getTag());
+        IEmulatorV2 emulator = mViewModel.getEmulator();
+        if (emulator == null) return;
+        emulator.setOnEventListener(this);
+        emulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
+        emulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
+        emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
+        binding.glSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            @Override
+            public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                emulator.attachSurface(holder.getSurface());
+            }
+
+            @Override
+            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                emulator.adjustSurface(width, height);
+            }
+
+            @Override
+            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                emulator.detachSurface();
+            }
+        });
     }
 
-    private int mCurrentWidth;
-    private int mCurrentHeight;
     private void adjustScreenSize(int width, int height) {
-        if (mCurrentWidth == width && mCurrentHeight == height) return;
         float ratio = (float) width / height;
-        mCurrentWidth = width;
-        mCurrentHeight = height;
         binding.glSurfaceView.post(() -> {
             ViewGroup.LayoutParams lp = binding.glSurfaceView.getLayoutParams();
             if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
@@ -345,12 +352,12 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
         boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
             mViewModel.pauseEmulator();
-            mViewModel.saveCurrentSate();
+//            mViewModel.saveCurrentSate();
             captureScreen = true;
         }
-        if (captureScreen) {
-            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
-        }
+//        if (captureScreen) {
+//            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
+//        }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
         mGame.lastPlayedTime = System.currentTimeMillis();
@@ -419,24 +426,24 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
     }
 
     private void takeScreenshot() {
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
-        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
-        values.put(MediaStore.Images.Media.IS_PENDING, 1);
-        ContentResolver contentResolver = requireContext().getContentResolver();
-        Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-        if (uri == null) return;
-        try (OutputStream fos = contentResolver.openOutputStream(uri)){
-            if (fos == null) return;
-            mRenderer.exportAsPNG(fos);
-            values.clear();
-            values.put(MediaStore.Images.Media.IS_PENDING, 0);
-            contentResolver.update(uri, values, null, null);
-            showSnackbar(R.string.screenshot_saved, SNACKBAR_LENGTH_SHORT);
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-        }
+//        ContentValues values = new ContentValues();
+//        values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
+//        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+//        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
+//        values.put(MediaStore.Images.Media.IS_PENDING, 1);
+//        ContentResolver contentResolver = requireContext().getContentResolver();
+//        Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+//        if (uri == null) return;
+//        try (OutputStream fos = contentResolver.openOutputStream(uri)){
+//            if (fos == null) return;
+//            mRenderer.exportAsPNG(fos);
+//            values.clear();
+//            values.put(MediaStore.Images.Media.IS_PENDING, 0);
+//            contentResolver.update(uri, values, null, null);
+//            showSnackbar(R.string.screenshot_saved, SNACKBAR_LENGTH_SHORT);
+//        } catch (IOException e) {
+//            e.printStackTrace(System.err);
+//        }
     }
 
     private int mL1ButtonState = KeyEvent.ACTION_UP;
@@ -462,46 +469,6 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
             handled = controller.onKeyEvent(event);;
         }
         return handled;
-    }
-
-    @Override
-    public void onPixelFormatChanged(int format) {
-        mRenderer.setPixelFormat(format);
-    }
-
-    @Override
-    public void onRotationChanged(int rotation) {
-        mRenderer.setScreenRotation(rotation);
-    }
-
-    @Override
-    public void onDrawFramebuffer(final byte[] data, int width, int height, int pitch) {
-        if (mRenderer.getScreenRotation() == 1 || mRenderer.getScreenRotation() == 3) {
-            adjustScreenSize(height, width);
-        } else {
-            adjustScreenSize(width, height);
-        }
-        mRenderer.updateFramebuffer(data, width, height, pitch);
-        binding.glSurfaceView.requestRender();
-    }
-
-    @Override
-    public short onGetInputState(int port, int device, int index, int id) {
-        BaseController controller = mControllerRoutes.get(port);
-        if (controller == null || controller.type != device) return 0;
-        return controller.getState(id);
-    }
-
-    @Override
-    public boolean onRumbleEvent(int port, int effect, int streng) {
-        return false;
-    }
-
-    @Override
-    public void onMessage(@NonNull EmMessageExt message) {
-        if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
-            handler.post(() -> showSnackbar(message.msg, message.duration));
-        }
     }
 
     @Override
@@ -576,6 +543,25 @@ public class LaunchFragment extends BaseFragment implements OnEmulatorEventListe
                 SettingsManager.putString(key, deviceName);
                 onUpdateControllerRoutes();
             } catch (NumberFormatException | IndexOutOfBoundsException ignored) {}
+        }
+    }
+
+    @Override
+    public void onVideoSizeChanged(int vw, int vh) {
+        adjustScreenSize(vw, vh);
+    }
+
+    @Override
+    public int onPollInputState(int port, int device, int index, int id) {
+        BaseController controller = mControllerRoutes.get(port);
+        if (controller == null || controller.type != device) return 0;
+        return controller.getState(id);
+    }
+
+    @Override
+    public void onMessage(@NonNull EmMessageExt message) {
+        if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
+            handler.post(() -> showSnackbar(message.msg, message.duration));
         }
     }
 }

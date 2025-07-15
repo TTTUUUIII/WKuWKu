@@ -1,0 +1,782 @@
+#include <jni.h>
+#include <libretro/libretro.h>
+#include <string>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fstream>
+#include "Log.h"
+#include "GLRenderer.h"
+#include "GLUtils.h"
+#include "ink_snowland_wkuwku_EmulatorV2.h"
+#include <mutex>
+
+#ifndef TAG
+#define TAG "Fceumm_Native"
+#endif
+
+static std::mutex mtx;
+static std::unique_ptr<GLRenderer> current_renderer;
+static int current_state = STATE_INVALID;
+static retro_hw_render_callback *hw_render_cb = nullptr;
+static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
+static EGLDisplay current_dyp;
+static EGLSurface current_sf;
+static unsigned current_vw = 0;
+static unsigned current_vh = 0;
+static std::unique_ptr<Buffer<void *>> current_framebuffer = nullptr;
+
+#define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
+typedef struct {
+    JavaVM *jvm;
+    jclass input_descriptor_clazz;
+    jclass message_ext_clazz;
+    jclass array_list_clazz;
+    jobject emulator_obj;
+    jmethodID message_ext_constructor;
+    jmethodID input_descriptor_constructor;
+    jmethodID array_list_constructor;
+    jmethodID array_list_add_method;
+    jmethodID environment_method;
+    jmethodID video_size_cb_method;
+    jmethodID audio_cb_method;
+    jmethodID input_cb_method;
+    jfieldID variable_value_field;
+    jfieldID variable_entry_key_field;
+    jfieldID variable_entry_value_field;
+} em_context_t;
+
+static em_context_t ctx = {nullptr};
+static jobject variable_object;
+static jobject variable_entry_object;
+static jshortArray audio_buffer = nullptr;
+static int need_fullpath = true;
+static struct retro_disk_control_callback *disk_control;
+static struct retro_disk_control_ext_callback *dis_control_ext;
+
+static void set_variable_value(JNIEnv *env, jobject value) {
+    env->SetObjectField(variable_object, ctx.variable_value_field, value);
+}
+
+static void set_variable_value(JNIEnv *env, jint value) {
+    jclass clazz = env->FindClass("java/lang/Integer");
+    jmethodID value_of_method = env->GetStaticMethodID(clazz, "valueOf", "(I)Ljava/lang/Integer;");
+    jobject val = env->CallStaticObjectMethod(clazz, value_of_method, value);
+    set_variable_value(env, val);
+}
+
+static void set_variable_value(JNIEnv *env, const char *value) {
+    set_variable_value(env, env->NewStringUTF(value));
+}
+
+static jobject get_variable_value(JNIEnv *env) {
+    return env->GetObjectField(variable_object, ctx.variable_value_field);
+}
+
+static jint get_variable_int_value(JNIEnv *env) {
+    jobject integer_obj = env->GetObjectField(variable_object, ctx.variable_value_field);
+    jclass clazz = env->FindClass("java/lang/Integer");
+    jmethodID int_value_method = env->GetMethodID(clazz, "intValue", "()I");
+    return env->CallIntMethod(integer_obj, int_value_method);
+}
+
+static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
+    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
+                        env->NewStringUTF(key));
+    env->SetObjectField(variable_entry_object, ctx.variable_entry_value_field, value);
+}
+
+static void set_variable_entry(JNIEnv *env, const char *key, jint value) {
+    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
+                        env->NewStringUTF(key));
+    jclass clazz = env->FindClass("java/lang/Integer");
+    jmethodID value_of_method = env->GetStaticMethodID(clazz, "valueOf", "(I)Ljava/lang/Integer;");
+    jobject val = env->CallStaticObjectMethod(clazz, value_of_method, value);
+    set_variable_entry(env, key, val);
+}
+
+static jobject get_variable_entry_value(JNIEnv *env) {
+    return env->GetObjectField(variable_entry_object, ctx.variable_entry_value_field);
+}
+
+static void log_print_callback(enum retro_log_level level, const char *fmt, ...) {
+    char buffer[512];
+    va_list args;
+    va_start(args, fmt);
+    vsnprintf(buffer, sizeof(buffer), fmt, args);
+    va_end(args);
+    switch (level) {
+        case RETRO_LOG_ERROR:
+            LOGE(TAG, "%s", buffer);
+            break;
+        case RETRO_LOG_INFO:
+            LOGI(TAG, "%s", buffer);
+            break;
+        case RETRO_LOG_WARN:
+            LOGW(TAG, "%s", buffer);
+            break;
+        default:
+            LOGD(TAG, "%s", buffer);
+    }
+}
+
+static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
+    if (!hw_render_cb && data) {
+        fill_framebuffer(data, width, height, pitch);
+        if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+            texture(GL_RGB, (int) width, (int) height, current_framebuffer->data);
+        } else {
+            texture(GL_RGBA, (int) width, (int) height, current_framebuffer->data);
+        }
+    }
+    eglSwapBuffers(current_dyp, current_sf);
+    if (current_vw != width || current_vh != height) {
+        current_vw = width;
+        current_vh = height;
+        notify_video_size_changed();
+    }
+}
+
+static void fill_framebuffer(const void *data, unsigned width, unsigned height, size_t pitch) {
+    size_t bytes_per_pixel = 2;
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        bytes_per_pixel = 4;
+    }
+    size_t size = width * height * bytes_per_pixel;
+    if (!current_framebuffer || current_framebuffer->size != size) {
+        current_framebuffer = std::make_unique<Buffer<void *>>(malloc(size), size);
+    }
+    for (int i = 0; i < height; ++i) {
+        memcpy((void *) (static_cast<const char *>(current_framebuffer->data) +
+                         i * width * bytes_per_pixel), static_cast<const char *>(data) + i * pitch,
+               width * bytes_per_pixel);
+    }
+}
+
+static void notify_video_size_changed() {
+    JNIEnv *env;
+    bool is_attached = false;
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "Failed to attach env thread!");
+            return;
+        } else {
+            is_attached = true;
+        }
+    }
+    env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, current_vw, current_vh);
+    if (is_attached) {
+        ctx.jvm->DetachCurrentThread();
+    }
+}
+
+static void audio_buffer_state_callback(bool active, unsigned occupancy, bool underrun_likely) {
+    LOGI(TAG, "Audio buffer state: active=%d, occupancy=%d, underrun=%d", active, occupancy,
+         underrun_likely);
+}
+
+static size_t audio_cb(const int16_t *data, size_t frames) {
+    JNIEnv *env;
+    bool is_attached = false;
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "Unable attach env thread!");
+            return false;
+        } else {
+            is_attached = true;
+        }
+    }
+    if (audio_buffer == nullptr || env->GetArrayLength(audio_buffer) != frames * 2) {
+        if (audio_buffer != nullptr) {
+            env->DeleteGlobalRef(audio_buffer);
+        }
+        audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(frames * 2));
+    }
+    env->SetShortArrayRegion(audio_buffer, 0, frames * 2, data);
+    jint ret = env->CallIntMethod(ctx.emulator_obj, ctx.audio_cb_method, audio_buffer, frames);
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
+    return ret;
+}
+
+static int16_t input_cb(unsigned port, unsigned device, unsigned index, unsigned id) {
+    JNIEnv *env;
+    bool is_attached = false;
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "Unable attach env thread!");
+            return 0;
+        } else {
+            is_attached = true;
+        }
+    }
+    auto state = (int16_t) env->CallIntMethod(ctx.emulator_obj, ctx.input_cb_method, port,
+                                              device,
+                                              index,
+                                              id);
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
+    return state;
+}
+
+static void input_poll_cb() {
+    /*Ignored*/
+}
+
+static bool
+set_rumble_state_callback(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
+    return true;
+}
+
+static bool environment_cb(unsigned cmd, void *data) {
+    JNIEnv *env;
+    bool is_attached = false;
+    if (ctx.jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        if (ctx.jvm->AttachCurrentThread(&env, nullptr) != JNI_OK) {
+            LOGE(TAG, "Unable attach env thread!");
+            return false;
+        } else {
+            is_attached = true;
+        }
+    }
+    switch (cmd) {
+        case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
+        case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
+        case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
+            break;
+        case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
+            struct retro_log_callback *log_cb;
+            log_cb = (struct retro_log_callback *) data;
+            log_cb->log = log_print_callback;
+            break;
+        case RETRO_ENVIRONMENT_SET_ROTATION:
+            set_variable_value(env, (jint) *(unsigned *) data);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          variable_object);
+        case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
+            if (data != nullptr) {
+                auto *audio_buffer_state = (struct retro_audio_buffer_status_callback *) data;
+                audio_buffer_state->callback = audio_buffer_state_callback;
+            }
+            break;
+        case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE: {
+            auto *rumble = (struct retro_rumble_interface *) data;
+            rumble->set_rumble_state = set_rumble_state_callback;
+        }
+            break;
+        case RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY:
+            set_variable_value(env, (jint) (*(unsigned *) data));
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          variable_object);
+        case RETRO_ENVIRONMENT_SET_MESSAGE: {
+            auto *msg = (struct retro_message *) data;
+            jobject jmsg_ext = env->NewObject(ctx.message_ext_clazz,
+                                              ctx.message_ext_constructor,
+                                              env->NewStringUTF(msg->msg),
+                                              0,
+                                              RETRO_LOG_INFO,
+                                              RETRO_MESSAGE_TARGET_LOG,
+                                              RETRO_MESSAGE_TYPE_NOTIFICATION,
+                                              -1,
+                                              300
+            );
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
+        }
+        case RETRO_ENVIRONMENT_SET_MESSAGE_EXT: {
+            auto *msg_ext = (struct retro_message_ext *) data;
+            jobject jmsg_ext = env->NewObject(ctx.message_ext_clazz,
+                                              ctx.message_ext_constructor,
+                                              env->NewStringUTF(msg_ext->msg),
+                                              msg_ext->priority,
+                                              msg_ext->level,
+                                              msg_ext->target,
+                                              msg_ext->type,
+                                              msg_ext->progress,
+                                              msg_ext->duration
+            );
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
+        }
+        case RETRO_ENVIRONMENT_GET_VARIABLE: {
+            struct retro_variable *variable;
+            variable = (struct retro_variable *) data;
+            set_variable_entry(env, variable->key, nullptr);
+            bool supported = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                                    variable_entry_object);
+            if (supported) {
+                auto value = (jstring) get_variable_entry_value(env);
+                variable->value = env->GetStringUTFChars(value, JNI_FALSE);
+            }
+            return supported;
+        }
+        case RETRO_ENVIRONMENT_SET_VARIABLE: {
+            struct retro_variable *variable = nullptr;
+            if (data != nullptr) {
+                variable = (struct retro_variable *) data;
+                set_variable_entry(env, variable->key, env->NewStringUTF(variable->value));
+            }
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          variable_entry_object);
+        }
+        case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO: {
+            auto *controller_info = (struct retro_controller_info *) data;
+            jobject array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
+            jclass controller_desc_clazz = env->FindClass(
+                    "ink/snowland/wkuwku/common/ControllerDescription");
+            jmethodID constructor = env->GetMethodID(controller_desc_clazz, "<init>",
+                                                     "(Ljava/lang/String;I)V");
+            for (int i = 0; i < controller_info->num_types; ++i) {
+                jobject controller_desc = env->NewObject(controller_desc_clazz, constructor,
+                                                         env->NewStringUTF(
+                                                                 controller_info->types[i].desc),
+                                                         (jint) controller_info->types[i].id);
+                env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
+            }
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          array_list);
+        }
+        case RETRO_ENVIRONMENT_SET_GEOMETRY: {
+            auto geometry = (struct retro_game_geometry *) data;
+            jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
+            jmethodID constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
+            jobject o1 = env->NewObject(clazz, constructor, (jint) geometry->base_width,
+                                        (jint) geometry->base_height,
+                                        (jint) geometry->max_width,
+                                        (jint) geometry->max_height, geometry->aspect_ratio);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, o1);
+        }
+        case RETRO_ENVIRONMENT_SET_CONTENT_INFO_OVERRIDE:
+        case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_UPDATE_DISPLAY_CALLBACK:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_DISPLAY:
+        case RETRO_ENVIRONMENT_SET_SUBSYSTEM_INFO:
+        case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
+        case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
+        case RETRO_ENVIRONMENT_GET_CURRENT_SOFTWARE_FRAMEBUFFER:
+        case RETRO_ENVIRONMENT_GET_CAN_DUPE:
+            /*Currently not supported*/
+            return false;
+        case RETRO_ENVIRONMENT_SET_SERIALIZATION_QUIRKS:
+        case RETRO_ENVIRONMENT_SET_MEMORY_MAPS:
+        case RETRO_ENVIRONMENT_SET_VARIABLES:
+            /*Ignored*/
+            break;
+        case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, nullptr);
+        case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
+            set_variable_value(env, (jint) *(unsigned *) data);
+            return env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                          variable_object);
+        case RETRO_ENVIRONMENT_GET_DISK_CONTROL_INTERFACE_VERSION:
+            *(unsigned *) data = 2;
+            break;
+        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE:
+            if (data) {
+                dis_control_ext = (struct retro_disk_control_ext_callback *) data;
+            }
+            break;
+        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
+            if (data) {
+                disk_control = (struct retro_disk_control_callback *) data;
+            }
+            break;
+        case RETRO_ENVIRONMENT_GET_LANGUAGE: {
+            set_variable_value(env, RETRO_LANGUAGE_DUMMY);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
+            if (ret) {
+                auto language = get_variable_int_value(env);
+                *(unsigned *) data = language;
+            }
+            return ret;
+        }
+        case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+            pixel_format = *((retro_pixel_format *) data);
+            break;
+        case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: {
+            jint index = 0;
+            struct retro_input_descriptor *desc;
+            desc = (struct retro_input_descriptor *) data;
+            jobject array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
+            while (desc->description != nullptr) {
+                jobject it = env->NewObject(
+                        ctx.input_descriptor_clazz,
+                        ctx.input_descriptor_constructor,
+                        desc->port,
+                        desc->device,
+                        desc->index,
+                        desc->id,
+                        env->NewStringUTF(desc->description));
+                env->CallVoidMethod(array_list, ctx.array_list_add_method, index, it);
+                desc++;
+                index++;
+            }
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              array_list);
+            return ret;
+        }
+        case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE: {
+            set_variable_value(env, 0);
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
+            if (ret) {
+                jint val = get_variable_int_value(env);
+                *(int *) data = val;
+            }
+            return ret;
+        }
+        case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO: {
+            auto *av_info = (struct retro_system_av_info *) data;
+            jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
+            jmethodID constructor = env->GetMethodID(clazz, "<init>", "(DD)V");
+            jobject o0 = env->NewObject(clazz, constructor, av_info->timing.fps,
+                                        av_info->timing.sample_rate);
+            clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
+            constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
+            jobject o1 = env->NewObject(clazz, constructor, (jint) av_info->geometry.base_width,
+                                        (jint) av_info->geometry.base_height,
+                                        (jint) av_info->geometry.max_width,
+                                        (jint) av_info->geometry.max_height,
+                                        av_info->geometry.aspect_ratio);
+            clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
+            constructor = env->GetMethodID(clazz, "<init>",
+                                           "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              env->NewObject(clazz, constructor, o1, o0));
+            return ret;
+        }
+        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+        case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
+            bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
+            if (ret) {
+                auto path = (jstring) get_variable_value(env);
+                *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
+            }
+            return ret;
+        }
+        case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION: {
+            set_variable_value(env, 0);
+            env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, variable_object);
+            jint version = (jint) get_variable_int_value(env);
+            *(int *) data = version;
+            LOGI(TAG, "Message interface version: %d", version);
+        }
+            break;
+        default:
+            LOGW(TAG, "Environment: %d ignored.", cmd);
+            return false;
+    }
+    if (is_attached)
+        ctx.jvm->DetachCurrentThread();
+    return true;
+}
+
+static bool initialized = false;
+
+static jboolean em_attach_surface(JNIEnv *env, jobject thiz, jobject surface) {
+    current_renderer = std::make_unique<GLRenderer>(ANativeWindow_fromSurface(env, surface));
+    GLRendererInterface *interface = current_renderer->get_renderer_interface();
+    interface->on_create = on_create;
+    interface->on_draw = on_draw;
+    interface->on_destroy = on_destroy;
+    if (current_state == STATE_RUNNING) {
+        current_renderer->start();
+    }
+    return true;
+}
+
+static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
+    current_renderer->adjust_viewport(vw, vh);
+}
+
+static void em_detach_surface(JNIEnv *env, jobject thiz) {
+    current_renderer->stop();
+    current_renderer.reset();
+}
+
+static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
+    ctx.emulator_obj = env->NewGlobalRef(thiz);
+    if (current_state == INVALID) {
+        retro_set_environment(environment_cb);
+        retro_init();
+        retro_set_video_refresh(video_cb);
+        retro_set_audio_sample_batch(audio_cb);
+        retro_set_input_state(input_cb);
+        retro_set_input_poll(input_poll_cb);
+        current_state = STATE_IDLE;
+    }
+    const char *rom_path = env->GetStringUTFChars(path, JNI_FALSE);
+    struct retro_system_info system_info{};
+    retro_get_system_info(&system_info);
+    struct retro_game_info info{rom_path, nullptr, 0, nullptr};
+    if (!system_info.need_fullpath) {
+        int fd = open(rom_path, O_RDONLY);
+        if (fd == -1) return false;
+        struct stat sb = {0};
+        if (fstat(fd, &sb) == -1) {
+            close(fd);
+            return false;
+        }
+        info.size = sb.st_size;
+        info.data = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    }
+    bool no_error = retro_load_game(&info);
+    if (info.data != nullptr) {
+        munmap((void *) info.data, info.size);
+    }
+    if (no_error) {
+        current_state = STATE_RUNNING;
+        if (current_renderer) {
+            current_renderer->start();
+        }
+    }
+    env->ReleaseStringUTFChars(path, rom_path);
+    return no_error;
+}
+
+static void em_pause(JNIEnv *env, jobject thiz) {
+    if (current_state == STATE_RUNNING) {
+        current_state = STATE_PAUSED;
+    }
+}
+
+static void em_resume(JNIEnv *env, jobject thiz) {
+    if (current_state == STATE_PAUSED) {
+        current_state = STATE_RUNNING;
+    }
+}
+
+static void em_reset(JNIEnv *env, jobject thiz) {
+    retro_reset();
+}
+
+static void em_stop(JNIEnv *env, jobject thiz) {
+    std::lock_guard<std::mutex> lock(mtx);
+    current_state = STATE_IDLE;
+    retro_unload_game();
+    env->DeleteGlobalRef(ctx.emulator_obj);
+}
+
+static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
+    struct retro_system_av_info av_info = {0};
+    retro_get_system_av_info(&av_info);
+    jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(DD)V");
+    jobject o0 = env->NewObject(clazz, constructor, av_info.timing.fps,
+                                av_info.timing.sample_rate);
+    clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
+    constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
+    jobject o1 = env->NewObject(clazz, constructor, (jint) av_info.geometry.base_width,
+                                (jint) av_info.geometry.base_height,
+                                (jint) av_info.geometry.max_width,
+                                (jint) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
+    clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
+    constructor = env->GetMethodID(clazz, "<init>",
+                                   "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
+    return env->NewObject(clazz, constructor, o1, o0);
+}
+
+static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
+    struct retro_system_info system_info = {};
+    retro_get_system_info(&system_info);
+    need_fullpath = system_info.need_fullpath;
+    jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemInfo");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>",
+                                             "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
+    jobject obj = env->NewObject(clazz, constructor, env->NewStringUTF(system_info.library_name),
+                                 env->NewStringUTF(system_info.library_version),
+                                 env->NewStringUTF(system_info.valid_extensions));
+    jfieldID need_full_path_filed = env->GetFieldID(clazz, "needFullpath", "Z");
+    env->SetBooleanField(obj, need_full_path_filed, system_info.need_fullpath);
+    jfieldID block_extract = env->GetFieldID(clazz, "blockExtract", "Z");
+    env->SetBooleanField(obj, block_extract, system_info.block_extract);
+    return obj;
+}
+
+static jboolean em_save_memory_ram(JNIEnv *env, jobject thiz, jstring path) {
+    size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+    if (len == 0) return false;
+    void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+    if (mem == nullptr) return false;
+    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
+    std::ofstream fp(_path, std::ios::out | std::ios::binary);
+    if (!fp.is_open()) return false;
+    fp.write(reinterpret_cast<char *>(mem), (int) len).flush();
+    fp.close();
+    env->ReleaseStringUTFChars(path, _path);
+    return true;
+}
+
+static jboolean em_load_memory_ram(JNIEnv *env, jobject thiz, jstring path) {
+    bool no_error = false;
+    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
+    std::ifstream fp(_path, std::ios::in | std::ios::binary);
+    if (fp.is_open()) {
+        size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+        void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+        if (mem != nullptr && len != 0) {
+            fp.read(reinterpret_cast<char *>(mem), (int) len);
+            no_error = true;
+        }
+        fp.close();
+    }
+    env->ReleaseStringUTFChars(path, _path);
+    return no_error;
+}
+
+static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
+    size_t len = retro_serialize_size();
+    if (len == 0) return nullptr;
+    int8_t data[len];
+    if (!retro_serialize((void *) data, len)) {
+        return nullptr;
+    }
+    jbyteArray snapshot = env->NewByteArray((jint) len);
+    env->SetByteArrayRegion(snapshot, 0, (jint) len, data);
+    return snapshot;
+};
+
+static jboolean em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
+    const size_t &len = retro_serialize_size();
+    if (env->GetArrayLength(jdata) != len)
+        return false;
+    jbyte *snapshot = env->GetByteArrayElements(jdata, JNI_FALSE);
+    bool no_error = retro_unserialize((void *) snapshot, len);
+    env->ReleaseByteArrayElements(jdata, snapshot, 0);
+    return no_error;
+}
+
+static jbyteArray em_get_memory_data(JNIEnv *env, jobject thiz, jint id) {
+    size_t len = retro_get_memory_size(id);
+    if (len == 0) return nullptr;
+    void *data = retro_get_memory_data(id);
+    if (data) {
+        jbyteArray mem_data = env->NewByteArray((jint) len);
+        env->SetByteArrayRegion(mem_data, 0, (jint) len, reinterpret_cast<jbyte *>(data));
+        return mem_data;
+    }
+    return nullptr;
+};
+
+static jboolean em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray mem_data) {
+    bool no_error = false;
+    const size_t &len = retro_get_memory_size(id);
+    if (env->GetArrayLength(mem_data) == len) {
+        jbyte *data = env->GetByteArrayElements(mem_data, JNI_FALSE);
+        no_error = retro_unserialize((void *) data, len);
+        env->ReleaseByteArrayElements(mem_data, data, 0);
+    }
+    return no_error;
+}
+
+static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, jint device) {
+    retro_set_controller_port_device(port, device);
+}
+
+static const JNINativeMethod methods[] = {
+        {"nativeAttachSurface",           "(Landroid/view/Surface;)Z", (void *) em_attach_surface},
+        {"nativeAdjustSurface",           "(II)V",                     (void *) em_adjust_surface},
+        {"nativeDetachSurface",           "()V",                       (void *) em_detach_surface},
+        {"nativeStart",                   "(Ljava/lang/String;)Z",     (void *) em_start},
+        {"nativePause",                   "()V",                       (void *) em_pause},
+        {"nativeResume",                  "()V",                       (void *) em_resume},
+        {"nativeReset",                   "()V",                       (void *) em_reset},
+        {"nativeStop",                    "()V",                       (void *) em_stop},
+        {"nativeGetSerializeData",        "()[B",                      (void *) em_get_serialize_data},
+        {"nativeSetSerializeData",        "([B)Z",                     (void *) em_set_serialize_data},
+        {"nativeGetSystemInfo",           "()Link/snowland/wkuwku/common/EmSystemInfo;",
+                                                                       (void *) em_get_system_info},
+        {"nativeGetSystemAvInfo",         "()Link/snowland/wkuwku/common/EmSystemAvInfo;",
+                                                                       (void *) em_get_system_av_info},
+        {"nativeGetMemoryData",           "(I)[B",                     (void *) em_get_memory_data},
+        {"nativeSetMemoryData",           "(I[B)Z",                    (void *) em_set_memory_data},
+        {"nativeSetControllerPortDevice", "(II)V",                     (void *) em_set_controller_port_device}
+};
+
+extern "C"
+JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    JNIEnv *env;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        LOGE(TAG, "JNI load failed!");
+        return JNI_ERR;
+    }
+    ctx.jvm = vm;
+    jclass clazz = env->FindClass("ink/snowland/wkuwku/common/Variable");
+    ctx.variable_value_field = env->GetFieldID(clazz, "value", "Ljava/lang/Object;");
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "()V");
+    variable_object = env->NewGlobalRef(env->NewObject(clazz, constructor));
+    clazz = env->FindClass("ink/snowland/wkuwku/common/VariableEntry");
+    ctx.variable_entry_value_field = env->GetFieldID(clazz, "value", "Ljava/lang/String;");
+    ctx.variable_entry_key_field = env->GetFieldID(clazz, "key", "Ljava/lang/String;");
+    constructor = env->GetMethodID(clazz, "<init>", "()V");
+    variable_entry_object = env->NewGlobalRef(env->NewObject(clazz, constructor));
+    clazz = env->FindClass("ink/snowland/wkuwku/common/InputDescriptor");
+    constructor = env->GetMethodID(clazz, "<init>", "(IIIILjava/lang/String;)V");
+    ctx.input_descriptor_clazz = (jclass) env->NewGlobalRef(clazz);
+    ctx.input_descriptor_constructor = constructor;
+    clazz = env->FindClass("java/util/ArrayList");
+    constructor = env->GetMethodID(clazz, "<init>", "()V");
+    ctx.array_list_clazz = (jclass) env->NewGlobalRef(clazz);
+    ctx.array_list_constructor = constructor;
+    ctx.array_list_add_method = env->GetMethodID(clazz, "add", "(ILjava/lang/Object;)V");
+    clazz = env->FindClass("ink/snowland/wkuwku/common/EmMessageExt");
+    constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;IIIIII)V");
+    ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
+    ctx.message_ext_constructor = constructor;
+#ifndef EM_CLASS
+    clazz = env->FindClass("ink/snowland/wkuwku/emulator/FceummV2");
+#else
+    clazz = env->FindClass(EM_CLASS);
+#endif
+    ctx.video_size_cb_method = env->GetMethodID(clazz, "onNativeVideoSizeChanged", "(II)V");
+    ctx.audio_cb_method = env->GetMethodID(clazz, "onNativeAudioBuffer", "([SI)I");
+    ctx.environment_method = env->GetMethodID(clazz, "onNativeEnvironment",
+                                              "(ILjava/lang/Object;)Z");
+    ctx.input_cb_method = env->GetMethodID(clazz, "onNativePollInput", "(IIII)I");
+    env->RegisterNatives(clazz, methods, ARRAY_SIZE(methods));
+    return JNI_VERSION_1_6;
+}
+
+extern "C"
+JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
+    JNIEnv *env;
+    if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+        return;
+    }
+    env->DeleteGlobalRef(ctx.input_descriptor_clazz);
+    env->DeleteGlobalRef(ctx.array_list_clazz);
+    env->DeleteGlobalRef(ctx.message_ext_clazz);
+    env->DeleteGlobalRef(variable_object);
+    env->DeleteGlobalRef(variable_entry_object);
+    if (audio_buffer != nullptr)
+        env->DeleteGlobalRef(audio_buffer);
+    ctx.jvm = nullptr;
+}
+
+static void on_create(EGLDisplay dyp, EGLSurface sr) {
+    current_dyp = dyp;
+    current_sf = sr;
+    if (hw_render_cb) {
+        hw_render_cb->context_reset();
+    } else {
+        begin_texture();
+    }
+}
+
+static void on_draw() {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (current_state == RUNNING) {
+        retro_run();
+    }
+}
+
+static void on_destroy() {
+    if (hw_render_cb != nullptr) {
+        hw_render_cb->context_destroy();
+    } else {
+        end_texture();
+    }
+}

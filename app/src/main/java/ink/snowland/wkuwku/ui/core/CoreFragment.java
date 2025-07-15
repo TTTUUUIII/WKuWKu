@@ -31,6 +31,7 @@ import ink.snowland.wkuwku.databinding.FragmentCoreBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreEnumOptionBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreOptionBinding;
 import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.interfaces.IEmulatorV2;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 
@@ -38,7 +39,7 @@ public class CoreFragment extends BaseFragment {
 
     private static final String SELECTED_CORE = "app_selected_core";
     private FragmentCoreBinding binding;
-    private Emulator mEmulator;
+    private IEmulatorV2 mEmulator;
     private final ViewAdapter mAdapter = new ViewAdapter();
     private List<EmOption> mCurrentOptions;
     private CoreViewModel mViewModel;
@@ -58,8 +59,8 @@ public class CoreFragment extends BaseFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Collection<Emulator> emulators = EmulatorManager.getEmulators();
-        String[] tags = emulators.stream().map(Emulator::getTag)
+        Collection<IEmulatorV2> emulators = EmulatorManager.getEmulators();
+        String[] tags = emulators.stream().map(it -> (String) it.getProp(IEmulatorV2.PROP_ALIAS))
                 .toArray(String[]::new);
         binding.coreSelector.setAdapter(new NoFilterArrayAdapter<String>(requireActivity(), R.layout.layout_simple_text, tags));
         mViewModel.setPendingIndicator(true, R.string.loading);
@@ -82,7 +83,7 @@ public class CoreFragment extends BaseFragment {
 
     private void onReloadOptions() {
         assert mEmulator != null;
-        SettingsManager.putString(SELECTED_CORE, mEmulator.getTag());
+        SettingsManager.putString(SELECTED_CORE, (String) mEmulator.getProp(IEmulatorV2.PROP_ALIAS));
         mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
         if (mCurrentOptions == null) {
             List<EmOption> options = mEmulator.getOptions().stream()
@@ -109,7 +110,7 @@ public class CoreFragment extends BaseFragment {
 
         @Override
         public void onTextChanged(CharSequence newCoreTag, int start, int before, int count) {
-            Emulator emulator = EmulatorManager.getEmulator(newCoreTag.toString());
+            IEmulatorV2 emulator = EmulatorManager.getEmulator(newCoreTag.toString());
             if (mEmulator != emulator) {
                 onSaveOptions();
                 mEmulator = emulator;
