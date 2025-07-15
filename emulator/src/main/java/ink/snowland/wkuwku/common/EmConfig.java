@@ -1,11 +1,10 @@
 package ink.snowland.wkuwku.common;
 
-import android.content.res.Resources;
 import android.content.res.XmlResourceParser;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.XmlRes;
 
+import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
@@ -13,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmConfig {
-    private EmConfig(@NonNull XmlResourceParser parser) throws XmlPullParserException, IOException {
+    private EmConfig(@NonNull XmlPullParser parser) throws XmlPullParserException, IOException {
         parseXmlConfig(parser);
     }
 
@@ -21,11 +20,15 @@ public class EmConfig {
     public List<EmSystem> systems = new ArrayList<>();
     public List<String> contentExtensions = new ArrayList<>();
 
-    public static EmConfig fromXmlConfig(@NonNull Resources res, @XmlRes int resId) throws XmlPullParserException, IOException {
-       return new EmConfig(res.getXml(resId));
+    public static EmConfig fromXml(XmlPullParser xmlPullParser) {
+        try {
+            return new EmConfig(xmlPullParser);
+        } catch (XmlPullParserException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void parseXmlConfig(XmlResourceParser parser) throws XmlPullParserException, IOException {
+    private void parseXmlConfig(XmlPullParser parser) throws XmlPullParserException, IOException {
         while (parser.next() != XmlResourceParser.END_DOCUMENT) {
             int event = parser.getEventType();
             if (event == XmlResourceParser.START_TAG) {
@@ -51,11 +54,11 @@ public class EmConfig {
         }
     }
 
-    private void parseContentExtensions(XmlResourceParser parser) throws XmlPullParserException, IOException {
+    private void parseContentExtensions(XmlPullParser parser) throws XmlPullParserException, IOException {
         String name = parser.getName();
         int event = parser.getEventType();
-        while (event != XmlResourceParser.END_TAG || !"content-extensions".equals(name)) {
-            if (event == XmlResourceParser.START_TAG && "item".equals(name)) {
+        while (event != XmlPullParser.END_TAG || !"content-extensions".equals(name)) {
+            if (event == XmlPullParser.START_TAG && "item".equals(name)) {
                 String ext = parser.nextText();
                 if (ext != null) {
                     contentExtensions.add(ext);
@@ -65,7 +68,7 @@ public class EmConfig {
             name = parser.getName();
         }
     }
-    private EmSystem parseSystem(XmlResourceParser parser) {
+    private EmSystem parseSystem(XmlPullParser parser) {
         String systemName = parser.getAttributeValue(null, "name");
         String systemTag = parser.getAttributeValue(null, "tag");
         String manufacturer = parser.getAttributeValue(null, "manufacturer");
@@ -75,17 +78,21 @@ public class EmConfig {
         return null;
     }
 
-    private EmOption parseOption(XmlResourceParser parser) throws XmlPullParserException, IOException {
+    private EmOption parseOption(XmlPullParser parser) throws XmlPullParserException, IOException {
         String key = parser.getAttributeValue(null, "key");
         String defaultValue = parser.getAttributeValue(null, "defaultValue");
         String title = parser.getAttributeValue(null, "title");
         String inputType = parser.getAttributeValue(null, "inputType");
-        boolean enable = parser.getAttributeBooleanValue(null, "enable", true);
+        String text = parser.getAttributeValue(null, "enable");
+        boolean enable = true;
+        if (text != null) {
+            enable = Boolean.parseBoolean(text);
+        }
         int event = parser.getEventType();
         String name = parser.getName();
         List<String> allowValues = null;
-        while (event != XmlResourceParser.END_TAG || !"option".equals(name)) {
-            if (event == XmlResourceParser.START_TAG) {
+        while (event != XmlPullParser.END_TAG || !"option".equals(name)) {
+            if (event == XmlPullParser.START_TAG) {
                 if ("allow-values".equals(name)) {
                     allowValues = new ArrayList<>();
                 } else if ("value".equals(name)) {

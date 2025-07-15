@@ -155,7 +155,7 @@ public abstract class Emulator {
     }
 
     public Emulator(@NonNull Resources res, @XmlRes int configResId) throws XmlPullParserException, IOException {
-        this(EmConfig.fromXmlConfig(res, configResId));
+        this(EmConfig.fromXml(res.getXml(configResId)));
     }
 
     public Emulator(@NonNull EmConfig config) throws XmlPullParserException, IOException {

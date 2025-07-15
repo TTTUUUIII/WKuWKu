@@ -15,8 +15,9 @@ import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemInfo;
-import ink.snowland.wkuwku.emulator.Fceumm;
+import ink.snowland.wkuwku.emulator.FceummV2;
 import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.interfaces.IEmulatorV2;
 
 public final class EmulatorManager {
     private EmulatorManager() {
@@ -25,18 +26,13 @@ public final class EmulatorManager {
     private static final String TAG = "EmulatorManager";
     private static final List<EmSystem> mAllSupportedSystems = new ArrayList<>();
 
-    private static final HashMap<String, Emulator> EMULATORS = new HashMap<>();
+    private static final HashMap<String, IEmulatorV2> EMULATORS = new HashMap<>();
 
     public static void initialize(@NonNull Context context) {
-        Fceumm.registerAsEmulator(context);
-//        Mesen.registerAsEmulator(context);
-//        MesenS.registerAsEmulator(context);
-//        GenesisPlusGX.registerAsEmulator(context);
-//        Bsnes.registerAsEmulator(context);
-//        Pcsx.registerAsEmulator(context);
+        registerEmulator(new FceummV2(context));
     }
 
-    public static Emulator getDefaultEmulator(@NonNull String systemTag) {
+    public static IEmulatorV2 getDefaultEmulator(@NonNull String systemTag) {
         switch (systemTag) {
             case "nes":
             case "famicom":
@@ -59,11 +55,15 @@ public final class EmulatorManager {
         }
     }
 
-    public static Emulator getDefaultEmulator(@NonNull EmSystem system) {
+    public static IEmulatorV2 getDefaultEmulator(@NonNull EmSystem system) {
         return getDefaultEmulator(system.tag);
     }
 
-    public static Collection<Emulator> getEmulators() {
+    public static IEmulatorV2 getEmulatorV2(@NonNull String alias) {
+        return EMULATORS.get(alias);
+    }
+
+    public static Collection<IEmulatorV2> getEmulators() {
         return EMULATORS.values();
     }
 
@@ -71,12 +71,12 @@ public final class EmulatorManager {
         return mAllSupportedSystems;
     }
 
-    public static Emulator getEmulator(@NonNull String tag) {
+    public static IEmulatorV2 getEmulator(@NonNull String tag) {
         return EMULATORS.get(tag);
     }
 
-    private static @Nullable Emulator findEmulatorBySystemTag(@NonNull String systemTag) {
-        for (Emulator emulator : EMULATORS.values()) {
+    private static @Nullable IEmulatorV2 findEmulatorBySystemTag(@NonNull String systemTag) {
+        for (IEmulatorV2 emulator : EMULATORS.values()) {
             if (emulator.isSupportedSystem(systemTag)) {
                 return emulator;
             }
@@ -84,9 +84,8 @@ public final class EmulatorManager {
         return null;
     }
 
-    public static void registerEmulator(@NonNull Emulator emulator) {
-        assert EMULATORS.get(emulator.getTag()) == null;
-        EMULATORS.put(emulator.getTag(), emulator);
+    public static void registerEmulator(@NonNull IEmulatorV2 emulator) {
+        EMULATORS.put((String) emulator.getProp(IEmulatorV2.PROP_ALIAS), emulator);
         EmSystemInfo info = emulator.getSystemInfo();
         mAllSupportedSystems.addAll(emulator.getSupportedSystems().stream().filter(it -> !mAllSupportedSystems.contains(it))
                 .collect(Collectors.toList()));
