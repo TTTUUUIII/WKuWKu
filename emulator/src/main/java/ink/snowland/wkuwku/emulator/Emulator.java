@@ -1,19 +1,14 @@
 package ink.snowland.wkuwku.emulator;
 
-import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.util.SparseArray;
-import android.view.Surface;
 
 import androidx.annotation.NonNull;
 
-import org.xmlpull.v1.XmlPullParserException;
-
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.List;
@@ -25,20 +20,19 @@ import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
-import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
-import ink.snowland.wkuwku.interfaces.IEmulatorV2;
+import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
 
-public abstract class EmulatorV2 implements IEmulatorV2 {
+public abstract class Emulator implements IEmulator {
     protected final EmConfig config;
     protected final Map<String, EmOption> mOptions = new HashMap<>();
     private final SparseArray<Object> mProps = new SparseArray<>();
     private AudioTrack mAudioTrack = null;
     private WeakReference<OnEmulatorV2EventListener> mListener = new WeakReference<>(null);
 
-    public EmulatorV2(@NonNull String alias, @NonNull EmConfig config) {
+    public Emulator(@NonNull String alias, @NonNull EmConfig config) {
         mProps.put(PROP_ALIAS, alias);
         this.config = config;
         for (EmOption option : config.options) {

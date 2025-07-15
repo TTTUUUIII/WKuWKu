@@ -6,11 +6,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
+#include <mutex>
 #include "Log.h"
 #include "GLRenderer.h"
 #include "GLUtils.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
-#include <mutex>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 
 #ifndef TAG
 #define TAG "Fceumm_Native"
@@ -476,7 +478,7 @@ static bool environment_cb(unsigned cmd, void *data) {
 
 static bool initialized = false;
 
-static jboolean em_attach_surface(JNIEnv *env, jobject thiz, jobject surface) {
+static void em_attach_surface(JNIEnv *env, jobject thiz, jobject surface) {
     current_renderer = std::make_unique<GLRenderer>(ANativeWindow_fromSurface(env, surface));
     GLRendererInterface *interface = current_renderer->get_renderer_interface();
     interface->on_create = on_create;
@@ -485,7 +487,6 @@ static jboolean em_attach_surface(JNIEnv *env, jobject thiz, jobject surface) {
     if (current_state == STATE_RUNNING) {
         current_renderer->start();
     }
-    return true;
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
@@ -557,6 +558,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     std::lock_guard<std::mutex> lock(mtx);
     current_state = STATE_IDLE;
     retro_unload_game();
+    current_framebuffer.reset();
     env->DeleteGlobalRef(ctx.emulator_obj);
 }
 
@@ -596,37 +598,6 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
     return obj;
 }
 
-static jboolean em_save_memory_ram(JNIEnv *env, jobject thiz, jstring path) {
-    size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-    if (len == 0) return false;
-    void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-    if (mem == nullptr) return false;
-    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
-    std::ofstream fp(_path, std::ios::out | std::ios::binary);
-    if (!fp.is_open()) return false;
-    fp.write(reinterpret_cast<char *>(mem), (int) len).flush();
-    fp.close();
-    env->ReleaseStringUTFChars(path, _path);
-    return true;
-}
-
-static jboolean em_load_memory_ram(JNIEnv *env, jobject thiz, jstring path) {
-    bool no_error = false;
-    const char *_path = env->GetStringUTFChars(path, JNI_FALSE);
-    std::ifstream fp(_path, std::ios::in | std::ios::binary);
-    if (fp.is_open()) {
-        size_t len = retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-        void *mem = retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-        if (mem != nullptr && len != 0) {
-            fp.read(reinterpret_cast<char *>(mem), (int) len);
-            no_error = true;
-        }
-        fp.close();
-    }
-    env->ReleaseStringUTFChars(path, _path);
-    return no_error;
-}
-
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
     size_t len = retro_serialize_size();
     if (len == 0) return nullptr;
@@ -644,7 +615,9 @@ static jboolean em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdat
     if (env->GetArrayLength(jdata) != len)
         return false;
     jbyte *snapshot = env->GetByteArrayElements(jdata, JNI_FALSE);
+    mtx.lock();
     bool no_error = retro_unserialize((void *) snapshot, len);
+    mtx.unlock();
     env->ReleaseByteArrayElements(jdata, snapshot, 0);
     return no_error;
 }
@@ -661,13 +634,34 @@ static jbyteArray em_get_memory_data(JNIEnv *env, jobject thiz, jint id) {
     return nullptr;
 };
 
-static jboolean em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray mem_data) {
-    bool no_error = false;
+static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray mem_data) {
     const size_t &len = retro_get_memory_size(id);
     if (env->GetArrayLength(mem_data) == len) {
         jbyte *data = env->GetByteArrayElements(mem_data, JNI_FALSE);
-        no_error = retro_unserialize((void *) data, len);
+        void *mem = retro_get_memory_data(id);
+        memcpy(mem, data, sizeof(jbyte) * len);
         env->ReleaseByteArrayElements(mem_data, data, 0);
+    }
+}
+
+static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
+    if (!current_framebuffer) return false;
+    bool no_error = true;
+    const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        stbi_write_png(file_path, current_vw, current_vh, 4, current_framebuffer->data, current_vw * 4);
+    } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+        unsigned char data[current_vw * current_vh * 3];
+        auto *origin = reinterpret_cast<uint16_t *>(current_framebuffer->data);
+        for (int i = 0; i < current_vw * current_vh; ++i) {
+            uint16_t pixel = origin[i];
+            data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
+            data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
+            data[i * 3 + 2] = (pixel & 0x1F) << 3;
+        }
+        stbi_write_png(file_path, current_vw, current_vh, 3, data, current_vw * 3);
+    } else {
+        no_error = false;
     }
     return no_error;
 }
@@ -677,7 +671,7 @@ static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, 
 }
 
 static const JNINativeMethod methods[] = {
-        {"nativeAttachSurface",           "(Landroid/view/Surface;)Z", (void *) em_attach_surface},
+        {"nativeAttachSurface",           "(Landroid/view/Surface;)V", (void *) em_attach_surface},
         {"nativeAdjustSurface",           "(II)V",                     (void *) em_adjust_surface},
         {"nativeDetachSurface",           "()V",                       (void *) em_detach_surface},
         {"nativeStart",                   "(Ljava/lang/String;)Z",     (void *) em_start},
@@ -692,8 +686,9 @@ static const JNINativeMethod methods[] = {
         {"nativeGetSystemAvInfo",         "()Link/snowland/wkuwku/common/EmSystemAvInfo;",
                                                                        (void *) em_get_system_av_info},
         {"nativeGetMemoryData",           "(I)[B",                     (void *) em_get_memory_data},
-        {"nativeSetMemoryData",           "(I[B)Z",                    (void *) em_set_memory_data},
-        {"nativeSetControllerPortDevice", "(II)V",                     (void *) em_set_controller_port_device}
+        {"nativeSetMemoryData",           "(I[B)V",                    (void *) em_set_memory_data},
+        {"nativeSetControllerPortDevice", "(II)V",                     (void *) em_set_controller_port_device},
+        {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",     (void *) em_capture_screen}
 };
 
 extern "C"
@@ -727,7 +722,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
 #ifndef EM_CLASS
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/FceummV2");
+    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
 #else
     clazz = env->FindClass(EM_CLASS);
 #endif

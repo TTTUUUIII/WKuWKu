@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.MessageDigest;
@@ -139,6 +140,18 @@ public class FileManager {
         } catch (IOException e) {
             delete(file);
             throw e;
+        }
+    }
+
+    public static void copy(InputStream from, OutputStream to) {
+        try {
+            byte[] buffer = new byte[1024];
+            int readNumInBytes;
+            while ((readNumInBytes = from.read(buffer)) != -1) {
+                to.write(buffer, 0, readNumInBytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
         }
     }
 

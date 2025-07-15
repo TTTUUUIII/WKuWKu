@@ -1,10 +1,13 @@
 package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
-import static ink.snowland.wkuwku.interfaces.IEmulatorV2.*;
+import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 
 import android.annotation.SuppressLint;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -18,7 +21,10 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
+import android.os.Environment;
+import android.os.FileUtils;
 import android.os.Looper;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.view.InputDevice;
@@ -34,11 +40,14 @@ import android.widget.Toast;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
@@ -51,8 +60,7 @@ import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.ExternalController;
 import ink.snowland.wkuwku.device.VirtualController;
-import ink.snowland.wkuwku.interfaces.IEmulatorV2;
-import ink.snowland.wkuwku.interfaces.OnEmulatorEventListener;
+import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
 import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
@@ -75,7 +83,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String PLAYER_1_CONTROLLER = "player_1_controller";
     private static final String PLAYER_2_CONTROLLER = "player_2_controller";
     private FragmentLaunchBinding binding;
-//    private GLRenderer mRenderer;
     private LaunchViewModel mViewModel;
     private Game mGame;
     private Snackbar mSnackbar;
@@ -112,10 +119,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
-//        mRenderer = new GLRenderer(requireContext());
-//        binding.glSurfaceView.setEGLContextClientVersion(3);
-//        binding.glSurfaceView.setRenderer(mRenderer);
-//        binding.glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         attachToEmulator();
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
@@ -193,28 +196,30 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     private void attachToEmulator() {
-        IEmulatorV2 emulator = mViewModel.getEmulator();
-        if (emulator == null) return;
-        emulator.setOnEventListener(this);
-        emulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
-        emulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
-        emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
-        binding.glSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-            @Override
-            public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                emulator.attachSurface(holder.getSurface());
-            }
+        IEmulator emulator = mViewModel.getEmulator();
+        if (emulator != null) {
+            emulator.setOnEventListener(this);
+            emulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
+            emulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
+            emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
+            binding.glSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                    emulator.attachSurface(holder.getSurface());
+                }
 
-            @Override
-            public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                emulator.adjustSurface(width, height);
-            }
+                @Override
+                public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                    emulator.adjustSurface(width, height);
+                }
 
-            @Override
-            public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                emulator.detachSurface();
-            }
-        });
+                @Override
+                public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                    emulator.detachSurface();
+                }
+            });
+            mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains((String) emulator.getProp(PROP_ALIAS));
+        }
     }
 
     private void adjustScreenSize(int width, int height) {
@@ -352,12 +357,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
             mViewModel.pauseEmulator();
-//            mViewModel.saveCurrentSate();
+            mViewModel.saveCurrentSate();
             captureScreen = true;
         }
-//        if (captureScreen) {
-//            mRenderer.exportAsPNG(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png"));
-//        }
+        if (captureScreen) {
+            mViewModel.getEmulator().captureScreen(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").getAbsolutePath());
+        }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
         mGame.lastPlayedTime = System.currentTimeMillis();
@@ -426,24 +431,31 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     private void takeScreenshot() {
-//        ContentValues values = new ContentValues();
-//        values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
-//        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-//        values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
-//        values.put(MediaStore.Images.Media.IS_PENDING, 1);
-//        ContentResolver contentResolver = requireContext().getContentResolver();
-//        Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-//        if (uri == null) return;
-//        try (OutputStream fos = contentResolver.openOutputStream(uri)){
-//            if (fos == null) return;
-//            mRenderer.exportAsPNG(fos);
-//            values.clear();
-//            values.put(MediaStore.Images.Media.IS_PENDING, 0);
-//            contentResolver.update(uri, values, null, null);
-//            showSnackbar(R.string.screenshot_saved, SNACKBAR_LENGTH_SHORT);
-//        } catch (IOException e) {
-//            e.printStackTrace(System.err);
-//        }
+        IEmulator emulator = mViewModel.getEmulator();
+        if (emulator == null) return;
+        File tmp = new File(FileManager.getCacheDirectory(), "tmp.png");
+        if (emulator.captureScreen(tmp.getAbsolutePath())) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+            ContentResolver contentResolver = requireContext().getContentResolver();
+            Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (uri == null) return;
+            try (FileInputStream from = new FileInputStream(tmp);
+                 OutputStream to = contentResolver.openOutputStream(uri)){
+                if (to == null) return;
+                FileManager.copy(from, to);
+                values.clear();
+                values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                contentResolver.update(uri, values, null, null);
+                showSnackbar(R.string.screenshot_saved, SNACKBAR_LENGTH_SHORT);
+            } catch (IOException e) {
+                e.printStackTrace(System.err);
+            }
+            FileManager.delete(tmp);
+        }
     }
 
     private int mL1ButtonState = KeyEvent.ACTION_UP;

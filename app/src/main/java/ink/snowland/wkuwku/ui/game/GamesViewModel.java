@@ -11,25 +11,19 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.List;
 
-import ink.snowland.wkuwku.App;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
-import ink.snowland.wkuwku.interfaces.IEmulatorV2;
-import ink.snowland.wkuwku.util.NumberUtils;
+import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.interfaces.Emulator;
 import ink.snowland.wkuwku.util.ArchiveUtils;
 import ink.snowland.wkuwku.util.FileManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import kotlin.io.FileAlreadyExistsException;
@@ -92,7 +86,7 @@ public class GamesViewModel extends BaseViewModel {
                 .subscribeOn(Schedulers.io())
                 .doOnComplete(() -> {
                     boolean noError = true;
-                    IEmulatorV2 emulator = EmulatorManager.getDefaultEmulator(game.system);
+                    IEmulator emulator = EmulatorManager.getDefaultEmulator(game.system);
                     File file = FileManager.getFile(FileManager.ROM_DIRECTORY, game.filepath);
                     if (emulator == null) return;
                     if ((infoMask & ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE) == ArchiveUtils.FLAG_ARCHIVE_FILE_TYPE

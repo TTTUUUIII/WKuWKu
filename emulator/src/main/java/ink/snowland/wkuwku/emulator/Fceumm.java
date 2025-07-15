@@ -1,31 +1,58 @@
 package ink.snowland.wkuwku.emulator;
 
+
 import android.content.Context;
+import android.view.Surface;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-
-import ink.snowland.wkuwku.EmulatorManager;
+import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
-import ink.snowland.wkuwku.interfaces.Emulator;
 
 public class Fceumm extends Emulator {
-    private static final String TAG = "Fceumm";
 
-
-    private Fceumm(@NonNull Context context) throws XmlPullParserException, IOException {
-        super(context.getResources(), R.xml.fceumm_config);
+    static {
+        System.loadLibrary("fceumm");
     }
 
+    public Fceumm(@NonNull Context context) {
+        super("fceumm", EmConfig.fromXml(context.getResources().getXml(R.xml.fceumm_config)));
+    }
 
     @Override
-    public String getTag() {
-        return "fceumm";
+    public boolean captureScreen(String savePath) {
+        return nativeCaptureScreen(savePath);
+    }
+
+    @Override
+    public void attachSurface(@NonNull Surface surface) {
+        nativeAttachSurface(surface);
+    }
+
+    @Override
+    public void adjustSurface(int vw, int vh) {
+        nativeAdjustSurface(vw, vh);
+    }
+
+    @Override
+    public void detachSurface() {
+        nativeDetachSurface();
+    }
+
+    @Override
+    public void pause() {
+        nativePause();
+    }
+
+    @Override
+    public void resume() {
+        nativeResume();
+    }
+
+    @Override
+    public void reset() {
+        nativeReset();
     }
 
     @Override
@@ -34,93 +61,59 @@ public class Fceumm extends Emulator {
     }
 
     @Override
-    protected EmSystemAvInfo getSystemAvInfo() {
+    public EmSystemAvInfo getSystemAvInfo() {
         return nativeGetSystemAvInfo();
     }
 
     @Override
-    public void onPowerOn() {
-        nativePowerOn();
+    public byte[] getSerializeData() {
+        return nativeGetSerializeData();
     }
 
     @Override
-    public boolean onLoadGame(@NonNull String fullPath) {
-        return nativeLoad(fullPath);
+    public boolean setSerializeData(byte[] data) {
+        return nativeSetSerializeData(data);
     }
 
     @Override
-    public void onNext() {
-        nativeRun();
+    public byte[] getMemoryData(int type) {
+        return nativeGetMemoryData(type);
     }
 
     @Override
-    public void onReset() {
-        nativeReset();
+    public void setMemoryData(int type, byte[] data) {
+        nativeSetMemoryData(type, data);
     }
 
     @Override
-    public void onLoadState(@NonNull String fullPath) {
-        nativeLoadState(fullPath);
-    }
-
-    @Override
-    public boolean onSaveState(@NonNull String savePath) {
-        return nativeSaveState(savePath);
-    }
-
-    @Nullable
-    @Override
-    protected byte[] getState() {
-        return nativeGetState();
-    }
-
-    @Override
-    protected boolean setState(@NonNull final byte[] data) {
-        return nativeLoadState(data);
-    }
-
-    @Override
-    public void onPowerOff() {
-        nativePowerOff();
-    }
-
-    public static void registerAsEmulator(@NonNull Context context) {
-        if (SHARED_INSTANCE == null) {
-            try {
-                SHARED_INSTANCE = new Fceumm(context);
-            } catch (XmlPullParserException | IOException e) {
-                e.printStackTrace(System.err);
-            }
-        }
-        if (SHARED_INSTANCE != null) {
-//            EmulatorManager.registerEmulator(SHARED_INSTANCE);
-        }
-    }
-
-    @Override
-    public boolean setControllerPortDevice(int port, int device) {
+    public void setControllerPortDevice(int port, int device) {
         nativeSetControllerPortDevice(port, device);
-        return true;
     }
 
-    private static Fceumm SHARED_INSTANCE;
-
-    static {
-        System.loadLibrary("fceumm");
+    @Override
+    protected boolean startGame(@NonNull String path) {
+        return nativeStart(path);
     }
 
-    protected native void nativePowerOn();
-    protected native void nativePowerOff();
-    protected native void nativeReset();
-    protected native boolean nativeLoad(@NonNull String path);
-    protected native void nativeRun();
-    protected native EmSystemAvInfo nativeGetSystemAvInfo();
-    protected native EmSystemInfo nativeGetSystemInfo();
-    protected native boolean nativeSaveMemoryRam(@NonNull String path);
-    protected native boolean nativeLoadMemoryRam(@NonNull String path);
-    protected native boolean nativeSaveState(@NonNull String path);
-    protected native boolean nativeLoadState(@NonNull String path);
-    protected native byte[] nativeGetState();
-    protected native boolean nativeLoadState(@NonNull final byte[] data);
-    protected native void nativeSetControllerPortDevice(int port, int device);
+    @Override
+    protected void stopGame() {
+        nativeStop();
+    }
+
+    private native boolean nativeCaptureScreen(String savePath);
+    private native void nativeAttachSurface(@NonNull Surface surface);
+    private native void nativeAdjustSurface(int vw, int vh);
+    private native void nativeDetachSurface();
+    private native boolean nativeStart(@NonNull String path);
+    private native void nativePause();
+    private native void nativeResume();
+    private native void nativeStop();
+    private native void nativeReset();
+    private native EmSystemInfo nativeGetSystemInfo();
+    private native EmSystemAvInfo nativeGetSystemAvInfo();
+    private native byte[] nativeGetSerializeData();
+    private native boolean nativeSetSerializeData(final byte[] data);
+    private native byte[] nativeGetMemoryData(int type);
+    private native void nativeSetMemoryData(int type, byte[] data);
+    private native void nativeSetControllerPortDevice(int port, int device);
 }

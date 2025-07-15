@@ -12,7 +12,7 @@ import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 
-public interface IEmulatorV2 extends RetroDefine {
+public interface IEmulator extends RetroDefine {
 
     int PROP_SYSTEM_DIRECTORY       = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
     int PROP_SAVE_DIRECTORY         = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
@@ -21,6 +21,7 @@ public interface IEmulatorV2 extends RetroDefine {
     int PROP_ALIAS                  = 101;
 
     void setProp(int what, Object data);
+    boolean captureScreen(String savePath);
     Object getProp(int what);
     List<EmOption> getOptions();
     void setOption(EmOption option);
@@ -29,7 +30,7 @@ public interface IEmulatorV2 extends RetroDefine {
     boolean isSupportedSystem(@NonNull String systemTag);
     List<EmSystem> getSupportedSystems();
     File searchSupportedContent(File file);
-    boolean attachSurface(@NonNull Surface surface);
+    void attachSurface(@NonNull Surface surface);
     void adjustSurface(int vw, int vh);
     void detachSurface();
     boolean start(@NonNull String path);
