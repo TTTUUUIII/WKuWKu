@@ -71,8 +71,8 @@ public class Fceumm extends Emulator {
     }
 
     @Override
-    public boolean setSerializeData(byte[] data) {
-        return nativeSetSerializeData(data);
+    public void setSerializeData(byte[] data) {
+        nativeSetSerializeData(data);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class Fceumm extends Emulator {
     private native EmSystemInfo nativeGetSystemInfo();
     private native EmSystemAvInfo nativeGetSystemAvInfo();
     private native byte[] nativeGetSerializeData();
-    private native boolean nativeSetSerializeData(final byte[] data);
+    private native void nativeSetSerializeData(final byte[] data);
     private native byte[] nativeGetMemoryData(int type);
     private native void nativeSetMemoryData(int type, byte[] data);
     private native void nativeSetControllerPortDevice(int port, int device);

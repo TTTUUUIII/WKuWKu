@@ -1,12 +1,9 @@
-#include <jni.h>
-#include <libretro/libretro.h>
-#include <string>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
-#include <mutex>
+#include <queue>
 #include "Log.h"
 #include "GLRenderer.h"
 #include "GLUtils.h"
@@ -20,14 +17,16 @@
 #define TAG "Fceumm_Native"
 #endif
 
-static std::mutex mtx;
+std::mutex mtx;
+std::atomic<unsigned> current_state = STATE_INVALID;
 static std::unique_ptr<GLRenderer> current_renderer;
-static int current_state = STATE_INVALID;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static EGLDisplay current_dyp;
 static EGLSurface current_sf;
 static video_state_t current_video{0, 0, 0, RETRO_PIXEL_FORMAT_RGB565};
-static std::unique_ptr<Buffer<void *>> current_framebuffer = nullptr;
+static std::unique_ptr<buffer_t<void *>> framebuffer = nullptr;
+static std::unique_ptr<buffer_t<void *>> serialize_buffer = nullptr;
+static std::queue<std::unique_ptr<message_t>> msg_queue;
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
@@ -129,9 +128,9 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
     if (!hw_render_cb && data) {
         fill_framebuffer(data, width, height, pitch);
         if (current_video.pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            texture(GL_RGB, (int) width, (int) height, current_video.rotation, current_framebuffer->data);
+            texture(GL_RGB, (int) width, (int) height, current_video.rotation, framebuffer->data);
         } else {
-            texture(GL_RGBA, (int) width, (int) height, current_video.rotation, current_framebuffer->data);
+            texture(GL_RGBA, (int) width, (int) height, current_video.rotation, framebuffer->data);
         }
     }
     eglSwapBuffers(current_dyp, current_sf);
@@ -159,12 +158,13 @@ static void fill_framebuffer(const void *data, unsigned width, unsigned height, 
             fb[i + 3] = 0xFF;
         }
     }
+    std::lock_guard<std::mutex> lock(mtx);
     size_t size = width * height * bytes_per_pixel;
-    if (!current_framebuffer || current_framebuffer->size != size) {
-        current_framebuffer = std::make_unique<Buffer<void *>>(malloc(size), size);
+    if (!framebuffer || framebuffer->size != size) {
+        framebuffer = std::make_unique<buffer_t<void *>>(malloc(size), size);
     }
     for (int i = 0; i < height; ++i) {
-        memcpy((void *) (static_cast<const char *>(current_framebuffer->data) +
+        memcpy((void *) (static_cast<const char *>(framebuffer->data) +
                          i * width * bytes_per_pixel), static_cast<const char *>(data) + i * pitch,
                width * bytes_per_pixel);
     }
@@ -574,10 +574,10 @@ static void em_reset(JNIEnv *env, jobject thiz) {
 }
 
 static void em_stop(JNIEnv *env, jobject thiz) {
-    std::lock_guard<std::mutex> lock(mtx);
     current_state = STATE_IDLE;
     retro_unload_game();
-    current_framebuffer.reset();
+    framebuffer.reset();
+    serialize_buffer.reset();
     env->DeleteGlobalRef(ctx.emulator_obj);
 }
 
@@ -620,7 +620,7 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
     size_t len = retro_serialize_size();
     if (len == 0) return nullptr;
-    int8_t data[len];
+    jbyte data[len];
     if (!retro_serialize((void *) data, len)) {
         return nullptr;
     }
@@ -629,16 +629,18 @@ static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
     return snapshot;
 };
 
-static jboolean em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
-    const size_t &len = retro_serialize_size();
-    if (env->GetArrayLength(jdata) != len)
-        return false;
-    jbyte *snapshot = env->GetByteArrayElements(jdata, JNI_FALSE);
-    mtx.lock();
-    bool no_error = retro_unserialize((void *) snapshot, len);
-    mtx.unlock();
-    env->ReleaseByteArrayElements(jdata, snapshot, 0);
-    return no_error;
+static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
+    const size_t &size = retro_serialize_size();
+    if (env->GetArrayLength(jdata) == size) {
+        jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
+        if (!serialize_buffer || serialize_buffer->size != size) {
+            serialize_buffer = std::make_unique<buffer_t<void*>>(malloc(size), size);
+        }
+        memset(serialize_buffer->data, 0, serialize_buffer->size);
+        memcpy(serialize_buffer->data, data, size);
+        env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
+        msg_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
+    }
 }
 
 static jbyteArray em_get_memory_data(JNIEnv *env, jobject thiz, jint id) {
@@ -664,15 +666,16 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 }
 
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
-    if (!current_framebuffer) return false;
+    if (!framebuffer) return false;
     bool no_error = true;
     const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
+    std::lock_guard<std::mutex> lock(mtx);
     if (current_video.pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        stbi_write_png(file_path, current_video.width, current_video.height, 4, current_framebuffer->data,
+        stbi_write_png(file_path, current_video.width, current_video.height, 4, framebuffer->data,
                        current_video.width * 4);
     } else if (current_video.pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
         unsigned char data[current_video.width * current_video.height * 3];
-        auto *origin = reinterpret_cast<uint16_t *>(current_framebuffer->data);
+        auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
         for (int i = 0; i < current_video.width * current_video.height; ++i) {
             uint16_t pixel = origin[i];
             data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
@@ -701,7 +704,7 @@ static const JNINativeMethod methods[] = {
         {"nativeReset",                   "()V",                       (void *) em_reset},
         {"nativeStop",                    "()V",                       (void *) em_stop},
         {"nativeGetSerializeData",        "()[B",                      (void *) em_get_serialize_data},
-        {"nativeSetSerializeData",        "([B)Z",                     (void *) em_set_serialize_data},
+        {"nativeSetSerializeData",        "([B)V",                     (void *) em_set_serialize_data},
         {"nativeGetSystemInfo",           "()Link/snowland/wkuwku/common/EmSystemInfo;",
                                                                        (void *) em_get_system_info},
         {"nativeGetSystemAvInfo",         "()Link/snowland/wkuwku/common/EmSystemAvInfo;",
@@ -783,9 +786,9 @@ static void on_create(EGLDisplay dyp, EGLSurface sr) {
 }
 
 static void on_draw() {
-    std::lock_guard<std::mutex> lock(mtx);
     if (current_state == RUNNING) {
         retro_run();
+        handle_message();
     }
 }
 
@@ -805,6 +808,22 @@ static uintptr_t get_hw_framebuffer() {
     GLint fb;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fb);
     return fb;
+}
+
+static void handle_message() {
+    if (msg_queue.empty()) return;
+    std::unique_ptr<message_t> &msg = msg_queue.front();
+    bool no_error;
+    switch (msg->what) {
+        case MSG_SET_SERIALIZE_DATA:
+            no_error = retro_unserialize(serialize_buffer->data, serialize_buffer->size);
+            if (!no_error) {
+                LOGE(TAG, "Failed to unserialize data!");
+            }
+            break;
+        default:
+    }
+    msg_queue.pop();
 }
 
 static bool attach_env(JNIEnv **env) {

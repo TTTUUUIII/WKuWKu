@@ -159,8 +159,7 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
         } else {
             data = mSnapshots.get(mSnapshots.size() - 1);
         }
-        boolean noError = mEmulator.setSerializeData(data);
-//        showSnackbar(R.string.load_state_failed, 300);
+        mEmulator.setSerializeData(data);
     }
 
     public int getSnapshotsCount() {

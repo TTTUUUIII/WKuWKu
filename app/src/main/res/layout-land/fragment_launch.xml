@@ -7,7 +7,7 @@
     tools:context=".ui.launch.LaunchFragment">
 
     <SurfaceView
-        android:id="@+id/gl_surface_view"
+        android:id="@+id/surface_view"
         android:layout_width="430dp"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
