@@ -24,8 +24,8 @@ static retro_hw_render_callback *hw_render_cb = nullptr;
 static EGLDisplay current_dyp;
 static EGLSurface current_sf;
 static video_state_t current_video{0, 0, 0, RETRO_PIXEL_FORMAT_RGB565};
-static std::unique_ptr<buffer_t<void *>> framebuffer = nullptr;
-static std::unique_ptr<buffer_t<void *>> serialize_buffer = nullptr;
+static std::unique_ptr<buffer_t> framebuffer = nullptr;
+static std::unique_ptr<buffer_t> serialize_buffer = nullptr;
 static std::queue<std::unique_ptr<message_t>> msg_queue;
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
@@ -161,7 +161,7 @@ static void fill_framebuffer(const void *data, unsigned width, unsigned height, 
     std::lock_guard<std::mutex> lock(mtx);
     size_t size = width * height * bytes_per_pixel;
     if (!framebuffer || framebuffer->size != size) {
-        framebuffer = std::make_unique<buffer_t<void *>>(malloc(size), size);
+        framebuffer = std::make_unique<buffer_t>(size);
     }
     for (int i = 0; i < height; ++i) {
         memcpy((void *) (static_cast<const char *>(framebuffer->data) +
@@ -634,9 +634,8 @@ static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
     if (env->GetArrayLength(jdata) == size) {
         jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
         if (!serialize_buffer || serialize_buffer->size != size) {
-            serialize_buffer = std::make_unique<buffer_t<void*>>(malloc(size), size);
+            serialize_buffer = std::make_unique<buffer_t>(size);
         }
-        memset(serialize_buffer->data, 0, serialize_buffer->size);
         memcpy(serialize_buffer->data, data, size);
         env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
         msg_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
