@@ -36,7 +36,7 @@ private:
     EGLSurface surface;
     EGLint version_major, version_minor;
     std::thread gl_thread;
-    WindowState state = INVALID;
+    std::atomic<WindowState> state = INVALID;
     GLRendererInterface interface = {};
 
     void wait();

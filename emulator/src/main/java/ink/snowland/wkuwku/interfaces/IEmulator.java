@@ -41,7 +41,7 @@ public interface IEmulator extends RetroDefine {
     EmSystemInfo getSystemInfo();
     EmSystemAvInfo getSystemAvInfo();
     byte[] getSerializeData();
-    boolean setSerializeData(final byte[] data);
+    void setSerializeData(final byte[] data);
     byte[] getMemoryData(int type);
     void setMemoryData(int type, final byte[] data);
     void setControllerPortDevice(int port, int device);

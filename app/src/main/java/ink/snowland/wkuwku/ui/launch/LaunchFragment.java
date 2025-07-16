@@ -215,7 +215,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             emulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             emulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
             emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
-            binding.glSurfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+            binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(@NonNull SurfaceHolder holder) {
                     emulator.attachSurface(holder.getSurface());
@@ -239,8 +239,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private int mVideoHeight = 0;
     private void adjustScreenSize(int width, int height) {
         float ratio = (float) width / height;
-        binding.glSurfaceView.post(() -> {
-            ViewGroup.LayoutParams lp = binding.glSurfaceView.getLayoutParams();
+        binding.surfaceView.post(() -> {
+            ViewGroup.LayoutParams lp = binding.surfaceView.getLayoutParams();
             if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -258,7 +258,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 binding.getRoot().setFitsSystemWindows(true);
             }
             binding.getRoot().requestApplyInsets();
-            binding.glSurfaceView.setLayoutParams(lp);
+            binding.surfaceView.setLayoutParams(lp);
         });
         mVideoWidth = width;
         mVideoHeight = height;
