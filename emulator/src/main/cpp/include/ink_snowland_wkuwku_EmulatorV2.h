@@ -18,13 +18,18 @@
 
 #define MSG_SET_SERIALIZE_DATA      1
 
-template<typename T>
 struct buffer_t {
     size_t size;
-    T data;
-    buffer_t(T _d, size_t _s): data(_d), size(_s) {}
+    void* data;
+    buffer_t(size_t _s): size(_s) {
+        if (size > 0) {
+            data = malloc(size);
+        }
+    }
     ~buffer_t() {
-        std::free(data);
+        if (size > 0) {
+            free(data);
+        }
     }
 };
 
