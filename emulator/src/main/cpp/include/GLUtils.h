@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 void begin_texture();
-void texture(int format, int w, int h, const void* data);
+void texture(int format, int w, int h, unsigned rota, const void* data);
 void end_texture();
 #ifdef __cplusplus
 }

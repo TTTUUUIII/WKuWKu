@@ -1,5 +1,7 @@
 package ink.snowland.wkuwku.common;
 
+import androidx.annotation.NonNull;
+
 public class EmGameGeometry {
     public final int baseWidth;    /* Nominal video width of game. */
     public final int baseHeight;   /* Nominal video height of game. */
@@ -20,6 +22,7 @@ public class EmGameGeometry {
         this.aspectRatio = aspectRatio;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "EmGameGeometry{" +

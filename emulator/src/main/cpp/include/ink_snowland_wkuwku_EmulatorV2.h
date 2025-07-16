@@ -19,9 +19,20 @@ struct Buffer {
     }
 };
 
-static void on_create(EGLDisplay dyp, EGLSurface sr);
+typedef struct {
+    unsigned width;
+    unsigned height;
+    unsigned rotation;
+    retro_pixel_format pixel_format;
+} video_state_t;
+
+static void on_create(EGLDisplay, EGLSurface);
 static void on_draw();
 static void on_destroy();
-static void fill_framebuffer(const void *data, unsigned width, unsigned height, size_t pitch);
+static void fill_framebuffer(const void *, unsigned, unsigned, size_t);
 static void notify_video_size_changed();
+static bool attach_env(JNIEnv**);
+static void detach_env();
+static retro_proc_address_t get_hw_proc_address(const char* sym);
+static uintptr_t get_hw_framebuffer();
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H

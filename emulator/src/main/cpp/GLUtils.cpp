@@ -26,8 +26,10 @@ static const float vertexes[] = {
 
 static unsigned int program_id, VAO, VBO, texture0;
 static glm::mat4 model;
+static unsigned rotation = 0;
 
 void begin_texture() {
+    rotation = 0;
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader_source, nullptr);
     glCompileShader(vs);
@@ -66,8 +68,7 @@ void begin_texture() {
     glUseProgram(0);
 }
 
-
-void texture(int format, int w, int h, const void* data) {
+void texture(int format, int w, int h, unsigned rota, const void* data) {
     glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
@@ -78,6 +79,11 @@ void texture(int format, int w, int h, const void* data) {
     }
     glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, type, data);
     glUseProgram(program_id);
+    if (rotation != rota) {
+        rotation = rota;
+        model = glm::rotate(glm::mat4(), glm::radians((float) rota * 90.f), glm::vec3(0.f, 0.f, 1.f));
+        glUniformMatrix4fv(glGetUniformLocation(program_id, "model"), 1, false, glm::value_ptr(model));
+    }
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
