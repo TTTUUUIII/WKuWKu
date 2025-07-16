@@ -11,17 +11,24 @@
 #include <jni.h>
 #include <string>
 #include "Log.h"
+
+#define BS_R                        1
+#define BS_W                        2
+#define BS_RW                       3
+
 #define STATE_INVALID               0
 #define STATE_IDLE                  1
 #define STATE_RUNNING               2
 #define STATE_PAUSED                3
 
 #define MSG_SET_SERIALIZE_DATA      1
+#define MSG_GET_SERIALIZE_DATA      2
 
 struct buffer_t {
     size_t size;
     void* data;
-    buffer_t(size_t _s): size(_s) {
+    uint8_t state;
+    buffer_t(size_t _s): size(_s), state(BS_RW) {
         if (size > 0) {
             data = malloc(size);
         }
