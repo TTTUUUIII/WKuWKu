@@ -373,7 +373,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
         boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
-            mViewModel.pauseEmulator();
             mViewModel.saveCurrentSate();
             captureScreen = true;
         }

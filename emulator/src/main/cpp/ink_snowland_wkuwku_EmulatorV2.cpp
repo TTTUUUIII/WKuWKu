@@ -618,14 +618,17 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
 }
 
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
-    size_t len = retro_serialize_size();
-    if (len == 0) return nullptr;
-    jbyte data[len];
-    if (!retro_serialize((void *) data, len)) {
-        return nullptr;
+    msg_queue.push(std::make_unique<message_t>(MSG_GET_SERIALIZE_DATA));
+    size_t size;
+    size = retro_serialize_size();
+    if (size == 0) return nullptr;
+    if (!serialize_buffer || serialize_buffer->size != size) {
+        serialize_buffer = std::make_unique<buffer_t>(size);
     }
-    jbyteArray snapshot = env->NewByteArray((jint) len);
-    env->SetByteArrayRegion(snapshot, 0, (jint) len, data);
+    serialize_buffer->state = BS_W;
+    while (!(serialize_buffer->state & BS_R)) {}
+    jbyteArray snapshot = env->NewByteArray((jint) size);
+    env->SetByteArrayRegion(snapshot, 0, (jint) size, reinterpret_cast<jbyte*>(serialize_buffer->data));
     return snapshot;
 };
 
@@ -636,9 +639,12 @@ static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
         if (!serialize_buffer || serialize_buffer->size != size) {
             serialize_buffer = std::make_unique<buffer_t>(size);
         }
-        memcpy(serialize_buffer->data, data, size);
+        if (serialize_buffer->state & BS_W) {
+            memcpy(serialize_buffer->data, data, size);
+            serialize_buffer->state = BS_R;
+            msg_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
+        }
         env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
-        msg_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
     }
 }
 
@@ -815,9 +821,18 @@ static void handle_message() {
     bool no_error;
     switch (msg->what) {
         case MSG_SET_SERIALIZE_DATA:
-            no_error = retro_unserialize(serialize_buffer->data, serialize_buffer->size);
-            if (!no_error) {
-                LOGE(TAG, "Failed to unserialize data!");
+            if (serialize_buffer->state & BS_R) {
+                no_error = retro_unserialize(serialize_buffer->data, serialize_buffer->size);
+                if (!no_error) {
+                    LOGE(TAG, "Failed to unserialize data!");
+                }
+                serialize_buffer->state = BS_RW;
+            }
+            break;
+        case MSG_GET_SERIALIZE_DATA:
+            if (serialize_buffer->state & BS_W) {
+                retro_serialize(serialize_buffer->data, serialize_buffer->size);
+                serialize_buffer->state = BS_RW;
             }
             break;
         default:
