@@ -154,7 +154,20 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                         mViewModel.setPendingIndicator(false);
                     })
                     .subscribe(this::startEmulator, error -> {/*Ignored*/});
+        } else {
+            mVideoWidth = savedInstanceState.getInt("video_width");
+            mVideoHeight = savedInstanceState.getInt("video_height");
+            if (mVideoWidth != 0 && mVideoHeight != 0) {
+                adjustScreenSize(mVideoWidth, mVideoHeight);
+            }
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("video_width", mVideoWidth);
+        outState.putInt("video_height", mVideoHeight);
     }
 
     private void startEmulator() {
@@ -222,6 +235,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
     }
 
+    private int mVideoWidth = 0;
+    private int mVideoHeight = 0;
     private void adjustScreenSize(int width, int height) {
         float ratio = (float) width / height;
         binding.glSurfaceView.post(() -> {
@@ -245,6 +260,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             binding.getRoot().requestApplyInsets();
             binding.glSurfaceView.setLayoutParams(lp);
         });
+        mVideoWidth = width;
+        mVideoHeight = height;
     }
 
     private final OnBackPressedCallback mBackPressedCallback = new OnBackPressedCallback(true) {

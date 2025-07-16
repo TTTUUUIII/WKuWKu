@@ -153,6 +153,9 @@ public abstract class Emulator implements IEmulator {
                     supported = true;
                 }
                 break;
+            case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
+                supported = true;
+                break;
             case RETRO_ENVIRONMENT_GET_VARIABLE:
                 option = (VariableEntry) data;
                 EmOption opt = mOptions.get(option.key);
@@ -160,6 +163,10 @@ public abstract class Emulator implements IEmulator {
                     option.value = opt.val;
                     supported = true;
                 }
+                break;
+            case RETRO_ENVIRONMENT_SET_GEOMETRY:
+            case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
+                supported = true;
                 break;
             case RETRO_ENVIRONMENT_SET_MESSAGE:
             case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:

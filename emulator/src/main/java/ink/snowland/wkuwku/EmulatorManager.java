@@ -96,7 +96,7 @@ public final class EmulatorManager {
 
     }
 
-    public static void unregisterEmulator(@NonNull Emulator emulator) {
+    public static void unregisterEmulator(@NonNull IEmulator emulator) {
         EMULATORS.remove((String) emulator.getProp(IEmulator.PROP_ALIAS));
         List<EmSystem> systems = emulator.getSupportedSystems();
         for (EmSystem system : systems) {

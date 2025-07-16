@@ -100,8 +100,10 @@ void GLRenderer::notify() {
 
 void GLRenderer::stop() {
     if (state == INVALID) return;
-    state = INVALID;
-    wait();
+    if (state == RUNNING || state == PAUSED) {
+        state = INVALID;
+        wait();
+    }
     eglDestroySurface(display, surface);
     eglDestroyContext(display, context);
     eglTerminate(display);
