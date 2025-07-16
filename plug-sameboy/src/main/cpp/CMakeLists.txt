@@ -27,12 +27,15 @@ project("sameboy")
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 add_compile_definitions(
-        EM_TAG="SameBoy_Native"
+        TAG="SameBoy_Native"
         EM_CLASS="ink/snowland/wkuwku/plug/sameboy/SameBoy"
 )
-add_library(${CMAKE_PROJECT_NAME} SHARED
-        # List C/C++ source files with relative paths to this CMakeLists.txt.
-        ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_libretro_bridge.cpp)
+add_library(
+        ${CMAKE_PROJECT_NAME} SHARED
+        ../../../../emulator/src/main/cpp/GLRenderer.cpp
+        ../../../../emulator/src/main/cpp/GLUtils.cpp
+        ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_EmulatorV2.cpp
+)
 add_library(libretro SHARED IMPORTED)
 set_target_properties(libretro PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libretro.so")
 
@@ -43,5 +46,7 @@ set_target_properties(libretro PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOU
 target_link_libraries(${CMAKE_PROJECT_NAME}
         # List libraries link to the target library
         libretro
+        EGL
+        GLESv3
         android
         log)

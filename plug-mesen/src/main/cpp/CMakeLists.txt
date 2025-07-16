@@ -26,19 +26,23 @@ project("mesen")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-macro(add_bridge_library name)
-    add_library(${name}-bridge SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
-    target_link_libraries(${name}-bridge android log ${name})
-    string(TOUPPER ${name} tmp)
-    string(REPLACE "-" "_" tag ${tmp})
-    target_compile_definitions(${name}-bridge PRIVATE ${tag})
-endmacro()
-add_bridge_library(mesen)
-add_bridge_library(mesen-s)
-# Specifies libraries CMake should link to your target library. You
-# can link libraries from various origins, such as libraries defined in this
-# build script, prebuilt third-party libraries, or Android system libraries.
-foreach(lib IN ITEMS mesen mesen-s)
-    add_library(${lib} SHARED IMPORTED)
-    set_target_properties(${lib} PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/lib${lib}.so")
-endforeach()
+add_compile_definitions(
+        TAG="Mesen_Native"
+        EM_CLASS="ink/snowland/wkuwku/plug/mesen/Mesen"
+)
+add_library(
+        ${CMAKE_PROJECT_NAME} SHARED
+        ../../../../emulator/src/main/cpp/GLRenderer.cpp
+        ../../../../emulator/src/main/cpp/GLUtils.cpp
+        ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_EmulatorV2.cpp
+)
+add_library(libretro SHARED IMPORTED)
+set_target_properties(libretro PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libretro.so")
+
+target_link_libraries(${CMAKE_PROJECT_NAME}
+        # List libraries link to the target library
+        libretro
+        android
+        EGL
+        GLESv3
+        log)

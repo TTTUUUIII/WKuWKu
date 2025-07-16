@@ -11,13 +11,11 @@ public class Main extends Plug {
     protected void install(Context context, Resources resources) {
         super.install(context, resources);
         Mesen.registerAsEmulator(resources);
-        MesenS.registerAsEmulator(resources);
     }
 
     @Override
     protected void uninstall() {
         super.uninstall();
         Mesen.unregisterEmulator();
-        MesenS.unregisterEmulator();
     }
 }

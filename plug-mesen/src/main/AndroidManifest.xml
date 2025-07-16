@@ -10,6 +10,6 @@
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
         <meta-data
             android:name="plugSummary"
-            android:value="NES、FDS、SNES、GB、GBC platforms support" />
+            android:value="Mesen is a high-accuracy NES and Famicom emulator." />
     </application>
 </manifest>

@@ -1,78 +1,61 @@
 package ink.snowland.wkuwku.plug.mesen;
 
 import android.content.res.Resources;
+import android.view.Surface;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
 
 import ink.snowland.wkuwku.EmulatorManager;
+import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
-import ink.snowland.wkuwku.interfaces.Emulator;
+import ink.snowland.wkuwku.emulator.Emulator;
+import ink.snowland.wkuwku.interfaces.IEmulator;
 
 public class Mesen extends Emulator {
 
 
-    public Mesen(@NonNull Resources res, int configResId) throws XmlPullParserException, IOException {
-        super(res, configResId);
-    }
-
-    public static void registerAsEmulator(@NonNull Resources resources) {
-        if (SHARED_INSTANCE == null) {
-            try {
-                SHARED_INSTANCE = new Mesen(resources, R.xml.mesen_config);
-            } catch (XmlPullParserException | IOException e) {
-                e.printStackTrace(System.err);
-            }
-        }
-        if (SHARED_INSTANCE != null) {
-            EmulatorManager.registerEmulator(SHARED_INSTANCE);
-        }
-    }
-
-    public static void unregisterEmulator() {
-        if (SHARED_INSTANCE != null)
-            EmulatorManager.unregisterEmulator(SHARED_INSTANCE);
-    }
-
-    private static Mesen SHARED_INSTANCE;
-
     static {
-        System.loadLibrary("mesen-bridge");
+        System.loadLibrary("mesen");
     }
 
-    protected native void nativePowerOn();
-    protected native void nativePowerOff();
-    protected native void nativeReset();
-    protected native boolean nativeLoad(@NonNull String path);
-    protected native void nativeRun();
-    protected native EmSystemAvInfo nativeGetSystemAvInfo();
-    protected native EmSystemInfo nativeGetSystemInfo();
-    protected native boolean nativeSaveMemoryRam(@NonNull String path);
-    protected native boolean nativeLoadMemoryRam(@NonNull String path);
-    protected native boolean nativeSaveState(@NonNull String path);
-    protected native boolean nativeLoadState(@NonNull String path);
-    protected native byte[] nativeGetState();
-    protected native boolean nativeSetState(final byte[] data);
-
-    @Nullable
-    @Override
-    protected byte[] getState() {
-        return nativeGetState();
+    public Mesen(@NonNull Resources resources) {
+        super("mesen", EmConfig.fromXml(resources.getXml(R.xml.mesen_config)));
     }
 
     @Override
-    protected boolean setState(final byte[] data) {
-        return nativeSetState(data);
+    public boolean captureScreen(String savePath) {
+        return nativeCaptureScreen(savePath);
     }
 
     @Override
-    public String getTag() {
-        return "mesen";
+    public void attachSurface(@NonNull Surface surface) {
+        nativeAttachSurface(surface);
+    }
+
+    @Override
+    public void adjustSurface(int vw, int vh) {
+        nativeAdjustSurface(vw, vh);
+    }
+
+    @Override
+    public void detachSurface() {
+        nativeDetachSurface();
+    }
+
+    @Override
+    public void pause() {
+        nativePause();
+    }
+
+    @Override
+    public void resume() {
+        nativeResume();
+    }
+
+    @Override
+    public void reset() {
+        nativeReset();
     }
 
     @Override
@@ -81,43 +64,73 @@ public class Mesen extends Emulator {
     }
 
     @Override
-    protected EmSystemAvInfo getSystemAvInfo() {
+    public EmSystemAvInfo getSystemAvInfo() {
         return nativeGetSystemAvInfo();
     }
 
     @Override
-    public void onPowerOn() {
-        nativePowerOn();
+    public byte[] getSerializeData() {
+        return nativeGetSerializeData();
     }
 
     @Override
-    public boolean onLoadGame(@NonNull String fullPath) {
-        return nativeLoad(fullPath);
+    public boolean setSerializeData(byte[] data) {
+        return nativeSetSerializeData(data);
     }
 
     @Override
-    public void onNext() {
-        nativeRun();
+    public byte[] getMemoryData(int type) {
+        return nativeGetMemoryData(type);
     }
 
     @Override
-    public void onReset() {
-        nativeReset();
+    public void setMemoryData(int type, byte[] data) {
+        nativeSetMemoryData(type, data);
     }
 
     @Override
-    public void onLoadState(@NonNull String fullPath) {
-        nativeLoadState(fullPath);
+    public void setControllerPortDevice(int port, int device) {
+        nativeSetControllerPortDevice(port, device);
     }
 
     @Override
-    public boolean onSaveState(@NonNull String savePath) {
-        return nativeSaveState(savePath);
+    protected boolean startGame(@NonNull String path) {
+        return nativeStart(path);
     }
 
     @Override
-    public void onPowerOff() {
-        nativePowerOff();
+    protected void stopGame() {
+        nativeStop();
     }
+
+    public static IEmulator sInstance;
+
+    public static void registerAsEmulator(@NonNull Resources resources) {
+        if (sInstance == null) {
+            sInstance = new Mesen(resources);
+        }
+        EmulatorManager.registerEmulator(sInstance);
+    }
+
+    public static void unregisterEmulator() {
+        EmulatorManager.unregisterEmulator(sInstance);
+    }
+
+    private native boolean nativeCaptureScreen(String savePath);
+    private native void nativeAttachSurface(@NonNull Surface surface);
+    private native void nativeAdjustSurface(int vw, int vh);
+    private native void nativeDetachSurface();
+    private native boolean nativeStart(@NonNull String path);
+    private native void nativePause();
+    private native void nativeResume();
+    private native void nativeStop();
+    private native void nativeReset();
+    private native EmSystemInfo nativeGetSystemInfo();
+    private native EmSystemAvInfo nativeGetSystemAvInfo();
+    private native byte[] nativeGetSerializeData();
+    private native boolean nativeSetSerializeData(final byte[] data);
+    private native byte[] nativeGetMemoryData(int type);
+    private native void nativeSetMemoryData(int type, byte[] data);
+    private native void nativeSetControllerPortDevice(int port, int device);
 }
 

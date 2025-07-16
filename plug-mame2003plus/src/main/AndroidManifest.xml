@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:icon="@drawable/mame_logo"
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="Mame2003-Plus">
         <meta-data
             android:name="plugMainClass"
-            android:value="ink.snowland.wkuwku.plug.mame2003plus.MamePlug" />
+            android:value="ink.snowland.wkuwku.plug.mame2003plus.Main" />
         <meta-data
             android:name="plugAuthor"
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
