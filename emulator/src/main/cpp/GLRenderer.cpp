@@ -30,7 +30,12 @@ GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
     state = PREPARED;
 }
 
-GLRenderer::~GLRenderer() = default;
+GLRenderer::~GLRenderer() {
+        eglDestroySurface(display, surface);
+        eglDestroyContext(display, context);
+        eglTerminate(display);
+        ANativeWindow_release(window);
+};
 
 void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
     vw = w;
@@ -42,70 +47,48 @@ GLRendererInterface* GLRenderer::get_renderer_interface() {
 }
 
 bool GLRenderer::start() {
-    if (state != PREPARED) return false;
-    gl_thread = std::thread([this]() {
-        uint16_t current_vw = vw, current_vh = vh;
-        eglMakeCurrent(display, surface, surface, context);
-        if (interface.on_create) {
-            interface.on_create(display, surface);
-        }
-        while (state != INVALID) {
-            if (current_vw != vw || current_vh != vh) {
-                glViewport(0, 0, vw, vh);
-                current_vw = vw;
-                current_vh = vh;
+    bool no_error = true;
+    if (state == PREPARED) {
+        gl_thread = std::thread([this]() {
+            gl_thread_running = true;
+            uint16_t current_vw = vw, current_vh = vh;
+            eglMakeCurrent(display, surface, surface, context);
+            if (interface.on_create) {
+                interface.on_create(display, surface);
             }
-            if (state == RUNNING) {
-                if (interface.on_draw) {
+            while (state == RUNNING) {
+                if (current_vw != vw || current_vh != vh) {
+                    glViewport(0, 0, vw, vh);
+                    current_vw = vw;
+                    current_vh = vh;
+                }
+                if (state == RUNNING && interface.on_draw) {
                     interface.on_draw();
                 }
-            } else if (state == PAUSED) {
-                wait();
             }
-        }
-        if (interface.on_destroy) {
-            interface.on_destroy();
-        }
-        eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-        notify();
-    });
-    state = RUNNING;
-    gl_thread.detach();
-    return true;
-}
-
-void GLRenderer::pause() {
-    if (state == RUNNING) {
-        state = PAUSED;
-    }
-}
-
-void GLRenderer::resume() {
-    if (state == PAUSED) {
+            if (interface.on_destroy) {
+                interface.on_destroy();
+            }
+            eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+            std::lock_guard<std::mutex> lock(mtx);
+            gl_thread_running = false;
+            cv.notify_one();
+            LOGI(__FILE_NAME__, "GL thread exit.");
+        });
+        gl_thread.detach();
         state = RUNNING;
-        notify();
+    } else {
+        no_error = false;
     }
-}
-
-void GLRenderer::wait() {
-    std::unique_lock<std::mutex> lock(mtx);
-    cv.wait(lock);
-}
-
-void GLRenderer::notify() {
-    cv.notify_one();
+    return no_error;
 }
 
 void GLRenderer::stop() {
-    if (state == INVALID) return;
-    if (state == RUNNING || state == PAUSED) {
-        state = INVALID;
-        wait();
+    if (state == RUNNING) {
+        state = PREPARED;
+        std::unique_lock<std::mutex> lock(mtx);
+        cv.wait(lock, [this] {return gl_thread_running;});
     }
-    eglDestroySurface(display, surface);
-    eglDestroyContext(display, context);
-    eglTerminate(display);
-    ANativeWindow_release(window);
 }
 
 void GLRenderer::swap_buffers() {
