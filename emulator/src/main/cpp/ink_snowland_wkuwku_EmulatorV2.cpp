@@ -6,16 +6,14 @@
 #include <queue>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
-#include <oboe/Oboe.h>
 #include "GLRenderer.h"
 #include "GLUtils.h"
+#include "AudioOutputStream.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "stb_image_write.h"
-
-#define kNanosPerMillisecond    (1000000L)
 
 #ifndef TAG
 #define TAG "Fceumm_Native"
@@ -29,7 +27,7 @@ static video_state_t current_video{0, 0, 0, RETRO_PIXEL_FORMAT_RGB565};
 static std::unique_ptr<buffer_t> framebuffer = nullptr;
 static std::unique_ptr<buffer_t> serialize_buffer = nullptr;
 static std::queue<std::unique_ptr<message_t>> message_queue;
-static std::shared_ptr<oboe::AudioStream> audio_stream_out;
+static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static std::atomic<bool> env_attached = false;
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
@@ -569,9 +567,7 @@ static void em_pause(JNIEnv *env, jobject thiz) {
     LOGD(TAG, "em_pause called.");
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
-        audio_stream_out->requestPause();
-        oboe::StreamState nextState = oboe::StreamState::Uninitialized;
-        audio_stream_out->waitForStateChange(oboe::StreamState::Pausing, &nextState, 100 * kNanosPerMillisecond);
+        audio_stream_out->request_pause();
     }
 }
 
@@ -579,10 +575,7 @@ static void em_resume(JNIEnv *env, jobject thiz) {
     LOGD(TAG, "em_resume called.");
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
-        audio_stream_out->requestStart();
-        oboe::StreamState inputState = oboe::StreamState::Starting;
-        oboe::StreamState nextState = oboe::StreamState::Uninitialized;
-        audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
+        audio_stream_out->request_start();
     }
 }
 
@@ -891,36 +884,13 @@ static void detach_env() {
 }
 
 static void open_audio_stream() {
-    oboe::AudioStreamBuilder builder;
     struct retro_system_av_info av_info{};
     retro_get_system_av_info(&av_info);
-    oboe::Result result = builder.setDirection(oboe::Direction::Output)
-            ->setUsage(oboe::Usage::Game)
-            ->setSharingMode(oboe::SharingMode::Exclusive)
-            ->setFormat(oboe::AudioFormat::I16)
-            ->setChannelCount(oboe::ChannelCount::Stereo)
-            ->setErrorCallback(oboe::AudioStreamErrorCallback)
-            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
-            ->setSampleRate(av_info.timing.sample_rate == 0 ? 48000 : static_cast<int32_t>(av_info.timing.sample_rate))
-            ->openStream(audio_stream_out);
-    if (result != oboe::Result::OK) {
-        LOGE(TAG, "Failed to open audio stream!");
-    }
-    result = audio_stream_out->requestStart();
-    oboe::StreamState inputState = oboe::StreamState::Starting;
-    oboe::StreamState nextState = oboe::StreamState::Uninitialized;
-    audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
-    if (result != oboe::Result::OK) {
-        LOGE(TAG, "Failed to start audio stream!");
-    }
+    audio_stream_out = std::make_shared<AudioOutputStream>(av_info.timing.sample_rate);
+    audio_stream_out->request_open();
+    audio_stream_out->request_start();
 }
 
 static void close_audio_stream() {
-    if (audio_stream_out) {
-        oboe::StreamState inputState = oboe::StreamState::Stopping;
-        oboe::StreamState nextState = oboe::StreamState::Uninitialized;
-        audio_stream_out->requestStop();
-        audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
-        audio_stream_out->close();
-    }
+    audio_stream_out = nullptr;
 }
