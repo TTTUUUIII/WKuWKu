@@ -33,6 +33,7 @@ find_package (oboe REQUIRED CONFIG)
 add_library(fceumm SHARED
         GLUtils.cpp
         GLRenderer.cpp
+        AudioOutputStream.cpp
         ink_snowland_wkuwku_EmulatorV2.cpp)
 target_link_libraries(
         fceumm
