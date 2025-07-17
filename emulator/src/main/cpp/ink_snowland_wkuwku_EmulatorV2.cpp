@@ -15,7 +15,6 @@
 
 #include "stb_image_write.h"
 
-#define SWAPPY_SWAP_120FPS      (8333334L)
 #define kNanosPerMillisecond    (1000000L)
 
 #ifndef TAG
@@ -24,13 +23,14 @@
 
 std::mutex mtx;
 std::atomic<unsigned> current_state = STATE_INVALID;
-static std::unique_ptr<GLRenderer> current_renderer;
+static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static video_state_t current_video{0, 0, 0, RETRO_PIXEL_FORMAT_RGB565};
 static std::unique_ptr<buffer_t> framebuffer = nullptr;
 static std::unique_ptr<buffer_t> serialize_buffer = nullptr;
-static std::queue<std::unique_ptr<message_t>> msg_queue;
+static std::queue<std::unique_ptr<message_t>> message_queue;
 static std::shared_ptr<oboe::AudioStream> audio_stream_out;
+static std::atomic<bool> env_attached = false;
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
@@ -51,14 +51,12 @@ typedef struct {
     jfieldID variable_entry_value_field;
 } em_context_t;
 
-static em_context_t ctx = {nullptr};
+static em_context_t ctx{};
 static jobject variable_object;
 static jobject variable_entry_object;
-static jshortArray audio_buffer = nullptr;
 static int need_fullpath = true;
 static struct retro_disk_control_callback *disk_control;
 static struct retro_disk_control_ext_callback *dis_control_ext;
-bool env_attached = false;
 
 static void set_variable_value(JNIEnv *env, jobject value) {
     env->SetObjectField(variable_object, ctx.variable_value_field, value);
@@ -136,7 +134,7 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
             texture(GL_RGBA, (int) width, (int) height, current_video.rotation, framebuffer->data);
         }
     }
-    current_renderer->swap_buffers();
+    renderer->swap_buffers();
     if (current_video.rotation == 1 || current_video.rotation == 3) {
         unsigned origin_width;
         origin_width = width;
@@ -151,6 +149,7 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
 }
 
 static void fill_framebuffer(const void *data, unsigned width, unsigned height, size_t pitch) {
+    std::lock_guard<std::mutex> lock(mtx);
     size_t bytes_per_pixel = 2;
     if (current_video.pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
@@ -161,7 +160,6 @@ static void fill_framebuffer(const void *data, unsigned width, unsigned height, 
             fb[i + 3] = 0xFF;
         }
     }
-    std::lock_guard<std::mutex> lock(mtx);
     size_t size = width * height * bytes_per_pixel;
     if (!framebuffer || framebuffer->size != size) {
         framebuffer = std::make_unique<buffer_t>(size);
@@ -188,19 +186,22 @@ static void audio_buffer_state_callback(bool active, unsigned occupancy, bool un
 }
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
-    audio_stream_out->write(data, (int) frames, 50 * kNanosPerMillisecond);
+    if (current_state == STATE_RUNNING) {
+        audio_stream_out->write(data, (int) frames, 50 * kNanosPerMillisecond);
+    }
     return frames;
 }
 
 static int16_t input_cb(unsigned port, unsigned device, unsigned index, unsigned id) {
     JNIEnv *env;
-    if (!attach_env(&env)) return 0;
-    auto state = (int16_t) env->CallIntMethod(ctx.emulator_obj, ctx.input_cb_method, port,
+    if (!ctx.emulator_obj || !attach_env(&env)) return 0;
+    int16_t input_state;
+    input_state = (int16_t) env->CallIntMethod(ctx.emulator_obj, ctx.input_cb_method, port,
                                               device,
                                               index,
                                               id);
     detach_env();
-    return state;
+    return input_state;
 }
 
 static void input_poll_cb() {
@@ -491,35 +492,40 @@ static bool environment_cb(unsigned cmd, void *data) {
 static bool initialized = false;
 
 static void em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
+    LOGD(TAG, "em_attach_surface called.");
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     if (activity != nullptr && !SwappyGL_isEnabled()) {
         SwappyGL_init(env, activity);
-        SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_120FPS);
+        SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_60FPS);
         SwappyGL_setAutoSwapInterval(true);
         SwappyGL_setAutoPipelineMode(true);
         SwappyGL_setWindow(window);
     }
-    current_renderer = std::make_unique<GLRenderer>(window);
-    GLRendererInterface *interface = current_renderer->get_renderer_interface();
+    renderer = std::make_unique<GLRenderer>(window);
+    GLRendererInterface *interface = renderer->get_renderer_interface();
     interface->on_create = on_create;
     interface->on_draw = on_draw;
     interface->on_destroy = on_destroy;
     if (current_state == STATE_RUNNING) {
-        current_renderer->start();
+        renderer->start();
     }
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
-    current_renderer->adjust_viewport(vw, vh);
+    LOGD(TAG, "em_adjust_surface called.");
+    renderer->adjust_viewport(vw, vh);
 }
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
-    current_renderer->stop();
-    current_renderer = nullptr;
+    LOGD(TAG, "em_detach_surface called.");
+    renderer->stop();
 }
 
 static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
-    ctx.emulator_obj = env->NewGlobalRef(thiz);
+    LOGD(TAG, "em_start called.");
+    if (ctx.emulator_obj == nullptr) {
+        ctx.emulator_obj = env->NewGlobalRef(thiz);
+    }
     if (current_state == INVALID) {
         retro_set_environment(environment_cb);
         retro_init();
@@ -551,8 +557,8 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     if (no_error) {
         current_state = STATE_RUNNING;
         open_audio_stream();
-        if (current_renderer) {
-            current_renderer->start();
+        if (renderer) {
+            renderer->start();
         }
     }
     env->ReleaseStringUTFChars(path, rom_path);
@@ -560,13 +566,17 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
 }
 
 static void em_pause(JNIEnv *env, jobject thiz) {
+    LOGD(TAG, "em_pause called.");
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
         audio_stream_out->requestPause();
+        oboe::StreamState nextState = oboe::StreamState::Uninitialized;
+        audio_stream_out->waitForStateChange(oboe::StreamState::Pausing, &nextState, 100 * kNanosPerMillisecond);
     }
 }
 
 static void em_resume(JNIEnv *env, jobject thiz) {
+    LOGD(TAG, "em_resume called.");
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
         audio_stream_out->requestStart();
@@ -577,16 +587,18 @@ static void em_resume(JNIEnv *env, jobject thiz) {
 }
 
 static void em_reset(JNIEnv *env, jobject thiz) {
-    retro_reset();
+    LOGD(TAG, "em_reset called.");
+    message_queue.push(std::make_unique<message_t>(MSG_RESET_EMULATOR));
 }
 
 static void em_stop(JNIEnv *env, jobject thiz) {
+    LOGD(TAG, "em_stop called.");
     current_state = STATE_IDLE;
     retro_unload_game();
-    framebuffer = nullptr;
-    serialize_buffer = nullptr;
-    env->DeleteGlobalRef(ctx.emulator_obj);
     close_audio_stream();
+    while (!message_queue.empty()) {
+        message_queue.pop();
+    }
 }
 
 static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
@@ -626,7 +638,6 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
 }
 
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
-    msg_queue.push(std::make_unique<message_t>(MSG_GET_SERIALIZE_DATA));
     size_t size;
     size = retro_serialize_size();
     if (size == 0) return nullptr;
@@ -634,6 +645,7 @@ static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
         serialize_buffer = std::make_unique<buffer_t>(size);
     }
     serialize_buffer->state = BS_W;
+    message_queue.push(std::make_unique<message_t>(MSG_GET_SERIALIZE_DATA));
     while (!(serialize_buffer->state & BS_R)) {}
     jbyteArray snapshot = env->NewByteArray((jint) size);
     env->SetByteArrayRegion(snapshot, 0, (jint) size,
@@ -651,7 +663,7 @@ static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
         if (serialize_buffer->state & BS_W) {
             memcpy(serialize_buffer->data, data, size);
             serialize_buffer->state = BS_R;
-            msg_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
+            message_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
         }
         env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
     }
@@ -680,24 +692,27 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 }
 
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
-    if (!framebuffer) return false;
     bool no_error = true;
-    const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
     std::lock_guard<std::mutex> lock(mtx);
-    if (current_video.pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        stbi_write_png(file_path, current_video.width, current_video.height, 4, framebuffer->data,
-                       current_video.width * 4);
-    } else if (current_video.pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-        unsigned char data[current_video.width * current_video.height * 3];
-        auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
-        for (int i = 0; i < current_video.width * current_video.height; ++i) {
-            uint16_t pixel = origin[i];
-            data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
-            data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
-            data[i * 3 + 2] = (pixel & 0x1F) << 3;
+    if (framebuffer) {
+        const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
+        if (current_video.pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+            stbi_write_png(file_path, current_video.width, current_video.height, 4, framebuffer->data,
+                           current_video.width * 4);
+        } else if (current_video.pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+            unsigned char data[current_video.width * current_video.height * 3];
+            auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
+            for (int i = 0; i < current_video.width * current_video.height; ++i) {
+                uint16_t pixel = origin[i];
+                data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
+                data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
+                data[i * 3 + 2] = (pixel & 0x1F) << 3;
+            }
+            stbi_write_png(file_path, current_video.width, current_video.height, 3, data,
+                           current_video.width * 3);
+        } else {
+            no_error = false;
         }
-        stbi_write_png(file_path, current_video.width, current_video.height, 3, data,
-                       current_video.width * 3);
     } else {
         no_error = false;
     }
@@ -781,10 +796,14 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     env->DeleteGlobalRef(ctx.input_descriptor_clazz);
     env->DeleteGlobalRef(ctx.array_list_clazz);
     env->DeleteGlobalRef(ctx.message_ext_clazz);
+    if (ctx.emulator_obj) {
+        env->DeleteGlobalRef(ctx.emulator_obj);
+        ctx.emulator_obj = nullptr;
+    }
+    framebuffer = nullptr;
+    serialize_buffer = nullptr;
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
-    if (audio_buffer != nullptr)
-        env->DeleteGlobalRef(audio_buffer);
     if (SwappyGL_isEnabled())
         SwappyGL_destroy();
     ctx.jvm = nullptr;
@@ -824,8 +843,8 @@ static uintptr_t get_hw_framebuffer() {
 }
 
 static void handle_message() {
-    if (msg_queue.empty()) return;
-    std::unique_ptr<message_t> &msg = msg_queue.front();
+    if (message_queue.empty()) return;
+    std::unique_ptr<message_t> &msg = message_queue.front();
     bool no_error;
     switch (msg->what) {
         case MSG_SET_SERIALIZE_DATA:
@@ -843,9 +862,12 @@ static void handle_message() {
                 serialize_buffer->state = BS_RW;
             }
             break;
+        case MSG_RESET_EMULATOR:
+            retro_reset();
+            break;
         default:
     }
-    msg_queue.pop();
+    message_queue.pop();
 }
 
 static bool attach_env(JNIEnv **env) {
@@ -870,12 +892,16 @@ static void detach_env() {
 
 static void open_audio_stream() {
     oboe::AudioStreamBuilder builder;
+    struct retro_system_av_info av_info{};
+    retro_get_system_av_info(&av_info);
     oboe::Result result = builder.setDirection(oboe::Direction::Output)
             ->setUsage(oboe::Usage::Game)
             ->setSharingMode(oboe::SharingMode::Exclusive)
             ->setFormat(oboe::AudioFormat::I16)
             ->setChannelCount(oboe::ChannelCount::Stereo)
+            ->setErrorCallback(oboe::AudioStreamErrorCallback)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+            ->setSampleRate(av_info.timing.sample_rate == 0 ? 48000 : static_cast<int32_t>(av_info.timing.sample_rate))
             ->openStream(audio_stream_out);
     if (result != oboe::Result::OK) {
         LOGE(TAG, "Failed to open audio stream!");
@@ -891,11 +917,10 @@ static void open_audio_stream() {
 
 static void close_audio_stream() {
     if (audio_stream_out) {
-        audio_stream_out->requestStop();
         oboe::StreamState inputState = oboe::StreamState::Stopping;
         oboe::StreamState nextState = oboe::StreamState::Uninitialized;
+        audio_stream_out->requestStop();
         audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
         audio_stream_out->close();
     }
-    audio_stream_out = nullptr;
 }

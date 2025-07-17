@@ -23,11 +23,12 @@
 
 #define MSG_SET_SERIALIZE_DATA      1
 #define MSG_GET_SERIALIZE_DATA      2
+#define MSG_RESET_EMULATOR          3
 
 struct buffer_t {
     size_t size;
     void* data;
-    uint8_t state;
+    std::atomic<uint8_t> state;
     explicit buffer_t(size_t _s): size(_s), state(BS_RW) {
         if (size > 0) {
             data = malloc(size);

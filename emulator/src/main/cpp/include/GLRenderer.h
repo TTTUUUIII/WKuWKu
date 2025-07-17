@@ -15,8 +15,7 @@
 enum WindowState {
     INVALID,
     PREPARED,
-    RUNNING,
-    PAUSED
+    RUNNING
 };
 
 typedef struct {
@@ -37,12 +36,9 @@ private:
     EGLSurface surface;
     EGLint version_major, version_minor;
     std::thread gl_thread;
+    bool gl_thread_running = false;
     std::atomic<WindowState> state = INVALID;
     GLRendererInterface interface = {};
-
-    void wait();
-
-    void notify();
 
 public:
     explicit GLRenderer(ANativeWindow *wd);
@@ -56,10 +52,6 @@ public:
     GLRendererInterface* get_renderer_interface();
 
     bool start();
-
-    void pause();
-
-    void resume();
 
     void stop();
 };
