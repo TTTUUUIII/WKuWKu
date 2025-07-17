@@ -17,6 +17,7 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags ''
+                arguments "-DANDROID_STL=c++_shared"
             }
         }
     }
@@ -36,6 +37,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    buildFeatures {
+        prefab true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
@@ -49,7 +55,6 @@ android {
 }
 
 dependencies {
-
     compileOnly(project(path: ":emulator"))
     compileOnly(project(path: ":plug"))
     compileOnly libs.appcompat

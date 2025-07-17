@@ -36,7 +36,8 @@ add_library(
         ../../../../emulator/src/main/cpp/GLUtils.cpp
         ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_EmulatorV2.cpp
 )
-
+find_package(games-frame-pacing REQUIRED CONFIG)
+find_package (oboe REQUIRED CONFIG)
 add_library(libretro SHARED IMPORTED)
 set_target_properties(libretro PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libretro.so")
 
@@ -49,4 +50,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         android
         EGL
         GLESv3
+        games-frame-pacing::swappy_static
+        oboe::oboe
         log)
