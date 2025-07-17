@@ -1,8 +1,10 @@
 package ink.snowland.wkuwku.interfaces;
 
+import android.app.Activity;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -17,7 +19,6 @@ public interface IEmulator extends RetroDefine {
     int PROP_SYSTEM_DIRECTORY       = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
     int PROP_SAVE_DIRECTORY         = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
     int PROP_CORE_ASSETS_DIRECTORY  = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
-    int PROP_AUDIO_VOLUME           = 100;
     int PROP_ALIAS                  = 101;
 
     void setProp(int what, Object data);
@@ -30,6 +31,7 @@ public interface IEmulator extends RetroDefine {
     boolean isSupportedSystem(@NonNull String systemTag);
     List<EmSystem> getSupportedSystems();
     File searchSupportedContent(File file);
+    void attachSurface(@Nullable Activity activity, @NonNull Surface surface);
     void attachSurface(@NonNull Surface surface);
     void adjustSurface(int vw, int vh);
     void detachSurface();
@@ -49,5 +51,4 @@ public interface IEmulator extends RetroDefine {
     boolean onNativeEnvironment(int cmd, Object data);
     void onNativeVideoSizeChanged(int vw, int vh);
     int onNativePollInput(int port, int device, int index, int id);
-    int onNativeAudioBuffer(final short[] data, int frames);
 }

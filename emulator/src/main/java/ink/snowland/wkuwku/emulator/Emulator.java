@@ -1,9 +1,5 @@
 package ink.snowland.wkuwku.emulator;
 
-import android.media.AudioAttributes;
-import android.media.AudioFormat;
-import android.media.AudioTrack;
-import android.os.Build;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
@@ -19,7 +15,6 @@ import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystem;
-import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.IEmulator;
@@ -29,7 +24,6 @@ public abstract class Emulator implements IEmulator {
     protected final EmConfig config;
     protected final Map<String, EmOption> mOptions = new HashMap<>();
     private final SparseArray<Object> mProps = new SparseArray<>();
-    private AudioTrack mAudioTrack = null;
     private WeakReference<OnEmulatorV2EventListener> mListener = new WeakReference<>(null);
 
     public Emulator(@NonNull String alias, @NonNull EmConfig config) {
@@ -86,9 +80,6 @@ public abstract class Emulator implements IEmulator {
     @Override
     public void setProp(int what, Object data) {
         mProps.put(what, data);
-        if (what == PROP_AUDIO_VOLUME && mAudioTrack != null) {
-            mAudioTrack.setVolume((float) data);
-        }
     }
 
     @Override
@@ -114,22 +105,12 @@ public abstract class Emulator implements IEmulator {
 
     @Override
     public boolean start(@NonNull String path) {
-        boolean noError = startGame(path);
-        if (noError) {
-            createAudioTrack();
-            mAudioTrack.play();
-        }
-        return noError;
+        return startGame(path);
     }
 
     @Override
     public void stop() {
         stopGame();
-        if (mAudioTrack != null) {
-            mAudioTrack.stop();
-            mAudioTrack.release();
-            mAudioTrack = null;
-        }
     }
 
     @Override
@@ -199,39 +180,6 @@ public abstract class Emulator implements IEmulator {
         return 0;
     }
 
-    @Override
-    public int onNativeAudioBuffer(short[] data, int frames) {
-        if (mAudioTrack != null) {
-            mAudioTrack.write(data, 0, frames * 2);
-        }
-        return frames;
-    }
-
     protected abstract boolean startGame(@NonNull String path);
     protected abstract void stopGame();
-
-    private void createAudioTrack() {
-        EmSystemAvInfo systemAvInfo = getSystemAvInfo();
-        int sampleRate = (int) systemAvInfo.timing.sampleRate;
-        if (sampleRate == 0) {
-            sampleRate = 48000;
-        }
-        int minBufferSize = AudioTrack.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_OUT_STEREO, AudioFormat.ENCODING_PCM_16BIT);
-        AudioTrack.Builder builder = new AudioTrack.Builder()
-                .setAudioAttributes(new AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_GAME)
-                        .build())
-                .setTransferMode(AudioTrack.MODE_STREAM)
-                .setAudioFormat(new AudioFormat.Builder()
-                        .setSampleRate(sampleRate)
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
-                        .build())
-                .setBufferSizeInBytes(minBufferSize);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
-        }
-        mAudioTrack = builder.build();
-        mAudioTrack.setVolume((float) mProps.get(PROP_AUDIO_VOLUME, 1.f));
-    }
 }

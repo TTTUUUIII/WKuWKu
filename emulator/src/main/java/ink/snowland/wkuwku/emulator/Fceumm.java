@@ -1,10 +1,12 @@
 package ink.snowland.wkuwku.emulator;
 
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
@@ -25,9 +27,12 @@ public class Fceumm extends Emulator {
         return nativeCaptureScreen(savePath);
     }
 
+    public void attachSurface(@Nullable Activity activity, @NonNull Surface surface) {
+        nativeAttachSurface(activity, surface);
+    }
     @Override
     public void attachSurface(@NonNull Surface surface) {
-        nativeAttachSurface(surface);
+        nativeAttachSurface(null, surface);
     }
 
     @Override
@@ -101,7 +106,7 @@ public class Fceumm extends Emulator {
     }
 
     private native boolean nativeCaptureScreen(String savePath);
-    private native void nativeAttachSurface(@NonNull Surface surface);
+    private native void nativeAttachSurface(@Nullable Activity activity, @NonNull Surface surface);
     private native void nativeAdjustSurface(int vw, int vh);
     private native void nativeDetachSurface();
     private native boolean nativeStart(@NonNull String path);

@@ -9,6 +9,7 @@
 #include <thread>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
+#include <swappy/swappyGL.h>
 #include <android/native_window_jni.h>
 
 enum WindowState {
@@ -49,6 +50,8 @@ public:
     ~GLRenderer();
 
     void adjust_viewport(uint16_t w, uint16_t h);
+
+    void swap_buffers();
 
     GLRendererInterface* get_renderer_interface();
 

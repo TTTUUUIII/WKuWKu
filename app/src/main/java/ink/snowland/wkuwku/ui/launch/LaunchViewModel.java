@@ -2,11 +2,6 @@ package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 import android.app.Application;
-import android.content.Context;
-import android.media.AudioAttributes;
-import android.media.AudioFocusRequest;
-import android.media.AudioManager;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,29 +27,16 @@ import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAudioFocusChangeListener {
+public class LaunchViewModel extends BaseViewModel {
     public static final int NO_ERR = 0;
     public static final int ERR_EMULATOR_NOT_FOUND = 1;
     public static final int ERR_LOAD_FAILED = 2;
     public static final int MAX_COUNT_OF_SNAPSHOT = 4;
     private IEmulator mEmulator;
-    private AudioManager mAudioManager = null;
-    private AudioFocusRequest mAudioFocusRequest = null;
     private final List<byte[]> mSnapshots = new ArrayList<>();
     private Game mCurrentGame;
     public LaunchViewModel(@NonNull Application application) {
         super(application);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mAudioFocusRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                    .setOnAudioFocusChangeListener(this)
-                    .setAudioAttributes(new AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_GAME)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                            .build())
-                    .setAcceptsDelayedFocusGain(true)
-                    .build();
-            mAudioManager = (AudioManager) application.getSystemService(Context.AUDIO_SERVICE);
-        }
         Disposable disposable = AppDatabase.db.macroScriptDao()
                 .getList()
                 .observeOn(Schedulers.io())
@@ -82,9 +64,6 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
 
     public int startEmulator() {
         if (mEmulator != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mEmulator.setProp(PROP_AUDIO_VOLUME, mAudioManager.requestAudioFocus(mAudioFocusRequest) == AudioManager.AUDIOFOCUS_REQUEST_GRANTED ? 1.0f : 0.0f);
-            }
             onApplyOptions();
             mEmulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
@@ -133,9 +112,6 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
         mEmulator.stop();
         mEmulator = null;
         mCurrentGame = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            mAudioManager.abandonAudioFocusRequest(mAudioFocusRequest);
-        }
     }
 
     public boolean saveCurrentSate() {
@@ -195,11 +171,5 @@ public class LaunchViewModel extends BaseViewModel implements AudioManager.OnAud
             option.val = val;
             mEmulator.setOption(option);
         }
-    }
-
-    @Override
-    public void onAudioFocusChange(int focusChange) {
-        if (mEmulator == null) return;
-        mEmulator.setProp(PROP_AUDIO_VOLUME, focusChange == AudioManager.AUDIOFOCUS_GAIN ? 1.0f : 0.0f);
     }
 }
