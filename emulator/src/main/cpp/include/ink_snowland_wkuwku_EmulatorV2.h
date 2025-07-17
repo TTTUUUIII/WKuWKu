@@ -28,7 +28,7 @@ struct buffer_t {
     size_t size;
     void* data;
     uint8_t state;
-    buffer_t(size_t _s): size(_s), state(BS_RW) {
+    explicit buffer_t(size_t _s): size(_s), state(BS_RW) {
         if (size > 0) {
             data = malloc(size);
         }
@@ -50,7 +50,7 @@ typedef struct {
 struct message_t {
     int what;
 
-    message_t(int _what): what(_what) {}
+    explicit message_t(int _what): what(_what) {}
 };
 
 static void on_create(EGLDisplay, EGLSurface);
@@ -63,4 +63,6 @@ static void detach_env();
 static retro_proc_address_t get_hw_proc_address(const char* sym);
 static uintptr_t get_hw_framebuffer();
 static void handle_message();
+static void open_audio_stream();
+static void close_audio_stream();
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H

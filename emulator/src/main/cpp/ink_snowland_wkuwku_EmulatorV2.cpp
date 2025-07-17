@@ -4,7 +4,9 @@
 #include <unistd.h>
 #include <fstream>
 #include <queue>
-#include "Log.h"
+#include <swappy/swappyGL_extra.h>
+#include <swappy/swappyGL.h>
+#include <oboe/Oboe.h>
 #include "GLRenderer.h"
 #include "GLUtils.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
@@ -12,6 +14,9 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
 #include "stb_image_write.h"
+
+#define SWAPPY_SWAP_120FPS      (8333334L)
+#define kNanosPerMillisecond    (1000000L)
 
 #ifndef TAG
 #define TAG "Fceumm_Native"
@@ -21,12 +26,11 @@ std::mutex mtx;
 std::atomic<unsigned> current_state = STATE_INVALID;
 static std::unique_ptr<GLRenderer> current_renderer;
 static retro_hw_render_callback *hw_render_cb = nullptr;
-static EGLDisplay current_dyp;
-static EGLSurface current_sf;
 static video_state_t current_video{0, 0, 0, RETRO_PIXEL_FORMAT_RGB565};
 static std::unique_ptr<buffer_t> framebuffer = nullptr;
 static std::unique_ptr<buffer_t> serialize_buffer = nullptr;
 static std::queue<std::unique_ptr<message_t>> msg_queue;
+static std::shared_ptr<oboe::AudioStream> audio_stream_out;
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
@@ -41,7 +45,6 @@ typedef struct {
     jmethodID array_list_add_method;
     jmethodID environment_method;
     jmethodID video_size_cb_method;
-    jmethodID audio_cb_method;
     jmethodID input_cb_method;
     jfieldID variable_value_field;
     jfieldID variable_entry_key_field;
@@ -133,7 +136,7 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
             texture(GL_RGBA, (int) width, (int) height, current_video.rotation, framebuffer->data);
         }
     }
-    eglSwapBuffers(current_dyp, current_sf);
+    current_renderer->swap_buffers();
     if (current_video.rotation == 1 || current_video.rotation == 3) {
         unsigned origin_width;
         origin_width = width;
@@ -185,18 +188,8 @@ static void audio_buffer_state_callback(bool active, unsigned occupancy, bool un
 }
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
-    JNIEnv *env;
-    if (current_state != STATE_RUNNING || !attach_env(&env)) return frames;
-    if (audio_buffer == nullptr || env->GetArrayLength(audio_buffer) != frames * 2) {
-        if (audio_buffer != nullptr) {
-            env->DeleteGlobalRef(audio_buffer);
-        }
-        audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(frames * 2));
-    }
-    env->SetShortArrayRegion(audio_buffer, 0, frames * 2, data);
-    jint ret = env->CallIntMethod(ctx.emulator_obj, ctx.audio_cb_method, audio_buffer, frames);
-    detach_env();
-    return ret;
+    audio_stream_out->write(data, (int) frames, 50 * kNanosPerMillisecond);
+    return frames;
 }
 
 static int16_t input_cb(unsigned port, unsigned device, unsigned index, unsigned id) {
@@ -497,8 +490,16 @@ static bool environment_cb(unsigned cmd, void *data) {
 
 static bool initialized = false;
 
-static void em_attach_surface(JNIEnv *env, jobject thiz, jobject surface) {
-    current_renderer = std::make_unique<GLRenderer>(ANativeWindow_fromSurface(env, surface));
+static void em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
+    ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
+    if (activity != nullptr && !SwappyGL_isEnabled()) {
+        SwappyGL_init(env, activity);
+        SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_120FPS);
+        SwappyGL_setAutoSwapInterval(true);
+        SwappyGL_setAutoPipelineMode(true);
+        SwappyGL_setWindow(window);
+    }
+    current_renderer = std::make_unique<GLRenderer>(window);
     GLRendererInterface *interface = current_renderer->get_renderer_interface();
     interface->on_create = on_create;
     interface->on_draw = on_draw;
@@ -514,7 +515,7 @@ static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
     current_renderer->stop();
-    current_renderer.reset();
+    current_renderer = nullptr;
 }
 
 static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
@@ -549,6 +550,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     }
     if (no_error) {
         current_state = STATE_RUNNING;
+        open_audio_stream();
         if (current_renderer) {
             current_renderer->start();
         }
@@ -560,12 +562,17 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
 static void em_pause(JNIEnv *env, jobject thiz) {
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
+        audio_stream_out->requestPause();
     }
 }
 
 static void em_resume(JNIEnv *env, jobject thiz) {
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
+        audio_stream_out->requestStart();
+        oboe::StreamState inputState = oboe::StreamState::Starting;
+        oboe::StreamState nextState = oboe::StreamState::Uninitialized;
+        audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
     }
 }
 
@@ -576,9 +583,10 @@ static void em_reset(JNIEnv *env, jobject thiz) {
 static void em_stop(JNIEnv *env, jobject thiz) {
     current_state = STATE_IDLE;
     retro_unload_game();
-    framebuffer.reset();
-    serialize_buffer.reset();
+    framebuffer = nullptr;
+    serialize_buffer = nullptr;
     env->DeleteGlobalRef(ctx.emulator_obj);
+    close_audio_stream();
 }
 
 static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
@@ -628,7 +636,8 @@ static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
     serialize_buffer->state = BS_W;
     while (!(serialize_buffer->state & BS_R)) {}
     jbyteArray snapshot = env->NewByteArray((jint) size);
-    env->SetByteArrayRegion(snapshot, 0, (jint) size, reinterpret_cast<jbyte*>(serialize_buffer->data));
+    env->SetByteArrayRegion(snapshot, 0, (jint) size,
+                            reinterpret_cast<jbyte *>(serialize_buffer->data));
     return snapshot;
 };
 
@@ -700,24 +709,24 @@ static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, 
 }
 
 static const JNINativeMethod methods[] = {
-        {"nativeAttachSurface",           "(Landroid/view/Surface;)V", (void *) em_attach_surface},
-        {"nativeAdjustSurface",           "(II)V",                     (void *) em_adjust_surface},
-        {"nativeDetachSurface",           "()V",                       (void *) em_detach_surface},
-        {"nativeStart",                   "(Ljava/lang/String;)Z",     (void *) em_start},
-        {"nativePause",                   "()V",                       (void *) em_pause},
-        {"nativeResume",                  "()V",                       (void *) em_resume},
-        {"nativeReset",                   "()V",                       (void *) em_reset},
-        {"nativeStop",                    "()V",                       (void *) em_stop},
-        {"nativeGetSerializeData",        "()[B",                      (void *) em_get_serialize_data},
-        {"nativeSetSerializeData",        "([B)V",                     (void *) em_set_serialize_data},
+        {"nativeAttachSurface",           "(Landroid/app/Activity;Landroid/view/Surface;)V", (void *) em_attach_surface},
+        {"nativeAdjustSurface",           "(II)V",                                           (void *) em_adjust_surface},
+        {"nativeDetachSurface",           "()V",                                             (void *) em_detach_surface},
+        {"nativeStart",                   "(Ljava/lang/String;)Z",                           (void *) em_start},
+        {"nativePause",                   "()V",                                             (void *) em_pause},
+        {"nativeResume",                  "()V",                                             (void *) em_resume},
+        {"nativeReset",                   "()V",                                             (void *) em_reset},
+        {"nativeStop",                    "()V",                                             (void *) em_stop},
+        {"nativeGetSerializeData",        "()[B",                                            (void *) em_get_serialize_data},
+        {"nativeSetSerializeData",        "([B)V",                                           (void *) em_set_serialize_data},
         {"nativeGetSystemInfo",           "()Link/snowland/wkuwku/common/EmSystemInfo;",
-                                                                       (void *) em_get_system_info},
+                                                                                             (void *) em_get_system_info},
         {"nativeGetSystemAvInfo",         "()Link/snowland/wkuwku/common/EmSystemAvInfo;",
-                                                                       (void *) em_get_system_av_info},
-        {"nativeGetMemoryData",           "(I)[B",                     (void *) em_get_memory_data},
-        {"nativeSetMemoryData",           "(I[B)V",                    (void *) em_set_memory_data},
-        {"nativeSetControllerPortDevice", "(II)V",                     (void *) em_set_controller_port_device},
-        {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",     (void *) em_capture_screen}
+                                                                                             (void *) em_get_system_av_info},
+        {"nativeGetMemoryData",           "(I)[B",                                           (void *) em_get_memory_data},
+        {"nativeSetMemoryData",           "(I[B)V",                                          (void *) em_set_memory_data},
+        {"nativeSetControllerPortDevice", "(II)V",                                           (void *) em_set_controller_port_device},
+        {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",                           (void *) em_capture_screen}
 };
 
 extern "C"
@@ -756,7 +765,6 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     clazz = env->FindClass(EM_CLASS);
 #endif
     ctx.video_size_cb_method = env->GetMethodID(clazz, "onNativeVideoSizeChanged", "(II)V");
-    ctx.audio_cb_method = env->GetMethodID(clazz, "onNativeAudioBuffer", "([SI)I");
     ctx.environment_method = env->GetMethodID(clazz, "onNativeEnvironment",
                                               "(ILjava/lang/Object;)Z");
     ctx.input_cb_method = env->GetMethodID(clazz, "onNativePollInput", "(IIII)I");
@@ -777,12 +785,12 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     env->DeleteGlobalRef(variable_entry_object);
     if (audio_buffer != nullptr)
         env->DeleteGlobalRef(audio_buffer);
+    if (SwappyGL_isEnabled())
+        SwappyGL_destroy();
     ctx.jvm = nullptr;
 }
 
 static void on_create(EGLDisplay dyp, EGLSurface sr) {
-    current_dyp = dyp;
-    current_sf = sr;
     if (hw_render_cb) {
         hw_render_cb->context_reset();
     } else {
@@ -858,4 +866,36 @@ static void detach_env() {
         ctx.jvm->DetachCurrentThread();
         env_attached = false;
     }
+}
+
+static void open_audio_stream() {
+    oboe::AudioStreamBuilder builder;
+    oboe::Result result = builder.setDirection(oboe::Direction::Output)
+            ->setUsage(oboe::Usage::Game)
+            ->setSharingMode(oboe::SharingMode::Exclusive)
+            ->setFormat(oboe::AudioFormat::I16)
+            ->setChannelCount(oboe::ChannelCount::Stereo)
+            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+            ->openStream(audio_stream_out);
+    if (result != oboe::Result::OK) {
+        LOGE(TAG, "Failed to open audio stream!");
+    }
+    result = audio_stream_out->requestStart();
+    oboe::StreamState inputState = oboe::StreamState::Starting;
+    oboe::StreamState nextState = oboe::StreamState::Uninitialized;
+    audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
+    if (result != oboe::Result::OK) {
+        LOGE(TAG, "Failed to start audio stream!");
+    }
+}
+
+static void close_audio_stream() {
+    if (audio_stream_out) {
+        audio_stream_out->requestStop();
+        oboe::StreamState inputState = oboe::StreamState::Stopping;
+        oboe::StreamState nextState = oboe::StreamState::Uninitialized;
+        audio_stream_out->waitForStateChange(inputState, &nextState, 100 * kNanosPerMillisecond);
+        audio_stream_out->close();
+    }
+    audio_stream_out = nullptr;
 }

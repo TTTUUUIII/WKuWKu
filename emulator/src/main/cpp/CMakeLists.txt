@@ -28,27 +28,19 @@ message(${CMAKE_BINARY_DIR})
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include_directories(include)
+find_package(games-frame-pacing REQUIRED CONFIG)
+find_package (oboe REQUIRED CONFIG)
 add_library(fceumm SHARED
         GLUtils.cpp
         GLRenderer.cpp
         ink_snowland_wkuwku_EmulatorV2.cpp)
-target_link_libraries(fceumm android log retro EGL GLESv3)
-#macro(add_bridge_library name)
-#    add_library(${name}-bridge SHARED ink_snowland_wkuwku_libretro_bridge.cpp)
-#    target_link_libraries(${name}-bridge android log ${name})
-#    string(TOUPPER ${name} tmp)
-#    string(REPLACE "-" "_" tag ${tmp})
-#    target_compile_definitions(${name}-bridge PRIVATE ${tag})
-#endmacro()
-#
-#add_bridge_library(fceumm)
-##add_bridge_library(mesen)
-##add_bridge_library(mesen-s)
-##add_bridge_library(genesis-plus-gx)
-##add_bridge_library(pcsx)
-##add_bridge_library(bsnes)
-#
-#foreach(lib IN ITEMS fceumm)
-#    add_library(${lib} SHARED IMPORTED)
-#    set_target_properties(${lib} PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/lib${lib}.so")
-#endforeach()
+target_link_libraries(
+        fceumm
+        android
+        log
+        retro
+        EGL
+        GLESv3
+        games-frame-pacing::swappy_static
+        oboe::oboe
+)

@@ -3,9 +3,7 @@
 //
 
 #include "include/GLRenderer.h"
-#include <android/log.h>
-#define LOGI(tag, ...) __android_log_print(ANDROID_LOG_INFO,  tag, __VA_ARGS__)
-#define LOGE(tag, ...) __android_log_print(ANDROID_LOG_ERROR, tag, __VA_ARGS__)
+#include "Log.h"
 
 GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -108,4 +106,12 @@ void GLRenderer::stop() {
     eglDestroyContext(display, context);
     eglTerminate(display);
     ANativeWindow_release(window);
+}
+
+void GLRenderer::swap_buffers() {
+    if (SwappyGL_isEnabled()) {
+        SwappyGL_swap(display, surface);
+    } else {
+        eglSwapBuffers(display, surface);
+    }
 }
