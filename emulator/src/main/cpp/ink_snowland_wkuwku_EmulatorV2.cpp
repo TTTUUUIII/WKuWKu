@@ -3,6 +3,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fstream>
+#include <sys/resource.h>
 #include <queue>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
@@ -12,9 +13,7 @@
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include "stb_image_write.h"
-
 #ifndef TAG
 #define TAG "Fceumm_Native"
 #endif
@@ -24,6 +23,7 @@ static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static std::shared_ptr<buffer_t> framebuffer;
+static std::shared_ptr<buffer_t> audio_buffer;
 static uint16_t video_rotation = 0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
@@ -194,7 +194,13 @@ static void audio_buffer_state_callback(bool active, unsigned occupancy, bool un
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
     if (data && current_state == STATE_RUNNING) {
-        audio_stream_out->write(data, (int) frames, 50 * kNanosPerMillisecond);
+        size_t size = frames * 2 * 16;
+        if (!audio_buffer || audio_buffer->size < size) {
+            audio_buffer = std::make_shared<buffer_t>(size);
+        }
+        memset(audio_buffer->data, 0, size);
+        memcpy(audio_buffer->data, data, size);
+        audio_stream_out->write(audio_buffer->data, (int) frames, 50 * kNanosPerMillisecond);
     }
     return frames;
 }
@@ -647,14 +653,12 @@ static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
 };
 
 static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
-    const size_t &size = retro_serialize_size();
-    if (env->GetArrayLength(jdata) == size) {
-        jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
-        std::shared_ptr<buffer_t> buffer = std::make_shared<buffer_t>(size);
-        memcpy(buffer->data, data, buffer->size);
-        env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
-        send_message(MSG_SET_SERIALIZE_DATA, buffer);
-    }
+    const size_t size = env->GetArrayLength(jdata);
+    jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
+    std::shared_ptr<buffer_t> buffer = std::make_shared<buffer_t>(size);
+    memcpy(buffer->data, data, buffer->size);
+    env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
+    send_message(MSG_SET_SERIALIZE_DATA, buffer);
 }
 
 static jbyteArray em_get_memory_data(JNIEnv *env, jobject thiz, jint id) {
@@ -783,6 +787,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
         ctx.emulator_obj = nullptr;
     }
     framebuffer = nullptr;
+    audio_buffer = nullptr;
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
     if (SwappyGL_isEnabled())
@@ -791,6 +796,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 
 static void on_create(EGLDisplay dyp, EGLSurface sr) {
+    set_thread_priority(THREAD_PRIORITY_AUDIO);
     if (hw_render_cb) {
         hw_render_cb->context_reset();
     } else {
@@ -912,4 +918,10 @@ static void clear_message() {
     std::lock_guard<std::mutex> lock(mtx);
     while (!message_queue.empty())
         message_queue.pop();
+}
+
+static void set_thread_priority(int priority) {
+    pid_t tid = gettid();
+    setpriority(PRIO_PROCESS, tid, priority);
+    LOGI(TAG, "set thread priority tid=%d, priority=%d", tid, priority);
 }

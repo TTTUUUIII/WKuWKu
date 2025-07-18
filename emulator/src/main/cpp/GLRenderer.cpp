@@ -2,7 +2,7 @@
 // Created by wn123 on 2025-06-24.
 //
 
-#include "include/GLRenderer.h"
+#include "GLRenderer.h"
 #include "Log.h"
 
 GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
