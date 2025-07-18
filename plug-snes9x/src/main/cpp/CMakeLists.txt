@@ -25,7 +25,7 @@ project("snes9x")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_compile_definitions(TAG="Snes9x_Native")
+add_compile_definitions(LOG_TAG="Snes9xNative")
 
 include(../../../../common.cmake)
 

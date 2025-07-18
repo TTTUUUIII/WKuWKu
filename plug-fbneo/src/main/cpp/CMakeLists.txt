@@ -26,6 +26,6 @@ project("fbneo")
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include(../../../../common.cmake)
-add_compile_definitions(TAG="FBNeo_Native")
+add_compile_definitions(LOG_TAG="FBNeoNative")
 
 add_emulator(${CMAKE_PROJECT_NAME} "ink/snowland/wkuwku/plug/fbneo/FbNeo")

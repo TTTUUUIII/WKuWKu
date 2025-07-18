@@ -25,7 +25,7 @@ project("desmume")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_compile_definitions(TAG="DeSmuME_Native")
+add_compile_definitions(LOG_TAG="DeSmuMENative")
 include(../../../../common.cmake)
 
 add_emulator(${CMAKE_PROJECT_NAME} "ink/snowland/wkuwku/plug/desmume/DeSmuME")
