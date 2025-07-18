@@ -191,7 +191,7 @@ static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
     if (data && current_state == STATE_RUNNING) {
-        return audio_stream_out->write(data, (int) frames, 5 * kNanosPerMillisecond);
+        return audio_stream_out->write(data, (int) frames, 0 /*don't wait*/);
     }
     return frames;
 }
