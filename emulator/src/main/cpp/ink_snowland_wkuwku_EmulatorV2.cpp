@@ -19,12 +19,14 @@
 #define TAG "Fceumm_Native"
 #endif
 
-std::mutex mtx;
-std::atomic<unsigned> current_state = STATE_INVALID;
+static std::mutex mtx;
+static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
-static std::shared_ptr<framebuffer_t> framebuffer;
-static int video_rotation = 0;
+static std::shared_ptr<buffer_t> framebuffer;
+static uint16_t video_rotation = 0;
+static uint16_t video_width = 0;
+static uint16_t video_height = 0;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static std::queue<std::shared_ptr<message_t>> message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
@@ -140,9 +142,9 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
         width = height;
         height = origin_width;
     }
-    if (framebuffer->width != width || framebuffer->height != height) {
-        framebuffer->width = width;
-        framebuffer->height = height;
+    if (video_width != width || video_height != height) {
+        video_width = width;
+        video_height = height;
         notify_video_size_changed();
     }
 }
@@ -173,14 +175,14 @@ static void alloc_framebuffer(unsigned width, unsigned height) {
     }
     size_t size = width * height * bytes_per_pixel;
     if (!framebuffer || framebuffer->size != size) {
-        framebuffer = std::make_shared<framebuffer_t>(size, width, height);
+        framebuffer = std::make_shared<buffer_t>(size);
     }
 }
 
 static void notify_video_size_changed() {
     JNIEnv *env;
     if (attach_env(&env)) {
-        env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, framebuffer->width, framebuffer->height);
+        env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, video_width, video_height);
         detach_env();
     }
 }
@@ -191,7 +193,7 @@ static void audio_buffer_state_callback(bool active, unsigned occupancy, bool un
 }
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
-    if (current_state == STATE_RUNNING) {
+    if (data && current_state == STATE_RUNNING) {
         audio_stream_out->write(data, (int) frames, 50 * kNanosPerMillisecond);
     }
     return frames;
@@ -681,21 +683,19 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     bool no_error = false;
     std::lock_guard<std::mutex> lock(mtx);
     if (framebuffer) {
-        int width = framebuffer->width;
-        int height = framebuffer->height;
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            no_error = stbi_write_png(file_path, width, height, 4, framebuffer->data, width * 4);
+            no_error = stbi_write_png(file_path, video_width, video_height, 4, framebuffer->data, video_width * 4);
         } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            unsigned char data[width * height * 3];
+            unsigned char data[video_width * video_height * 3];
             auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
-            for (int i = 0; i < width * height; ++i) {
+            for (int i = 0; i < video_width * video_height; ++i) {
                 uint16_t pixel = origin[i];
                 data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
                 data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
                 data[i * 3 + 2] = (pixel & 0x1F) << 3;
             }
-            no_error = stbi_write_png(file_path, width, height, 3, data, width * 3);
+            no_error = stbi_write_png(file_path, video_width, video_height, 3, data, video_width * 3);
         }
     }
     return no_error;
@@ -756,10 +756,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     constructor = env->GetMethodID(clazz, "<init>", "(Ljava/lang/String;IIIIII)V");
     ctx.message_ext_clazz = (jclass) env->NewGlobalRef(clazz);
     ctx.message_ext_constructor = constructor;
-#ifndef EM_CLASS
+#ifndef MAIN_CLASS
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
 #else
-    clazz = env->FindClass(EM_CLASS);
+    clazz = env->FindClass(MAIN_CLASS);
 #endif
     ctx.video_size_cb_method = env->GetMethodID(clazz, "onNativeVideoSizeChanged", "(II)V");
     ctx.environment_method = env->GetMethodID(clazz, "onNativeEnvironment",

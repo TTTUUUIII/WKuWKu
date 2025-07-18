@@ -41,12 +41,6 @@ struct buffer_t {
     }
 };
 
-struct framebuffer_t: public buffer_t {
-    uint16_t width;
-    uint16_t height;
-    explicit framebuffer_t(size_t _s, uint16_t _w, uint16_t _h): buffer_t(_s), width(_w), height(_h) {}
-};
-
 typedef struct {
     unsigned width;
     unsigned height;
