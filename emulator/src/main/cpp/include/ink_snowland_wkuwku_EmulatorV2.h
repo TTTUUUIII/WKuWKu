@@ -26,6 +26,8 @@
 #define MSG_GET_SERIALIZE_DATA      2
 #define MSG_RESET_EMULATOR          3
 
+#define THREAD_PRIORITY_AUDIO       (-16)
+
 struct buffer_t {
     size_t size;
     void* data;
@@ -34,10 +36,8 @@ struct buffer_t {
             data = malloc(size);
         }
     }
-    ~buffer_t() {
-        if (size > 0) {
-            free(data);
-        }
+    virtual ~buffer_t() {
+        free(data);
     }
 };
 
@@ -77,4 +77,5 @@ static std::shared_ptr<std::promise<result_t>> send_message(int what, const std:
 static void send_empty_message(int what);
 static std::shared_ptr<message_t> obtain_message();
 static void clear_message();
+static void set_thread_priority(int priority);
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H

@@ -11,12 +11,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
-        externalNativeBuild {
-            cmake {
-                cppFlags ''
-                arguments "-DANDROID_STL=c++_shared"
-            }
-        }
 
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86_64", "x86"
@@ -28,10 +22,6 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
-    }
-
-    buildFeatures {
-        prefab true
     }
 
     compileOptions {
@@ -47,11 +37,11 @@ android {
 }
 
 dependencies {
-    api(libs.games.frame.pacing)
-    api(libs.oboe)
-    implementation libs.appcompat
-    implementation libs.material
+    compileOnly libs.appcompat
+    compileOnly libs.material
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }
+
+apply from: rootProject.file("templates/emulator.gradle")

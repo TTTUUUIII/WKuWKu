@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # Since this is the top level CMakeLists.txt, the project name is also accessible
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
-project("wkuwku")
+project("fceumm")
 add_subdirectory(../../../../libretro-fceumm ${CMAKE_BINARY_DIR}/libretro-fceumm)
 message(${CMAKE_BINARY_DIR})
 
@@ -28,15 +28,11 @@ message(${CMAKE_BINARY_DIR})
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include_directories(include)
-find_package(games-frame-pacing REQUIRED CONFIG)
-find_package (oboe REQUIRED CONFIG)
-add_library(fceumm SHARED
-        GLUtils.cpp
-        GLRenderer.cpp
-        AudioOutputStream.cpp
-        ink_snowland_wkuwku_EmulatorV2.cpp)
+include(../../../../common.cmake)
+add_library(${CMAKE_PROJECT_NAME} SHARED
+        ${COMMON_SOURCE})
 target_link_libraries(
-        fceumm
+        ${CMAKE_PROJECT_NAME}
         android
         log
         retro
