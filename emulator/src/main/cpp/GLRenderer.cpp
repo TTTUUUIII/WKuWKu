@@ -5,6 +5,8 @@
 #include "GLRenderer.h"
 #include "Log.h"
 
+#define TAG "GLRenderer"
+
 GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     vw = ANativeWindow_getWidth(window);
@@ -73,7 +75,7 @@ bool GLRenderer::start() {
             std::lock_guard<std::mutex> lock(mtx);
             gl_thread_running = false;
             cv.notify_one();
-            LOGI(__FILE_NAME__, "GL thread exit.");
+            LOGI(TAG, "GL thread exited.");
         });
         gl_thread.detach();
         state = RUNNING;

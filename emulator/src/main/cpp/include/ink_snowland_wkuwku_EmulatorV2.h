@@ -15,6 +15,8 @@
 #include <any>
 #include "Log.h"
 
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+
 #define NO_ERROR                    0
 #define ERROR                       1
 #define STATE_INVALID               0
