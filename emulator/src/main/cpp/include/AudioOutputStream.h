@@ -19,7 +19,7 @@ public:
     void request_open();
     void request_start();
     void request_pause();
-    void write(const void* /* buffer */, int32_t /* numFrames */, int64_t /* timeoutNanoseconds */ );
+    int32_t write(const void* /* buffer */, int32_t /* numFrames */, int64_t /* timeoutNanoseconds */ );
     void request_stop();
     void request_close();
 };

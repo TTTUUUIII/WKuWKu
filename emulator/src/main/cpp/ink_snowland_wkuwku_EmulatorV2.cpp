@@ -14,16 +14,14 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
-#ifndef TAG
-#define TAG "Fceumm_Native"
-#endif
+
+#define TAG "EmulatorV2"
 
 static std::mutex mtx;
 static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static std::shared_ptr<buffer_t> framebuffer;
-static std::shared_ptr<buffer_t> audio_buffer;
 static uint16_t video_rotation = 0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
@@ -32,7 +30,6 @@ static std::queue<std::shared_ptr<message_t>> message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
 
-#define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
     JavaVM *jvm;
     jclass input_descriptor_clazz;
@@ -187,20 +184,14 @@ static void notify_video_size_changed() {
     }
 }
 
-static void audio_buffer_state_callback(bool active, unsigned occupancy, bool underrun_likely) {
+static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun_likely) {
     LOGI(TAG, "Audio buffer state: active=%d, occupancy=%d, underrun=%d", active, occupancy,
          underrun_likely);
 }
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
     if (data && current_state == STATE_RUNNING) {
-        size_t size = frames * 2 * 16;
-        if (!audio_buffer || audio_buffer->size < size) {
-            audio_buffer = std::make_shared<buffer_t>(size);
-        }
-        memset(audio_buffer->data, 0, size);
-        memcpy(audio_buffer->data, data, size);
-        audio_stream_out->write(audio_buffer->data, (int) frames, 50 * kNanosPerMillisecond);
+        return audio_stream_out->write(data, (int) frames, 5 * kNanosPerMillisecond);
     }
     return frames;
 }
@@ -222,7 +213,8 @@ static void input_poll_cb() {
 }
 
 static bool
-set_rumble_state_callback(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
+set_rumble_state_cb(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
+    LOGW(TAG, "Rumble state event ignored, port=%d, effect=%d, strength=%d", port, effect, strength);
     return true;
 }
 
@@ -255,7 +247,7 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
             if (data != nullptr) {
                 auto *audio_buffer_state = (struct retro_audio_buffer_status_callback *) data;
-                audio_buffer_state->callback = audio_buffer_state_callback;
+                audio_buffer_state->callback = audio_buffer_state_cb;
             }
             supported = true;
             break;
@@ -268,7 +260,7 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE:
             struct retro_rumble_interface *interface;
             interface = (struct retro_rumble_interface *) data;
-            interface->set_rumble_state = set_rumble_state_callback;
+            interface->set_rumble_state = set_rumble_state_cb;
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY:
@@ -570,6 +562,8 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         if (renderer) {
             renderer->start();
         }
+    } else {
+        LOGE(TAG, "Unable load the game, file=%s", rom_path);
     }
     env->ReleaseStringUTFChars(path, rom_path);
     return no_error;
@@ -787,7 +781,6 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
         ctx.emulator_obj = nullptr;
     }
     framebuffer = nullptr;
-    audio_buffer = nullptr;
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
     if (SwappyGL_isEnabled())
@@ -923,5 +916,5 @@ static void clear_message() {
 static void set_thread_priority(int priority) {
     pid_t tid = gettid();
     setpriority(PRIO_PROCESS, tid, priority);
-    LOGI(TAG, "set thread priority tid=%d, priority=%d", tid, priority);
+    LOGI(TAG, "Set thread priority tid=%d, priority=%d", tid, priority);
 }

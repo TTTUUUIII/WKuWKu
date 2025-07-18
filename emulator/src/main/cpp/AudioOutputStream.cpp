@@ -19,17 +19,19 @@ AudioOutputStream::~AudioOutputStream() {
     request_close();
 }
 
-void AudioOutputStream::write(const void *data, int32_t frames, int64_t timeoutNanoseconds) {
-    if (!stream) return;
+int32_t AudioOutputStream::write(const void *data, int32_t frames, int64_t timeoutNanoseconds) {
+    if (!stream) return frames;
     oboe::StreamState state = stream->getState();
     if (state == oboe::StreamState::Started) {
-        stream->write(data, frames,
+        oboe::ResultWithValue<int32_t> framesWritten = stream->write(data, frames,
                       timeoutNanoseconds);
+        return framesWritten.value();
     } else if (state == oboe::StreamState::Disconnected) {
         request_close();
         request_open();
         request_start();
     }
+    return frames;
 }
 
 void AudioOutputStream::request_open() {
@@ -41,9 +43,6 @@ void AudioOutputStream::request_open() {
             ->setChannelCount(oboe::ChannelCount::Stereo)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
             ->setSampleRate(sample_rate)
-            ->setFormatConversionAllowed(true)
-            ->setChannelConversionAllowed(true)
-            ->setErrorCallback(std::make_shared<AudioOutputStreamErrorCallback>(shared_from_this()))
             ->openStream(stream);
     if (result != oboe::Result::OK) {
         stream = nullptr;
