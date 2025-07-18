@@ -9,7 +9,6 @@ cmake_minimum_required(VERSION 3.22.1)
 # Since this is the top level CMakeLists.txt, the project name is also accessible
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
-include_directories(../../../../emulator/src/main/cpp/include)
 project("mame2003plus")
 
 # Creates and names a library, sets it as either STATIC
@@ -25,23 +24,7 @@ project("mame2003plus")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_compile_definitions(
-        TAG="Mame_Native"
-        EM_CLASS="ink/snowland/wkuwku/plug/mame2003plus/Mame"
-)
-add_library(
-        ${CMAKE_PROJECT_NAME} SHARED
-        ../../../../emulator/src/main/cpp/GLRenderer.cpp
-        ../../../../emulator/src/main/cpp/GLUtils.cpp
-        ../../../../emulator/src/main/cpp/ink_snowland_wkuwku_EmulatorV2.cpp
-)
-add_library(libretro SHARED IMPORTED)
-set_target_properties(libretro PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_SOURCE_DIR}/../jniLibs/${CMAKE_ANDROID_ARCH_ABI}/libretro.so")
+add_compile_definitions(TAG="Mame_Native")
+include(../../../../common.cmake)
 
-target_link_libraries(${CMAKE_PROJECT_NAME}
-        # List libraries link to the target library
-        libretro
-        android
-        EGL
-        GLESv3
-        log)
+add_emulator(${CMAKE_PROJECT_NAME} "ink/snowland/wkuwku/plug/mame2003plus/Mame")

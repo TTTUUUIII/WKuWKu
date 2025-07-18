@@ -1,9 +1,11 @@
 package ink.snowland.wkuwku.plug.prosystem;
 
+import android.app.Activity;
 import android.content.res.Resources;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmConfig;
@@ -28,8 +30,13 @@ public class ProSystem extends Emulator {
     }
 
     @Override
+    public void attachSurface(@Nullable Activity activity, @NonNull Surface surface) {
+        nativeAttachSurface(activity, surface);
+    }
+
+    @Override
     public void attachSurface(@NonNull Surface surface) {
-        nativeAttachSurface(surface);
+        nativeAttachSurface(null, surface);
     }
 
     @Override
@@ -73,8 +80,8 @@ public class ProSystem extends Emulator {
     }
 
     @Override
-    public boolean setSerializeData(byte[] data) {
-        return nativeSetSerializeData(data);
+    public void setSerializeData(byte[] data) {
+        nativeSetSerializeData(data);
     }
 
     @Override
@@ -116,7 +123,7 @@ public class ProSystem extends Emulator {
     }
 
     private native boolean nativeCaptureScreen(String savePath);
-    private native void nativeAttachSurface(@NonNull Surface surface);
+    private native void nativeAttachSurface(@Nullable Activity activity, @NonNull Surface surface);
     private native void nativeAdjustSurface(int vw, int vh);
     private native void nativeDetachSurface();
     private native boolean nativeStart(@NonNull String path);
