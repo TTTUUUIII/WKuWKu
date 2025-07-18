@@ -23,12 +23,12 @@ std::mutex mtx;
 std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
-static video_state_t current_video{0, 0, 0, RETRO_PIXEL_FORMAT_RGB565};
-static std::unique_ptr<buffer_t> framebuffer = nullptr;
-static std::unique_ptr<buffer_t> serialize_buffer = nullptr;
-static std::queue<std::unique_ptr<message_t>> message_queue;
+static std::shared_ptr<framebuffer_t> framebuffer;
+static int video_rotation = 0;
+static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
+static std::queue<std::shared_ptr<message_t>> message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
-static std::atomic<bool> env_attached = false;
+static bool env_attached = false;
 
 #define ARRAY_SIZE(arr) sizeof(arr) / sizeof(arr[0])
 typedef struct {
@@ -125,23 +125,24 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != STATE_RUNNING) return;
     if (!hw_render_cb && data) {
+        alloc_framebuffer(width, height);
         fill_framebuffer(data, width, height, pitch);
-        if (current_video.pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            texture(GL_RGB, (int) width, (int) height, current_video.rotation, framebuffer->data);
+        if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+            texture(GL_RGB, (int) width, (int) height, video_rotation, framebuffer->data);
         } else {
-            texture(GL_RGBA, (int) width, (int) height, current_video.rotation, framebuffer->data);
+            texture(GL_RGBA, (int) width, (int) height, video_rotation, framebuffer->data);
         }
     }
     renderer->swap_buffers();
-    if (current_video.rotation == 1 || current_video.rotation == 3) {
+    if (video_rotation == 1 || video_rotation == 3) {
         unsigned origin_width;
         origin_width = width;
         width = height;
         height = origin_width;
     }
-    if (current_video.width != width || current_video.height != height) {
-        current_video.width = width;
-        current_video.height = height;
+    if (framebuffer->width != width || framebuffer->height != height) {
+        framebuffer->width = width;
+        framebuffer->height = height;
         notify_video_size_changed();
     }
 }
@@ -149,7 +150,7 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
 static void fill_framebuffer(const void *data, unsigned width, unsigned height, size_t pitch) {
     std::lock_guard<std::mutex> lock(mtx);
     size_t bytes_per_pixel = 2;
-    if (current_video.pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
         uint8_t *fb;
         fb = (uint8_t *) data;
@@ -158,10 +159,6 @@ static void fill_framebuffer(const void *data, unsigned width, unsigned height, 
             fb[i + 3] = 0xFF;
         }
     }
-    size_t size = width * height * bytes_per_pixel;
-    if (!framebuffer || framebuffer->size != size) {
-        framebuffer = std::make_unique<buffer_t>(size);
-    }
     for (int i = 0; i < height; ++i) {
         memcpy((void *) (static_cast<const char *>(framebuffer->data) +
                          i * width * bytes_per_pixel), static_cast<const char *>(data) + i * pitch,
@@ -169,11 +166,21 @@ static void fill_framebuffer(const void *data, unsigned width, unsigned height, 
     }
 }
 
+static void alloc_framebuffer(unsigned width, unsigned height) {
+    size_t bytes_per_pixel = 2;
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        bytes_per_pixel = 4;
+    }
+    size_t size = width * height * bytes_per_pixel;
+    if (!framebuffer || framebuffer->size != size) {
+        framebuffer = std::make_shared<framebuffer_t>(size, width, height);
+    }
+}
+
 static void notify_video_size_changed() {
     JNIEnv *env;
     if (attach_env(&env)) {
-        env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, current_video.width,
-                            current_video.height);
+        env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, framebuffer->width, framebuffer->height);
         detach_env();
     }
 }
@@ -195,9 +202,9 @@ static int16_t input_cb(unsigned port, unsigned device, unsigned index, unsigned
     if (!ctx.emulator_obj || !attach_env(&env)) return 0;
     int16_t input_state;
     input_state = (int16_t) env->CallIntMethod(ctx.emulator_obj, ctx.input_cb_method, port,
-                                              device,
-                                              index,
-                                              id);
+                                               device,
+                                               index,
+                                               id);
     detach_env();
     return input_state;
 }
@@ -234,7 +241,7 @@ static bool environment_cb(unsigned cmd, void *data) {
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_ROTATION:
-            current_video.rotation = *(unsigned *) data;
+            video_rotation = *static_cast<int*>(data);
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
@@ -362,7 +369,7 @@ static bool environment_cb(unsigned cmd, void *data) {
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-            current_video.pixel_format = *((retro_pixel_format *) data);
+            pixel_format = *((retro_pixel_format *) data);
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
@@ -489,8 +496,8 @@ static bool environment_cb(unsigned cmd, void *data) {
 
 static bool initialized = false;
 
-static void em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
-    LOGD(TAG, "em_attach_surface called.");
+static void
+em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     if (activity != nullptr && !SwappyGL_isEnabled()) {
         SwappyGL_init(env, activity);
@@ -510,17 +517,14 @@ static void em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activ
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
-    LOGD(TAG, "em_adjust_surface called.");
     renderer->adjust_viewport(vw, vh);
 }
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
-    LOGD(TAG, "em_detach_surface called.");
     renderer->stop();
 }
 
 static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
-    LOGD(TAG, "em_start called.");
     if (ctx.emulator_obj == nullptr) {
         ctx.emulator_obj = env->NewGlobalRef(thiz);
     }
@@ -564,7 +568,6 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
 }
 
 static void em_pause(JNIEnv *env, jobject thiz) {
-    LOGD(TAG, "em_pause called.");
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
         audio_stream_out->request_pause();
@@ -572,7 +575,6 @@ static void em_pause(JNIEnv *env, jobject thiz) {
 }
 
 static void em_resume(JNIEnv *env, jobject thiz) {
-    LOGD(TAG, "em_resume called.");
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
         audio_stream_out->request_start();
@@ -580,18 +582,15 @@ static void em_resume(JNIEnv *env, jobject thiz) {
 }
 
 static void em_reset(JNIEnv *env, jobject thiz) {
-    LOGD(TAG, "em_reset called.");
-    message_queue.push(std::make_unique<message_t>(MSG_RESET_EMULATOR));
+    send_empty_message(MSG_RESET_EMULATOR);
 }
 
 static void em_stop(JNIEnv *env, jobject thiz) {
-    LOGD(TAG, "em_stop called.");
     current_state = STATE_IDLE;
     retro_unload_game();
     close_audio_stream();
-    while (!message_queue.empty()) {
-        message_queue.pop();
-    }
+    video_rotation = 0;
+    clear_message();
 }
 
 static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
@@ -631,34 +630,28 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
 }
 
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
-    size_t size;
-    size = retro_serialize_size();
-    if (size == 0) return nullptr;
-    if (!serialize_buffer || serialize_buffer->size != size) {
-        serialize_buffer = std::make_unique<buffer_t>(size);
+    std::shared_ptr<std::promise<result_t>> promise = send_message(MSG_GET_SERIALIZE_DATA, nullptr);
+    const result_t &result = promise->get_future().get();
+    if (result.state == NO_ERROR) {
+        auto buffer = std::any_cast<std::shared_ptr<buffer_t>>(result.data);
+        jbyteArray data = env->NewByteArray((jint) buffer->size);
+        env->SetByteArrayRegion(data, 0, (jint) buffer->size,
+                                reinterpret_cast<jbyte *>(buffer->data));
+        return data;
+    } else {
+        LOGE(TAG, "Failed to get serialize data.");
     }
-    serialize_buffer->state = BS_W;
-    message_queue.push(std::make_unique<message_t>(MSG_GET_SERIALIZE_DATA));
-    while (!(serialize_buffer->state & BS_R)) {}
-    jbyteArray snapshot = env->NewByteArray((jint) size);
-    env->SetByteArrayRegion(snapshot, 0, (jint) size,
-                            reinterpret_cast<jbyte *>(serialize_buffer->data));
-    return snapshot;
+    return nullptr;
 };
 
 static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
     const size_t &size = retro_serialize_size();
     if (env->GetArrayLength(jdata) == size) {
         jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
-        if (!serialize_buffer || serialize_buffer->size != size) {
-            serialize_buffer = std::make_unique<buffer_t>(size);
-        }
-        if (serialize_buffer->state & BS_W) {
-            memcpy(serialize_buffer->data, data, size);
-            serialize_buffer->state = BS_R;
-            message_queue.push(std::make_unique<message_t>(MSG_SET_SERIALIZE_DATA));
-        }
+        std::shared_ptr<buffer_t> buffer = std::make_shared<buffer_t>(size);
+        memcpy(buffer->data, data, buffer->size);
         env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
+        send_message(MSG_SET_SERIALIZE_DATA, buffer);
     }
 }
 
@@ -685,29 +678,25 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 }
 
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
-    bool no_error = true;
+    bool no_error = false;
     std::lock_guard<std::mutex> lock(mtx);
     if (framebuffer) {
+        int width = framebuffer->width;
+        int height = framebuffer->height;
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
-        if (current_video.pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            stbi_write_png(file_path, current_video.width, current_video.height, 4, framebuffer->data,
-                           current_video.width * 4);
-        } else if (current_video.pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            unsigned char data[current_video.width * current_video.height * 3];
+        if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+            no_error = stbi_write_png(file_path, width, height, 4, framebuffer->data, width * 4);
+        } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+            unsigned char data[width * height * 3];
             auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
-            for (int i = 0; i < current_video.width * current_video.height; ++i) {
+            for (int i = 0; i < width * height; ++i) {
                 uint16_t pixel = origin[i];
                 data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
                 data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
                 data[i * 3 + 2] = (pixel & 0x1F) << 3;
             }
-            stbi_write_png(file_path, current_video.width, current_video.height, 3, data,
-                           current_video.width * 3);
-        } else {
-            no_error = false;
+            no_error = stbi_write_png(file_path, width, height, 3, data, width * 3);
         }
-    } else {
-        no_error = false;
     }
     return no_error;
 }
@@ -794,7 +783,6 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
         ctx.emulator_obj = nullptr;
     }
     framebuffer = nullptr;
-    serialize_buffer = nullptr;
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
     if (SwappyGL_isEnabled())
@@ -836,23 +824,30 @@ static uintptr_t get_hw_framebuffer() {
 }
 
 static void handle_message() {
-    if (message_queue.empty()) return;
-    std::unique_ptr<message_t> &msg = message_queue.front();
-    bool no_error;
+    std::shared_ptr<message_t> msg = obtain_message();
+    if (!msg) return;
+    size_t size;
+    bool no_error = false;
+    std::shared_ptr<buffer_t> buffer;
     switch (msg->what) {
         case MSG_SET_SERIALIZE_DATA:
-            if (serialize_buffer->state & BS_R) {
-                no_error = retro_unserialize(serialize_buffer->data, serialize_buffer->size);
-                if (!no_error) {
-                    LOGE(TAG, "Failed to unserialize data!");
-                }
-                serialize_buffer->state = BS_RW;
+            size = retro_serialize_size();
+            buffer = std::any_cast<std::shared_ptr<buffer_t>>(msg->usr);
+            if (size > 0 && size == buffer->size) {
+                retro_unserialize(buffer->data, size);
             }
             break;
         case MSG_GET_SERIALIZE_DATA:
-            if (serialize_buffer->state & BS_W) {
-                retro_serialize(serialize_buffer->data, serialize_buffer->size);
-                serialize_buffer->state = BS_RW;
+            size = retro_serialize_size();
+            if (size > 0) {
+                buffer = std::make_shared<buffer_t>(size);
+                no_error = retro_serialize(buffer->data, buffer->size);
+                if (no_error) {
+                    msg->promise->set_value({NO_ERROR, buffer});
+                }
+            }
+            if (!no_error) {
+                msg->promise->set_value({ERROR, nullptr});
             }
             break;
         case MSG_RESET_EMULATOR:
@@ -860,7 +855,6 @@ static void handle_message() {
             break;
         default:
     }
-    message_queue.pop();
 }
 
 static bool attach_env(JNIEnv **env) {
@@ -893,4 +887,29 @@ static void open_audio_stream() {
 
 static void close_audio_stream() {
     audio_stream_out = nullptr;
+}
+
+static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any& usr) {
+    std::shared_ptr<std::promise<result_t>> promise = std::make_shared<std::promise<result_t>>();
+    message_queue.push(std::make_shared<message_t>(what, promise, usr));
+    return promise;
+}
+
+static void send_empty_message(int what) {
+    std::lock_guard<std::mutex> lock(mtx);
+    message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
+}
+
+static std::shared_ptr<message_t> obtain_message() {
+    std::lock_guard<std::mutex> lock(mtx);
+    if (message_queue.empty()) return nullptr;
+    std::shared_ptr<message_t> result = std::move(message_queue.front());
+    message_queue.pop();
+    return result;
+}
+
+static void clear_message() {
+    std::lock_guard<std::mutex> lock(mtx);
+    while (!message_queue.empty())
+        message_queue.pop();
 }

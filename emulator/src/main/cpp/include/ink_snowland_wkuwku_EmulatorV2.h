@@ -5,17 +5,18 @@
 #ifndef WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
 #define WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <libretro/libretro.h>
 #include <EGL/egl.h>
 #include <jni.h>
 #include <string>
+#include <future>
+#include <any>
 #include "Log.h"
 
-#define BS_R                        1
-#define BS_W                        2
-#define BS_RW                       3
-
+#define NO_ERROR                    0
+#define ERROR                       1
 #define STATE_INVALID               0
 #define STATE_IDLE                  1
 #define STATE_RUNNING               2
@@ -28,8 +29,7 @@
 struct buffer_t {
     size_t size;
     void* data;
-    std::atomic<uint8_t> state;
-    explicit buffer_t(size_t _s): size(_s), state(BS_RW) {
+    explicit buffer_t(size_t _s): size(_s) {
         if (size > 0) {
             data = malloc(size);
         }
@@ -41,6 +41,12 @@ struct buffer_t {
     }
 };
 
+struct framebuffer_t: public buffer_t {
+    uint16_t width;
+    uint16_t height;
+    explicit framebuffer_t(size_t _s, uint16_t _w, uint16_t _h): buffer_t(_s), width(_w), height(_h) {}
+};
+
 typedef struct {
     unsigned width;
     unsigned height;
@@ -48,15 +54,22 @@ typedef struct {
     retro_pixel_format pixel_format;
 } video_state_t;
 
+struct result_t {
+    int state;
+    std::any data;
+};
+
 struct message_t {
     int what;
-
-    explicit message_t(int _what): what(_what) {}
+    std::shared_ptr<std::promise<result_t>> promise;
+    std::any usr;
+    explicit message_t(int _what, std::shared_ptr<std::promise<result_t>> _promise, std::any _usr): what(_what), promise(std::move(_promise)), usr(std::move(_usr)) {}
 };
 
 static void on_create(EGLDisplay, EGLSurface);
 static void on_draw();
 static void on_destroy();
+static void alloc_framebuffer(unsigned width, unsigned height);
 static void fill_framebuffer(const void *, unsigned, unsigned, size_t);
 static void notify_video_size_changed();
 static bool attach_env(JNIEnv**);
@@ -66,4 +79,8 @@ static uintptr_t get_hw_framebuffer();
 static void handle_message();
 static void open_audio_stream();
 static void close_audio_stream();
+static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any& usr);
+static void send_empty_message(int what);
+static std::shared_ptr<message_t> obtain_message();
+static void clear_message();
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
