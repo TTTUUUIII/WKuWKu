@@ -12,6 +12,7 @@
 #   public *;
 #}
 
+-keep interface ink.snowland.wkuwku.interfaces.IEmulator { *; }
 -keep class ink.snowland.wkuwku.emulator.Emulator { *; }
 -keep class * extends ink.snowland.wkuwku.emulator.Emulator { *; }
 -keep class ink.snowland.wkuwku.EmulatorManager { *; }
