@@ -170,4 +170,9 @@
     <string name="na" translatable="false">N/A</string>
     <string name="fmt_controller_disconnected">Controller: %s disconnetced!</string>
     <string name="fmt_controller_connected">Controller: %s connected!</string>
+    <string name="audio_options">Audio Options</string>
+    <string name="native_audio_player">Native audio player</string>
+    <string name="play_audio_directly_using_native_player">Play audio using native player directly</string>
+    <string name="low_latency_mode">Low latency mode</string>
+    <string name="prioritize_low_latency_mode">Use low latency mode</string>
 </resources>

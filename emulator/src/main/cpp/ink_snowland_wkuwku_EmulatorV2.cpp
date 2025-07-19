@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <sys/resource.h>
+#include <unordered_map>
 #include <queue>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
@@ -14,6 +15,7 @@
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "stb_image_write.h"
 
 #define TAG "EmulatorV2"
@@ -22,12 +24,14 @@ static std::mutex mtx;
 static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
+static jshortArray audio_buffer = nullptr;
 static std::shared_ptr<buffer_t> framebuffer;
 static uint16_t video_rotation = 0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static std::queue<std::shared_ptr<message_t>> message_queue;
+static std::unordered_map<int32_t, std::any> props;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
 
@@ -161,7 +165,20 @@ static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
     if (data && current_state == STATE_RUNNING) {
-        return audio_stream_out->write(data, (int) frames, 0 /*don't wait*/);
+        if (audio_stream_out) {
+            return audio_stream_out->write(data, (int) frames, 0 /*don't wait*/);
+        } else {
+            JNIEnv *env;
+            if(attach_env(&env)) {
+                if (env->GetArrayLength(audio_buffer) < frames * 2) {
+                    env->DeleteGlobalRef(audio_buffer);
+                    audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray((int) frames * 2));
+                }
+                env->SetShortArrayRegion(audio_buffer, 0, (int) frames * 2, data);
+                return env->CallIntMethod(ctx.emulator_obj, ctx.audio_buffer_method, audio_buffer, frames);
+                detach_env();
+            }
+        }
     }
     return frames;
 }
@@ -184,7 +201,8 @@ static void input_poll_cb() {
 
 static bool
 set_rumble_state_cb(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
-    LOGW(TAG, "Rumble state event ignored, port=%d, effect=%d, strength=%d", port, effect, strength);
+    LOGW(TAG, "Rumble state event ignored, port=%d, effect=%d, strength=%d", port, effect,
+         strength);
     return true;
 }
 
@@ -211,7 +229,7 @@ static bool environment_cb(unsigned cmd, void *data) {
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_ROTATION:
-            video_rotation = *static_cast<int*>(data);
+            video_rotation = *static_cast<int *>(data);
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
@@ -358,7 +376,7 @@ static bool environment_cb(unsigned cmd, void *data) {
                     jobject controller_desc = env->NewObject(controller_desc_clazz, constructor,
                                                              env->NewStringUTF(
                                                                      controller_info->types[i].desc),
-                                                             (int)controller_info->types[i].id);
+                                                             (int) controller_info->types[i].id);
                     env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
                 }
                 env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
@@ -533,7 +551,11 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     }
     if (no_error) {
         current_state = STATE_RUNNING;
-        open_audio_stream();
+        if (get_prop(PROP_NATIVE_AUDIO_ENABLED, false)) {
+            open_audio_stream();
+        } else {
+            audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
+        }
         if (renderer) {
             renderer->start();
         }
@@ -549,7 +571,9 @@ static void em_pause(JNIEnv *env, jobject thiz) {
     UNUSED(thiz);
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
-        audio_stream_out->request_pause();
+        if (audio_stream_out) {
+            audio_stream_out->request_pause();
+        }
     }
 }
 
@@ -558,7 +582,9 @@ static void em_resume(JNIEnv *env, jobject thiz) {
     UNUSED(thiz);
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
-        audio_stream_out->request_start();
+        if (audio_stream_out) {
+            audio_stream_out->request_start();
+        }
     }
 }
 
@@ -666,6 +692,16 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
     }
 }
 
+static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
+    switch (prop) {
+        case PROP_NATIVE_AUDIO_ENABLED:
+        case PROP_LOW_LATENCY_AUDIO_ENABLE:
+            props[prop] = as_bool(env, val);
+            break;
+        default:;
+    }
+}
+
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     UNUSED(thiz);
     bool no_error = false;
@@ -673,7 +709,8 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     if (framebuffer) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            no_error = stbi_write_png(file_path, video_width, video_height, 4, framebuffer->data, video_width * 4);
+            no_error = stbi_write_png(file_path, video_width, video_height, 4, framebuffer->data,
+                                      video_width * 4);
         } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
             unsigned char data[video_width * video_height * 3];
             auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
@@ -683,7 +720,8 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
                 data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
                 data[i * 3 + 2] = (pixel & 0x1F) << 3;
             }
-            no_error = stbi_write_png(file_path, video_width, video_height, 3, data, video_width * 3);
+            no_error = stbi_write_png(file_path, video_width, video_height, 3, data,
+                                      video_width * 3);
         }
     }
     return no_error;
@@ -713,7 +751,8 @@ static const JNINativeMethod methods[] = {
         {"nativeGetMemoryData",           "(I)[B",                                           (void *) em_get_memory_data},
         {"nativeSetMemoryData",           "(I[B)V",                                          (void *) em_set_memory_data},
         {"nativeSetControllerPortDevice", "(II)V",                                           (void *) em_set_controller_port_device},
-        {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",                           (void *) em_capture_screen}
+        {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",                           (void *) em_capture_screen},
+        {"nativeSetProp",                 "(ILjava/lang/Object;)V",                          (void *) em_set_prop}
 };
 
 extern "C"
@@ -752,6 +791,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 #else
     clazz = env->FindClass(MAIN_CLASS);
 #endif
+    ctx.audio_buffer_method = env->GetMethodID(clazz, "onNativeAudioBuffer", "([SI)I");
     ctx.video_size_cb_method = env->GetMethodID(clazz, "onNativeVideoSizeChanged", "(II)V");
     ctx.environment_method = env->GetMethodID(clazz, "onNativeEnvironment",
                                               "(ILjava/lang/Object;)Z");
@@ -848,7 +888,7 @@ static void handle_message() {
         case MSG_RESET_EMULATOR:
             retro_reset();
             break;
-        default: ;
+        default:;
     }
 }
 
@@ -875,16 +915,21 @@ static void detach_env() {
 static void open_audio_stream() {
     struct retro_system_av_info av_info{};
     retro_get_system_av_info(&av_info);
-    audio_stream_out = std::make_shared<AudioOutputStream>(av_info.timing.sample_rate);
+    if (get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true)) {
+        audio_stream_out = std::make_shared<AudioOutputStream>(av_info.timing.sample_rate);
+    } else {
+        audio_stream_out = std::make_shared<AudioOutputStream>(av_info.timing.sample_rate, oboe::PerformanceMode::None);
+    }
     audio_stream_out->request_open();
     audio_stream_out->request_start();
+    LOGI(TAG, "AudioOutputStream created, lowLatency=%d", get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true));
 }
 
 static void close_audio_stream() {
     audio_stream_out = nullptr;
 }
 
-static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any& usr) {
+static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any &usr) {
     std::shared_ptr<std::promise<result_t>> promise = std::make_shared<std::promise<result_t>>();
     message_queue.push(std::make_shared<message_t>(what, promise, usr));
     return promise;
@@ -913,4 +958,24 @@ static void set_thread_priority(int priority) {
     pid_t tid = gettid();
     setpriority(PRIO_PROCESS, tid, priority);
     LOGI(TAG, "Set thread priority tid=%d, priority=%d", tid, priority);
+}
+
+template <typename T>
+static T get_prop(int32_t prop, const T &default_value) {
+    if (props.count(prop)) {
+        return std::any_cast<T>(props[prop]);
+    }
+    return default_value;
+}
+
+static int32_t as_int(JNIEnv *env, jobject obj) {
+    jclass clazz = env->FindClass("java/lang/Integer");
+    jmethodID method = env->GetMethodID(clazz, "intValue", "()I");
+    return env->CallIntMethod(obj, method);
+}
+
+static bool as_bool(JNIEnv *env, jobject obj) {
+    jclass clazz = env->FindClass("java/lang/Boolean");
+    jmethodID method = env->GetMethodID(clazz, "booleanValue", "()Z");
+    return env->CallBooleanMethod(obj, method);
 }

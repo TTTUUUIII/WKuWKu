@@ -18,18 +18,21 @@
 #define UNUSED(_p0)  (void)(_p0)
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
-#define NO_ERROR                    0
-#define ERROR                       1
-#define STATE_INVALID               0
-#define STATE_IDLE                  1
-#define STATE_RUNNING               2
-#define STATE_PAUSED                3
+#define NO_ERROR                            0
+#define ERROR                               1
+#define STATE_INVALID                       0
+#define STATE_IDLE                          1
+#define STATE_RUNNING                       2
+#define STATE_PAUSED                        3
 
-#define MSG_SET_SERIALIZE_DATA      1
-#define MSG_GET_SERIALIZE_DATA      2
-#define MSG_RESET_EMULATOR          3
+#define MSG_SET_SERIALIZE_DATA              1
+#define MSG_GET_SERIALIZE_DATA              2
+#define MSG_RESET_EMULATOR                  3
 
-#define THREAD_PRIORITY_AUDIO       (-16)
+#define THREAD_PRIORITY_AUDIO               (-16)
+
+#define PROP_NATIVE_AUDIO_ENABLED           102
+#define PROP_LOW_LATENCY_AUDIO_ENABLE       103
 
 typedef struct {
     JavaVM *jvm;
@@ -42,6 +45,7 @@ typedef struct {
     jmethodID array_list_constructor;
     jmethodID array_list_add_method;
     jmethodID environment_method;
+    jmethodID audio_buffer_method;
     jmethodID video_size_cb_method;
     jmethodID input_cb_method;
     jfieldID variable_value_field;
@@ -98,5 +102,11 @@ static std::shared_ptr<std::promise<result_t>> send_message(int what, const std:
 static void send_empty_message(int what);
 static std::shared_ptr<message_t> obtain_message();
 static void clear_message();
-static void set_thread_priority(int priority);
+static void set_thread_priority(int);
+template <typename T>
+static T get_prop(int32_t prop, const T &default_value);
+
+/*JNI utils*/
+static jint as_int(JNIEnv *, jobject);
+static bool as_bool(JNIEnv *, jobject);
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H

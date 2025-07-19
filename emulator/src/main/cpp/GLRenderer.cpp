@@ -53,6 +53,7 @@ bool GLRenderer::start() {
     if (state == PREPARED) {
         gl_thread = std::thread([this]() {
             gl_thread_running = true;
+            LOGI(TAG, "GLThread started.");
             uint16_t current_vw = vw, current_vh = vh;
             eglMakeCurrent(display, surface, surface, context);
             if (interface.on_create) {
@@ -75,7 +76,7 @@ bool GLRenderer::start() {
             std::lock_guard<std::mutex> lock(mtx);
             gl_thread_running = false;
             cv.notify_one();
-            LOGI(TAG, "GL thread exited.");
+            LOGI(TAG, "GLThread exited.");
         });
         gl_thread.detach();
         state = RUNNING;
