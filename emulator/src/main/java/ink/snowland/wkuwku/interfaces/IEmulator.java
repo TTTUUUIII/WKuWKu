@@ -16,10 +16,12 @@ import ink.snowland.wkuwku.common.EmSystemInfo;
 
 public interface IEmulator extends RetroDefine {
 
-    int PROP_SYSTEM_DIRECTORY       = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
-    int PROP_SAVE_DIRECTORY         = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
-    int PROP_CORE_ASSETS_DIRECTORY  = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
-    int PROP_ALIAS                  = 101;
+    int PROP_SYSTEM_DIRECTORY           = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
+    int PROP_SAVE_DIRECTORY             = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
+    int PROP_CORE_ASSETS_DIRECTORY      = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
+    int PROP_ALIAS                      = 101;
+    int PROP_NATIVE_AUDIO_ENABLE        = 102;
+    int PROP_LOW_LATENCY_AUDIO_ENABLE   = 103;
 
     void setProp(int what, Object data);
     boolean captureScreen(String savePath);
@@ -50,5 +52,6 @@ public interface IEmulator extends RetroDefine {
 
     boolean onNativeEnvironment(int cmd, Object data);
     void onNativeVideoSizeChanged(int vw, int vh);
+    int onNativeAudioBuffer(final short[] data, int frames);
     int onNativePollInput(int port, int device, int index, int id);
 }

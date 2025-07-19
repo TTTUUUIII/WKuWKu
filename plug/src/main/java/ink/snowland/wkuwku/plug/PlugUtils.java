@@ -39,11 +39,11 @@ public class PlugUtils {
         if (manifest == null) return null;
         installDir = new File(installDir, manifest.packageName);
         if (installDir.exists() && !installDir.delete()) {
-            Log.e(TAG, "ERROR: failed to delete old dir");
+            Log.e(TAG, "Failed to delete old dir: " + installDir);
             return null;
         }
         if (!installDir.mkdirs()) {
-            Log.e(TAG, "ERROR: failed to create dir: " + installDir);
+            Log.e(TAG, "Failed to create dir: " + installDir);
             return null;
         }
         File plug = new File(installDir, BASE_DEX_NAME);

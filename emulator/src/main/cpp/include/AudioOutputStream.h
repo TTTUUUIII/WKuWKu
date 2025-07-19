@@ -13,9 +13,14 @@ class AudioOutputStream: public std::enable_shared_from_this<AudioOutputStream>{
 private:
     std::shared_ptr<oboe::AudioStream> stream;
     uint16_t sample_rate;
+    oboe::PerformanceMode performance_mode;
+    oboe::SharingMode sharing_mode;
 public:
     explicit AudioOutputStream(uint16_t _sr);
+    explicit AudioOutputStream(uint16_t _sr, oboe::PerformanceMode _mode);
     ~AudioOutputStream();
+    void set_sharing_mode(oboe::SharingMode _mode);
+    void set_performance_mode(oboe::PerformanceMode _mode);
     void request_open();
     void request_start();
     void request_pause();

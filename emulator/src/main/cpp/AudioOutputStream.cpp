@@ -9,10 +9,12 @@
 
 #define TAG "AudioOutputStream"
 
-AudioOutputStream::AudioOutputStream(uint16_t _sr): sample_rate(_sr) {
-    if (!sample_rate) {
+AudioOutputStream::AudioOutputStream(uint16_t _sr): AudioOutputStream(_sr, oboe::PerformanceMode::LowLatency) {}
+
+AudioOutputStream::AudioOutputStream(uint16_t _sr, oboe::PerformanceMode _mode): performance_mode(_mode), sample_rate(_sr) {
+    if (sample_rate == 0)
         sample_rate = 48000;
-    }
+    sharing_mode = oboe::SharingMode::Shared;
 }
 
 AudioOutputStream::~AudioOutputStream() {
@@ -25,7 +27,9 @@ int32_t AudioOutputStream::write(const void *data, int32_t frames, int64_t timeo
     if (state == oboe::StreamState::Started) {
         oboe::ResultWithValue<int32_t> framesWritten = stream->write(data, frames,
                       timeoutNanoseconds);
-        return framesWritten.value();
+        if (framesWritten.error() == oboe::Result::OK) {
+            return framesWritten.value();
+        }
     } else if (state == oboe::StreamState::Disconnected) {
         request_close();
         request_open();
@@ -38,7 +42,7 @@ void AudioOutputStream::request_open() {
     oboe::AudioStreamBuilder builder;
     oboe::Result result = builder.setDirection(oboe::Direction::Output)
             ->setUsage(oboe::Usage::Game)
-            ->setSharingMode(oboe::SharingMode::Exclusive)
+            ->setSharingMode(oboe::SharingMode::Shared)
             ->setFormat(oboe::AudioFormat::I16)
             ->setChannelCount(oboe::ChannelCount::Stereo)
             ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
@@ -76,6 +80,14 @@ void AudioOutputStream::request_close() {
 void AudioOutputStream::request_pause() {
     if (!stream) return;
     stream->requestPause();
+}
+
+void AudioOutputStream::set_sharing_mode(oboe::SharingMode _mode) {
+    sharing_mode = _mode;
+}
+
+void AudioOutputStream::set_performance_mode(oboe::PerformanceMode _mode) {
+    performance_mode = _mode;
 }
 
 AudioOutputStreamErrorCallback::AudioOutputStreamErrorCallback(

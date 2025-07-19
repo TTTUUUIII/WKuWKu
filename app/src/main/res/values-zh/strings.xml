@@ -143,4 +143,9 @@
     <string name="player_2">玩家 2</string>
     <string name="fmt_controller_disconnected">控制器： %s 已断开!</string>
     <string name="fmt_controller_connected">控制器： %s 已连接!</string>
+    <string name="audio_options">音频选项</string>
+    <string name="native_audio_player">原生音频播放器</string>
+    <string name="play_audio_directly_using_native_player">音频直接通过Native播放器播放</string>
+    <string name="low_latency_mode">低延迟模式</string>
+    <string name="prioritize_low_latency_mode">使用低延迟模式</string>
 </resources>
