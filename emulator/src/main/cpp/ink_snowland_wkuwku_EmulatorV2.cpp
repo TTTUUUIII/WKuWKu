@@ -9,6 +9,7 @@
 #include <swappy/swappyGL.h>
 #include "GLRenderer.h"
 #include "GLUtils.h"
+#include "Utils.h"
 #include "AudioOutputStream.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
@@ -30,24 +31,6 @@ static std::queue<std::shared_ptr<message_t>> message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
 
-typedef struct {
-    JavaVM *jvm;
-    jclass input_descriptor_clazz;
-    jclass message_ext_clazz;
-    jclass array_list_clazz;
-    jobject emulator_obj;
-    jmethodID message_ext_constructor;
-    jmethodID input_descriptor_constructor;
-    jmethodID array_list_constructor;
-    jmethodID array_list_add_method;
-    jmethodID environment_method;
-    jmethodID video_size_cb_method;
-    jmethodID input_cb_method;
-    jfieldID variable_value_field;
-    jfieldID variable_entry_key_field;
-    jfieldID variable_entry_value_field;
-} em_context_t;
-
 static em_context_t ctx{};
 static jobject variable_object;
 static jobject variable_entry_object;
@@ -59,15 +42,11 @@ static void set_variable_value(JNIEnv *env, jobject value) {
     env->SetObjectField(variable_object, ctx.variable_value_field, value);
 }
 
-static void set_variable_value(JNIEnv *env, jint value) {
+static void set_variable_value(JNIEnv *env, int value) {
     jclass clazz = env->FindClass("java/lang/Integer");
     jmethodID value_of_method = env->GetStaticMethodID(clazz, "valueOf", "(I)Ljava/lang/Integer;");
     jobject val = env->CallStaticObjectMethod(clazz, value_of_method, value);
     set_variable_value(env, val);
-}
-
-static void set_variable_value(JNIEnv *env, const char *value) {
-    set_variable_value(env, env->NewStringUTF(value));
 }
 
 static jobject get_variable_value(JNIEnv *env) {
@@ -85,15 +64,6 @@ static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
     env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
                         env->NewStringUTF(key));
     env->SetObjectField(variable_entry_object, ctx.variable_entry_value_field, value);
-}
-
-static void set_variable_entry(JNIEnv *env, const char *key, jint value) {
-    env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
-                        env->NewStringUTF(key));
-    jclass clazz = env->FindClass("java/lang/Integer");
-    jmethodID value_of_method = env->GetStaticMethodID(clazz, "valueOf", "(I)Ljava/lang/Integer;");
-    jobject val = env->CallStaticObjectMethod(clazz, value_of_method, value);
-    set_variable_entry(env, key, val);
 }
 
 static jobject get_variable_entry_value(JNIEnv *env) {
@@ -388,7 +358,7 @@ static bool environment_cb(unsigned cmd, void *data) {
                     jobject controller_desc = env->NewObject(controller_desc_clazz, constructor,
                                                              env->NewStringUTF(
                                                                      controller_info->types[i].desc),
-                                                             (jint) controller_info->types[i].id);
+                                                             (int)controller_info->types[i].id);
                     env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
                 }
                 env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
@@ -498,6 +468,7 @@ static bool initialized = false;
 
 static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
+    UNUSED(thiz);
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     if (activity != nullptr && !SwappyGL_isEnabled()) {
         SwappyGL_init(env, activity);
@@ -517,10 +488,14 @@ em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
+    UNUSED(env);
+    UNUSED(thiz);
     renderer->adjust_viewport(vw, vh);
 }
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
+    UNUSED(env);
+    UNUSED(thiz);
     renderer->stop();
 }
 
@@ -570,6 +545,8 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
 }
 
 static void em_pause(JNIEnv *env, jobject thiz) {
+    UNUSED(env);
+    UNUSED(thiz);
     if (current_state == STATE_RUNNING) {
         current_state = STATE_PAUSED;
         audio_stream_out->request_pause();
@@ -577,6 +554,8 @@ static void em_pause(JNIEnv *env, jobject thiz) {
 }
 
 static void em_resume(JNIEnv *env, jobject thiz) {
+    UNUSED(env);
+    UNUSED(thiz);
     if (current_state == STATE_PAUSED) {
         current_state = STATE_RUNNING;
         audio_stream_out->request_start();
@@ -584,10 +563,14 @@ static void em_resume(JNIEnv *env, jobject thiz) {
 }
 
 static void em_reset(JNIEnv *env, jobject thiz) {
+    UNUSED(env);
+    UNUSED(thiz);
     send_empty_message(MSG_RESET_EMULATOR);
 }
 
 static void em_stop(JNIEnv *env, jobject thiz) {
+    UNUSED(env);
+    UNUSED(thiz);
     current_state = STATE_IDLE;
     retro_unload_game();
     close_audio_stream();
@@ -596,6 +579,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
 }
 
 static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
+    UNUSED(thiz);
     struct retro_system_av_info av_info = {0};
     retro_get_system_av_info(&av_info);
     jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
@@ -604,10 +588,10 @@ static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
                                 av_info.timing.sample_rate);
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
     constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
-    jobject o1 = env->NewObject(clazz, constructor, (jint) av_info.geometry.base_width,
-                                (jint) av_info.geometry.base_height,
-                                (jint) av_info.geometry.max_width,
-                                (jint) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
+    jobject o1 = env->NewObject(clazz, constructor, (int) av_info.geometry.base_width,
+                                (int) av_info.geometry.base_height,
+                                (int) av_info.geometry.max_width,
+                                (int) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
     constructor = env->GetMethodID(clazz, "<init>",
                                    "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
@@ -615,6 +599,7 @@ static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
 }
 
 static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
+    UNUSED(thiz);
     struct retro_system_info system_info = {};
     retro_get_system_info(&system_info);
     need_fullpath = system_info.need_fullpath;
@@ -632,6 +617,7 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
 }
 
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
+    UNUSED(thiz);
     std::shared_ptr<std::promise<result_t>> promise = send_message(MSG_GET_SERIALIZE_DATA, nullptr);
     const result_t &result = promise->get_future().get();
     if (result.state == NO_ERROR) {
@@ -647,6 +633,7 @@ static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
 };
 
 static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
+    UNUSED(thiz);
     const size_t size = env->GetArrayLength(jdata);
     jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
     std::shared_ptr<buffer_t> buffer = std::make_shared<buffer_t>(size);
@@ -656,6 +643,7 @@ static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
 }
 
 static jbyteArray em_get_memory_data(JNIEnv *env, jobject thiz, jint id) {
+    UNUSED(thiz);
     size_t len = retro_get_memory_size(id);
     if (len == 0) return nullptr;
     void *data = retro_get_memory_data(id);
@@ -668,6 +656,7 @@ static jbyteArray em_get_memory_data(JNIEnv *env, jobject thiz, jint id) {
 };
 
 static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray mem_data) {
+    UNUSED(thiz);
     const size_t &len = retro_get_memory_size(id);
     if (env->GetArrayLength(mem_data) == len) {
         jbyte *data = env->GetByteArrayElements(mem_data, JNI_FALSE);
@@ -678,6 +667,7 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 }
 
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
+    UNUSED(thiz);
     bool no_error = false;
     std::lock_guard<std::mutex> lock(mtx);
     if (framebuffer) {
@@ -700,6 +690,8 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
 }
 
 static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, jint device) {
+    UNUSED(env);
+    UNUSED(thiz);
     retro_set_controller_port_device(port, device);
 }
 
@@ -726,6 +718,7 @@ static const JNINativeMethod methods[] = {
 
 extern "C"
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+    UNUSED(reserved);
     JNIEnv *env;
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         LOGE(TAG, "JNI load failed!");
@@ -769,6 +762,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
 
 extern "C"
 JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
+    UNUSED(reserved);
     JNIEnv *env;
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return;
@@ -789,6 +783,8 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 
 static void on_create(EGLDisplay dyp, EGLSurface sr) {
+    UNUSED(dyp);
+    UNUSED(sr);
     set_thread_priority(THREAD_PRIORITY_AUDIO);
     if (hw_render_cb) {
         hw_render_cb->context_reset();
@@ -852,7 +848,7 @@ static void handle_message() {
         case MSG_RESET_EMULATOR:
             retro_reset();
             break;
-        default:
+        default: ;
     }
 }
 

@@ -247,7 +247,7 @@
             </allow-values>
         </option>
         <option
-            defaultValue="default"
+            defaultValue="nintendo-vc"
             key="fceumm_palette"
             title="Color palette">
             <allow-values>
@@ -305,7 +305,7 @@
             </allow-values>
         </option>
         <option
-            defaultValue="enabled"
+            defaultValue="disabled"
             key="fceumm_nospritelimit"
             title="No sprite limit">
             <allow-values>

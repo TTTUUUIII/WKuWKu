@@ -15,7 +15,6 @@ import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemInfo;
-import ink.snowland.wkuwku.emulator.Emulator;
 import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 
@@ -57,10 +56,6 @@ public final class EmulatorManager {
 
     public static IEmulator getDefaultEmulator(@NonNull EmSystem system) {
         return getDefaultEmulator(system.tag);
-    }
-
-    public static IEmulator getEmulatorV2(@NonNull String alias) {
-        return EMULATORS.get(alias);
     }
 
     public static Collection<IEmulator> getEmulators() {

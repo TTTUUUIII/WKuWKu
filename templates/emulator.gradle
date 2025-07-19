@@ -21,6 +21,8 @@ android {
     buildFeatures {
         prefab true
     }
+
+    ndkVersion "28.0.13004108"
 }
 
 dependencies {
