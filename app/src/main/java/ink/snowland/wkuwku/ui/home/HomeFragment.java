@@ -19,7 +19,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHomeBinding;
-import ink.snowland.wkuwku.ui.core.CoreFragment;
+import ink.snowland.wkuwku.ui.coreopt.CoreOptionsFragment;
 import ink.snowland.wkuwku.ui.game.GamesFragment;
 import ink.snowland.wkuwku.ui.history.HistoryFragment;
 
@@ -29,7 +29,7 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
     private final BaseFragment[] mPages = new BaseFragment[] {
             new GamesFragment(),
             new HistoryFragment(),
-            new CoreFragment()
+            new CoreOptionsFragment()
     };
 
     private final ViewPager2.OnPageChangeCallback mPageChangedCallback = new ViewPager2.OnPageChangeCallback() {

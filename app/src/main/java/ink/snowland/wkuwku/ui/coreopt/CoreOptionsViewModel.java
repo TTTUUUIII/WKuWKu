@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.ui.core;
+package ink.snowland.wkuwku.ui.coreopt;
 
 import android.app.Application;
 
@@ -12,9 +12,9 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 
-public class CoreViewModel extends BaseViewModel {
+public class CoreOptionsViewModel extends BaseViewModel {
     private final Map<String, List<EmOption>> mEmulatorOptions = new HashMap<>();
-    public CoreViewModel(@NonNull Application application) {
+    public CoreOptionsViewModel(@NonNull Application application) {
         super(application);
     }
 

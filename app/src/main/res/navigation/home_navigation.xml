@@ -18,8 +18,8 @@
         tools:layout="@layout/fragment_game" />
 
     <fragment
-        android:id="@+id/core_fragment"
-        android:name="ink.snowland.wkuwku.ui.core.CoreFragment"
+        android:id="@+id/coreopt_fragment"
+        android:name="ink.snowland.wkuwku.ui.coreopt.CoreOptionsFragment"
         android:label="@string/core_options"
-        tools:layout="@layout/fragment_core" />
+        tools:layout="@layout/fragment_coreopt" />
 </navigation>

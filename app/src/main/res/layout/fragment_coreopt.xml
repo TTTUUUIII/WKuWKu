@@ -7,7 +7,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".ui.core.CoreFragment"
+        tools:context=".ui.coreopt.CoreOptionsFragment"
         android:paddingTop="15dp"
         android:paddingHorizontal="15dp"
         android:orientation="vertical">

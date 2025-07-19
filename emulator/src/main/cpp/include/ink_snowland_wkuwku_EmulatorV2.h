@@ -15,6 +15,7 @@
 #include <any>
 #include "Log.h"
 
+#define UNUSED(_p0)  (void)(_p0)
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
 #define NO_ERROR                    0
@@ -29,6 +30,24 @@
 #define MSG_RESET_EMULATOR          3
 
 #define THREAD_PRIORITY_AUDIO       (-16)
+
+typedef struct {
+    JavaVM *jvm;
+    jclass input_descriptor_clazz;
+    jclass message_ext_clazz;
+    jclass array_list_clazz;
+    jobject emulator_obj;
+    jmethodID message_ext_constructor;
+    jmethodID input_descriptor_constructor;
+    jmethodID array_list_constructor;
+    jmethodID array_list_add_method;
+    jmethodID environment_method;
+    jmethodID video_size_cb_method;
+    jmethodID input_cb_method;
+    jfieldID variable_value_field;
+    jfieldID variable_entry_key_field;
+    jfieldID variable_entry_value_field;
+} em_context_t;
 
 struct buffer_t {
     size_t size;

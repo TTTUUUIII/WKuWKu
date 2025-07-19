@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.ui.core;
+package ink.snowland.wkuwku.ui.coreopt;
 
 import android.os.Bundle;
 
@@ -26,27 +26,27 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseTextWatcher;
 import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.databinding.FragmentCoreBinding;
+import ink.snowland.wkuwku.databinding.FragmentCoreoptBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreEnumOptionBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreOptionBinding;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 
-public class CoreFragment extends BaseFragment {
+public class CoreOptionsFragment extends BaseFragment {
 
     private static final String SELECTED_CORE = "app_selected_core";
-    private FragmentCoreBinding binding;
+    private FragmentCoreoptBinding binding;
     private IEmulator mEmulator;
     private final ViewAdapter mAdapter = new ViewAdapter();
     private List<EmOption> mCurrentOptions;
-    private CoreViewModel mViewModel;
+    private CoreOptionsViewModel mViewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentCoreBinding.inflate(inflater, container, false);
-        mViewModel = new ViewModelProvider(this).get(CoreViewModel.class);
+        binding = FragmentCoreoptBinding.inflate(inflater, container, false);
+        mViewModel = new ViewModelProvider(this).get(CoreOptionsViewModel.class);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireActivity()));
         binding.pendingIndicator.setDataModel(mViewModel);
