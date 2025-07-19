@@ -12,9 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 
 import android.os.SystemClock;
-import android.text.Editable;
 import android.text.InputType;
-import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +24,7 @@ import java.util.stream.Collectors;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
+import ink.snowland.wkuwku.common.BaseTextWatcher;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.databinding.FragmentCoreBinding;
 import ink.snowland.wkuwku.databinding.ItemCoreEnumOptionBinding;
@@ -61,18 +60,18 @@ public class CoreFragment extends BaseFragment {
         Collection<IEmulator> emulators = EmulatorManager.getEmulators();
         String[] tags = emulators.stream().map(it -> (String) it.getProp(IEmulator.PROP_ALIAS))
                 .toArray(String[]::new);
-        binding.coreSelector.setAdapter(new NoFilterArrayAdapter<String>(requireActivity(), R.layout.layout_simple_text, tags));
+        binding.coreSelector.setAdapter(new NoFilterArrayAdapter<>(requireActivity(), R.layout.layout_simple_text, tags));
         mViewModel.setPendingIndicator(true, R.string.loading);
-        handler.postAtTime(() -> {
-            binding.coreSelector.addTextChangedListener(new CoreChangedCallback());
-            binding.coreSelector.setText(SettingsManager.getString(SELECTED_CORE, tags[0]));
+        runAtTime(() -> {
+            binding.coreSelector.addTextChangedListener((BaseTextWatcher) (alias, start, before, count) -> onEmulatorChanged(alias.toString()));
+            binding.coreSelector.setText(SettingsManager.getString(SELECTED_CORE, "fceumm"));
         }, SystemClock.uptimeMillis() + 400);
     }
 
     @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        onSaveOptions();
+    public void onPause() {
+        super.onPause();
+        saveCurrentEmulatorOptions();
     }
 
     @Override
@@ -80,53 +79,31 @@ public class CoreFragment extends BaseFragment {
         return R.string.core_options;
     }
 
-    private void onReloadOptions() {
-        assert mEmulator != null;
-        SettingsManager.putString(SELECTED_CORE, (String) mEmulator.getProp(IEmulator.PROP_ALIAS));
-        mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
-        if (mCurrentOptions == null) {
-            List<EmOption> options = mEmulator.getOptions().stream()
-                    .sorted()
-                    .collect(Collectors.toList());
-            for (EmOption option : options) {
-                String val = SettingsManager.getString(option.key);
-                if (val.isEmpty()) continue;
-                option.val = val;
+    private void onEmulatorChanged(@NonNull String alias) {
+        IEmulator emulator = EmulatorManager.getEmulator(alias);
+        if (emulator != null && mEmulator != emulator) {
+            saveCurrentEmulatorOptions();
+            mEmulator = emulator;
+            SettingsManager.putString(SELECTED_CORE, (String) mEmulator.getProp(IEmulator.PROP_ALIAS));
+            mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
+            if (mCurrentOptions == null) {
+                List<EmOption> options = mEmulator.getOptions().stream()
+                        .sorted()
+                        .collect(Collectors.toList());
+                for (EmOption option : options) {
+                    String val = SettingsManager.getString(option.key);
+                    if (val.isEmpty()) continue;
+                    option.val = val;
+                }
+                mCurrentOptions = options;
+                mViewModel.putEmulatorOptions(mEmulator, options);
             }
-            mCurrentOptions = options;
-            mViewModel.putEmulatorOptions(mEmulator, options);
+            mAdapter.submitList(mCurrentOptions);
         }
-        mAdapter.submitList(mCurrentOptions);
         mViewModel.setPendingIndicator(false);
     }
 
-    private class CoreChangedCallback implements TextWatcher {
-
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-        }
-
-        @Override
-        public void onTextChanged(CharSequence newCoreTag, int start, int before, int count) {
-            IEmulator emulator = EmulatorManager.getEmulator(newCoreTag.toString());
-            if (mEmulator != emulator) {
-                onSaveOptions();
-                mEmulator = emulator;
-                if (mEmulator == null) return;
-                onReloadOptions();
-            } else {
-                mViewModel.setPendingIndicator(false);
-            }
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-        }
-    }
-
-    private void onSaveOptions() {
+    private void saveCurrentEmulatorOptions() {
         if (mCurrentOptions == null || mEmulator == null) return;
         for (EmOption option : mCurrentOptions) {
             if (!option.enable) continue;
@@ -147,12 +124,16 @@ public class CoreFragment extends BaseFragment {
             if (_binding instanceof ItemCoreOptionBinding) {
                 ItemCoreOptionBinding itemBinding = (ItemCoreOptionBinding) _binding;
                 itemBinding.setOption(option);
-                if (option.inputType.equals(EmOption.NUMBER)) {
-                    itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-                } else if (option.inputType.equals(EmOption.NUMBER_DECIMAL)) {
-                    itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                } else if (option.inputType.equals(EmOption.NUMBER_SIGNED)) {
-                    itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+                switch (option.inputType) {
+                    case EmOption.NUMBER:
+                        itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        break;
+                    case EmOption.NUMBER_DECIMAL:
+                        itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        break;
+                    case EmOption.NUMBER_SIGNED:
+                        itemBinding.editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+                        break;
                 }
             } else {
                 ItemCoreEnumOptionBinding itemBinding = (ItemCoreEnumOptionBinding) _binding;
@@ -165,7 +146,7 @@ public class CoreFragment extends BaseFragment {
 
     private class ViewAdapter extends ListAdapter<EmOption, ViewHolder> {
         protected ViewAdapter() {
-            super(new DiffUtil.ItemCallback<EmOption>() {
+            super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull EmOption oldItem, @NonNull EmOption newItem) {
                     return oldItem.key.equals(newItem.key);
