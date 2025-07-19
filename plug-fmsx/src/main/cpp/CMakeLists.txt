@@ -25,6 +25,5 @@ project("fmsx")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_compile_definitions(LOG_TAG="FmsxNative")
 include(../../../../common.cmake)
 add_emulator(${CMAKE_PROJECT_NAME} "ink/snowland/wkuwku/plug/fmsx/Fmsx")

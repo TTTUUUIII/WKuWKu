@@ -24,6 +24,12 @@ public class Fmsx extends Emulator {
     }
 
     @Override
+    public void setProp(int what, Object data) {
+        super.setProp(what, data);
+        nativeSetProp(what, data);
+    }
+
+    @Override
     public boolean captureScreen(String savePath) {
         return nativeCaptureScreen(savePath);
     }
@@ -142,4 +148,5 @@ public class Fmsx extends Emulator {
     private native byte[] nativeGetMemoryData(int type);
     private native void nativeSetMemoryData(int type, byte[] data);
     private native void nativeSetControllerPortDevice(int port, int device);
+    private native void nativeSetProp(int prop, Object val);
 }
