@@ -488,12 +488,23 @@ static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     UNUSED(thiz);
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
-    if (activity != nullptr && !SwappyGL_isEnabled()) {
+    if (get_prop(PROP_VIDEO_FRAME_PACING_ENABLE, true)
+    && activity != nullptr
+    && !SwappyGL_isEnabled()
+    ) {
         SwappyGL_init(env, activity);
-        SwappyGL_setSwapIntervalNS(SWAPPY_SWAP_60FPS);
+        int count = SwappyGL_getSupportedRefreshPeriodsNS(nullptr, 0);
+        uint64_t all_swap_ns[count];
+        SwappyGL_getSupportedRefreshPeriodsNS(all_swap_ns, count);
+        uint64_t min_swap_ns = all_swap_ns[0];
+        for (int i = 1; i < count; ++i) {
+            min_swap_ns = std::min(all_swap_ns[i], min_swap_ns);
+        }
+        SwappyGL_setSwapIntervalNS(min_swap_ns);
         SwappyGL_setAutoSwapInterval(true);
         SwappyGL_setAutoPipelineMode(true);
         SwappyGL_setWindow(window);
+        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.", static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
     }
     renderer = std::make_unique<GLRenderer>(window);
     GLRendererInterface *interface = renderer->get_renderer_interface();
@@ -693,9 +704,11 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 }
 
 static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
+    UNUSED(thiz);
     switch (prop) {
         case PROP_NATIVE_AUDIO_ENABLED:
         case PROP_LOW_LATENCY_AUDIO_ENABLE:
+        case PROP_VIDEO_FRAME_PACING_ENABLE:
             props[prop] = as_bool(env, val);
             break;
         default:;

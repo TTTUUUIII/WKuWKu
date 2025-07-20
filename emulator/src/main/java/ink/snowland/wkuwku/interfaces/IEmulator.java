@@ -22,6 +22,7 @@ public interface IEmulator extends RetroDefine {
     int PROP_ALIAS                      = 101;
     int PROP_NATIVE_AUDIO_ENABLE        = 102;
     int PROP_LOW_LATENCY_AUDIO_ENABLE   = 103;
+    int PROP_VIDEO_FRAME_PACING_ENABLE  = 104;
 
     void setProp(int what, Object data);
     boolean captureScreen(String savePath);

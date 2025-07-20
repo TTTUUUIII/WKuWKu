@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.HotkeysManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 
@@ -20,6 +21,7 @@ public class App extends Application {
         FileManager.initialize(getApplicationContext());
         AppDatabase.initialize(getApplicationContext());
         SettingsManager.initialize(getApplicationContext());
+        HotkeysManager.initialize(getApplicationContext());
         EmulatorManager.initialize(getApplicationContext());
         BiosProvider.initialize(getApplicationContext());
         PlugManager.initialize(getApplicationContext());

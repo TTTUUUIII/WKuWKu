@@ -1,11 +1,12 @@
 package ink.snowland.wkuwku.common;
 
-import android.content.Context;
 import android.hardware.input.InputManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.InputDevice;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -14,16 +15,15 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavOptions;
 import androidx.recyclerview.widget.ListAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.bean.Hotkey;
 
-public class BaseFragment extends Fragment implements InputManager.InputDeviceListener{
+public class BaseFragment extends Fragment implements InputManager.InputDeviceListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener {
     protected BaseActivity parentActivity;
     protected Handler handler;
     protected NavOptions navAnimOptions;
-    private InputManager mInputManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -34,19 +34,27 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
                 .build();
         parentActivity = (BaseActivity) requireActivity();
         handler = new Handler(Looper.getMainLooper());
-        mInputManager = (InputManager) requireContext().getSystemService(Context.INPUT_SERVICE);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mInputManager.registerInputDeviceListener(this, handler);
+        parentActivity.addOnKeyEventListener(this);
+        parentActivity.addInputDeviceListener(this);
+        parentActivity.addOnTouchEventListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mInputManager.unregisterInputDeviceListener(this);
+        parentActivity.removeOnKeyEventListener(this);
+        parentActivity.removeInputDeviceListener(this);
+        parentActivity.removeOnTouchEventListener(this);
+    }
+
+    @Override
+    public boolean onHotkeyEvent(@NonNull Hotkey hotkey) {
+        return false;
     }
 
     protected void runAtDelayed(@NonNull Runnable r, long delayMillis) {
@@ -66,16 +74,11 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     }
 
     protected List<InputDevice> getInputDevices() {
-        int[] deviceIds = mInputManager.getInputDeviceIds();
-        ArrayList<InputDevice> inputDevices = new ArrayList<>();
-        for (int deviceId : deviceIds) {
-            inputDevices.add(mInputManager.getInputDevice(deviceId));
-        }
-        return inputDevices;
+        return parentActivity.getInputDevices();
     }
 
     protected InputDevice getInputDevice(int deviceId) {
-        return mInputManager.getInputDevice(deviceId);
+        return parentActivity.getInputDevice(deviceId);
     }
 
     @Override
@@ -95,5 +98,15 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     public @StringRes int getTitleRes() {
         return R.string.app_name;
+    }
+
+    @Override
+    public boolean onKeyEvent(@NonNull KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public void onTouchEvent(MotionEvent ev) {
+
     }
 }
