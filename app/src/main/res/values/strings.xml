@@ -174,5 +174,13 @@
     <string name="native_audio_player">Native audio player</string>
     <string name="play_audio_directly_using_native_player">Play audio using native player directly</string>
     <string name="low_latency_mode">Low latency mode</string>
-    <string name="prioritize_low_latency_mode">Use low latency mode</string>
+    <string name="use_low_latency_mode">Use low latency mode</string>
+    <string name="hotkeys">Hotkeys</string>
+    <string name="bind_hotkeys">Custom hotkeys</string>
+    <string name="no_binding">No binding</string>
+    <string name="bind">Bind</string>
+    <string name="waiting_keys">Waiting…</string>
+    <string name="no_input_device">No input device!</string>
+    <string name="frame_pacing">Frame pacing</string>
+    <string name="frame_pacing_summary">Ensures smooth video and extends battery life</string>
 </resources>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <data>
+        <variable
+            name="hotkey"
+            type="ink.snowland.wkuwku.bean.Hotkey" />
+    </data>
+    <LinearLayout
+        android:paddingStart="24dp"
+        android:paddingVertical="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:ignore="RtlSymmetry">
+        <LinearLayout
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+            <TextView
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                tools:text="Screenshot"
+                android:textStyle="bold"
+                android:text="@{hotkey.title}" />
+            <TextView
+                android:textSize="13sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:text="No binding"
+                android:text="@{hotkey.name.isEmpty() ? @string/no_binding : hotkey.name}" />
+        </LinearLayout>
+        <Button
+            android:id="@+id/action_bind"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:cornerRadius="0dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:enabled="@{!hotkey.waiting}"
+            android:text="@{hotkey.waiting ? @string/waiting_keys : @string/bind}" />
+    </LinearLayout>
+</layout>

@@ -30,4 +30,17 @@
         <item>light</item>
         <item>dark</item>
     </string-array>
+
+    <string-array name="hotkeys_entries">
+        <item>Quick Save</item>
+        <item>Quick Load</item>
+        <item>Screenshot</item>
+        <item>Reset</item>
+    </string-array>
+    <string-array name="hotkeys_keys">
+        <item>hotkey_quick_save</item>
+        <item>hotkey_quick_load</item>
+        <item>hotkey_screenshot</item>
+        <item>hotkey_reset</item>
+    </string-array>
 </resources>

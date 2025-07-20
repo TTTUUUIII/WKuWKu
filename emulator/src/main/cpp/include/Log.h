@@ -11,8 +11,8 @@
 #endif
 
 #define LOGD(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
-#define LOGI(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
-#define LOGW(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
-#define LOGE(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
+#define LOGI(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
+#define LOGW(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_WARN, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
+#define LOGE(_tag, _fmt, ...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, "[" _tag "] " _fmt, ##__VA_ARGS__)
 
 #endif //WKUWKU_LOG_H

@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.preference.ListPreference;
 import androidx.preference.MultiSelectListPreference;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -21,21 +22,26 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.interfaces.IEmulator;
+import ink.snowland.wkuwku.widget.HotkeysDialog;
 
-public class SettingsFragment extends PreferenceFragmentCompat {
+public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener {
 
+    private static final String ACTION_CUSTOM_HOTKEYS = "action_custom_hotkeys";
     private BaseActivity mParentActivity;
+    private HotkeysDialog mHotkeysDialog;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mParentActivity = (BaseActivity) requireActivity();
+        mParentActivity.setActionbarTitle(R.string.app_settings);
+        mHotkeysDialog = new HotkeysDialog(mParentActivity);
     }
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.root_preferences, rootKey);
-        PreferenceCategory corePreferenceCategory = (PreferenceCategory) findPreference("core_preference_category");
+        PreferenceCategory corePreferenceCategory = findPreference("core_preference_category");
         if (corePreferenceCategory != null) {
             List<EmSystem> systems = EmulatorManager.getSupportedSystems()
                     .stream()
@@ -81,11 +87,25 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             autoLoadStateBlackList.setEntryValues(entries);
             emulatorCategory.addPreference(autoLoadStateBlackList);
         }
+        Preference preference = findPreference(ACTION_CUSTOM_HOTKEYS);
+        if (preference != null) {
+            preference.setOnPreferenceClickListener(this);
+        }
     }
 
     @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        mParentActivity.setActionbarTitle(R.string.app_settings);
+    public boolean onPreferenceClick(@NonNull Preference preference) {
+        boolean handled = true;
+        String key = preference.getKey();
+        if (ACTION_CUSTOM_HOTKEYS.equals(key)) {
+            showHotkeysDialog();
+        } else {
+            handled = false;
+        }
+        return handled;
+    }
+
+    private void showHotkeysDialog() {
+        mHotkeysDialog.show();
     }
 }

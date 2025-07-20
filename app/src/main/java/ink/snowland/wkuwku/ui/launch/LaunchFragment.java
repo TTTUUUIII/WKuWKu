@@ -22,7 +22,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import android.os.Environment;
-import android.os.FileUtils;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
@@ -49,6 +48,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.bean.Hotkey;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
@@ -76,8 +76,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final int PLAYER_2 = 1;
     private static final int SNACKBAR_LENGTH_SHORT = 500;
     private static final int SNACKBAR_LENGTH_LONG = 1000;
+    private static final String HOTKEY_QUICK_SAVE = "hotkey_quick_save";
+    private static final String HOTKEY_QUICK_LOAD = "hotkey_quick_load";
+    private static final String HOTKEY_SCREENSHOT = "hotkey_screenshot";
+    private static final String HOTKEY_RESET = "hotkey_reset";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String VIDEO_RATIO = "app_video_ratio";
+    private static final String VIDEO_FRAME_PACING = "app_video_frame_pacing";
     private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
     private static final String NATIVE_AUDIO = "app_native_audio";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
@@ -219,6 +224,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
             emulator.setProp(PROP_LOW_LATENCY_AUDIO_ENABLE, SettingsManager.getBoolean(AUDIO_LOW_LATENCY_MODE, true));
             emulator.setProp(PROP_NATIVE_AUDIO_ENABLE, SettingsManager.getBoolean(NATIVE_AUDIO, false));
+            emulator.setProp(PROP_VIDEO_FRAME_PACING_ENABLE, SettingsManager.getBoolean(VIDEO_FRAME_PACING, true));
             binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(@NonNull SurfaceHolder holder) {
@@ -248,7 +254,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
                 lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                binding.getRoot().setFitsSystemWindows(false);
+                setFitsSystemWindows(binding.getRoot(), false);
             } else {
                 DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
                 boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
@@ -259,13 +265,20 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
                     lp.height = (int) (displayMetrics.widthPixels / ratio);
                 }
-                binding.getRoot().setFitsSystemWindows(true);
+                setFitsSystemWindows(binding.getRoot(), true);
             }
-            binding.getRoot().requestApplyInsets();
             binding.surfaceView.setLayoutParams(lp);
         });
         mVideoWidth = width;
         mVideoHeight = height;
+    }
+
+    private void setFitsSystemWindows(@NonNull View view, boolean fitsSystemWindows) {
+        if (view.getFitsSystemWindows() == fitsSystemWindows) return;
+        view.post(() -> {
+            view.setFitsSystemWindows(fitsSystemWindows);
+            view.requestApplyInsets();
+        });
     }
 
     private final OnBackPressedCallback mBackPressedCallback = new OnBackPressedCallback(true) {
@@ -278,17 +291,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onResume() {
         super.onResume();
-        parentActivity.addOnKeyEventListener(this);
         resetHideTimer();
-        parentActivity.addOnTouchEventListener(this);
         mViewModel.resumeEmulator();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        parentActivity.removeOnKeyEventListener(this);
-        parentActivity.removeOnTouchEventListener(this);
         handler.removeCallbacks(mHideTimerTask);
         mViewModel.pauseEmulator();
     }
@@ -478,29 +487,41 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
     }
 
-    private int mL1ButtonState = KeyEvent.ACTION_UP;
-    private int mR1ButtonState = KeyEvent.ACTION_UP;
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
         int deviceId = event.getDeviceId();
         boolean handled = false;
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_L1 && mL1ButtonState != event.getAction()) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                mViewModel.saveCurrentSate();
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
-            }
-            mL1ButtonState = event.getAction();
-        } else if (event.getKeyCode() == KeyEvent.KEYCODE_BUTTON_R1 && mR1ButtonState != event.getAction()) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) {
-                mViewModel.loadStateAtLast();
-            }
-            mR1ButtonState = event.getAction();
-        }
         for (BaseController controller : mExternalControllers) {
             if (controller.getDeviceId() != deviceId) continue;
             handled = controller.onKeyEvent(event);;
         }
         return handled;
+    }
+
+    @Override
+    public boolean onHotkeyEvent(@NonNull Hotkey hotkey) {
+        boolean handled = true;
+        switch (hotkey.key) {
+            case HOTKEY_QUICK_SAVE:
+                mViewModel.saveCurrentSate();
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
+                break;
+            case HOTKEY_QUICK_LOAD:
+                mViewModel.loadStateAtLast();
+                break;
+            case HOTKEY_SCREENSHOT:
+                takeScreenshot();
+                break;
+            case HOTKEY_RESET:
+                mViewModel.resetEmulator();
+                break;
+            default:
+                handled = false;
+        }
+        if (handled) {
+            return true;
+        }
+        return super.onHotkeyEvent(hotkey);
     }
 
     @Override

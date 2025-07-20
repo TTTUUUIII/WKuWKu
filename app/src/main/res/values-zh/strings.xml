@@ -147,5 +147,13 @@
     <string name="native_audio_player">原生音频播放器</string>
     <string name="play_audio_directly_using_native_player">音频直接通过Native播放器播放</string>
     <string name="low_latency_mode">低延迟模式</string>
-    <string name="prioritize_low_latency_mode">使用低延迟模式</string>
+    <string name="use_low_latency_mode">使用低延迟模式</string>
+    <string name="hotkeys">快捷键</string>
+    <string name="bind_hotkeys">绑定快捷键</string>
+    <string name="no_binding">未绑定</string>
+    <string name="bind">绑定</string>
+    <string name="waiting_keys">等待按键…</string>
+    <string name="no_input_device">无输入设备！</string>
+    <string name="frame_pacing">帧节奏</string>
+    <string name="frame_pacing_summary">确保视频流畅度并节省电量</string>
 </resources>

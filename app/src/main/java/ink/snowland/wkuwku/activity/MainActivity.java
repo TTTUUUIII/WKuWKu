@@ -44,6 +44,7 @@ import androidx.work.WorkManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -63,7 +64,6 @@ public class MainActivity extends BaseActivity {
     private static final String EMOJI_WORKSHOP_SOURCE = "app_emoji_workshop_source";
     private static final String EMOJI_WORKSHOP_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
     private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
-    private static final String APP_THEME = "app_theme";
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
@@ -78,19 +78,8 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        updateAppTheme();
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
-        ViewCompat.setOnApplyWindowInsetsListener(binding.appBarLayout, new OnApplyWindowInsetsListener() {
-            @NonNull
-            @Override
-            public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
-                int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                v.setPadding(v.getPaddingLeft(), top, v.getPaddingRight(), v.getPaddingBottom());
-                return insets;
-            }
-        });
         mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         setSupportActionBar(binding.toolBar);
         setContentView(binding.getRoot());
@@ -188,25 +177,15 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        SettingsManager.addSettingChangedListener(this::onSettingChanged);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        SettingsManager.removeSettingChangedListener(this::onSettingChanged);
-    }
-
-    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (mInstallApkReceiver != null)
             unregisterReceiver(mInstallApkReceiver);
     }
 
-    private void onSettingChanged(@NonNull String key) {
+    @Override
+    public void onSettingChanged(@NonNull String key) {
+        super.onSettingChanged(key);
         switch (key) {
             case EMOJI_WORKSHOP_EMOJI_SIZE:
             case EMOJI_WORKSHOP_SOURCE:
@@ -216,22 +195,16 @@ public class MainActivity extends BaseActivity {
                 mEmojiWorkshopOptions.setSource(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, mEmojiWorkshopOptions.getSource()));
                 binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
                 break;
-            case APP_THEME:
-                updateAppTheme();
-                break;
-            default:
+            default:;
         }
     }
 
-    private void updateAppTheme() {
-        String theme = SettingsManager.getString(APP_THEME, "system");
-        if (theme.equals("dark")) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else if (theme.equals("light")) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-        }
+    @NonNull
+    @Override
+    public WindowInsetsCompat onApplyWindowInsets(@NonNull View root, @NonNull WindowInsetsCompat insets) {
+        AppBarLayout view = binding.appBarLayout;
+        view.setPadding(view.getPaddingLeft(), insets.getInsets(WindowInsetsCompat.Type.statusBars()).top, view.getPaddingRight(), view.getPaddingBottom());
+        return super.onApplyWindowInsets(root, insets);
     }
 
     private void showAboutDialog() {

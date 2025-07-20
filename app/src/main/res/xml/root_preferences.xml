@@ -18,6 +18,12 @@
             app:summary="@string/keep_screen_on_when_gaming"
             app:title="@string/keep_screen_on"
             app:key="app_keep_screen_on" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:defaultValue="true"
+            app:summary="@string/frame_pacing_summary"
+            app:title="@string/frame_pacing"
+            app:key="app_video_frame_pacing" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -32,7 +38,7 @@
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="true"
-            app:summary="@string/prioritize_low_latency_mode"
+            app:summary="@string/use_low_latency_mode"
             app:title="@string/low_latency_mode"
             app:key="app_audio_low_latency_mode" />
     </PreferenceCategory>
@@ -47,7 +53,11 @@
             app:key="app_input_vibration_feedback"
             app:summary="@string/summary_input_vibration_feedback"
             app:title="@string/virbration_feedback" />
-
+        <Preference
+            app:iconSpaceReserved="false"
+            android:key="action_custom_hotkeys"
+            android:title="@string/hotkeys"
+            android:summary="@string/bind_hotkeys" />
     </PreferenceCategory>
 
     <PreferenceCategory

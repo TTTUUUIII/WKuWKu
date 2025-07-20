@@ -33,6 +33,7 @@
 
 #define PROP_NATIVE_AUDIO_ENABLED           102
 #define PROP_LOW_LATENCY_AUDIO_ENABLE       103
+#define PROP_VIDEO_FRAME_PACING_ENABLE      104
 
 typedef struct {
     JavaVM *jvm;

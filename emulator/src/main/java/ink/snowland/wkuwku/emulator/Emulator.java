@@ -234,7 +234,7 @@ public abstract class Emulator implements IEmulator {
             builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
         }
         mAudioTrack = builder.build();
-        logger.i("AudioTrack created, sampleRate=%s, lowLatency=%b", sampleRate, lowLatencyEnable);
+        logger.i("AudioTrack created, SampleRate=%s, LowLatency=%b", sampleRate, lowLatencyEnable);
     }
 
     private void releaseAudioTrack() {
