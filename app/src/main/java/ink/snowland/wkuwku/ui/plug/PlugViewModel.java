@@ -23,14 +23,13 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 import ink.snowland.wkuwku.util.NumberUtils;
+import ink.snowland.wkuwku.util.PathUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.core.SingleOnSubscribe;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import kotlinx.coroutines.flow.MutableSharedFlow;
-import kotlinx.coroutines.flow.MutableStateFlow;
 
 public class PlugViewModel extends BaseViewModel {
     private final MutableLiveData<List<PlugManifestExt>> mInstalledPlugs = new MutableLiveData<>();
@@ -122,7 +121,7 @@ public class PlugViewModel extends BaseViewModel {
                 } else if ("filePath".equals(tagName)) {
                     String filePath = xmlPullParser.nextText();
                     if (filePath == null) return null;
-                    info.url = WEB_URL + filePath;
+                    info.url = WEB_URL + PathUtils.wrapper(filePath);
                 } else if ("packageName".equals(tagName)) {
                     info.packageName = xmlPullParser.nextText();
                 } else if ("version".equals(tagName)) {

@@ -719,22 +719,27 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     UNUSED(thiz);
     bool no_error = false;
     std::lock_guard<std::mutex> lock(mtx);
+    int width = video_width, height = video_height;
+    if (video_rotation == 1 || video_rotation == 3) {
+        width = video_height;
+        height = video_width;
+    }
     if (framebuffer) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            no_error = stbi_write_png(file_path, video_width, video_height, 4, framebuffer->data,
-                                      video_width * 4);
+            no_error = stbi_write_png(file_path, width, height, 4, framebuffer->data,
+                                      width * 4);
         } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            unsigned char data[video_width * video_height * 3];
+            unsigned char data[width * height * 3];
             auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
-            for (int i = 0; i < video_width * video_height; ++i) {
+            for (int i = 0; i < width * height; ++i) {
                 uint16_t pixel = origin[i];
                 data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
                 data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
                 data[i * 3 + 2] = (pixel & 0x1F) << 3;
             }
-            no_error = stbi_write_png(file_path, video_width, video_height, 3, data,
-                                      video_width * 3);
+            no_error = stbi_write_png(file_path, width, height, 3, data,
+                                      width * 3);
         }
     }
     return no_error;
