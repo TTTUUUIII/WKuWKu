@@ -2,9 +2,9 @@ def localProperties = new Properties()
 file("${rootDir}/local.properties").withInputStream {localProperties.load(it)}
 ext {
     versions = [
-            compileSdkVersion: 33,
+            compileSdkVersion: 35,
             minSdkVersion    : 21,
-            targetSdkVersion : 33
+            targetSdkVersion : 35
     ]
 
     configApplicationSiging = { project ->
