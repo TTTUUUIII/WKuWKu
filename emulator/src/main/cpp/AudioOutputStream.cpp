@@ -42,10 +42,10 @@ void AudioOutputStream::request_open() {
     oboe::AudioStreamBuilder builder;
     oboe::Result result = builder.setDirection(oboe::Direction::Output)
             ->setUsage(oboe::Usage::Game)
-            ->setSharingMode(oboe::SharingMode::Shared)
+            ->setSharingMode(sharing_mode)
             ->setFormat(oboe::AudioFormat::I16)
             ->setChannelCount(oboe::ChannelCount::Stereo)
-            ->setPerformanceMode(oboe::PerformanceMode::LowLatency)
+            ->setPerformanceMode(performance_mode)
             ->setSampleRate(sample_rate)
             ->openStream(stream);
     if (result != oboe::Result::OK) {
