@@ -4,12 +4,9 @@ plugins {
 
 android {
     namespace 'ink.snowland.wkuwku.plug.pcsx'
-    compileSdk 35
 
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.pcsx"
-        minSdk 24
-        targetSdk 35
         versionCode 1
         versionName "v2.0"
 
@@ -46,3 +43,4 @@ dependencies {
 }
 
 apply from: rootProject.file("templates/emulator.gradle")
+rootProject.ext.configApplicationSiging(this)

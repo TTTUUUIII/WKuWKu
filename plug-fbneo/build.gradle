@@ -4,12 +4,8 @@ plugins {
 
 android {
     namespace 'ink.snowland.wkuwku.plug.fbneo'
-    compileSdk 35
-
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.fbneo"
-        minSdk 24
-        targetSdk 35
         versionCode 1
         versionName "v2.0"
 
@@ -45,3 +41,4 @@ dependencies {
 }
 
 apply from: rootProject.file("templates/emulator.gradle")
+rootProject.ext.configApplicationSiging(this)

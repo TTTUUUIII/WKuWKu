@@ -4,12 +4,9 @@ plugins {
 
 android {
     namespace 'ink.snowland.wkuwku.plug.yabause'
-    compileSdk 35
 
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.yabause"
-        minSdk 24
-        targetSdk 35
         versionCode 2
         versionName "v2.1"
 
@@ -46,3 +43,4 @@ dependencies {
 }
 
 apply from: rootProject.file("templates/emulator.gradle")
+rootProject.ext.configApplicationSiging(this)

@@ -4,10 +4,8 @@ plugins {
 
 android {
     namespace 'ink.snowland.wkuwku.plug.mame2003plus'
-    compileSdk 35
 
     defaultConfig {
-        minSdk 24
         applicationId 'ink.snowland.wkuwku.plug.mame2003plus'
         versionCode 2
         versionName "v2.1"
@@ -45,3 +43,4 @@ dependencies {
 }
 
 apply from: rootProject.file("templates/emulator.gradle")
+rootProject.ext.configApplicationSiging(this)
