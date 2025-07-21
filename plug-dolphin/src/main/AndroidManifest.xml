@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="Dolphin">
+        <meta-data
+            android:name="plugMainClass"
+            android:value="ink.snowland.wkuwku.plug.dolphin.Main" />
+        <meta-data
+            android:name="plugAuthor"
+            android:value="wn123o&lt;wn123o@outlook.com&gt;" />
+        <meta-data
+            android:name="plugSummary"
+            android:value="Dolphin is an emulator for running GameCube and Wii games." />
+    </application>
+</manifest>

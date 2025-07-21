@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Gamecube"
+            tag="gamecube"
+            manufacturer="nintendo" />
+        <system
+            name="Nintendo Wii"
+            tag="wii"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>elf</item>
+        <item>iso</item>
+        <item>gcm</item>
+        <item>dol</item>
+        <item>tgc</item>
+        <item>wbfs</item>
+        <item>ciso</item>
+        <item>gcz</item>
+        <item>wad</item>
+        <item>rvz</item>
+    </content-extensions>
+    <options>
+    </options>
+</em-config>

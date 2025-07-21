@@ -1,0 +1,60 @@
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+apply from: rootProject.file("templates/emulator.gradle")
+android {
+    namespace 'ink.snowland.wkuku.plug.dolphin'
+
+    defaultConfig {
+        applicationId "ink.snowland.wkuku.plug.dolphin"
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+        }
+    }
+
+    splits {
+        abi {
+            enable true
+            reset()
+            include "arm64-v8a", "x86_64"
+            universalApk false
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
+    }
+}
+
+dependencies {
+
+    compileOnly(project(path: ":emulator"))
+    compileOnly(project(path: ":plug"))
+    compileOnly libs.appcompat
+    compileOnly libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
+
+rootProject.ext.configApplicationSiging(this)
