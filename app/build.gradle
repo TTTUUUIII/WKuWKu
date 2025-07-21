@@ -2,25 +2,14 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
-def localProperties = new Properties()
-file("${rootDir}/local.properties").withInputStream {localProperties.load(it)}
-
 android {
-    signingConfigs {
-        release {
-            storeFile file(localProperties.get("key.path"))
-            storePassword localProperties.get("key.pass")
-            keyAlias localProperties.get("key.alias")
-            keyPassword localProperties.get("key.pass")
-        }
-    }
     namespace 'ink.snowland.wkuwku'
-    compileSdk 35
+    compileSdk rootProject.ext.versions.compileSdkVersion
 
     defaultConfig {
         applicationId "ink.snowland.wkuwku"
-        minSdk 24
-        targetSdk 35
+        minSdk rootProject.ext.versions.minSdkVersion
+        targetSdk rootProject.ext.versions.targetSdkVersion
         versionCode 10
         versionName "v0.3.8a"
 
@@ -33,7 +22,6 @@ android {
             shrinkResources true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
     }
 
@@ -92,3 +80,5 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }
+
+rootProject.ext.configApplicationSiging(this)

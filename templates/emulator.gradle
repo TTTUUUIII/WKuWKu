@@ -1,5 +1,8 @@
 android {
+    compileSdk rootProject.ext.versions.compileSdkVersion
     defaultConfig {
+        minSdk rootProject.ext.versions.minSdkVersion
+        targetSdk rootProject.ext.versions.targetSdkVersion
         externalNativeBuild {
             cmake {
                 cppFlags ''
