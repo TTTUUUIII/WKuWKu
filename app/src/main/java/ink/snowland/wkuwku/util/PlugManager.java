@@ -23,7 +23,7 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlugManager {
-    private static final String TAG = "PlugManager";
+    private static final Logger sLogger = new Logger("Manager", "PlugManager");
     private static Context sApplicationContext;
 
     public static void initialize(Context applicationContext) {
@@ -134,7 +134,7 @@ public class PlugManager {
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((installed) -> {
-                    Log.i(TAG, "INFO: " + installed + " of " + plugs.size() + " auto installed.");
+                    sLogger.i(" %d of %d auto installed.", installed, plugs.size());
                 });
     }
 }
