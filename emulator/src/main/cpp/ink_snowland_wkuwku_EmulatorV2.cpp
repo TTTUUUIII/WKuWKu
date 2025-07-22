@@ -175,7 +175,7 @@ static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun
 static size_t audio_cb(const int16_t *data, size_t frames) {
     if (data && current_state == STATE_RUNNING) {
         if (audio_stream_out) {
-            return audio_stream_out->write(data, (int) frames, 2000 * kNanosPerMillisecond);
+            return audio_stream_out->write(data, (int) frames, 20 * kNanosPerMillisecond);
         } else {
             JNIEnv *env;
             if(attach_env(&env)) {
@@ -953,15 +953,14 @@ static void open_audio_stream() {
     retro_get_system_av_info(&av_info);
     audio_stream_out = std::make_shared<AudioOutputStream>();
     audio_stream_out->set_sample_rate(static_cast<uint16_t>(av_info.timing.sample_rate));
-    audio_stream_out->set_sharing_mode(AAUDIO_SHARING_MODE_EXCLUSIVE);
-    audio_stream_out->set_channel_count(2);
+    audio_stream_out->set_sharing_mode(oboe::SharingMode::Shared);
+    audio_stream_out->set_channel_count(oboe::ChannelCount::Stereo);
     bool low_latency_mode = get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true);
     if (low_latency_mode) {
-        audio_stream_out->set_performance_mode(AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+        audio_stream_out->set_performance_mode(oboe::PerformanceMode::LowLatency);
     }
     audio_stream_out->request_open();
     audio_stream_out->request_start();
-    LOGI(TAG, "AudioOutputStream created, LowLatency=%d", low_latency_mode);
 }
 
 static void close_audio_stream() {

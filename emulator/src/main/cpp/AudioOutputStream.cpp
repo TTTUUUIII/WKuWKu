@@ -7,14 +7,14 @@
 #include <utility>
 #include "Log.h"
 
-#define TAG "AudioOutputStream"
+#define TAG "Audio"
 
 AudioOutputStream::AudioOutputStream() {
     sample_rate = 48000;
-    channel_count = 2;
-    sharing_mode = AAUDIO_SHARING_MODE_SHARED;
-    performance_mode = AAUDIO_PERFORMANCE_MODE_POWER_SAVING;
-    stream_state = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    channel_count = oboe::ChannelCount::Stereo;
+    sharing_mode = oboe::SharingMode::Shared;
+    performance_mode = oboe::PerformanceMode::PowerSaving;
+    stream_state = oboe::StreamState::Uninitialized;
     stream = nullptr;
 }
 
@@ -24,15 +24,16 @@ AudioOutputStream::~AudioOutputStream() {
 
 int32_t AudioOutputStream::write(const void *data, int32_t frames, int64_t timeoutNanoseconds) {
     if (!stream) return frames;
-    if (stream_state == AAUDIO_STREAM_STATE_STARTED) {
-        aaudio_result_t result = AAudioStream_write(stream, data, frames, timeoutNanoseconds);
-        if (result >= 0) {
-            return result;
-        } else if (result == AAUDIO_ERROR_WOULD_BLOCK) {
-            stream_state = AAUDIO_STREAM_STATE_DISCONNECTED;
+    if (stream_state == oboe::StreamState::Started) {
+        oboe::ResultWithValue<int32_t> result = stream->write(data, frames, timeoutNanoseconds);
+        if (result.error() == oboe::Result::OK) {
+            return result.value();
+        } else if (result.error() == oboe::Result::ErrorDisconnected) {
+            stream_state = oboe::StreamState::Disconnected;
+            LOGW(TAG, "Audio stream disconnected.");
             goto reopen;
         } else {
-            LOGE(TAG, "Failed to write to output stream! error=%d.", result);
+            LOGE(TAG, "Audio stream write error=%d", result.error());
         }
     }
     return frames;
@@ -45,74 +46,87 @@ int32_t AudioOutputStream::write(const void *data, int32_t frames, int64_t timeo
 }
 
 void AudioOutputStream::request_open() {
-    AAudioStreamBuilder *builder;
-    aaudio_result_t result;
-    result = AAudio_createStreamBuilder(&builder);
-    if (result != AAUDIO_OK) {
+    oboe::AudioStreamBuilder builder;
+    oboe::Result result = builder.setPerformanceMode(performance_mode)
+            ->setUsage(oboe::Usage::Game)
+            ->setChannelCount(channel_count)
+            ->setSharingMode(sharing_mode)
+            ->setSampleRate(sample_rate)
+            ->setFormat(oboe::AudioFormat::I16)
+            ->setDirection(oboe::Direction::Output)
+            ->setChannelConversionAllowed(true)
+            ->setFormatConversionAllowed(true)
+            ->openStream(stream);
+    if (result != oboe::Result::OK) {
         LOGE(TAG, "Failed to create stream builder! error=%d.", result);
         return;
     }
-    AAudioStreamBuilder_setDeviceId(builder, AAUDIO_UNSPECIFIED);
-    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
-    AAudioStreamBuilder_setPerformanceMode(builder, performance_mode);
-    AAudioStreamBuilder_setSharingMode(builder, sharing_mode);
-    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
-    AAudioStreamBuilder_setChannelCount(builder, 2);
-    AAudioStreamBuilder_setSampleRate(builder, sample_rate);
-    AAudioStreamBuilder_setBufferCapacityInFrames(builder, 960);
-    result = AAudioStreamBuilder_openStream(builder, &stream);
-    if (result == AAUDIO_OK) {
-        stream_state = AAUDIO_STREAM_STATE_OPEN;
-    } else {
-        LOGE(TAG, "Failed to open output stream! error=%d.", result);
-    }
-    AAudioStreamBuilder_delete(builder);
+    int32_t frames_per_burst = stream->getFramesPerBurst();
+    stream->setBufferSizeInFrames(frames_per_burst);
+    stream_state = oboe::StreamState::Open;
+    LOGI(TAG, "Open audio output stream, frame_per_bust=%d.", frames_per_burst);
 }
 
 void AudioOutputStream::request_stop() {
-    if (stream_state == AAUDIO_STREAM_STATE_UNINITIALIZED
-        || stream_state == AAUDIO_STREAM_STATE_STOPPED) return;
-    AAudioStream_requestStop(stream);
-    aaudio_stream_state_t next_state = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    AAudioStream_waitForStateChange(stream, AAUDIO_STREAM_STATE_STOPPING, &next_state, 100 * kNanosPerMillisecond);
-    stream_state = AAUDIO_STREAM_STATE_STOPPED;
+    if (stream_state != oboe::StreamState::Started
+    && stream_state != oboe::StreamState::Paused) {
+        LOGE(TAG, "Unable stop stream, invalid state=%d", stream_state);
+        return;
+    }
+    if (stream_state == oboe::StreamState::Paused) {
+        request_start();
+    }
+    stream->requestStop();
+    oboe::StreamState input_state = oboe::StreamState::Stopping;
+    oboe::StreamState next_state = oboe::StreamState::Uninitialized;
+    stream->waitForStateChange(input_state, &next_state, 100 * kNanosPerMillisecond);
+    stream_state = oboe::StreamState::Stopped;
 }
 
 void AudioOutputStream::request_start() {
-    if (stream_state == AAUDIO_STREAM_STATE_UNINITIALIZED
-    || stream_state == AAUDIO_STREAM_STATE_STARTED) return;
-    AAudioStream_requestStart(stream);
-    aaudio_stream_state_t next_state = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    AAudioStream_waitForStateChange(stream, AAUDIO_STREAM_STATE_STARTING, &next_state, 100 * kNanosPerMillisecond);
-    stream_state = AAUDIO_STREAM_STATE_STARTED;
+    if (stream_state != oboe::StreamState::Open
+        && stream_state != oboe::StreamState::Paused
+           && stream_state != oboe::StreamState::Stopped) {
+        LOGE(TAG, "Unable start stream, invalid state=%d", stream_state);
+        return;
+    }
+    stream->requestStart();
+    oboe::StreamState input_state = oboe::StreamState::Starting;
+    oboe::StreamState next_state = oboe::StreamState::Uninitialized;
+    stream->waitForStateChange(input_state, &next_state, 100 * kNanosPerMillisecond);
+    stream_state = oboe::StreamState::Started;
 }
 
 void AudioOutputStream::request_close() {
-    if (stream_state == AAUDIO_STREAM_STATE_UNINITIALIZED) return;
-    if (stream_state != AAUDIO_STREAM_STATE_STOPPED) {
+    if (stream_state == oboe::StreamState::Uninitialized) return;
+    if (stream_state != oboe::StreamState::Disconnected) {
         request_stop();
     }
-    AAudioStream_close(stream);
-    stream_state = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    stream->close();
+    stream_state = oboe::StreamState::Uninitialized;
     stream = nullptr;
 }
 
 void AudioOutputStream::request_pause() {
-    if (stream_state == AAUDIO_STREAM_STATE_UNINITIALIZED
-        || stream_state == AAUDIO_STREAM_STATE_PAUSED) return;
-    AAudioStream_requestPause(stream);
-    stream_state = AAUDIO_STREAM_STATE_PAUSED;
+    if (stream_state != oboe::StreamState::Started) {
+        LOGE(TAG, "Unable pause stream, invalid state=%d", stream_state);
+        return;
+    }
+    oboe::StreamState input_state = oboe::StreamState::Pausing;
+    oboe::StreamState next_state = oboe::StreamState::Uninitialized;
+    stream->waitForStateChange(input_state, &next_state, 100 * kNanosPerMillisecond);
+    stream_state = oboe::StreamState::Paused;
 }
 
-void AudioOutputStream::set_sharing_mode(aaudio_sharing_mode_t _mode) {
+void AudioOutputStream::set_sharing_mode(oboe::SharingMode _mode) {
     sharing_mode = _mode;
 }
 
-void AudioOutputStream::set_performance_mode(aaudio_performance_mode_t _mode) {
+void AudioOutputStream::set_performance_mode(oboe::PerformanceMode _mode) {
     performance_mode = _mode;
 }
 
-void AudioOutputStream::set_channel_count(uint8_t _channel_count) {
+void AudioOutputStream::set_channel_count(oboe::ChannelCount _channel_count) {
     channel_count = _channel_count;
 }
 

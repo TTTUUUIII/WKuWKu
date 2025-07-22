@@ -30,4 +30,5 @@ android {
 
 dependencies {
     implementation(libs.games.frame.pacing)
+    implementation(libs.oboe)
 }
