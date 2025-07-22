@@ -1,6 +1,7 @@
 set(MY_DIR ${CMAKE_CURRENT_LIST_DIR})
 include_directories(${MY_DIR}/emulator/src/main/cpp/include)
 find_package(games-frame-pacing REQUIRED CONFIG)
+find_package(oboe REQUIRED CONFIG)
 set(COMMON_SOURCE
         ${MY_DIR}/emulator/src/main/cpp/GLRenderer.cpp
         ${MY_DIR}/emulator/src/main/cpp/GLUtils.cpp
@@ -22,7 +23,7 @@ target_link_libraries(${_name}
         android
         EGL
         GLESv3
-        aaudio
+        oboe::oboe
         games-frame-pacing::swappy_static
         log)
 endmacro()

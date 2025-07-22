@@ -18,12 +18,6 @@
             app:summary="@string/keep_screen_on_when_gaming"
             app:title="@string/keep_screen_on"
             app:key="app_keep_screen_on" />
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:defaultValue="true"
-            app:summary="@string/frame_pacing_summary"
-            app:title="@string/frame_pacing"
-            app:key="app_video_frame_pacing" />
     </PreferenceCategory>
 
     <PreferenceCategory

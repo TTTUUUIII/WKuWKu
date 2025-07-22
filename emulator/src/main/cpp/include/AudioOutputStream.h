@@ -7,24 +7,24 @@
 
 #include <functional>
 #include <memory>
-#include <aaudio/AAudio.h>
+#include <oboe/Oboe.h>
 
 #define kNanosPerMillisecond    (1000000L)
 
 class AudioOutputStream: public std::enable_shared_from_this<AudioOutputStream>{
 private:
-    AAudioStream *stream;
+    std::shared_ptr<oboe::AudioStream> stream;
     uint16_t sample_rate;
-    aaudio_performance_mode_t performance_mode;
-    aaudio_sharing_mode_t  sharing_mode;
-    aaudio_stream_state_t stream_state;
-    uint8_t channel_count;
+    oboe::PerformanceMode performance_mode;
+    oboe::SharingMode  sharing_mode;
+    oboe::StreamState stream_state;
+    oboe::ChannelCount channel_count;
 public:
     explicit AudioOutputStream();
     ~AudioOutputStream();
-    void set_sharing_mode(aaudio_sharing_mode_t);
-    void set_performance_mode(aaudio_performance_mode_t);
-    void set_channel_count(uint8_t _channel_count);
+    void set_sharing_mode(oboe::SharingMode);
+    void set_performance_mode(oboe::PerformanceMode);
+    void set_channel_count(oboe::ChannelCount);
     void set_sample_rate(uint16_t _sample_rate);
     void request_open();
     void request_start();
