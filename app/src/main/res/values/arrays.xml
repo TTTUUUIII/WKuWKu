@@ -43,4 +43,13 @@
         <item>hotkey_screenshot</item>
         <item>hotkey_reset</item>
     </string-array>
+
+    <string-array name="audio_apis_entries">
+        <item>AudioTrack</item>
+        <item>AAudio</item>
+    </string-array>
+    <string-array name="audio_apis_values">
+        <item>audio_track</item>
+        <item>aaudio</item>
+    </string-array>
 </resources>

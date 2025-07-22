@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <thread>
+#include <unistd.h>
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
 #include <swappy/swappyGL.h>
@@ -19,9 +20,9 @@ enum WindowState {
 };
 
 typedef struct {
-    std::function<void(EGLDisplay, EGLSurface)> on_create;
-    std::function<void()> on_draw;
-    std::function<void()> on_destroy;
+    std::function<void(EGLDisplay, EGLSurface)> on_surface_create;
+    std::function<void()> on_draw_frame;
+    std::function<void()> on_surface_destroy;
 } GLRendererInterface;
 
 
@@ -51,9 +52,9 @@ public:
 
     GLRendererInterface* get_renderer_interface();
 
-    bool start();
+    bool request_start();
 
-    void stop();
+    void request_stop();
 };
 
 

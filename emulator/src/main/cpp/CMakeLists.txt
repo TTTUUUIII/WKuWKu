@@ -38,6 +38,6 @@ target_link_libraries(
         retro
         EGL
         GLESv3
+        aaudio
         games-frame-pacing::swappy_static
-        oboe::oboe
 )

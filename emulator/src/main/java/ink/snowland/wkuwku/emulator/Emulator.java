@@ -229,7 +229,7 @@ public abstract class Emulator implements IEmulator {
                 )
                 .setBufferSizeInBytes(minBufferSize)
                 .setTransferMode(AudioTrack.MODE_STREAM);
-        boolean lowLatencyEnable = getProp(PROP_LOW_LATENCY_AUDIO_ENABLE, true) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
+        boolean lowLatencyEnable = getProp(PROP_LOW_LATENCY_AUDIO_ENABLE, true);
         if (lowLatencyEnable) {
             builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
         }
