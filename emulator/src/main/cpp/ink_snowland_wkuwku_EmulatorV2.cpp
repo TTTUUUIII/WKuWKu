@@ -572,7 +572,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     }
     if (no_error) {
         current_state = STATE_RUNNING;
-        if (get_prop(PROP_AAUDIO_ENABLED, false)) {
+        if (get_prop(PROP_OBOE_ENABLED, false)) {
             open_audio_stream();
         } else {
             audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
@@ -732,8 +732,9 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
     UNUSED(thiz);
     switch (prop) {
-        case PROP_AAUDIO_ENABLED:
+        case PROP_OBOE_ENABLED:
         case PROP_LOW_LATENCY_AUDIO_ENABLE:
+        case PROP_AUDIO_UNDERRUN_OPTIMIZATION:
             props[prop] = as_bool(env, val);
             break;
         default:;
@@ -955,9 +956,11 @@ static void open_audio_stream() {
     audio_stream_out->set_sample_rate(static_cast<uint16_t>(av_info.timing.sample_rate));
     audio_stream_out->set_sharing_mode(oboe::SharingMode::Shared);
     audio_stream_out->set_channel_count(oboe::ChannelCount::Stereo);
-    bool low_latency_mode = get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true);
-    if (low_latency_mode) {
+    if (get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true)) {
         audio_stream_out->set_performance_mode(oboe::PerformanceMode::LowLatency);
+    }
+    if (get_prop(PROP_AUDIO_UNDERRUN_OPTIMIZATION, true)) {
+        audio_stream_out->set_check_underrun(true);
     }
     audio_stream_out->request_open();
     audio_stream_out->request_start();

@@ -148,11 +148,13 @@
     <string name="low_latency_mode">低延迟模式</string>
     <string name="use_low_latency_mode">使用低延迟模式</string>
     <string name="hotkeys">快捷键</string>
-    <string name="bind_hotkeys">绑定快捷键</string>
+    <string name="custom_hotkeys">自定义快捷键</string>
     <string name="no_binding">未绑定</string>
     <string name="bind">绑定</string>
     <string name="waiting_keys">等待按键…</string>
     <string name="no_input_device">无输入设备！</string>
     <string name="frame_pacing">帧节奏</string>
     <string name="frame_pacing_summary">确保视频流畅度并节省电量</string>
+    <string name="underrun_optimization">欠载优化</string>
+    <string name="underrun_optimization_summary">主动检测音频欠载情况并做必要优化</string>
 </resources>

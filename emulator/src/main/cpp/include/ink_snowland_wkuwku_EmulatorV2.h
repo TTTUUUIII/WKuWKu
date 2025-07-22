@@ -33,8 +33,9 @@
 #define THREAD_PRIORITY_DISPLAY             (-4)
 #define THREAD_PRIORITY_AUDIO               (-16)
 
-#define PROP_AAUDIO_ENABLED                 102
-#define PROP_LOW_LATENCY_AUDIO_ENABLE       103
+#define PROP_OBOE_ENABLED                        102
+#define PROP_LOW_LATENCY_AUDIO_ENABLE            103
+#define PROP_AUDIO_UNDERRUN_OPTIMIZATION         104
 
 typedef struct {
     JavaVM *jvm;

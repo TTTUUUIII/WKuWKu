@@ -84,6 +84,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String VIDEO_RATIO = "app_video_ratio";
     private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
     private static final String AUDIO_API = "app_audio_api";
+    private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
     private static final String PLAYER_1_CONTROLLER = "player_1_controller";
@@ -222,10 +223,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             emulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
             emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
             emulator.setProp(PROP_LOW_LATENCY_AUDIO_ENABLE, SettingsManager.getBoolean(AUDIO_LOW_LATENCY_MODE, true));
-            if ("aaudio".equals(SettingsManager.getString(AUDIO_API, "audio_track"))) {
-                emulator.setProp(PROP_AAUDIO_ENABLE, true);
+            emulator.setProp(PROP_AUDIO_UNDERRUN_OPTIMIZATION, SettingsManager.getBoolean(AUDIO_UNDERRUN_OPTIMIZATION, true));
+            if ("oboe".equals(SettingsManager.getString(AUDIO_API, "oboe"))) {
+                emulator.setProp(PROP_OBOE_ENABLE, true);
             } else {
-                emulator.setProp(PROP_AAUDIO_ENABLE, false);
+                emulator.setProp(PROP_OBOE_ENABLE, false);
             }
             binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
