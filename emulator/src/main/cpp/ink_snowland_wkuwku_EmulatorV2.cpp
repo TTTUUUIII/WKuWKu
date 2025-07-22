@@ -97,7 +97,7 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != STATE_RUNNING) return;
-    if (hw_render_cb && renderer) {
+    if (hw_render_cb) {
         renderer->swap_buffers();
     } else if (data) {
         fill_frame_buffer(data, width, height, pitch);
@@ -250,9 +250,13 @@ static bool environment_cb(unsigned cmd, void *data) {
             break;
         case RETRO_ENVIRONMENT_SET_HW_RENDER:
             hw_render_cb = reinterpret_cast<struct retro_hw_render_callback *>(data);
-            hw_render_cb->get_proc_address = get_hw_proc_address;
-            hw_render_cb->get_current_framebuffer = get_hw_framebuffer;
-            supported = true;
+            if (hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES2
+            || hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES3) {
+                hw_render_cb->get_proc_address = get_hw_proc_address;
+                hw_render_cb->get_current_framebuffer = get_hw_framebuffer;
+                supported = true;
+                LOGI(TAG, "Hardware render attached, type=%d", hw_render_cb->context_type);
+            }
             break;
         case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE:
             struct retro_rumble_interface *interface;
@@ -517,7 +521,9 @@ em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject
     interface->on_surface_create = on_surface_create;
     interface->on_draw_frame = on_draw_frame;
     interface->on_surface_destroy = on_surface_destroy;
-    renderer->request_start();
+    if (current_state == STATE_RUNNING) {
+        renderer->request_start();
+    }
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
@@ -565,7 +571,6 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         munmap((void *) info.data, info.size);
     }
     if (no_error) {
-        alloc_frame_buffers();
         current_state = STATE_RUNNING;
         if (get_prop(PROP_AAUDIO_ENABLED, false)) {
             open_audio_stream();
@@ -573,10 +578,14 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
             audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
         }
         if (!hw_render_cb) {
+            alloc_frame_buffers();
             std::thread main_thread(entry_main_loop);
             main_thread.detach();
         } else {
-            LOGI(TAG, "Hardware callback is set, Will use hardware rendering.");
+            LOGI(TAG, "Hardware callback is set, Waiting hardware rendering.");
+        }
+        if (renderer) {
+            renderer->request_start();
         }
     } else {
         LOGE(TAG, "Unable load the game, file=%s", rom_path);
@@ -852,6 +861,19 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     ctx.jvm = nullptr;
 }
 
+static void entry_main_loop() {
+    set_thread_priority(THREAD_PRIORITY_AUDIO);
+    for (;;) {
+        retro_run();
+        std::shared_ptr<message_t> msg = obtain_message();
+        if (handle_message(msg)) continue;
+        if (msg->what == MSG_KILL) {
+            msg->promise->set_value({NO_ERROR, nullptr});
+            break;
+        }
+    }
+}
+
 static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     UNUSED(dyp);
     UNUSED(sr);
@@ -863,23 +885,14 @@ static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     }
 }
 
-static void entry_main_loop() {
-    set_thread_priority(THREAD_PRIORITY_AUDIO);
-    for (;;) {
-        retro_run();
-        std::shared_ptr<message_t> msg = obtain_message();
-        if (!msg || handle_message(msg)) continue;
-        if (msg->what == MSG_KILL) {
-            msg->promise->set_value({NO_ERROR, nullptr});
-            break;
-        }
-    }
-}
-
 static void on_draw_frame() {
     if (current_state == RUNNING) {
         if (hw_render_cb) {
             retro_run();
+            std::shared_ptr<message_t> msg = obtain_message();
+            if (msg) {
+                handle_message(msg);
+            }
             return;
         } else {
             int index = draw_index.load();
@@ -967,6 +980,7 @@ static void send_empty_message(int what) {
 }
 
 static bool handle_message(const std::shared_ptr<message_t>& msg) {
+    if (!msg) return true;
     size_t size;
     bool handled = true;
     bool no_error = false;

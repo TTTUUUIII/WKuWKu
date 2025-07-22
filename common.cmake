@@ -22,6 +22,7 @@ target_link_libraries(${_name}
         android
         EGL
         GLESv3
+        aaudio
         games-frame-pacing::swappy_static
         log)
 endmacro()
