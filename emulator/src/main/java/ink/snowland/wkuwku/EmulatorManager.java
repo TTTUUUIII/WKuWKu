@@ -2,8 +2,6 @@ package ink.snowland.wkuwku;
 
 
 import android.content.Context;
-import android.media.AudioDeviceInfo;
-import android.media.AudioManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -19,23 +17,19 @@ import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.interfaces.IEmulator;
+import ink.snowland.wkuwku.util.Logger;
 
 public final class EmulatorManager {
     private EmulatorManager() {
         throw new RuntimeException();
     }
-    private static final String TAG = "EmulatorManager";
+    private static final Logger sLogger = new Logger("Manager", "EmulatorManager");
     private static final List<EmSystem> mAllSupportedSystems = new ArrayList<>();
 
     private static final HashMap<String, IEmulator> EMULATORS = new HashMap<>();
 
     public static void initialize(@NonNull Context context) {
         registerEmulator(new Fceumm(context));
-        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        AudioDeviceInfo[] devices = am.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-        for (AudioDeviceInfo device : devices) {
-            System.out.println(device.getId() + ", " + device.getType());
-        }
     }
 
     public static IEmulator getDefaultEmulator(@NonNull String systemTag) {
@@ -91,7 +85,7 @@ public final class EmulatorManager {
         EmSystemInfo info = emulator.getSystemInfo();
         mAllSupportedSystems.addAll(emulator.getSupportedSystems().stream().filter(it -> !mAllSupportedSystems.contains(it))
                 .collect(Collectors.toList()));
-        Log.i(TAG, "Registered Emulator: \n" +
+        sLogger.i("Registered: \n" +
                 "\tName: " + info.name + "\n" +
                 "\tVersion: " + info.version + "\n" +
                 "\tValidExtensions: " + info.validExtensions);
@@ -105,5 +99,6 @@ public final class EmulatorManager {
             if (findEmulatorBySystemTag(system.tag) == null)
                 mAllSupportedSystems.remove(system);
         }
+        sLogger.i("Unregistered %s.", emulator.getProp(IEmulator.PROP_ALIAS));
     }
 }
