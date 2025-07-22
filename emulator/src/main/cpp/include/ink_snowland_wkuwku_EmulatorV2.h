@@ -4,7 +4,6 @@
 
 #ifndef WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
 #define WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
-#include <iostream>
 #include <utility>
 #include <vector>
 #include <libretro/libretro.h>
@@ -13,6 +12,7 @@
 #include <string>
 #include <future>
 #include <any>
+#include "Buffer.h"
 #include "Log.h"
 
 #define UNUSED(_p0)  (void)(_p0)
@@ -25,15 +25,16 @@
 #define STATE_RUNNING                       2
 #define STATE_PAUSED                        3
 
+#define MSG_KILL                            (-1)
 #define MSG_SET_SERIALIZE_DATA              1
 #define MSG_GET_SERIALIZE_DATA              2
 #define MSG_RESET_EMULATOR                  3
 
+#define THREAD_PRIORITY_DISPLAY             (-4)
 #define THREAD_PRIORITY_AUDIO               (-16)
 
-#define PROP_NATIVE_AUDIO_ENABLED           102
+#define PROP_AAUDIO_ENABLED                 102
 #define PROP_LOW_LATENCY_AUDIO_ENABLE       103
-#define PROP_VIDEO_FRAME_PACING_ENABLE      104
 
 typedef struct {
     JavaVM *jvm;
@@ -54,26 +55,6 @@ typedef struct {
     jfieldID variable_entry_value_field;
 } em_context_t;
 
-struct buffer_t {
-    size_t size;
-    void* data;
-    explicit buffer_t(size_t _s): size(_s) {
-        if (size > 0) {
-            data = malloc(size);
-        }
-    }
-    virtual ~buffer_t() {
-        free(data);
-    }
-};
-
-typedef struct {
-    unsigned width;
-    unsigned height;
-    unsigned rotation;
-    retro_pixel_format pixel_format;
-} video_state_t;
-
 struct result_t {
     int state;
     std::any data;
@@ -86,21 +67,23 @@ struct message_t {
     explicit message_t(int _what, std::shared_ptr<std::promise<result_t>> _promise, std::any _usr): what(_what), promise(std::move(_promise)), usr(std::move(_usr)) {}
 };
 
-static void on_create(EGLDisplay, EGLSurface);
-static void on_draw();
-static void on_destroy();
-static void alloc_framebuffer(unsigned width, unsigned height);
-static void fill_framebuffer(const void *, unsigned, unsigned, size_t);
+static void on_surface_create(EGLDisplay, EGLSurface);
+static void on_draw_frame();
+static void on_surface_destroy();
+static void alloc_frame_buffers();
+static void free_frame_buffers();
+static void fill_frame_buffer(const void *, unsigned, unsigned, size_t);
 static void notify_video_size_changed();
+static void entry_main_loop();
 static bool attach_env(JNIEnv**);
 static void detach_env();
 static retro_proc_address_t get_hw_proc_address(const char* sym);
 static uintptr_t get_hw_framebuffer();
-static void handle_message();
 static void open_audio_stream();
 static void close_audio_stream();
 static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any& usr);
 static void send_empty_message(int what);
+static bool handle_message(const std::shared_ptr<message_t>&);
 static std::shared_ptr<message_t> obtain_message();
 static void clear_message();
 static void set_thread_priority(int);

@@ -5,37 +5,33 @@
 #ifndef WKUWKU_AUDIOOUTPUTSTREAM_H
 #define WKUWKU_AUDIOOUTPUTSTREAM_H
 
-#include <oboe/Oboe.h>
+#include <functional>
+#include <memory>
+#include <aaudio/AAudio.h>
 
 #define kNanosPerMillisecond    (1000000L)
 
 class AudioOutputStream: public std::enable_shared_from_this<AudioOutputStream>{
 private:
-    std::shared_ptr<oboe::AudioStream> stream;
+    AAudioStream *stream;
     uint16_t sample_rate;
-    oboe::PerformanceMode performance_mode;
-    oboe::SharingMode sharing_mode;
+    aaudio_performance_mode_t performance_mode;
+    aaudio_sharing_mode_t  sharing_mode;
+    aaudio_stream_state_t stream_state;
+    uint8_t channel_count;
 public:
-    explicit AudioOutputStream(uint16_t _sr);
-    explicit AudioOutputStream(uint16_t _sr, oboe::PerformanceMode _mode);
+    explicit AudioOutputStream();
     ~AudioOutputStream();
-    void set_sharing_mode(oboe::SharingMode _mode);
-    void set_performance_mode(oboe::PerformanceMode _mode);
+    void set_sharing_mode(aaudio_sharing_mode_t);
+    void set_performance_mode(aaudio_performance_mode_t);
+    void set_channel_count(uint8_t _channel_count);
+    void set_sample_rate(uint16_t _sample_rate);
     void request_open();
     void request_start();
     void request_pause();
     int32_t write(const void* /* buffer */, int32_t /* numFrames */, int64_t /* timeoutNanoseconds */ );
     void request_stop();
     void request_close();
-};
-
-class AudioOutputStreamErrorCallback: public oboe::AudioStreamErrorCallback {
-private:
-    std::shared_ptr<AudioOutputStream> ostream;
-public:
-    explicit AudioOutputStreamErrorCallback(std::shared_ptr<AudioOutputStream> _ostream);
-    ~AudioOutputStreamErrorCallback() override;
-    bool onError(oboe::AudioStream *, oboe::Result) override;
 };
 
 #endif //WKUWKU_AUDIOOUTPUTSTREAM_H

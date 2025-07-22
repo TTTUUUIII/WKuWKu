@@ -1,7 +1,6 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <fstream>
 #include <sys/resource.h>
 #include <unordered_map>
@@ -25,7 +24,8 @@ static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
-static std::shared_ptr<buffer_t> framebuffer;
+static buffer_t* framebuffers[2];
+static std::atomic<int> draw_index = 0;
 static uint16_t video_rotation = 0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
@@ -97,16 +97,11 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != STATE_RUNNING) return;
-    if (!hw_render_cb && data) {
-        alloc_framebuffer(width, height);
-        fill_framebuffer(data, width, height, pitch);
-        if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            texture(GL_RGB, (int) width, (int) height, video_rotation, framebuffer->data);
-        } else {
-            texture(GL_RGBA, (int) width, (int) height, video_rotation, framebuffer->data);
-        }
+    if (hw_render_cb && renderer) {
+        renderer->swap_buffers();
+    } else if (data) {
+        fill_frame_buffer(data, width, height, pitch);
     }
-    renderer->swap_buffers();
     if (video_rotation == 1 || video_rotation == 3) {
         unsigned origin_width;
         origin_width = width;
@@ -120,34 +115,48 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
     }
 }
 
-static void fill_framebuffer(const void *data, unsigned width, unsigned height, size_t pitch) {
-    std::lock_guard<std::mutex> lock(mtx);
-    size_t bytes_per_pixel = 2;
+static void alloc_frame_buffers() {
+    retro_system_av_info av_info{};
+    uint16_t bytes_per_pixels;
     if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        bytes_per_pixel = 4;
-        uint8_t *fb;
-        fb = (uint8_t *) data;
+        bytes_per_pixels = 4;
+    } else {
+        bytes_per_pixels = 2;
+    }
+    retro_get_system_av_info(&av_info);
+    framebuffers[0] = new buffer_t(av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
+    framebuffers[1] = new buffer_t(av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
+    LOGD(TAG, "Alloc frame buffers %d bytes * 2.", framebuffers[0]->capacity);
+}
+
+static void free_frame_buffers() {
+    delete framebuffers[0];
+    delete framebuffers[1];
+    LOGD(TAG, "Free frame buffers.");
+}
+
+static void fill_frame_buffer(const void *data, unsigned width, unsigned height, size_t pitch) {
+    uint8_t bytes_per_pixel = 2;
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        auto *fb = (uint8_t *) data;
         for (int i = 0; i < height * pitch; i += 4) {
             std::swap(fb[i], fb[i + 2]);
             fb[i + 3] = 0xFF;
         }
-    }
-    for (int i = 0; i < height; ++i) {
-        memcpy((void *) (static_cast<const char *>(framebuffer->data) +
-                         i * width * bytes_per_pixel), static_cast<const char *>(data) + i * pitch,
-               width * bytes_per_pixel);
-    }
-}
-
-static void alloc_framebuffer(unsigned width, unsigned height) {
-    size_t bytes_per_pixel = 2;
-    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
     }
-    size_t size = width * height * bytes_per_pixel;
-    if (!framebuffer || framebuffer->size != size) {
-        framebuffer = std::make_shared<buffer_t>(size);
+
+    int write_index = 1 - draw_index.load();
+    if (width * bytes_per_pixel == pitch) {
+        memcpy(framebuffers[write_index]->data, data, height * pitch);
+    } else {
+        for (int i = 0; i < height; ++i) {
+            memcpy((void *) (static_cast<const char *>(framebuffers[write_index]->data) +
+                             i * width * bytes_per_pixel), static_cast<const char *>(data) + i * pitch,
+                   width * bytes_per_pixel);
+        }
     }
+    draw_index.store(write_index);
 }
 
 static void notify_video_size_changed() {
@@ -166,7 +175,7 @@ static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun
 static size_t audio_cb(const int16_t *data, size_t frames) {
     if (data && current_state == STATE_RUNNING) {
         if (audio_stream_out) {
-            return audio_stream_out->write(data, (int) frames, 0 /*don't wait*/);
+            return audio_stream_out->write(data, (int) frames, 2000 * kNanosPerMillisecond);
         } else {
             JNIEnv *env;
             if(attach_env(&env)) {
@@ -488,10 +497,7 @@ static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     UNUSED(thiz);
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
-    if (get_prop(PROP_VIDEO_FRAME_PACING_ENABLE, true)
-    && activity != nullptr
-    && !SwappyGL_isEnabled()
-    ) {
+    if (activity != nullptr && !SwappyGL_isEnabled()) {
         SwappyGL_init(env, activity);
         int count = SwappyGL_getSupportedRefreshPeriodsNS(nullptr, 0);
         uint64_t all_swap_ns[count];
@@ -508,12 +514,10 @@ em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject
     }
     renderer = std::make_unique<GLRenderer>(window);
     GLRendererInterface *interface = renderer->get_renderer_interface();
-    interface->on_create = on_create;
-    interface->on_draw = on_draw;
-    interface->on_destroy = on_destroy;
-    if (current_state == STATE_RUNNING) {
-        renderer->start();
-    }
+    interface->on_surface_create = on_surface_create;
+    interface->on_draw_frame = on_draw_frame;
+    interface->on_surface_destroy = on_surface_destroy;
+    renderer->request_start();
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
@@ -525,7 +529,7 @@ static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
-    renderer->stop();
+    renderer->request_stop();
 }
 
 static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
@@ -561,14 +565,18 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         munmap((void *) info.data, info.size);
     }
     if (no_error) {
+        alloc_frame_buffers();
         current_state = STATE_RUNNING;
-        if (get_prop(PROP_NATIVE_AUDIO_ENABLED, false)) {
+        if (get_prop(PROP_AAUDIO_ENABLED, false)) {
             open_audio_stream();
         } else {
             audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
         }
-        if (renderer) {
-            renderer->start();
+        if (!hw_render_cb) {
+            std::thread main_thread(entry_main_loop);
+            main_thread.detach();
+        } else {
+            LOGI(TAG, "Hardware callback is set, Will use hardware rendering.");
         }
     } else {
         LOGE(TAG, "Unable load the game, file=%s", rom_path);
@@ -609,10 +617,19 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
     current_state = STATE_IDLE;
+    if (!hw_render_cb) {
+        LOGI(TAG, "Waiting main loop to exit.");
+        send_message(MSG_KILL, nullptr)->get_future().get();
+    }
+    clear_message();
     retro_unload_game();
     close_audio_stream();
     video_rotation = 0;
-    clear_message();
+    free_frame_buffers();
+    if (audio_buffer) {
+        env->DeleteGlobalRef(audio_buffer);
+        audio_buffer = nullptr;
+    }
 }
 
 static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
@@ -659,8 +676,8 @@ static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
     const result_t &result = promise->get_future().get();
     if (result.state == NO_ERROR) {
         auto buffer = std::any_cast<std::shared_ptr<buffer_t>>(result.data);
-        jbyteArray data = env->NewByteArray((jint) buffer->size);
-        env->SetByteArrayRegion(data, 0, (jint) buffer->size,
+        jbyteArray data = env->NewByteArray((jint) buffer->capacity);
+        env->SetByteArrayRegion(data, 0, (jint) buffer->capacity,
                                 reinterpret_cast<jbyte *>(buffer->data));
         return data;
     } else {
@@ -674,7 +691,7 @@ static void em_set_serialize_data(JNIEnv *env, jobject thiz, jbyteArray jdata) {
     const size_t size = env->GetArrayLength(jdata);
     jbyte *data = env->GetByteArrayElements(jdata, JNI_FALSE);
     std::shared_ptr<buffer_t> buffer = std::make_shared<buffer_t>(size);
-    memcpy(buffer->data, data, buffer->size);
+    memcpy(buffer->data, data, buffer->capacity);
     env->ReleaseByteArrayElements(jdata, data, JNI_ABORT);
     send_message(MSG_SET_SERIALIZE_DATA, buffer);
 }
@@ -706,9 +723,8 @@ static void em_set_memory_data(JNIEnv *env, jobject thiz, jint id, jbyteArray me
 static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
     UNUSED(thiz);
     switch (prop) {
-        case PROP_NATIVE_AUDIO_ENABLED:
+        case PROP_AAUDIO_ENABLED:
         case PROP_LOW_LATENCY_AUDIO_ENABLE:
-        case PROP_VIDEO_FRAME_PACING_ENABLE:
             props[prop] = as_bool(env, val);
             break;
         default:;
@@ -718,29 +734,26 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     UNUSED(thiz);
     bool no_error = false;
-    std::lock_guard<std::mutex> lock(mtx);
     int width = video_width, height = video_height;
     if (video_rotation == 1 || video_rotation == 3) {
         width = video_height;
         height = video_width;
     }
-    if (framebuffer) {
-        const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
-        if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            no_error = stbi_write_png(file_path, width, height, 4, framebuffer->data,
-                                      width * 4);
-        } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            unsigned char data[width * height * 3];
-            auto *origin = reinterpret_cast<uint16_t *>(framebuffer->data);
-            for (int i = 0; i < width * height; ++i) {
-                uint16_t pixel = origin[i];
-                data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
-                data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
-                data[i * 3 + 2] = (pixel & 0x1F) << 3;
-            }
-            no_error = stbi_write_png(file_path, width, height, 3, data,
-                                      width * 3);
+    const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
+    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        no_error = stbi_write_png(file_path, width, height, 4, framebuffers[draw_index]->data,
+                                  width * 4);
+    } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+        unsigned char data[width * height * 3];
+        auto *origin = reinterpret_cast<uint16_t *>(framebuffers[draw_index]->data);
+        for (int i = 0; i < width * height; ++i) {
+            uint16_t pixel = origin[i];
+            data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
+            data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
+            data[i * 3 + 2] = (pixel & 0x1F) << 3;
         }
+        no_error = stbi_write_png(file_path, width, height, 3, data,
+                                  width * 3);
     }
     return no_error;
 }
@@ -832,7 +845,6 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
         env->DeleteGlobalRef(ctx.emulator_obj);
         ctx.emulator_obj = nullptr;
     }
-    framebuffer = nullptr;
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
     if (SwappyGL_isEnabled())
@@ -840,10 +852,10 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     ctx.jvm = nullptr;
 }
 
-static void on_create(EGLDisplay dyp, EGLSurface sr) {
+static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     UNUSED(dyp);
     UNUSED(sr);
-    set_thread_priority(THREAD_PRIORITY_AUDIO);
+    set_thread_priority(THREAD_PRIORITY_DISPLAY);
     if (hw_render_cb) {
         hw_render_cb->context_reset();
     } else {
@@ -851,14 +863,41 @@ static void on_create(EGLDisplay dyp, EGLSurface sr) {
     }
 }
 
-static void on_draw() {
-    if (current_state == RUNNING) {
+static void entry_main_loop() {
+    set_thread_priority(THREAD_PRIORITY_AUDIO);
+    for (;;) {
         retro_run();
-        handle_message();
+        std::shared_ptr<message_t> msg = obtain_message();
+        if (!msg || handle_message(msg)) continue;
+        if (msg->what == MSG_KILL) {
+            msg->promise->set_value({NO_ERROR, nullptr});
+            break;
+        }
     }
 }
 
-static void on_destroy() {
+static void on_draw_frame() {
+    if (current_state == RUNNING) {
+        if (hw_render_cb) {
+            retro_run();
+            return;
+        } else {
+            int index = draw_index.load();
+            if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+                texture(GL_RGB, (int) video_width, (int) video_height, video_rotation, framebuffers[index]->data);
+            } else {
+                texture(GL_RGBA, (int) video_width, (int) video_height, video_rotation, framebuffers[index]->data);
+            }
+            renderer->swap_buffers();
+            return;
+        }
+    }
+
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+static void on_surface_destroy() {
     if (hw_render_cb != nullptr) {
         hw_render_cb->context_destroy();
     } else {
@@ -874,40 +913,6 @@ static uintptr_t get_hw_framebuffer() {
     GLint fb;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fb);
     return fb;
-}
-
-static void handle_message() {
-    std::shared_ptr<message_t> msg = obtain_message();
-    if (!msg) return;
-    size_t size;
-    bool no_error = false;
-    std::shared_ptr<buffer_t> buffer;
-    switch (msg->what) {
-        case MSG_SET_SERIALIZE_DATA:
-            size = retro_serialize_size();
-            buffer = std::any_cast<std::shared_ptr<buffer_t>>(msg->usr);
-            if (size > 0 && size == buffer->size) {
-                retro_unserialize(buffer->data, size);
-            }
-            break;
-        case MSG_GET_SERIALIZE_DATA:
-            size = retro_serialize_size();
-            if (size > 0) {
-                buffer = std::make_shared<buffer_t>(size);
-                no_error = retro_serialize(buffer->data, buffer->size);
-                if (no_error) {
-                    msg->promise->set_value({NO_ERROR, buffer});
-                }
-            }
-            if (!no_error) {
-                msg->promise->set_value({ERROR, nullptr});
-            }
-            break;
-        case MSG_RESET_EMULATOR:
-            retro_reset();
-            break;
-        default:;
-    }
 }
 
 static bool attach_env(JNIEnv **env) {
@@ -933,14 +938,17 @@ static void detach_env() {
 static void open_audio_stream() {
     struct retro_system_av_info av_info{};
     retro_get_system_av_info(&av_info);
-    if (get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true)) {
-        audio_stream_out = std::make_shared<AudioOutputStream>(av_info.timing.sample_rate);
-    } else {
-        audio_stream_out = std::make_shared<AudioOutputStream>(av_info.timing.sample_rate, oboe::PerformanceMode::None);
+    audio_stream_out = std::make_shared<AudioOutputStream>();
+    audio_stream_out->set_sample_rate(static_cast<uint16_t>(av_info.timing.sample_rate));
+    audio_stream_out->set_sharing_mode(AAUDIO_SHARING_MODE_EXCLUSIVE);
+    audio_stream_out->set_channel_count(2);
+    bool low_latency_mode = get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true);
+    if (low_latency_mode) {
+        audio_stream_out->set_performance_mode(AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
     }
     audio_stream_out->request_open();
     audio_stream_out->request_start();
-    LOGI(TAG, "AudioOutputStream created, lowLatency=%d", get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true));
+    LOGI(TAG, "AudioOutputStream created, LowLatency=%d", low_latency_mode);
 }
 
 static void close_audio_stream() {
@@ -956,6 +964,41 @@ static std::shared_ptr<std::promise<result_t>> send_message(int what, const std:
 static void send_empty_message(int what) {
     std::lock_guard<std::mutex> lock(mtx);
     message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
+}
+
+static bool handle_message(const std::shared_ptr<message_t>& msg) {
+    size_t size;
+    bool handled = true;
+    bool no_error = false;
+    std::shared_ptr<buffer_t> buffer;
+    switch (msg->what) {
+        case MSG_SET_SERIALIZE_DATA:
+            size = retro_serialize_size();
+            buffer = std::any_cast<std::shared_ptr<buffer_t>>(msg->usr);
+            if (size > 0 && size == buffer->capacity) {
+                retro_unserialize(buffer->data, size);
+            }
+            break;
+        case MSG_GET_SERIALIZE_DATA:
+            size = retro_serialize_size();
+            if (size > 0) {
+                buffer = std::make_shared<buffer_t>(size);
+                no_error = retro_serialize(buffer->data, buffer->capacity);
+                if (no_error) {
+                    msg->promise->set_value({NO_ERROR, buffer});
+                }
+            }
+            if (!no_error) {
+                msg->promise->set_value({ERROR, nullptr});
+            }
+            break;
+        case MSG_RESET_EMULATOR:
+            retro_reset();
+            break;
+        default:
+            handled = false;
+    }
+    return handled;
 }
 
 static std::shared_ptr<message_t> obtain_message() {

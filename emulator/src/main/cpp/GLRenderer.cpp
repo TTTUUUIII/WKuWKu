@@ -48,16 +48,16 @@ GLRendererInterface* GLRenderer::get_renderer_interface() {
     return &interface;
 }
 
-bool GLRenderer::start() {
+bool GLRenderer::request_start() {
     bool no_error = true;
     if (state == PREPARED) {
         gl_thread = std::thread([this]() {
             gl_thread_running = true;
-            LOGI(TAG, "GLThread started.");
+            LOGI(TAG, "GLThread started, tid=%d", gettid());
             uint16_t current_vw = vw, current_vh = vh;
             eglMakeCurrent(display, surface, surface, context);
-            if (interface.on_create) {
-                interface.on_create(display, surface);
+            if (interface.on_surface_create) {
+                interface.on_surface_create(display, surface);
             }
             while (state == RUNNING) {
                 if (current_vw != vw || current_vh != vh) {
@@ -65,12 +65,12 @@ bool GLRenderer::start() {
                     current_vw = vw;
                     current_vh = vh;
                 }
-                if (state == RUNNING && interface.on_draw) {
-                    interface.on_draw();
+                if (state == RUNNING && interface.on_draw_frame) {
+                    interface.on_draw_frame();
                 }
             }
-            if (interface.on_destroy) {
-                interface.on_destroy();
+            if (interface.on_surface_destroy) {
+                interface.on_surface_destroy();
             }
             eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
             std::lock_guard<std::mutex> lock(mtx);
@@ -86,7 +86,7 @@ bool GLRenderer::start() {
     return no_error;
 }
 
-void GLRenderer::stop() {
+void GLRenderer::request_stop() {
     if (state == RUNNING) {
         state = PREPARED;
         std::unique_lock<std::mutex> lock(mtx);

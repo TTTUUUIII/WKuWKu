@@ -29,12 +29,14 @@
     <PreferenceCategory
         app:iconSpaceReserved="false"
         app:title="@string/audio_options">
-        <SwitchPreferenceCompat
+        <ListPreference
             app:iconSpaceReserved="false"
-            android:defaultValue="false"
-            app:key="app_native_audio"
-            app:title="@string/native_audio_player"
-            android:summary="@string/play_audio_directly_using_native_player" />
+            android:defaultValue="audio_track"
+            app:key="app_audio_api"
+            app:title="@string/audio_api"
+            app:entries="@array/audio_apis_entries"
+            app:entryValues="@array/audio_apis_values"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="true"
