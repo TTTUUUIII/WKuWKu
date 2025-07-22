@@ -23,5 +23,386 @@
         <item>rvz</item>
     </content-extensions>
     <options>
+        <option
+            defaultValue="disabled"
+            key="dolphin_enable_rumble"
+            title="Rumble">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Bottom"
+            key="dolphin_sensor_bar_position"
+            title="Sensor Bar Position">
+            <allow-values>
+                <value>Bottom</value>
+                <value>Top</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="dolphin_wiimote_continuous_scanning"
+            title="Wiimote Continuous Scanning">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="dolphin_alt_gc_ports_on_wii"
+            title="Use ports 5-8 for GameCube controllers in Wii mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="48000"
+            key="dolphin_mixer_rate"
+            title="Audio Mixer Rate">
+            <allow-values>
+                <value>48000</value>
+                <value>32000</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="dolphin_dsp_jit"
+            title="DSP Enable JIT">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="dolphin_dsp_hle"
+            title="DSP HLE">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="English"
+            key="dolphin_language"
+            title="Language">
+            <allow-values>
+                <value>English</value>
+                <value>Japanese</value>
+                <value>German</value>
+                <value>French</value>
+                <value>Spanish</value>
+                <value>Italian</value>
+                <value>Dutch</value>
+                <value>Simplified Chinese</value>
+                <value>Traditional Chinese</value>
+                <value>Korean</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="dolphin_cheats_enabled"
+            title="Internal Cheats Enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="dolphin_osd_enabled"
+            title="OSD Enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Info"
+            key="dolphin_log_level"
+            title="Use autofire on SPACE">
+            <allow-values>
+                <value>Info</value>
+                <value>Debug</value>
+                <value>Notice</value>
+                <value>Error</value>
+                <value>Warning</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Hardware"
+            key="dolphin_renderer"
+            title="Renderer">
+            <allow-values>
+                <value>Hardware</value>
+                <value>Software</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="x1 (640 x 528)"
+            key="dolphin_efb_scale"
+            title="Internal Resolution">
+            <allow-values>
+                <value>x1 (640 x 528)</value>
+                <value>x2 (1280 x 1056)</value>
+                <value>x3 (1920 x 1584)</value>
+                <value>x4 (2560 x 2112)</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="dolphin_widescreen"
+            title="Widescreen (Wii)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="dolphin_widescreen_hack"
+            title="MSX Video Memory">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="sync"
+            key="dolphin_shader_compilation_mode"
+            title="Shader Compilation Mode">
+            <allow-values>
+                <value>sync</value>
+                <value>a-sync Skip Rendering</value>
+                <value>sync UberShaders</value>
+                <value>a-sync UberShaders</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="dolphin_wait_for_shaders"
+            title="Wait for Shaders before Starting">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="dolphin_progressive_scan"
+            title="Progressive Scan">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_pal60"
+            defaultValue="enabled"
+            title="PAL60">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_anti_aliasing"
+            defaultValue="None"
+            title="Anti-Aliasing">
+            <allow-values>
+                <value>None</value>
+                <value>2x MSAA</value>
+                <value>4x MSAA</value>
+                <value>8x MSAA</value>
+                <value>2x SSAA</value>
+                <value>4x SSAA</value>
+                <value>8x SSAA</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_max_anisotropy"
+            defaultValue="1x"
+            title="Max Anisotropy">
+            <allow-values>
+                <value>1x</value>
+                <value>2x</value>
+                <value>4x</value>
+                <value>8x</value>
+                <value>16x</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_skip_dupe_frames"
+            defaultValue="enabled"
+            title="Skip Presenting Duplicate Frames">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_immediate_xfb"
+            defaultValue="disabled"
+            title="Immediate XFB">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_efb_scaled_copy"
+            defaultValue="disabled"
+            title="Scaled EFB Copy">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_force_texture_filtering"
+            defaultValue="disabled"
+            title="Force Texture Filtering">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_efb_to_texture"
+            defaultValue="enabled"
+            title="Store EFB Copies on GPU">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_texture_cache_accuracy"
+            defaultValue="Fast"
+            title="Texture Cache Accuracy">
+            <allow-values>
+                <value>Fast</value>
+                <value>Middle</value>
+                <value>Safe</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_gpu_texture_decoding"
+            defaultValue="disabled"
+            title="GPU Texture Decoding">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_fast_depth_calculation"
+            defaultValue="enabled"
+            title="Fast Depth Calculation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_bbox_enabled"
+            defaultValue="disabled"
+            title="Bounding Box Emulation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_efb_to_vram"
+            defaultValue="disabled"
+            title="Disable EFB to VRAM">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_load_custom_textures"
+            defaultValue="disabled"
+            title="Load Custom Textures">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_cache_custom_textures"
+            defaultValue="disabled"
+            title="Prefetch Custom Textures">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_cpu_core"
+            defaultValue="JITARM64"
+            title="CPU Core">
+            <allow-values>
+                <value>JIT64</value>
+                <value>JITARM64</value>
+                <value>Interpreter</value>
+                <value>Cached Interpreter</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_cpu_clock_rate"
+            defaultValue="100%"
+            title="CPU Clock Rate">
+            <allow-values>
+                <value>100%</value>
+                <value>150%</value>
+                <value>200%</value>
+                <value>250%</value>
+                <value>300%</value>
+                <value>5%</value>
+                <value>10%</value>
+                <value>20%</value>
+                <value>30%</value>
+                <value>40%</value>
+                <value>50%</value>
+                <value>60%</value>
+                <value>70%</value>
+                <value>80%</value>
+                <value>90%</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_emulation_speed"
+            defaultValue="unlimited"
+            title="Emulation Speed">
+            <allow-values>
+                <value>unlimited</value>
+                <value>100%</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_fastmem"
+            defaultValue="enabled"
+            title="Fastmem">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="dolphin_fast_disc_speed"
+            defaultValue="disabled"
+            title="Speed Up Disc Transfer Rate">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
     </options>
 </em-config>

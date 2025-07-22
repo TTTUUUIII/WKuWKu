@@ -26,5 +26,4 @@ project("dolphin")
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
 include(../../../../common.cmake)
-
-add_emulator(${CMAKE_PROJECT_NAME} "ink/snowland/wkuwku/plug/fbneo/FBNeo")
+add_emulator(${CMAKE_PROJECT_NAME} "ink/snowland/wkuku/plug/dolphin/Dolphin")

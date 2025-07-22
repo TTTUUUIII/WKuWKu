@@ -6,7 +6,7 @@
         android:label="Dolphin">
         <meta-data
             android:name="plugMainClass"
-            android:value="ink.snowland.wkuwku.plug.dolphin.Main" />
+            android:value="ink.snowland.wkuku.plug.dolphin.Main" />
         <meta-data
             android:name="plugAuthor"
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
