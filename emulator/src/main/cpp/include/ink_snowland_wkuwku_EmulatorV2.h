@@ -37,6 +37,13 @@
 #define PROP_LOW_LATENCY_AUDIO_ENABLE            103
 #define PROP_AUDIO_UNDERRUN_OPTIMIZATION         104
 
+enum orientation_t {
+    ORIENTATION_0,
+    ORIENTATION_90,
+    ORIENTATION_180,
+    ORIENTATION_270
+};
+
 typedef struct {
     JavaVM *jvm;
     jclass input_descriptor_clazz;
