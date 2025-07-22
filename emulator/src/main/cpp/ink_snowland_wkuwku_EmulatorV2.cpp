@@ -26,7 +26,7 @@ static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
 static buffer_t* framebuffers[2];
 static std::atomic<int> draw_index = 0;
-static uint16_t video_rotation = 0;
+static orientation_t video_rotation = ORIENTATION_0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
@@ -238,7 +238,7 @@ static bool environment_cb(unsigned cmd, void *data) {
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_ROTATION:
-            video_rotation = *static_cast<int *>(data);
+            video_rotation = *static_cast<orientation_t *>(data);
             supported = true;
             break;
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
@@ -633,7 +633,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     clear_message();
     retro_unload_game();
     close_audio_stream();
-    video_rotation = 0;
+    video_rotation = ORIENTATION_0;
     free_frame_buffers();
     if (audio_buffer) {
         env->DeleteGlobalRef(audio_buffer);
@@ -897,10 +897,15 @@ static void on_draw_frame() {
             return;
         } else {
             int index = draw_index.load();
+            int vw = video_width, vh = video_height;
+            if (video_rotation == ORIENTATION_90 || video_rotation == ORIENTATION_270) {
+                vw = video_height;
+                vh = video_width;
+            }
             if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                texture(GL_RGB, (int) video_width, (int) video_height, video_rotation, framebuffers[index]->data);
+                texture(GL_RGB, vw, vh, video_rotation, framebuffers[index]->data);
             } else {
-                texture(GL_RGBA, (int) video_width, (int) video_height, video_rotation, framebuffers[index]->data);
+                texture(GL_RGBA, vw, vh, video_rotation, framebuffers[index]->data);
             }
             renderer->swap_buffers();
             return;
