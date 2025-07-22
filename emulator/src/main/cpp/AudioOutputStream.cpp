@@ -10,12 +10,15 @@
 #define TAG "Audio"
 
 AudioOutputStream::AudioOutputStream() {
+    xrun_count = 0;
     sample_rate = 48000;
     channel_count = oboe::ChannelCount::Stereo;
     sharing_mode = oboe::SharingMode::Shared;
     performance_mode = oboe::PerformanceMode::PowerSaving;
     stream_state = oboe::StreamState::Uninitialized;
     stream = nullptr;
+    check_underrun = false;
+    underrun_count = 0;
 }
 
 AudioOutputStream::~AudioOutputStream() {
@@ -25,15 +28,18 @@ AudioOutputStream::~AudioOutputStream() {
 int32_t AudioOutputStream::write(const void *data, int32_t frames, int64_t timeoutNanoseconds) {
     if (!stream) return frames;
     if (stream_state == oboe::StreamState::Started) {
-        oboe::ResultWithValue<int32_t> result = stream->write(data, frames, timeoutNanoseconds);
+        const oboe::ResultWithValue<int32_t> result = stream->write(data, frames, timeoutNanoseconds);
         if (result.error() == oboe::Result::OK) {
+            if (check_underrun) {
+                check_xrun_count();
+            }
             return result.value();
         } else if (result.error() == oboe::Result::ErrorDisconnected) {
             stream_state = oboe::StreamState::Disconnected;
-            LOGW(TAG, "Audio stream disconnected.");
+            LOGW(TAG, "Stream disconnected.");
             goto reopen;
         } else {
-            LOGE(TAG, "Audio stream write error=%d", result.error());
+            LOGE(TAG, "Write stream error=%d", result.error());
         }
     }
     return frames;
@@ -62,9 +68,11 @@ void AudioOutputStream::request_open() {
         return;
     }
     int32_t frames_per_burst = stream->getFramesPerBurst();
-    stream->setBufferSizeInFrames(frames_per_burst);
+    stream->setBufferSizeInFrames(std::max(frames_per_burst, 96 * 10));
     stream_state = oboe::StreamState::Open;
-    LOGI(TAG, "Open audio output stream, frame_per_bust=%d.", frames_per_burst);
+    xrun_count = 0;
+    underrun_count = 0;
+    LOGI(TAG, "Open output stream, frame_per_bust=%d.", frames_per_burst);
 }
 
 void AudioOutputStream::request_stop() {
@@ -134,5 +142,25 @@ void AudioOutputStream::set_sample_rate(uint16_t _sample_rate) {
     if (_sample_rate >= 8000) {
         sample_rate = _sample_rate;
     }
+}
+
+void AudioOutputStream::check_xrun_count() {
+    const oboe::ResultWithValue<int32_t> &result = stream->getXRunCount();
+    if (result.error() == oboe::Result::OK) {
+        int32_t count = result.value();
+        if (count - xrun_count > 15 && underrun_count < 5) {
+            int32_t buffer_size = stream->getBufferSizeInFrames();
+            stream->setBufferSizeInFrames(buffer_size * 2);
+            xrun_count = count;
+            underrun_count++;
+            LOGW(TAG, "Underrun happened, try increase the buffer size.");
+        }
+    } else {
+        LOGE(TAG, "Failed to get xrun count, error=%d", result.error());
+    }
+}
+
+void AudioOutputStream::set_check_underrun(bool _enable) {
+    check_underrun = true;
 }
 

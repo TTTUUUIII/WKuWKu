@@ -14,14 +14,19 @@
 class AudioOutputStream: public std::enable_shared_from_this<AudioOutputStream>{
 private:
     std::shared_ptr<oboe::AudioStream> stream;
+    uint32_t xrun_count;
+    uint8_t underrun_count;
+    bool check_underrun;
     uint16_t sample_rate;
     oboe::PerformanceMode performance_mode;
     oboe::SharingMode  sharing_mode;
     oboe::StreamState stream_state;
     oboe::ChannelCount channel_count;
+    void check_xrun_count();
 public:
     explicit AudioOutputStream();
     ~AudioOutputStream();
+    void set_check_underrun(bool _enable);
     void set_sharing_mode(oboe::SharingMode);
     void set_performance_mode(oboe::PerformanceMode);
     void set_channel_count(oboe::ChannelCount);

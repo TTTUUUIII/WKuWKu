@@ -25,7 +25,7 @@
         app:title="@string/audio_options">
         <ListPreference
             app:iconSpaceReserved="false"
-            android:defaultValue="audio_track"
+            android:defaultValue="oboe"
             app:key="app_audio_api"
             app:title="@string/audio_api"
             app:entries="@array/audio_apis_entries"
@@ -37,6 +37,12 @@
             app:summary="@string/use_low_latency_mode"
             app:title="@string/low_latency_mode"
             app:key="app_audio_low_latency_mode" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:defaultValue="true"
+            app:summary="@string/underrun_optimization_summary"
+            app:title="@string/underrun_optimization"
+            app:key="app_audio_underrun_optimization" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -53,7 +59,7 @@
             app:iconSpaceReserved="false"
             android:key="action_custom_hotkeys"
             android:title="@string/hotkeys"
-            android:summary="@string/bind_hotkeys" />
+            android:summary="@string/custom_hotkeys" />
     </PreferenceCategory>
 
     <PreferenceCategory

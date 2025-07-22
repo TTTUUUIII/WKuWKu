@@ -175,11 +175,13 @@
     <string name="low_latency_mode">Low latency mode</string>
     <string name="use_low_latency_mode">Use low latency mode</string>
     <string name="hotkeys">Hotkeys</string>
-    <string name="bind_hotkeys">Custom hotkeys</string>
+    <string name="custom_hotkeys">Custom hotkeys</string>
     <string name="no_binding">No binding</string>
     <string name="bind">Bind</string>
     <string name="waiting_keys">Waiting…</string>
     <string name="no_input_device">No input device!</string>
     <string name="frame_pacing">Frame pacing</string>
     <string name="frame_pacing_summary">Ensures smooth video and extends battery life</string>
+    <string name="underrun_optimization">Underrun optimization</string>
+    <string name="underrun_optimization_summary">Actively detect audio underload and make necessary optimizations</string>
 </resources>
