@@ -20,11 +20,12 @@
 #define TAG "EmulatorV2"
 
 static std::mutex mtx;
+static retro_system_info system_info{};
 static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
-static buffer_t* framebuffers[2];
+static buffer_t *framebuffers[2];
 static std::atomic<int> draw_index = 0;
 static orientation_t video_rotation = ORIENTATION_0;
 static uint16_t video_width = 0;
@@ -82,16 +83,16 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
     va_end(args);
     switch (level) {
         case RETRO_LOG_ERROR:
-            LOGE(TAG, "%s", buffer);
+            LOGE(system_info.library_name, "%s", buffer);
             break;
         case RETRO_LOG_INFO:
-            LOGI(TAG, "%s", buffer);
+            LOGI(system_info.library_name, "%s", buffer);
             break;
         case RETRO_LOG_WARN:
-            LOGW(TAG, "%s", buffer);
+            LOGW(system_info.library_name, "%s", buffer);
             break;
         default:
-            LOGD(TAG, "%s", buffer);
+            LOGD(system_info.library_name, "%s", buffer);
     }
 }
 
@@ -124,8 +125,10 @@ static void alloc_frame_buffers() {
         bytes_per_pixels = 2;
     }
     retro_get_system_av_info(&av_info);
-    framebuffers[0] = new buffer_t(av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
-    framebuffers[1] = new buffer_t(av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
+    framebuffers[0] = new buffer_t(
+            av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
+    framebuffers[1] = new buffer_t(
+            av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
     LOGD(TAG, "Alloc frame buffers %d bytes * 2.", framebuffers[0]->capacity);
 }
 
@@ -152,7 +155,8 @@ static void fill_frame_buffer(const void *data, unsigned width, unsigned height,
     } else {
         for (int i = 0; i < height; ++i) {
             memcpy((void *) (static_cast<const char *>(framebuffers[write_index]->data) +
-                             i * width * bytes_per_pixel), static_cast<const char *>(data) + i * pitch,
+                             i * width * bytes_per_pixel),
+                   static_cast<const char *>(data) + i * pitch,
                    width * bytes_per_pixel);
         }
     }
@@ -178,13 +182,15 @@ static size_t audio_cb(const int16_t *data, size_t frames) {
             return audio_stream_out->write(data, (int) frames, 20 * kNanosPerMillisecond);
         } else {
             JNIEnv *env;
-            if(attach_env(&env)) {
+            if (attach_env(&env)) {
                 if (env->GetArrayLength(audio_buffer) < frames * 2) {
                     env->DeleteGlobalRef(audio_buffer);
-                    audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray((int) frames * 2));
+                    audio_buffer = (jshortArray) env->NewGlobalRef(
+                            env->NewShortArray((int) frames * 2));
                 }
                 env->SetShortArrayRegion(audio_buffer, 0, (int) frames * 2, data);
-                return env->CallIntMethod(ctx.emulator_obj, ctx.audio_buffer_method, audio_buffer, frames);
+                return env->CallIntMethod(ctx.emulator_obj, ctx.audio_buffer_method, audio_buffer,
+                                          frames);
                 detach_env();
             }
         }
@@ -251,7 +257,7 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_SET_HW_RENDER:
             hw_render_cb = reinterpret_cast<struct retro_hw_render_callback *>(data);
             if (hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES2
-            || hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES3) {
+                || hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES3) {
                 hw_render_cb->get_proc_address = get_hw_proc_address;
                 hw_render_cb->get_current_framebuffer = get_hw_framebuffer;
                 supported = true;
@@ -514,7 +520,8 @@ em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject
         SwappyGL_setAutoSwapInterval(true);
         SwappyGL_setAutoPipelineMode(true);
         SwappyGL_setWindow(window);
-        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.", static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
+        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
+             static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
     }
     renderer = std::make_unique<GLRenderer>(window);
     GLRendererInterface *interface = renderer->get_renderer_interface();
@@ -838,6 +845,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
                                               "(ILjava/lang/Object;)Z");
     ctx.input_cb_method = env->GetMethodID(clazz, "onNativePollInput", "(IIII)I");
     env->RegisterNatives(clazz, methods, ARRAY_SIZE(methods));
+    retro_get_system_info(&system_info);
     return JNI_VERSION_1_6;
 }
 
@@ -935,14 +943,16 @@ static uintptr_t get_hw_framebuffer() {
 }
 
 static bool attach_env(JNIEnv **env) {
-    bool no_error = true;
-    if (ctx.jvm->GetEnv((void **) env, JNI_VERSION_1_6) != JNI_OK) {
-        if (ctx.jvm->AttachCurrentThread(env, nullptr) != JNI_OK) {
-            LOGE(TAG, "Unable attach env thread!");
-            no_error = false;
-        } else {
+    bool no_error = false;
+    jint state = ctx.jvm->GetEnv((void **) env, JNI_VERSION_1_6);
+    if (state == JNI_OK
+        || (state == JNI_EDETACHED && ctx.jvm->AttachCurrentThread(env, nullptr) == JNI_OK)) {
+        if (state == JNI_EDETACHED) {
             env_attached = true;
         }
+        no_error = true;
+    } else {
+        LOGE(TAG, "Failed to attach env thread! state=%d", state);
     }
     return no_error;
 }
@@ -986,7 +996,7 @@ static void send_empty_message(int what) {
     message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
 }
 
-static bool handle_message(const std::shared_ptr<message_t>& msg) {
+static bool handle_message(const std::shared_ptr<message_t> &msg) {
     if (!msg) return true;
     size_t size;
     bool handled = true;
@@ -1042,7 +1052,7 @@ static void set_thread_priority(int priority) {
     LOGI(TAG, "Set thread priority tid=%d, priority=%d", tid, priority);
 }
 
-template <typename T>
+template<typename T>
 static T get_prop(int32_t prop, const T &default_value) {
     if (props.count(prop)) {
         return std::any_cast<T>(props[prop]);

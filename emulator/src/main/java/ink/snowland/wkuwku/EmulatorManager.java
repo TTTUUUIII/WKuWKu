@@ -23,7 +23,7 @@ public final class EmulatorManager {
     private EmulatorManager() {
         throw new RuntimeException();
     }
-    private static final Logger sLogger = new Logger("Manager", "EmulatorManager");
+    private static final Logger sLogger = new Logger("EmulatorManager");
     private static final List<EmSystem> mAllSupportedSystems = new ArrayList<>();
 
     private static final HashMap<String, IEmulator> EMULATORS = new HashMap<>();
