@@ -103,11 +103,8 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
     } else if (data) {
         fill_frame_buffer(data, width, height, pitch);
     }
-    if (video_rotation == 1 || video_rotation == 3) {
-        unsigned origin_width;
-        origin_width = width;
-        width = height;
-        height = origin_width;
+    if (video_rotation == ORIENTATION_90 || video_rotation == ORIENTATION_270) {
+        std::swap(width, height);
     }
     if (video_width != width || video_height != height) {
         video_width = width;
@@ -640,6 +637,8 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     clear_message();
     retro_unload_game();
     close_audio_stream();
+    video_width = 0;
+    video_height = 0;
     video_rotation = ORIENTATION_0;
     free_frame_buffers();
     if (audio_buffer) {
