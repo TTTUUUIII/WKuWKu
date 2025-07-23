@@ -14,206 +14,511 @@
         <item>u1</item>
     </content-extensions>
     <options>
-<!--        <option-->
-<!--            defaultValue="0"-->
-<!--            key="beetle_saturn_horizontal_overscan"-->
-<!--            inputType="number"-->
-<!--            title="Horizontal Overscan Mask" />-->
-<!--        <option-->
-<!--            defaultValue="0"-->
-<!--            key="beetle_saturn_initial_scanline"-->
-<!--            inputType="number"-->
-<!--            title="Initial scanline" />-->
-<!--        <option-->
-<!--            defaultValue="239"-->
-<!--            key="beetle_saturn_last_scanline"-->
-<!--            title="Last scanline"-->
-<!--            inputType="number" />-->
-<!--        <option-->
-<!--            defaultValue="0"-->
-<!--            key="beetle_saturn_initial_scanline_pal"-->
-<!--            title="Initial scanline (PAL)"-->
-<!--            inputType="number" />-->
-<!--        <option-->
-<!--            defaultValue="239"-->
-<!--            key="beetle_saturn_last_scanline_pal"-->
-<!--            title="Last scanline (PAL)"-->
-<!--            inputType="number" />-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_horizontal_blend"-->
-<!--            title="Enable Horizontal Blend(blur)">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_multitap_port1"-->
-<!--            title="6Player Adaptor on Port 1">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_multitap_port2"-->
-<!--            title="6Player Adaptor on Port 2">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_opposite_directions"-->
-<!--            title="Allow Up+Down and Left+Right">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="15%"-->
-<!--            key="beetle_saturn_analog_stick_deadzone"-->
-<!--            title="Analog Stick Deadzone">-->
-<!--            <allow-values>-->
-<!--                <value>0%</value>-->
-<!--                <value>5%</value>-->
-<!--                <value>10%</value>-->
-<!--                <value>15%</value>-->
-<!--                <value>20%</value>-->
-<!--                <value>25%</value>-->
-<!--                <value>30%</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="15%"-->
-<!--            key="beetle_saturn_trigger_deadzone"-->
-<!--            title="Trigger Deadzone">-->
-<!--            <allow-values>-->
-<!--                <value>0%</value>-->
-<!--                <value>5%</value>-->
-<!--                <value>10%</value>-->
-<!--                <value>15%</value>-->
-<!--                <value>20%</value>-->
-<!--                <value>25%</value>-->
-<!--                <value>30%</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="100%"-->
-<!--            key="beetle_saturn_mouse_sensitivity"-->
-<!--            title="Mouse Sensitivity"-->
-<!--            inputType="text" />-->
-<!--        <option-->
-<!--            defaultValue="Cross"-->
-<!--            key="beetle_saturn_virtuagun_crosshair"-->
-<!--            title="Gun Crosshair">-->
-<!--            <allow-values>-->
-<!--                <value>Cross</value>-->
-<!--                <value>Dot</value>-->
-<!--                <value>Off</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="Lightgun"-->
-<!--            key="beetle_saturn_virtuagun_input"-->
-<!--            title="Gun Input Mode">-->
-<!--            <allow-values>-->
-<!--                <value>Lightgun</value>-->
-<!--                <value>Touchscreen</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="Auto Detect"-->
-<!--            key="beetle_saturn_cart"-->
-<!--            title="Cartridge">-->
-<!--            <allow-values>-->
-<!--                <value>Auto Detect</value>-->
-<!--                <value>None</value>-->
-<!--                <value>Backup Memory</value>-->
-<!--                <value>Extended RAM (1MB)</value>-->
-<!--                <value>Extended RAM (4MB)</value>-->
-<!--                <value>The King of Fighters '95"</value>-->
-<!--                <value>Ultraman: Hikari no Kyojin Densetsu</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_shared_int"-->
-<!--            title="Shared Internal Memory (Restart)">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_shared_ext"-->
-<!--            title="Shared Backup Memory (Restart)">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="Auto Detect"-->
-<!--            key="beetle_saturn_region"-->
-<!--            title="System Region">-->
-<!--            <allow-values>-->
-<!--                <value>Auto Detect</value>-->
-<!--                <value>Japan</value>-->
-<!--                <value>North America</value>-->
-<!--                <value>Europe</value>-->
-<!--                <value>South Korea</value>-->
-<!--                <value>Asia (NTSC)</value>-->
-<!--                <value>Asia (PAL)</value>-->
-<!--                <value>Brazil</value>-->
-<!--                <value>Latin America</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="english"-->
-<!--            key="beetle_saturn_autortc_lang"-->
-<!--            title="BIOS language">-->
-<!--            <allow-values>-->
-<!--                <value>english</value>-->
-<!--                <value>german</value>-->
-<!--                <value>french</value>-->
-<!--                <value>spanish</value>-->
-<!--                <value>italian</value>-->
-<!--                <value>japanese</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_cdimagecache"-->
-<!--            title="CD Image Cache (Restart)">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="disabled"-->
-<!--            key="beetle_saturn_midsync"-->
-<!--            title="Mid-frame Input Synchronization">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            defaultValue="enabled"-->
-<!--            key="beetle_saturn_autortc"-->
-<!--            title="Automatically set RTC on game load">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
+        <option
+            defaultValue="gliden64"
+            key="mupen64plus-rdp-plugin"
+            title="RDP Plugin">
+            <allow-values>
+                <value>angrylion</value>
+                <value>parallel</value>
+                <value>gliden64</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="hle"
+            key="mupen64plus-rsp-plugin"
+            title="RDP Plugin">
+            <allow-values>
+                <value>hle</value>
+                <value>cxd4</value>
+                <value>parallel</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="4:3"
+            key="mupen64plus-aspect"
+            title="Aspect Ratio">
+            <allow-values>
+                <value>4:3</value>
+                <value>16:9</value>
+                <value>16:9 adjusted</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="640x480"
+            key="mupen64plus-43screensize"
+            title="4:3 Resolution">
+            <allow-values>
+                <value>320x240</value>
+                <value>640x480</value>
+                <value>960x720</value>
+                <value>960x720</value>
+                <value>1280x960</value>
+                <value>1440x1080</value>
+                <value>1600x1200</value>
+                <value>1920x1440</value>
+                <value>2240x1680</value>
+                <value>2560x1920</value>
+                <value>2880x2160</value>
+                <value>3200x2400</value>
+                <value>3520x2640</value>
+                <value>3840x2880</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mupen64plus-EnableNativeResFactor"
+            inputType="number"
+            title="Native Resolution Factor (0 - 8)" />
+        <option
+            defaultValue="False"
+            key="mupen64plus-ThreadedRenderer"
+            title="Threaded Renderer">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="standard"
+            key="mupen64plus-BilinearMode"
+            title="Bilinear filtering mode">
+            <allow-values>
+                <value>3point</value>
+                <value>standard</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="True"
+            key="mupen64plus-HybridFilter"
+            title="Hybrid Filter">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-DitheringPattern"
+            title="Dithering">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-DitheringQuantization"
+            title="Dithering Quantization">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-RDRAMImageDitheringMode"
+            title="Image Dithering Mode">
+            <allow-values>
+                <value>False</value>
+                <value>Bayer</value>
+                <value>MagicSquare</value>
+                <value>BlueNoise</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mupen64plus-MultiSampling"
+            title="MSAA level">
+            <allow-values>
+                <value>0</value>
+                <value>2</value>
+                <value>4</value>
+                <value>8</value>
+                <value>16</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mupen64plus-FXAA"
+            title="(GLN64) Fast Approximate Anti-Aliasing shader, moderately blur textures (0 = disabled)">
+            <allow-values>
+                <value>0</value>
+                <value>1</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="True"
+            key="mupen64plus-EnableLODEmulation"
+            title="LOD Emulation">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableFBEmulation"
+            title="Framebuffer Emulation">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableCopyAuxToRDRAM"
+            title="Copy auxiliary buffers to RDRAM">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Sync"
+            key="mupen64plus-EnableCopyColorToRDRAM"
+            title="Color buffer to RDRAM">
+            <allow-values>
+                <value>Off</value>
+                <value>Sync</value>
+                <value>Async</value>
+                <value>TripleBuffer</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableCopyColorFromRDRAM"
+            title="Color buffer to RDRAM">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Software"
+            key="mupen64plus-EnableCopyDepthToRDRAM"
+            title="Depth buffer to RDRAM">
+            <allow-values>
+                <value>Off</value>
+                <value>Software</value>
+                <value>FromMem</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="OnePiece"
+            key="mupen64plus-BackgroundMode"
+            title="Background Mode">
+            <allow-values>
+                <value>Stripped</value>
+                <value>OnePiece</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableHWLighting"
+            title="Background Mode">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Off"
+            key="mupen64plus-CorrectTexrectCoords"
+            title="Background Mode">
+            <allow-values>
+                <value>Off</value>
+                <value>Auto</value>
+                <value>Force</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableInaccurateTextureCoordinates"
+            title="Enable inaccurate texture coordinates">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableTexCoordBounds"
+            title="Enable native-res boundaries for texture coordinates">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Disabled"
+            key="mupen64plus-EnableNativeResTexrects"
+            title="Native res. 2D texrects">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Unoptimized</value>
+                <value>Optimized</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="True"
+            key="mupen64plus-EnableLegacyBlending"
+            title="Less accurate blending mode">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableFragmentDepthWrite"
+            title="GPU shader depth write">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="True"
+            key="mupen64plus-EnableTextureCache"
+            title="Cache Textures">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Enabled"
+            key="mupen64plus-EnableOverscan"
+            title="Overscan">
+            <allow-values>
+                <value>Disabled</value>
+                <value>Enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mupen64plus-OverscanTop"
+            inputType="number"
+            title="Overscan Offset (Top) (0 - 50)" />
+        <option
+            defaultValue="0"
+            key="mupen64plus-OverscanLeft"
+            inputType="number"
+            title="Overscan Offset (Left) (0 - 50)" />
+        <option
+            defaultValue="0"
+            key="mupen64plus-OverscanRight"
+            inputType="number"
+            title="Overscan Offset (Top) (0 - 50)" />
+        <option
+            defaultValue="0"
+            key="mupen64plus-OverscanBottom"
+            inputType="number"
+            title="Overscan Offset (Top) (0 - 50)" />
+        <option
+            defaultValue="0"
+            key="mupen64plus-MaxHiResTxVramLimit"
+            title="Max High-Res VRAM Limit">
+            <allow-values>
+                <value>0</value>
+                <value>500</value>
+                <value>1000</value>
+                <value>1500</value>
+                <value>2000</value>
+                <value>2500</value>
+                <value>3000</value>
+                <value>3500</value>
+                <value>4000</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="8000"
+            key="mupen64plus-MaxTxCacheSize"
+            title="Max texture cache size">
+            <allow-values>
+                <value>1500</value>
+                <value>4000</value>
+                <value>8000</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="None"
+            key="mupen64plus-txFilterMode"
+            title="Texture filter">
+            <allow-values>
+                <value>None</value>
+                <value>Smooth filtering 1</value>
+                <value>Smooth filtering 2</value>
+                <value>Smooth filtering 3</value>
+                <value>Smooth filtering 4</value>
+                <value>Sharp filtering 1</value>
+                <value>Sharp filtering 2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="None"
+            key="mupen64plus-txEnhancementMode"
+            title="Texture Enhancement">
+            <allow-values>
+                <value>None</value>
+                <value>As Is</value>
+                <value>X2</value>
+                <value>X2SAI</value>
+                <value>HQ2X</value>
+                <value>HQ2XS</value>
+                <value>LQ2X</value>
+                <value>LQ2XS</value>
+                <value>HQ4X</value>
+                <value>2xBRZ</value>
+                <value>3xBRZ</value>
+                <value>4xBRZ</value>
+                <value>5xBRZ</value>
+                <value>6xBRZ</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="True"
+            key="mupen64plus-txFilterIgnoreBG"
+            title="Don't filter background textures">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-txHiresEnable"
+            title="Use High-Res textures">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="True"
+            key="mupen64plus-txCacheCompression"
+            title="Use High-Res Texture Cache Compression">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-txHiresFullAlphaChannel"
+            title="Use High-Res Full Alpha Channel">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableEnhancedTextureStorage"
+            title="Use enhanced Texture Storage">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableHiResAltCRC"
+            title="Use alternative method for High-Res Checksums">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-EnableEnhancedHighResStorage"
+            title="Use enhanced Hi-Res Storage">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="late"
+            key="mupen64plus-GLideN64IniBehaviour"
+            title="INI Behaviour">
+            <allow-values>
+                <value>late</value>
+                <value>early</value>
+                <value>disabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-parallel-rdp-synchronous"
+            title="(ParaLLEl-RDP) Synchronous RDP">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mupen64plus-parallel-rdp-overscan"
+            inputType="number"
+            title="(ParaLLEl-RDP) Crop overscan" />
+        <option
+            defaultValue="False"
+            key="mupen64plus-parallel-rdp-divot-filter"
+            title="(ParaLLEl-RDP) VI Divot filter">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-parallel-rdp-gamma-dither"
+            title="(ParaLLEl-RDP) VI Gamma dither">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-parallel-rdp-vi-aa"
+            title="(ParaLLEl-RDP) VI anti-aliasing">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-parallel-rdp-vi-bilinear"
+            title="(ParaLLEl-RDP) VI bilinear">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="False"
+            key="mupen64plus-parallel-rdp-dither-filter"
+            title="(ParaLLEl-RDP) VI dither filter">
+            <allow-values>
+                <value>False</value>
+                <value>True</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="1x"
+            key="mupen64plus-parallel-rdp-upscaling"
+            title="(ParaLLEl-RDP) Upscaling factor (restart)">
+            <allow-values>
+                <value>1x</value>
+                <value>2x</value>
+                <value>4x</value>
+                <value>8x</value>
+            </allow-values>
+        </option>
     </options>
 </em-config>

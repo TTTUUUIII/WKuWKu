@@ -4,21 +4,13 @@ plugins {
 
 android {
     namespace 'ink.snowland.wkuwku.plug.mupen64plusnext'
-    compileSdk 35
 
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.mupen64plusnext"
-        minSdk 24
-        targetSdk 35
         versionCode 1
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        externalNativeBuild {
-            cmake {
-                cppFlags ''
-            }
-        }
     }
 
     buildTypes {
@@ -48,3 +40,6 @@ dependencies {
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core
 }
+
+apply from: rootProject.file("templates/emulator.gradle")
+rootProject.ext.configApplicationSiging(this)
