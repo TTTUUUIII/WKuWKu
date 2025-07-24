@@ -23,6 +23,8 @@ public interface GameDao {
     Single<Game> findByPathAndState(String path, int state);
     @Query("SELECT * FROM tb_game WHERE state != 3 AND last_played_time != 0 ORDER BY last_played_time DESC")
     Observable<List<Game>> getHistory();
+    @Query("SELECT 1 FROM tb_game WHERE state != 3 AND last_played_time != 0 LIMIT 1")
+    Single<Boolean> isExistsHistory();
     @Query("SELECT * FROM tb_game WHERE state == 3 ORDER BY last_modified_time")
     Observable<List<Game>> getTrash();
     @Delete
