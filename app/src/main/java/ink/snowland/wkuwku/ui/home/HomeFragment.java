@@ -4,7 +4,6 @@ import android.os.Bundle;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -19,11 +18,17 @@ import com.google.android.material.navigation.NavigationBarView;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHomeBinding;
+import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.ui.coreopt.CoreOptionsFragment;
 import ink.snowland.wkuwku.ui.game.GamesFragment;
 import ink.snowland.wkuwku.ui.history.HistoryFragment;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HomeFragment extends BaseFragment implements NavigationBarView.OnItemSelectedListener {
+
+    private static boolean isFirstLaunch = true;
 
     private FragmentHomeBinding binding;
     private final BaseFragment[] mPages = new BaseFragment[] {
@@ -49,16 +54,24 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(getLayoutInflater());
-        return binding.getRoot();
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
         binding.viewPager.setAdapter(new PagerSlideAdapter());
         binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
         binding.bottomNavView.setOnItemSelectedListener(this);
+        if (isFirstLaunch) {
+            isFirstLaunch = false;
+            Disposable ignored = AppDatabase.db.gameInfoDao()
+                    .isExistsHistory()
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(exists -> {
+                        if (exists) {
+                            binding.viewPager.setCurrentItem(1, false);
+                        }
+                    }, error -> {/*ignored*/});
+        }
+        return binding.getRoot();
     }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int itemId = item.getItemId();
