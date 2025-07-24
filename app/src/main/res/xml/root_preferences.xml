@@ -73,6 +73,12 @@
             app:key="app_download_optional_bios"
             app:summary="@string/summary_download_optional_bios"
             app:title="@string/download_optional_bios" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:defaultValue="false"
+            app:key="app_performance_mode"
+            app:summary="@string/summary_switch_to_performance_mode_when_playing"
+            app:title="@string/performance_mode" />
     </PreferenceCategory>
 
     <PreferenceCategory

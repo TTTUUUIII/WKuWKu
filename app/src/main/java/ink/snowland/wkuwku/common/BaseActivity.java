@@ -1,12 +1,12 @@
 package ink.snowland.wkuwku.common;
 
-import android.content.Context;
 import android.content.Intent;
 import android.hardware.input.InputManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.util.ArraySet;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -81,7 +81,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
                 .setEnterAnim(R.anim.zoom_in_right)
                 .setPopEnterAnim(R.anim.zoom_in_left)
                 .build();
-        mInputManager = (InputManager) getSystemService(Context.INPUT_SERVICE);
+        mInputManager = (InputManager) getSystemService(INPUT_SERVICE);
     }
 
     private final Set<Integer> mPressDownKeys = new ArraySet<>();
@@ -300,6 +300,17 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         }
+    }
+
+    public void setPerformanceModeEnable(boolean enable) {
+        if (isPerformanceModeSupported()) {
+            getWindow().setSustainedPerformanceMode(enable);
+        }
+    }
+
+    public boolean isPerformanceModeSupported() {
+        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+        return pm.isSustainedPerformanceModeSupported();
     }
 
     public void scanQrCode(OnResultCallback<String> callback) {

@@ -183,5 +183,7 @@
     <string name="frame_pacing">Frame pacing</string>
     <string name="frame_pacing_summary">Ensures smooth video and extends battery life</string>
     <string name="underrun_optimization">Underrun optimization</string>
-    <string name="underrun_optimization_summary">Actively detect audio underload and make necessary optimizations</string>
+    <string name="underrun_optimization_summary">Actively detect audio underrun and make necessary optimizations</string>
+    <string name="summary_switch_to_performance_mode_when_playing">Switch performance mode when playing (Consumes more battery life)</string>
+    <string name="performance_mode">Performance mode</string>
 </resources>

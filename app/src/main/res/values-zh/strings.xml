@@ -157,4 +157,6 @@
     <string name="frame_pacing_summary">确保视频流畅度并节省电量</string>
     <string name="underrun_optimization">欠载优化</string>
     <string name="underrun_optimization_summary">主动检测音频欠载情况并做必要优化</string>
+    <string name="summary_switch_to_performance_mode_when_playing">在游戏时切换到性能模式（消耗更多电量）</string>
+    <string name="performance_mode">性能模式</string>
 </resources>
