@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libretro-common" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/libretro-fceumm" vcs="Git" />
   </component>
 </project>
