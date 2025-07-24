@@ -60,9 +60,7 @@ static jobject get_variable_value(JNIEnv *env) {
 
 static jint get_variable_int_value(JNIEnv *env) {
     jobject integer_obj = env->GetObjectField(variable_object, ctx.variable_value_field);
-    jclass clazz = env->FindClass("java/lang/Integer");
-    jmethodID int_value_method = env->GetMethodID(clazz, "intValue", "()I");
-    return env->CallIntMethod(integer_obj, int_value_method);
+    return as_int(env, integer_obj);
 }
 
 static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
@@ -754,26 +752,29 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     UNUSED(thiz);
     bool no_error = false;
-    int width = video_width, height = video_height;
-    if (video_rotation == 1 || video_rotation == 3) {
-        width = video_height;
-        height = video_width;
-    }
-    const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
-    if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        no_error = stbi_write_png(file_path, width, height, 4, framebuffers[draw_index]->data,
-                                  width * 4);
-    } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-        unsigned char data[width * height * 3];
-        auto *origin = reinterpret_cast<uint16_t *>(framebuffers[draw_index]->data);
-        for (int i = 0; i < width * height; ++i) {
-            uint16_t pixel = origin[i];
-            data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
-            data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
-            data[i * 3 + 2] = (pixel & 0x1F) << 3;
+    if (current_state == STATE_RUNNING || current_state == STATE_PAUSED) {
+        int width = video_width, height = video_height;
+        if (video_rotation == 1 || video_rotation == 3) {
+            width = video_height;
+            height = video_width;
         }
-        no_error = stbi_write_png(file_path, width, height, 3, data,
-                                  width * 3);
+        const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
+        if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+            no_error = stbi_write_png(file_path, width, height, 4, framebuffers[draw_index]->data,
+                                      width * 4);
+        } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+            unsigned char data[width * height * 3];
+            auto *origin = reinterpret_cast<uint16_t *>(framebuffers[draw_index]->data);
+            for (int i = 0; i < width * height; ++i) {
+                uint16_t pixel = origin[i];
+                data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
+                data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
+                data[i * 3 + 2] = (pixel & 0x1F) << 3;
+            }
+            no_error = stbi_write_png(file_path, width, height, 3, data,
+                                      width * 3);
+        }
+        env->ReleaseStringUTFChars(path, file_path);
     }
     return no_error;
 }
@@ -901,10 +902,7 @@ static void on_draw_frame() {
     if (current_state == RUNNING) {
         if (hw_render_cb) {
             retro_run();
-            std::shared_ptr<message_t> msg = obtain_message();
-            if (msg) {
-                handle_message(msg);
-            }
+            handle_message(obtain_message());
             return;
         } else {
             int index = draw_index.load();

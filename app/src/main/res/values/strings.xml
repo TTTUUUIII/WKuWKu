@@ -167,7 +167,7 @@
     <string name="theme">Theme</string>
     <string name="player_1">Player 1</string>
     <string name="player_2">Player 2</string>
-    <string name="na" translatable="false">N/A</string>
+    <string name="na">N/A</string>
     <string name="fmt_controller_disconnected">Controller: %s disconnetced!</string>
     <string name="fmt_controller_connected">Controller: %s connected!</string>
     <string name="audio_options">Audio Options</string>

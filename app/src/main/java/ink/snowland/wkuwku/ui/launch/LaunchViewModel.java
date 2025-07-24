@@ -28,6 +28,9 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchViewModel extends BaseViewModel {
+    private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
+    private static final String AUDIO_API = "app_audio_api";
+    private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
     public static final int NO_ERR = 0;
     public static final int ERR_EMULATOR_NOT_FOUND = 1;
     public static final int ERR_LOAD_FAILED = 2;
@@ -35,17 +38,16 @@ public class LaunchViewModel extends BaseViewModel {
     private IEmulator mEmulator;
     private final List<byte[]> mSnapshots = new ArrayList<>();
     private Game mCurrentGame;
+    private boolean mPlaying = false;
     public LaunchViewModel(@NonNull Application application) {
         super(application);
-        Disposable disposable = AppDatabase.db.macroScriptDao()
+        Disposable ignored = AppDatabase.db.macroScriptDao()
                 .getList()
                 .observeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe((macroScripts, throwable) -> {
                     if (throwable != null) {
                         showErrorToast(throwable);
-                    } else {
-//                        throwable.printStackTrace(System.err);
                     }
                 });
     }
@@ -64,12 +66,20 @@ public class LaunchViewModel extends BaseViewModel {
 
     public int startEmulator() {
         if (mEmulator != null) {
-            onApplyOptions();
+            applyOptions();
             mEmulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
             mEmulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
             mEmulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
+            mEmulator.setProp(PROP_LOW_LATENCY_AUDIO_ENABLE, SettingsManager.getBoolean(AUDIO_LOW_LATENCY_MODE, true));
+            mEmulator.setProp(PROP_AUDIO_UNDERRUN_OPTIMIZATION, SettingsManager.getBoolean(AUDIO_UNDERRUN_OPTIMIZATION, true));
+            if ("oboe".equals(SettingsManager.getString(AUDIO_API, "oboe"))) {
+                mEmulator.setProp(PROP_OBOE_ENABLE, true);
+            } else {
+                mEmulator.setProp(PROP_OBOE_ENABLE, false);
+            }
             if (mEmulator.start(mCurrentGame.filepath)) {
                 loadAllStates();
+                mPlaying = true;
                 return NO_ERR;
             } else {
                 mEmulator = null;
@@ -94,6 +104,11 @@ public class LaunchViewModel extends BaseViewModel {
         mEmulator.reset();
     }
 
+    public boolean captureScreen(@NonNull String filepath) {
+        if (mEmulator == null) return false;
+        return mEmulator.captureScreen(filepath);
+    }
+
     public @Nullable IEmulator getEmulator() {
         return mEmulator;
     }
@@ -112,8 +127,12 @@ public class LaunchViewModel extends BaseViewModel {
         mEmulator.stop();
         mEmulator = null;
         mCurrentGame = null;
+        mPlaying = false;
     }
 
+    public boolean isPlaying() {
+        return mPlaying;
+    }
     public boolean saveCurrentSate() {
         if (mEmulator == null) return false;
         byte[] data = mEmulator.getSerializeData();
@@ -161,7 +180,7 @@ public class LaunchViewModel extends BaseViewModel {
         }
     }
 
-    private void onApplyOptions() {
+    private void applyOptions() {
         assert mEmulator != null;
         Collection<EmOption> options = mEmulator.getOptions();
         for (EmOption option : options) {

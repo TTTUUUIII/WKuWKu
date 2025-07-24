@@ -147,9 +147,6 @@ public abstract class Emulator implements IEmulator {
                     supported = true;
                 }
                 break;
-            case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
-                supported = true;
-                break;
             case RETRO_ENVIRONMENT_GET_VARIABLE:
                 option = (VariableEntry) data;
                 EmOption opt = mOptions.get(option.key);
@@ -158,6 +155,7 @@ public abstract class Emulator implements IEmulator {
                     supported = true;
                 }
                 break;
+            case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
             case RETRO_ENVIRONMENT_SET_GEOMETRY:
             case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
                 supported = true;
@@ -230,7 +228,7 @@ public abstract class Emulator implements IEmulator {
                 .setBufferSizeInBytes(minBufferSize)
                 .setTransferMode(AudioTrack.MODE_STREAM);
         boolean lowLatencyEnable = getProp(PROP_LOW_LATENCY_AUDIO_ENABLE, true);
-        if (lowLatencyEnable) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O && lowLatencyEnable) {
             builder.setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY);
         }
         mAudioTrack = builder.build();

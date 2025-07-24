@@ -71,7 +71,6 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener {
-    private static final String TAG = "PlayFragment";
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
     private static final int SNACKBAR_LENGTH_SHORT = 500;
@@ -82,9 +81,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String HOTKEY_RESET = "hotkey_reset";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String VIDEO_RATIO = "app_video_ratio";
-    private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
-    private static final String AUDIO_API = "app_audio_api";
-    private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
     private static final String PLAYER_1_CONTROLLER = "player_1_controller";
@@ -220,16 +216,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         IEmulator emulator = mViewModel.getEmulator();
         if (emulator != null) {
             emulator.setOnEventListener(this);
-            emulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
-            emulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
-            emulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
-            emulator.setProp(PROP_LOW_LATENCY_AUDIO_ENABLE, SettingsManager.getBoolean(AUDIO_LOW_LATENCY_MODE, true));
-            emulator.setProp(PROP_AUDIO_UNDERRUN_OPTIMIZATION, SettingsManager.getBoolean(AUDIO_UNDERRUN_OPTIMIZATION, true));
-            if ("oboe".equals(SettingsManager.getString(AUDIO_API, "oboe"))) {
-                emulator.setProp(PROP_OBOE_ENABLE, true);
-            } else {
-                emulator.setProp(PROP_OBOE_ENABLE, false);
-            }
             binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(@NonNull SurfaceHolder holder) {
@@ -384,18 +370,19 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     private void onExit() {
-        if (mViewModel.getEmulator() == null) {
+        if (!mViewModel.isPlaying()) {
             NavController navController = NavHostFragment.findNavController(this);
             navController.popBackStack();
             return;
         }
-        boolean captureScreen = !FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").exists();
+        File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
+        boolean captureScreen = !screenshot.exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
             mViewModel.saveCurrentSate();
             captureScreen = true;
         }
         if (captureScreen) {
-            mViewModel.getEmulator().captureScreen(FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png").getAbsolutePath());
+            mViewModel.captureScreen(screenshot.getPath());
         }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
@@ -466,10 +453,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     private void takeScreenshot() {
-        IEmulator emulator = mViewModel.getEmulator();
-        if (emulator == null) return;
         File tmp = new File(FileManager.getCacheDirectory(), "tmp.png");
-        if (emulator.captureScreen(tmp.getAbsolutePath())) {
+        if (mViewModel.captureScreen(tmp.getAbsolutePath())) {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
