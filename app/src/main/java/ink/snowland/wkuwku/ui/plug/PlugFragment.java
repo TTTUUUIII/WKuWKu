@@ -30,6 +30,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.List;
 
+import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.common.ActionListener;
@@ -313,56 +314,61 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .error(R.drawable.ic_extension)
                             .into(_binding.plugIcon);
                 }
-                final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
-                if (plug != null) {
-                    _binding.installButton.setEnabled(plug.origin.getVersionCode() < res.versionCode);
-                    _binding.installButton.setTag(_binding.installButton.isEnabled() ? "upgrade" : "installed");
-                    _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.upgrade : R.string.installed);
-                }
-                _binding.installButton.setOnClickListener(v -> {
-                    if ("upgrade".equals(v.getTag())) return;
-                    _binding.installButton.setText(R.string.connecting);
+                if (BuildConfig.VERSION_CODE < res.minAppVersion || (res.maxAppVersion != PlugRes.VERSION_UNKNOW && BuildConfig.VERSION_CODE > res.maxAppVersion)) {
                     _binding.installButton.setEnabled(false);
-                    Disposable disposable = Single.create((SingleOnSubscribe<File>) emitter -> {
-                                final File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
-                                URL url = new URL(res.url);
-                                FileManager.copy(url, temp, (progress, max) -> handler.post(() -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100))));
-                                String md5sum = FileManager.calculateMD5Sum(temp);
-                                if (res.md5.equals(md5sum)) {
-                                    emitter.onSuccess(temp);
-                                } else {
-                                    emitter.onError(new FileChecksumException(res.md5, md5sum));
-                                }
-                            }).subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .doOnSuccess(file -> {
-                                _binding.installButton.setText(getString(R.string.installing));
-                                PlugManager.install(file, new ActionListener() {
-                                    @Override
-                                    public void onSuccess() {
-                                        _binding.installButton.setText(R.string.installed);
-                                        FileManager.delete(file);
+                    _binding.installButton.setText(R.string.na);
+                } else {
+                    final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
+                    if (plug != null) {
+                        _binding.installButton.setEnabled(plug.origin.getVersionCode() < res.versionCode);
+                        _binding.installButton.setTag(_binding.installButton.isEnabled() ? "upgrade" : "installed");
+                        _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.upgrade : R.string.installed);
+                    }
+                    _binding.installButton.setOnClickListener(v -> {
+                        if ("upgrade".equals(v.getTag())) return;
+                        _binding.installButton.setText(R.string.connecting);
+                        _binding.installButton.setEnabled(false);
+                        Disposable disposable = Single.create((SingleOnSubscribe<File>) emitter -> {
+                                    final File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
+                                    URL url = new URL(res.url);
+                                    FileManager.copy(url, temp, (progress, max) -> handler.post(() -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100))));
+                                    String md5sum = FileManager.calculateMD5Sum(temp);
+                                    if (res.md5.equals(md5sum)) {
+                                        emitter.onSuccess(temp);
+                                    } else {
+                                        emitter.onError(new FileChecksumException(res.md5, md5sum));
                                     }
+                                }).subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnSuccess(file -> {
+                                    _binding.installButton.setText(getString(R.string.installing));
+                                    PlugManager.install(file, new ActionListener() {
+                                        @Override
+                                        public void onSuccess() {
+                                            _binding.installButton.setText(R.string.installed);
+                                            FileManager.delete(file);
+                                        }
 
-                                    @Override
-                                    public void onFailure(Throwable e) {
+                                        @Override
+                                        public void onFailure(Throwable e) {
+                                            _binding.installButton.setText(R.string.install);
+                                            _binding.installButton.setEnabled(true);
+                                            e.printStackTrace(System.err);
+                                            Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                            FileManager.delete(file);
+                                        }
+                                    });
+                                })
+                                .subscribe((file, error) -> {
+                                    if (error != null) {
                                         _binding.installButton.setText(R.string.install);
                                         _binding.installButton.setEnabled(true);
-                                        e.printStackTrace(System.err);
                                         Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                        FileManager.delete(file);
+                                        error.printStackTrace(System.err);
                                     }
                                 });
-                            })
-                            .subscribe((file, error) -> {
-                                if (error != null) {
-                                    _binding.installButton.setText(R.string.install);
-                                    _binding.installButton.setEnabled(true);
-                                    Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                    error.printStackTrace(System.err);
-                                }
-                            });
-                });
+                    });
+                }
             }
         }
     }

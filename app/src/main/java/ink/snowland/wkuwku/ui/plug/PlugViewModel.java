@@ -94,6 +94,14 @@ public class PlugViewModel extends BaseViewModel {
                     if (eventType == XmlPullParser.START_TAG && "plug".equals(tagName)) {
                         PlugRes plugInfo = parsePlugInfo(xmlPullParser);
                         if (plugInfo != null) {
+                            plugInfo.minAppVersion = NumberUtils.parseInt(
+                                    xmlPullParser.getAttributeValue(null, "minAppVersion"),
+                                    PlugRes.VERSION_UNKNOW
+                            );
+                            plugInfo.maxAppVersion = NumberUtils.parseInt(
+                                    xmlPullParser.getAttributeValue(null, "maxAppVersion"),
+                                    PlugRes.VERSION_UNKNOW
+                            );
                             list.add(plugInfo);
                         }
                     }

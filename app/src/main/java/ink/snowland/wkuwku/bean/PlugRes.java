@@ -5,6 +5,8 @@ import androidx.annotation.NonNull;
 import java.util.Objects;
 
 public class PlugRes {
+    public static final int VERSION_UNKNOW = 0;
+
     public String name;
     public String author;
     public String iconUrl;
@@ -14,6 +16,8 @@ public class PlugRes {
     public int versionCode;
     public String md5;
     public String summary;
+    public int minAppVersion;
+    public int maxAppVersion;
 
     @NonNull
     @Override
