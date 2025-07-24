@@ -180,6 +180,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private void startEmulator() {
         int status = mViewModel.startEmulator();
         if (status == LaunchViewModel.NO_ERR) {
+            parentActivity.setPerformanceModeEnable(SettingsManager.getBoolean(SettingsManager.PERFORMANCE_MODE));
             if (mAutoLoadState && !mAutoLoadDisabled) {
                 handler.postDelayed(mViewModel::loadStateAtLast, 300);
             }
@@ -399,7 +400,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
         mGame.lastPlayedTime = System.currentTimeMillis();
-        Disposable disposable = AppDatabase.db.gameInfoDao().update(mGame)
+        AppDatabase.db.gameInfoDao().update(mGame)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> {
@@ -410,6 +411,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     navController.popBackStack();
                 })
                 .subscribe();
+        parentActivity.setPerformanceModeEnable(false);
     }
 
     public static final String ARG_GAME = "game";

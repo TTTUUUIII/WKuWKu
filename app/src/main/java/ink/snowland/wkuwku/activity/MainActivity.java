@@ -19,7 +19,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IdRes;
@@ -28,11 +27,8 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.content.FileProvider;
 import androidx.core.text.HtmlCompat;
-import androidx.core.view.OnApplyWindowInsetsListener;
-import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -73,7 +69,6 @@ public class MainActivity extends BaseActivity {
     private MainViewModel mViewModel;
     private final EmojiWorkshopView.Options mEmojiWorkshopOptions = new EmojiWorkshopView.Options(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, "\uD83D\uDC22☺️⭐️"), SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, 40), SettingsManager.getInt(EMOJI_WORKSHOP_EMOJI_SIZE, 40));
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +113,7 @@ public class MainActivity extends BaseActivity {
                 registerReceiver(mInstallApkReceiver, new IntentFilter(CheckLatestVersionWorker.ACTION_UPDATE_APK));
             }
             mRequestInstallPackageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (getPackageManager().canRequestPackageInstalls()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
                     installPackage(mNewApkUri);
                 }
             });

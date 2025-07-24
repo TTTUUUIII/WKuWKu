@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 public final class SettingsManager {
+    public static final String PERFORMANCE_MODE = "app_performance_mode";
     private SettingsManager() {}
     private static final List<OnSettingChangedListener> mClientListeners = new ArrayList<>();
     private static final SharedPreferences.OnSharedPreferenceChangeListener sListener = (sharedPreferences, key) -> {

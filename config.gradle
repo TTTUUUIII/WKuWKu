@@ -3,7 +3,7 @@ file("${rootDir}/local.properties").withInputStream {localProperties.load(it)}
 ext {
     versions = [
             compileSdkVersion: 35,
-            minSdkVersion    : 26,
+            minSdkVersion    : 24,
             targetSdkVersion : 35
     ]
 

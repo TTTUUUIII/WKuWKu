@@ -22,6 +22,7 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.interfaces.IEmulator;
+import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.HotkeysDialog;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener {
@@ -90,6 +91,17 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         Preference preference = findPreference(ACTION_CUSTOM_HOTKEYS);
         if (preference != null) {
             preference.setOnPreferenceClickListener(this);
+        }
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (!mParentActivity.isPerformanceModeSupported()) {
+            Preference preference = findPreference(SettingsManager.PERFORMANCE_MODE);
+            if (preference != null) {
+                preference.setVisible(false);
+            }
         }
     }
 
