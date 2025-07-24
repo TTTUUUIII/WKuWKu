@@ -99,7 +99,11 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != STATE_RUNNING) return;
     if (hw_render_cb) {
-        renderer->swap_buffers();
+        if (data == RETRO_HW_FRAME_BUFFER_VALID) {
+            renderer->swap_buffers();
+        } else {
+            /*Just still prev frame dupe.*/
+        }
     } else if (data) {
         fill_frame_buffer(data, width, height, pitch);
     }
