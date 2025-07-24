@@ -6,7 +6,7 @@
 #define WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
 #include <utility>
 #include <vector>
-#include <libretro/libretro.h>
+#include <libretro.h>
 #include <EGL/egl.h>
 #include <jni.h>
 #include <string>
