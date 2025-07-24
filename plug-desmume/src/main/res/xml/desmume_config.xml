@@ -64,7 +64,7 @@
         </option>
         <option
             key="desmume_internal_resolution"
-            defaultValue="1024x768"
+            defaultValue="256x192"
             title="Internal Resolution (restart)">
             <allow-values>
                 <value>256x192</value>
@@ -81,12 +81,12 @@
         </option>
         <option
             key="desmume_num_cores"
-            defaultValue="1"
+            defaultValue="4"
             inputType="number"
             title="CPU Cores (1 - 4)"/>
         <option
             key="desmume_screens_layout"
-            defaultValue="top only"
+            defaultValue="top/bottom"
             title="Screen Layout">
             <allow-values>
                 <value>top/bottom</value>
@@ -343,7 +343,7 @@
         </option>
         <option
             key="desmume_advanced_timing"
-            defaultValue="enabled"
+            defaultValue="disabled"
             title="Enable Advanced Bus-Level Timing">
             <allow-values>
                 <value>disabled</value>
