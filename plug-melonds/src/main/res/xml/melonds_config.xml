@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Nintendo DS"
+            tag="nds"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>nds</item>
+        <item>ids</item>
+        <item>bin</item>
+    </content-extensions>
+    <options>
+    </options>
+</em-config>
