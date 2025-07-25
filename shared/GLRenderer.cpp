@@ -37,6 +37,7 @@ GLRenderer::~GLRenderer() {
         eglDestroyContext(display, context);
         eglTerminate(display);
         ANativeWindow_release(window);
+        state = INVALID;
 };
 
 void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
