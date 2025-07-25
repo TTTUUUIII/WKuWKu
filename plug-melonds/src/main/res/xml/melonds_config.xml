@@ -1,0 +1,398 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Nintendo DS"
+            manufacturer="nintendo"
+            tag="nds" />
+    </systems>
+    <content-extensions>
+        <item>nds</item>
+        <item>ids</item>
+        <item>bin</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="DS"
+            key="melonds_console_mode"
+            title="Console Mode">
+            <allow-values>
+                <value>DS</value>
+                <value>DSi</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="melonds_boot_directly"
+            title="Boot Game Directly">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="melonds_use_fw_settings"
+            title="Use Firmware Settings">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="English"
+            key="melonds_language"
+            title="Language">
+            <allow-values>
+                <value>Japanese</value>
+                <value>English</value>
+                <value>English</value>
+                <value>French</value>
+                <value>German</value>
+                <value>Italian</value>
+                <value>Spanish</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="melonds_randomize_mac_address"
+            title="Randomize MAC Address">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="melonds_dsi_sdcard"
+            title="Enable DSi SD Card">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="melonds_threaded_renderer"
+            title="Threaded Software Renderer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="melonds_opengl_renderer"
+            title="OpenGL Renderer (Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="1x native (256x192)"
+            key="melonds_opengl_resolution"
+            title="OpenGL Internal Resolution">
+            <allow-values>
+                <value>1x native (256x192)</value>
+                <value>2x native (512x384)</value>
+                <value>3x native (768x576)</value>
+                <value>4x native (1024x768)</value>
+                <value>5x native (1280x960)</value>
+                <value>6x native (1536x1152)</value>
+                <value>7x native (1792x1344)</value>
+                <value>8x native (2048x1536)</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="melonds_opengl_better_polygons"
+            title="OpenGL Improved Polygon Splitting">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="nearest"
+            key="melonds_opengl_filtering"
+            title="OpenGL Filtering">
+            <allow-values>
+                <value>nearest</value>
+                <value>linear</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Blow Noise"
+            key="melonds_mic_input"
+            title="Microphone Input">
+            <allow-values>
+                <value>Blow Noise</value>
+                <value>White Noise</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Automatic"
+            key="melonds_audio_bitrate"
+            title="Audio Bitrate">
+            <allow-values>
+                <value>Automatic</value>
+                <value>10-bit</value>
+                <value>16-bit</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="None"
+            key="melonds_audio_interpolation"
+            title="Audio Interpolation">
+            <allow-values>
+                <value>None</value>
+                <value>Linear</value>
+                <value>Cosine</value>
+                <value>Cubic</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Touch"
+            key="melonds_touch_mode"
+            title="Touch Mode">
+            <allow-values>
+                <value>Mouse</value>
+                <value>Touch</value>
+                <value>Joystick</value>
+                <value>disabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Toggle"
+            key="melonds_swapscreen_mode"
+            title="Swap Screen Mode">
+            <allow-values>
+                <value>Toggle</value>
+                <value>Hold</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Top/Bottom"
+            key="melonds_screen_layout"
+            title="Screen Layout">
+            <allow-values>
+                <value>Top/Bottom</value>
+                <value>Bottom/Top</value>
+                <value>Left/Right</value>
+                <value>Right/Left</value>
+                <value>Top Only</value>
+                <value>Bottom Only</value>
+                <value>Hybrid Top</value>
+                <value>Hybrid Bottom</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            inputType="number"
+            key="melonds_screen_gap"
+            title="Screen Gap" />
+        <option
+            defaultValue="Bottom"
+            key="melonds_hybrid_small_screen"
+            title="Hybrid Small Screen Mode">
+            <allow-values>
+                <value>Bottom</value>
+                <value>Top</value>
+                <value>Duplicate</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="2"
+            key="melonds_hybrid_ratio"
+            title="Hybrid Ratio (OpenGL Only)">
+            <allow-values>
+                <value>2</value>
+                <value>3</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="melonds_jit_enable"
+            title="JIT Enable (Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="32"
+            inputType="number"
+            key="melonds_jit_block_size"
+            title="JIT Block Size" />
+        <option
+            defaultValue="enabled"
+            key="melonds_jit_branch_optimisations"
+            title="JIT Branch Optimisations">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="melonds_jit_literal_optimisations"
+            title="JIT Literal Optimisations">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="melonds_jit_fast_memory"
+            title="JIT Fast Memory">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="desmume_gfx_multisampling"
+            title="Multisampling">
+            <allow-values>
+                <value>disabled</value>
+                <value>2</value>
+                <value>4</value>
+                <value>8</value>
+                <value>16</value>
+                <value>32</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="desmume_gfx_highres_interpolate_color"
+            title="High-res Color Interpolation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="desmume_gfx_texture_deposterize"
+            title="Texture Deposterization">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="1"
+            key="desmume_gfx_texture_scaling"
+            title="Texture Scaling (xBrz)">
+            <allow-values>
+                <value>1</value>
+                <value>2</value>
+                <value>4</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="desmume_gfx_edgemark"
+            title="Edge Marking">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="desmume_gfx_linehack"
+            title="Soft3D: Line Hack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="desmume_gfx_txthack"
+            title="Soft3D: Texture Hack">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="pattern"
+            key="desmume_mic_mode"
+            title="Microphone Button Noise Type">
+            <allow-values>
+                <value>pattern</value>
+                <value>sample</value>
+                <value>random</value>
+                <value>physical</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            inputType="number"
+            key="desmume_pointer_device_acceleration_mod"
+            title="Emulated Pointer Acceleration Modifier Percent (0 - 100)" />
+        <option
+            defaultValue="50"
+            inputType="number"
+            key="desmume_pointer_stylus_pressure"
+            title="Emulated Stylus Pressure Modifier Percent (0 - 100)" />
+        <option
+            defaultValue="disabled"
+            key="desmume_load_to_memory"
+            title="Load Game Into Memory (restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="desmume_advanced_timing"
+            title="Enable Advanced Bus-Level Timing">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="1"
+            inputType="number"
+            key="desmume_screens_gap"
+            title="Screen Gap (0 - 100)" />
+        <option
+            defaultValue="enabled"
+            key="desmume_hybrid_showboth_screens"
+            title="Hybrid Layout: Show Both Screens">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="desmume_hybrid_cursor_always_smallscreen"
+            title="Hybrid Layout: Cursor Always on Small Screen">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="white"
+            key="desmume_pointer_colour"
+            title="Pointer Colour">
+            <allow-values>
+                <value>white</value>
+                <value>black</value>
+                <value>red</value>
+                <value>blue</value>
+                <value>yellow</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>

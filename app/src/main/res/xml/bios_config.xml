@@ -49,6 +49,23 @@
             md5="1cd19988d1d72a3e7caa0b73234c96b4"
             url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/mpr-19367-mx.ic1" />
     </system>
+    <system tag="nds">
+        <bios-file
+            required="true"
+            name="bios7.bin"
+            md5="df692a80a5b1bc90728bc3dfc76cd948"
+            url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Nintendo%20DS/bios7.bin" />
+        <bios-file
+            required="true"
+            name="bios9.bin"
+            md5="a392174eb3e572fed6447e956bde4b25"
+            url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Nintendo%20DS/bios9.bin" />
+        <bios-file
+            required="true"
+            name="firmware.bin"
+            md5="e45033d9b0fa6b0de071292bba7c9d13"
+            url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Nintendo%20DS/firmware.bin" />
+    </system>
     <system tag="msx">
         <bios-file
             required="true"

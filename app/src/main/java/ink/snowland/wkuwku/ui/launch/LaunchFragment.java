@@ -80,7 +80,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String HOTKEY_SCREENSHOT = "hotkey_screenshot";
     private static final String HOTKEY_RESET = "hotkey_reset";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
-    private static final String VIDEO_RATIO = "app_video_ratio";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
     private static final String PLAYER_1_CONTROLLER = "player_1_controller";
@@ -89,6 +88,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private LaunchViewModel mViewModel;
     private Game mGame;
     private Snackbar mSnackbar;
+    private final boolean mForceFullScreen = "full screen".equals(SettingsManager.getString("app_video_ratio"));
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
@@ -135,6 +135,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.buttonLoadState2.setOnClickListener(this);
         binding.buttonLoadState3.setOnClickListener(this);
         binding.buttonLoadState4.setOnClickListener(this);
+        if (mForceFullScreen) {
+            binding.getRoot().setFitsSystemWindows(false);
+            binding.surfaceView.fullScreen();
+        }
         return binding.getRoot();
     }
 
@@ -239,37 +243,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private int mVideoWidth = 0;
     private int mVideoHeight = 0;
     private void adjustScreenSize(int width, int height) {
-        float ratio = (float) width / height;
-        binding.surfaceView.post(() -> {
-            ViewGroup.LayoutParams lp = binding.surfaceView.getLayoutParams();
-            if ("full screen".equals(SettingsManager.getString(VIDEO_RATIO))) {
-                lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                setFitsSystemWindows(binding.getRoot(), false);
-            } else {
-                DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-                if (landscape) {
-                    lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                    lp.width = (int) (displayMetrics.heightPixels * ratio);
-                } else {
-                    lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                    lp.height = (int) (displayMetrics.widthPixels / ratio);
-                }
-                setFitsSystemWindows(binding.getRoot(), true);
-            }
-            binding.surfaceView.setLayoutParams(lp);
-        });
+        if (!mForceFullScreen) {
+            binding.surfaceView.adjustSurfaceSize(width, height);
+        }
         mVideoWidth = width;
         mVideoHeight = height;
-    }
-
-    private void setFitsSystemWindows(@NonNull View view, boolean fitsSystemWindows) {
-        if (view.getFitsSystemWindows() == fitsSystemWindows) return;
-        view.post(() -> {
-            view.setFitsSystemWindows(fitsSystemWindows);
-            view.requestApplyInsets();
-        });
     }
 
     private final OnBackPressedCallback mBackPressedCallback = new OnBackPressedCallback(true) {
@@ -598,8 +576,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public int onPollInputState(int port, int device, int index, int id) {
         BaseController controller = mControllerRoutes.get(port);
-        if (controller == null || controller.type != device) return 0;
-        return controller.getState(id);
+        if (controller != null && controller.type == device) {
+            return controller.getState(id);
+        } else if (device == RETRO_DEVICE_POINTER) {
+            return binding.surfaceView.getTouch(id);
+        }
+        return 0;
     }
 
     @Override

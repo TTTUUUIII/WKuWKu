@@ -176,39 +176,37 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
                 mPlugInstalledBinding.recyclerView.addItemDecoration(decoration);
                 mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
-                mPlugInstalledBinding.installFromStorage.setOnClickListener(v -> {
-                    parentActivity.openDocument("application/vnd.android.package-archive", plugUri -> {
-                        if (plugUri == null) return;
-                        File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
-                        mViewModel.setPendingIndicator(true, R.string.copying_files);
-                        FileManager.copyAsync(plugUri, temp, new ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                mViewModel.setPendingMessage(R.string.installing);
-                                PlugManager.install(temp, new ActionListener() {
-                                    @Override
-                                    public void onSuccess() {
-                                        FileManager.delete(temp);
-                                        mViewModel.setPendingIndicator(false);
-                                    }
+                mPlugInstalledBinding.installFromStorage.setOnClickListener(v -> parentActivity.openDocument("application/vnd.android.package-archive", plugUri -> {
+                    if (plugUri == null) return;
+                    File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
+                    mViewModel.setPendingIndicator(true, R.string.copying_files);
+                    FileManager.copyAsync(plugUri, temp, new ActionListener() {
+                        @Override
+                        public void onSuccess() {
+                            mViewModel.setPendingMessage(R.string.installing);
+                            PlugManager.install(temp, new ActionListener() {
+                                @Override
+                                public void onSuccess() {
+                                    FileManager.delete(temp);
+                                    mViewModel.setPendingIndicator(false);
+                                }
 
-                                    @Override
-                                    public void onFailure(Throwable e) {
-                                        e.printStackTrace(System.err);
-                                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                        FileManager.delete(temp);
-                                        mViewModel.setPendingIndicator(false);
-                                    }
-                                });
-                            }
+                                @Override
+                                public void onFailure(Throwable e) {
+                                    e.printStackTrace(System.err);
+                                    Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                    FileManager.delete(temp);
+                                    mViewModel.setPendingIndicator(false);
+                                }
+                            });
+                        }
 
-                            @Override
-                            public void onFailure(Throwable e) {
-                                mViewModel.setPendingIndicator(false);
-                            }
-                        });
+                        @Override
+                        public void onFailure(Throwable e) {
+                            mViewModel.setPendingIndicator(false);
+                        }
                     });
-                });
+                }));
             } else {
                 mPlugAvailableBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
                 mPlugAvailableBinding.recyclerView.setAdapter(mAvailablePlugAdapter);
@@ -261,9 +259,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.emergency)
                 .setMessage(getString(R.string.fmt_delete_plug, manifest.origin.name))
-                .setPositiveButton(R.string.delete, (dialog, which) -> {
-                    PlugManager.uninstall(manifest.origin, null);
-                })
+                .setPositiveButton(R.string.delete, (dialog, which) -> PlugManager.uninstall(manifest.origin, null))
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
@@ -301,9 +297,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             })
                             .subscribe();
                 });
-                _binding.uninstall.setOnClickListener(v -> {
-                    showDeletePlugDialog(manifest);
-                });
+                _binding.uninstall.setOnClickListener(v -> showDeletePlugDialog(manifest));
             } else if (itemBinding instanceof ItemPlugResBinding && o instanceof PlugRes) {
                 PlugRes res = (PlugRes) o;
                 ItemPlugResBinding _binding = (ItemPlugResBinding) itemBinding;
@@ -316,7 +310,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 }
                 if (BuildConfig.VERSION_CODE < res.minAppVersion || (res.maxAppVersion != PlugRes.VERSION_UNKNOW && BuildConfig.VERSION_CODE > res.maxAppVersion)) {
                     _binding.installButton.setEnabled(false);
-                    _binding.installButton.setText(R.string.na);
+                    _binding.installButton.setText(R.string.incompatible);
                 } else {
                     final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
                     if (plug != null) {
