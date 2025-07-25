@@ -23,7 +23,7 @@ typedef struct {
     std::function<void(EGLDisplay, EGLSurface)> on_surface_create;
     std::function<void()> on_draw_frame;
     std::function<void()> on_surface_destroy;
-} GLRendererInterface;
+} GLRendererCallback;
 
 
 class GLRenderer {
@@ -39,7 +39,7 @@ private:
     std::thread gl_thread;
     bool gl_thread_running = false;
     std::atomic<WindowState> state = INVALID;
-    GLRendererInterface interface = {};
+    GLRendererCallback callback = {};
 
 public:
     explicit GLRenderer(ANativeWindow *wd);
@@ -50,7 +50,7 @@ public:
 
     void swap_buffers();
 
-    GLRendererInterface* get_renderer_interface();
+    GLRendererCallback* get_callback();
 
     bool request_start();
 

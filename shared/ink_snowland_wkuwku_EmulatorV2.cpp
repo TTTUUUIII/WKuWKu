@@ -505,6 +505,7 @@ static bool initialized = false;
 static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     UNUSED(thiz);
+    LOGD(TAG, "Attach surface");
     ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
     if (activity != nullptr && !SwappyGL_isEnabled()) {
         SwappyGL_init(env, activity);
@@ -536,12 +537,14 @@ static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
     UNUSED(env);
     UNUSED(thiz);
     renderer->adjust_viewport(vw, vh);
+    LOGD(TAG, "Adjust surface size, vw=%d, vh=%d", vw, vh);
 }
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
     renderer->request_stop();
+    LOGD(TAG, "Detach surface");
 }
 
 static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {

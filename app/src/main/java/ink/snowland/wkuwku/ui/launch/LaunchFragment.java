@@ -6,7 +6,6 @@ import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 
@@ -31,6 +30,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -97,6 +97,32 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private String mPlayer1ControllerName = SettingsManager.getString(PLAYER_1_CONTROLLER);
     private String mPlayer2ControllerName = SettingsManager.getString(PLAYER_2_CONTROLLER);
     private final List<BaseController> mExternalControllers = new ArrayList<>();
+
+    private final SurfaceHolder.Callback mSurfaceCallback = new SurfaceHolder.Callback() {
+        @Override
+        public void surfaceCreated(@NonNull SurfaceHolder holder) {
+            IEmulator emulator = mViewModel.getEmulator();
+            if (emulator != null) {
+                emulator.attachSurface(parentActivity, holder.getSurface());
+            }
+        }
+
+        @Override
+        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+            IEmulator emulator = mViewModel.getEmulator();
+            if (emulator != null) {
+                emulator.adjustSurface(width, height);
+            }
+        }
+
+        @Override
+        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+            IEmulator emulator = mViewModel.getEmulator();
+            if (emulator != null) {
+                emulator.detachSurface();
+            }
+        }
+    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -220,22 +246,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         IEmulator emulator = mViewModel.getEmulator();
         if (emulator != null) {
             emulator.setOnEventListener(this);
-            binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
-                @Override
-                public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                    emulator.attachSurface(parentActivity, holder.getSurface());
-                }
-
-                @Override
-                public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-                    emulator.adjustSurface(width, height);
-                }
-
-                @Override
-                public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-                    emulator.detachSurface();
-                }
-            });
+            binding.surfaceView.getHolder().addCallback(mSurfaceCallback);
             mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains((String) emulator.getProp(PROP_ALIAS));
         }
     }
@@ -347,12 +358,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         mExitDialog.show();
     }
 
-    private void onExit() {
+    private void exit() {
         if (!mViewModel.isPlaying()) {
             NavController navController = NavHostFragment.findNavController(this);
             navController.popBackStack();
             return;
         }
+        binding.surfaceView.getHolder().removeCallback(mSurfaceCallback);
         File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
         boolean captureScreen = !screenshot.exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
@@ -410,8 +422,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mViewModel.resetEmulator();
             mExitDialog.dismiss();
         } else if (viewId == R.id.exit) {
-            onExit();
             mExitDialog.dismiss();
+            exit();
         } else {
             mControllerRoutes.get(PLAYER_1).vibrator();
             if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {

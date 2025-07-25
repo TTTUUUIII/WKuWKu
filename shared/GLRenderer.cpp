@@ -44,8 +44,8 @@ void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
     vh = h;
 }
 
-GLRendererInterface* GLRenderer::get_renderer_interface() {
-    return &interface;
+GLRendererCallback* GLRenderer::get_callback() {
+    return &callback;
 }
 
 bool GLRenderer::request_start() {
@@ -56,8 +56,8 @@ bool GLRenderer::request_start() {
             LOGI(TAG, "GLThread started, tid=%d", gettid());
             uint16_t current_vw = vw, current_vh = vh;
             eglMakeCurrent(display, surface, surface, context);
-            if (interface.on_surface_create) {
-                interface.on_surface_create(display, surface);
+            if (callback.on_surface_create) {
+                callback.on_surface_create(display, surface);
             }
             while (state == RUNNING) {
                 if (current_vw != vw || current_vh != vh) {
@@ -65,21 +65,21 @@ bool GLRenderer::request_start() {
                     current_vw = vw;
                     current_vh = vh;
                 }
-                if (state == RUNNING && interface.on_draw_frame) {
-                    interface.on_draw_frame();
+                if (state == RUNNING && callback.on_draw_frame) {
+                    callback.on_draw_frame();
                 }
             }
-            if (interface.on_surface_destroy) {
-                interface.on_surface_destroy();
+            if (callback.on_surface_destroy) {
+                callback.on_surface_destroy();
             }
             eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
             std::lock_guard<std::mutex> lock(mtx);
             gl_thread_running = false;
             cv.notify_one();
-            LOGI(TAG, "GLThread exited.");
+            LOGI(TAG, "GLThread exited, tid=%d", gettid());
         });
-        gl_thread.detach();
         state = RUNNING;
+        gl_thread.detach();
     } else {
         no_error = false;
     }
@@ -92,6 +92,9 @@ void GLRenderer::request_stop() {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] {return gl_thread_running;});
     }
+    callback.on_draw_frame = nullptr;
+    callback.on_surface_destroy = nullptr;
+    callback.on_surface_create = nullptr;
 }
 
 void GLRenderer::swap_buffers() {
