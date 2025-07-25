@@ -54,7 +54,7 @@ public:
 
     bool request_start();
 
-    void request_stop();
+    void release();
 };
 
 
