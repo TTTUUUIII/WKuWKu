@@ -15,17 +15,19 @@
 |-------------------------------------|--------------|-----------------|
 | Nintendo Entertainment System       | Nintendo     | fceumm、mesen    |
 | Family Computer                     | Nintendo     | fceumm、mesen    |
-| Super Nintendo Entertainment System | Nintendo     | mesen-s         |
-| Game Boy                            | Nintendo     | mesen-s         |
-| Game Boy Color                      | Nintendo     | mesen-s         |
+| Nintendo DS                        | Nintendo      | melonDS            |
+| Super Nintendo Entertainment System | Nintendo     | snes9x         |
+| Game Boy                            | Nintendo     | sameboy         |
+| Game Boy Color                      | Nintendo     | sameboy         |
 | Game Gear                           | Sega         | genesis plus gx |
 | Master System                       | Sega         | genesis plus gx |
 | Mega-CD                             | Sega         | genesis plus gx |
-| Mega Drive                          | Sega         | genesis plus gx |
+| Mega Drive/Genesis                  | Sega         | genesis plus gx |
+| Saturn                                | Sega       | mednafen saturn |
 | PICO                                | Sega         | genesis plus gx |
 | SG-1000                             | Sega         | genesis plus gx |
 | Play Station                        | Sony         | pcsx            |
-| Arcade                              | N/A          | mame2003-plus   |
+| Arcade                              | N/A          | mame2003-plus、fbneo   |
 | PC Engine                           | NEC          | geargrafx       |
 
 
