@@ -127,6 +127,11 @@ public abstract class Emulator implements IEmulator {
     }
 
     @Override
+    public boolean onNativeRumbleState(int port, int effect, int strength) {
+        return true;
+    }
+
+    @Override
     public boolean onNativeEnvironment(int cmd, Object data) {
         boolean supported = false;
         Variable variable;
@@ -175,10 +180,10 @@ public abstract class Emulator implements IEmulator {
     }
 
     @Override
-    public void onNativeVideoSizeChanged(int vw, int vh) {
+    public void onNativeVideoSizeChanged(int vw, int vh, int rotation) {
         OnEmulatorV2EventListener listener = mListener.get();
         if (listener != null) {
-            listener.onVideoSizeChanged(vw, vh);
+            listener.onVideoSizeChanged(vw, vh, rotation);
         }
     }
 

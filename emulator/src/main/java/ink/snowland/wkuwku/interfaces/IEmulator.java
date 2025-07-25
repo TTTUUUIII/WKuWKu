@@ -51,8 +51,9 @@ public interface IEmulator extends RetroDefine {
     void setMemoryData(int type, final byte[] data);
     void setControllerPortDevice(int port, int device);
 
+    boolean onNativeRumbleState(int port, int effect, int strength);
     boolean onNativeEnvironment(int cmd, Object data);
-    void onNativeVideoSizeChanged(int vw, int vh);
+    void onNativeVideoSizeChanged(int vw, int vh, int rotation);
     int onNativeAudioBuffer(final short[] data, int frames);
     int onNativePollInput(int port, int device, int index, int id);
 }

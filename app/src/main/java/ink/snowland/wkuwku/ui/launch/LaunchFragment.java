@@ -23,14 +23,13 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.os.Environment;
 import android.os.Looper;
 import android.provider.MediaStore;
-import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -97,32 +96,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private String mPlayer1ControllerName = SettingsManager.getString(PLAYER_1_CONTROLLER);
     private String mPlayer2ControllerName = SettingsManager.getString(PLAYER_2_CONTROLLER);
     private final List<BaseController> mExternalControllers = new ArrayList<>();
-
-    private final SurfaceHolder.Callback mSurfaceCallback = new SurfaceHolder.Callback() {
-        @Override
-        public void surfaceCreated(@NonNull SurfaceHolder holder) {
-            IEmulator emulator = mViewModel.getEmulator();
-            if (emulator != null) {
-                emulator.attachSurface(parentActivity, holder.getSurface());
-            }
-        }
-
-        @Override
-        public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
-            IEmulator emulator = mViewModel.getEmulator();
-            if (emulator != null) {
-                emulator.adjustSurface(width, height);
-            }
-        }
-
-        @Override
-        public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-            IEmulator emulator = mViewModel.getEmulator();
-            if (emulator != null) {
-                emulator.detachSurface();
-            }
-        }
-    };
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -246,7 +219,22 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         IEmulator emulator = mViewModel.getEmulator();
         if (emulator != null) {
             emulator.setOnEventListener(this);
-            binding.surfaceView.getHolder().addCallback(mSurfaceCallback);
+            binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(@NonNull SurfaceHolder holder) {
+                    emulator.attachSurface(holder.getSurface());
+                }
+
+                @Override
+                public void surfaceChanged(@NonNull SurfaceHolder holder, int format, int width, int height) {
+                    emulator.adjustSurface(width, height);
+                }
+
+                @Override
+                public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
+                    emulator.detachSurface();
+                }
+            });
             mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains((String) emulator.getProp(PROP_ALIAS));
         }
     }
@@ -364,7 +352,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             navController.popBackStack();
             return;
         }
-        binding.surfaceView.getHolder().removeCallback(mSurfaceCallback);
         File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
         boolean captureScreen = !screenshot.exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
@@ -581,8 +568,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     @Override
-    public void onVideoSizeChanged(int vw, int vh) {
-        adjustScreenSize(vw, vh);
+    public void onVideoSizeChanged(int vw, int vh, int rotation) {
+        if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+            adjustScreenSize(vh, vw);
+        } else {
+            adjustScreenSize(vw, vh);
+        }
     }
 
     @Override

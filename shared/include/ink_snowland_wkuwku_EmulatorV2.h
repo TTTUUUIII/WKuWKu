@@ -37,11 +37,11 @@
 #define PROP_LOW_LATENCY_AUDIO_ENABLE            103
 #define PROP_AUDIO_UNDERRUN_OPTIMIZATION         104
 
-enum orientation_t {
-    ORIENTATION_0,
-    ORIENTATION_90,
-    ORIENTATION_180,
-    ORIENTATION_270
+enum rotation_t {
+    ROTATION_0,
+    ROTATION_90,
+    ROTATION_180,
+    ROTATION_270
 };
 
 typedef struct {
@@ -58,6 +58,7 @@ typedef struct {
     jmethodID audio_buffer_method;
     jmethodID video_size_cb_method;
     jmethodID input_cb_method;
+    jmethodID rumble_cb_method;
     jfieldID variable_value_field;
     jfieldID variable_entry_key_field;
     jfieldID variable_entry_value_field;
@@ -99,6 +100,7 @@ template <typename T>
 static T get_prop(int32_t prop, const T &default_value);
 
 /*JNI utils*/
+static jobject new_int(JNIEnv *env, int32_t value);
 static jint as_int(JNIEnv *, jobject);
 static bool as_bool(JNIEnv *, jobject);
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H
