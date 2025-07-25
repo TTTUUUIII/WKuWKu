@@ -141,7 +141,6 @@
     <string name="theme">主题</string>
     <string name="player_1">玩家 1</string>
     <string name="player_2">玩家 2</string>
-    <string name="incompatible">不兼容</string>
     <string name="fmt_controller_disconnected">控制器： %s 已断开!</string>
     <string name="fmt_controller_connected">控制器： %s 已连接!</string>
     <string name="audio_options">音频选项</string>
@@ -160,4 +159,5 @@
     <string name="underrun_optimization_summary">主动检测音频欠载情况并做必要优化</string>
     <string name="summary_switch_to_performance_mode_when_playing">在游戏时切换到性能模式（消耗更多电量）</string>
     <string name="performance_mode">性能模式</string>
+    <string name="incompatible">不兼容</string>
 </resources>
