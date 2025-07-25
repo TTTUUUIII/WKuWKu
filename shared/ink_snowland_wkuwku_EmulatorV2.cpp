@@ -508,8 +508,7 @@ static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
-    renderer->request_stop();
-    renderer = nullptr;
+    renderer->release();
     LOGD(TAG, "Surface detached");
 }
 

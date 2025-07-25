@@ -32,13 +32,7 @@ GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
     state = PREPARED;
 }
 
-GLRenderer::~GLRenderer() {
-        eglDestroySurface(display, surface);
-        eglDestroyContext(display, context);
-        eglTerminate(display);
-        ANativeWindow_release(window);
-        state = INVALID;
-};
+GLRenderer::~GLRenderer() = default;
 
 void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
     vw = w;
@@ -60,7 +54,8 @@ bool GLRenderer::request_start() {
             if (callback.on_surface_create) {
                 callback.on_surface_create(display, surface);
             }
-            while (state == RUNNING) {
+            for (;;) {
+                if (state != RUNNING) break;
                 if (current_vw != vw || current_vh != vh) {
                     glViewport(0, 0, vw, vh);
                     current_vw = vw;
@@ -87,18 +82,24 @@ bool GLRenderer::request_start() {
     return no_error;
 }
 
-void GLRenderer::request_stop() {
-    if (state == RUNNING) {
-        state = PREPARED;
+void GLRenderer::release() {
+    if (state == INVALID) return;
+    state = INVALID;
+    if (gl_thread_running) {
         std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] {return gl_thread_running;});
+        cv.wait(lock, [this] {return !gl_thread_running;});
     }
     callback.on_draw_frame = nullptr;
     callback.on_surface_destroy = nullptr;
     callback.on_surface_create = nullptr;
+    eglDestroySurface(display, surface);
+    eglDestroyContext(display, context);
+    eglTerminate(display);
+    ANativeWindow_release(window);
 }
 
 void GLRenderer::swap_buffers() {
+    if (state != RUNNING) return;
     if (SwappyGL_isEnabled()) {
         SwappyGL_swap(display, surface);
     } else {
