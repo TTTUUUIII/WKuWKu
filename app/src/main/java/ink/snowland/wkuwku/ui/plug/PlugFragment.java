@@ -317,6 +317,10 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                         _binding.installButton.setEnabled(plug.origin.getVersionCode() < res.versionCode);
                         _binding.installButton.setTag(_binding.installButton.isEnabled() ? "upgrade" : "installed");
                         _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.upgrade : R.string.installed);
+                    } else {
+                        _binding.installButton.setEnabled(true);
+                        _binding.installButton.setTag("install");
+                        _binding.installButton.setText(R.string.install);
                     }
                     _binding.installButton.setOnClickListener(v -> {
                         if ("upgrade".equals(v.getTag())) return;
