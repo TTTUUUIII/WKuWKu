@@ -11,7 +11,7 @@
     <string name="r2" translatable="false">R2</string>
     <string name="r" translatable="false">R</string>
     <string name="a_b" translatable="false">A + B</string>
-    <string name="load_game_failed">ERROR: failed to load game!</string>
+    <string name="load_game_failed">Failed to load game!</string>
     <string name="add_game_rom">Add a new game</string>
     <string name="add_game">Add game</string>
     <string name="history">History</string>
@@ -31,9 +31,9 @@
     <string name="region">Region</string>
     <string name="no_title">No Title</string>
     <string name="please_input_title">Please input a title!</string>
-    <string name="copy_file_failed">ERROR: Falied to copy file!</string>
+    <string name="copy_file_failed">Failed to copy file!</string>
     <string name="fmt_operation_failed">ERROR: %s</string>
-    <string name="operation_failed">ERROR: Operation failed!</string>
+    <string name="operation_failed">Operation failed!</string>
     <string name="successful">successful</string>
     <string name="options">Options</string>
     <string name="never_played">Never</string>
@@ -67,14 +67,12 @@
     <string name="core_preference">Core preference</string>
     <string name="famicom">Famicon</string>
     <string name="apply">Apply</string>
-    <string name="network_timeout">ERROR: network timeout!</string>
+    <string name="network_timeout">Network timeout!</string>
     <string name="trash">Trash</string>
     <string name="loading">loading</string>
-    <string name="mark_broken_when_start_game_failed">Mark broken games</string>
     <string name="fmt_downloading">Downloading %.0f%%</string>
     <string name="downloading_files">Downloading files</string>
-    <string name="network_error">ERROR: Network error</string>
-    <string name="load_bios_failed">ERROR: Load bios failed, network error!</string>
+    <string name="network_error">Network error</string>
     <string name="please_select_system">Please select a system</string>
     <string name="c" translatable="false">C</string>
     <string name="z" translatable="false">Z</string>
@@ -99,11 +97,11 @@
     <string name="please_wait">Please wait</string>
     <string name="unzipping_files">Unzipping files</string>
     <string name="fmt_game_already_exists">%s already exists in list</string>
-    <string name="could_not_find_valid_rom_file">ERROR: could not found valid rom file!</string>
+    <string name="could_not_find_valid_rom_file">Could not found valid rom file!</string>
     <string name="move_to_trash">Move to trash</string>
     <string name="unsupported_archive_format">Sorry, this compression format is not currently supported.</string>
-    <string name="fmt_file_already_exists">ERROR: %s already exists.</string>
-    <string name="file_already_exists">ERROR: file already exists.</string>
+    <string name="fmt_file_already_exists">%s already exists.</string>
+    <string name="file_already_exists">File already exists.</string>
     <string name="keep_screen_on">Keep screen on</string>
     <string name="keep_screen_on_when_gaming">Keep the screen on when gaming</string>
     <string name="summary_reverse_landscape">Reverse screen rotation when entering game</string>
@@ -135,20 +133,18 @@
     <string name="fmt_delete_plug">Are you sure you want to delete the %s extension?</string>
     <string name="fmt_plug_deleted">%s deleted</string>
     <string name="installing">Installing</string>
-    <string name="install_failed">ERROR: install failed!</string>
+    <string name="install_failed">Install failed!</string>
     <string name="l3" translatable="false">L3</string>
     <string name="r3" translatable="false">R3</string>
     <string name="save" translatable="false">SAVE</string>
     <string name="load" translatable="false">LOAD</string>
     <string name="fmt_state_saved">State#%d saved!</string>
     <string name="fmt_state_loaded">State#%d loaded!</string>
-    <string name="load_state_failed">ERROR: state load failed!</string>
+    <string name="load_state_failed">State load failed!</string>
     <string name="played_just_now">Just played</string>
     <string name="fmt_played_days_ago">Played at %d days ago</string>
     <string name="fmt_played_hours_ago">Played at %d hours ago</string>
     <string name="fmt_played_minutes_ago">Played at %d minutes ago</string>
-    <string name="summary_download_optional_bios">Download optional BIOS</string>
-    <string name="download_optional_bios">Optional BIOS</string>
     <string name="saving_status">Saving status</string>
     <string name="emoji_workshop_source">Background Emoji Source</string>
     <string name="emoji_size">Background Emoji Size</string>
@@ -158,7 +154,7 @@
     <string name="reset_emulator">Reset emulator</string>
     <string name="save_progress">Save progress</string>
     <string name="upgrade">Upgrade</string>
-    <string name="invalid_package">ERROR: invalid package!</string>
+    <string name="invalid_package">Invalid package!</string>
     <string name="plug_already_installed">This extension already installed!</string>
     <string name="blacklist_auto_load_state">Auto load state blacklist</string>
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
@@ -180,10 +176,10 @@
     <string name="bind">Bind</string>
     <string name="waiting_keys">Waiting…</string>
     <string name="no_input_device">No input device!</string>
-    <string name="frame_pacing">Frame pacing</string>
-    <string name="frame_pacing_summary">Ensures smooth video and extends battery life</string>
     <string name="underrun_optimization">Underrun optimization</string>
     <string name="underrun_optimization_summary">Actively detect audio underrun and make necessary optimizations</string>
     <string name="summary_switch_to_performance_mode_when_playing">Switch performance mode when playing (Consumes more battery life)</string>
     <string name="performance_mode">Performance mode</string>
+    <string name="screenshot">Screenshot</string>
+    <string name="save_state">Save state</string>
 </resources>

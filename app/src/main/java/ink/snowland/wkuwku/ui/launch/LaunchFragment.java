@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.ui.launch;
 
+import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 
@@ -21,8 +22,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 
 import android.os.Environment;
-import android.os.Looper;
 import android.provider.MediaStore;
+import android.util.Pair;
 import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -33,7 +34,6 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.Toast;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
@@ -44,15 +44,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.Hotkey;
+import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.BaseTextWatcher;
 import ink.snowland.wkuwku.common.EmMessageExt;
+import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
@@ -61,19 +64,17 @@ import ink.snowland.wkuwku.device.ExternalController;
 import ink.snowland.wkuwku.device.VirtualController;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
-import ink.snowland.wkuwku.util.BiosProvider;
+import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener {
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
-    private static final int SNACKBAR_LENGTH_SHORT = 500;
-    private static final int SNACKBAR_LENGTH_LONG = 1000;
     private static final String HOTKEY_QUICK_SAVE = "hotkey_quick_save";
     private static final String HOTKEY_QUICK_LOAD = "hotkey_quick_load";
     private static final String HOTKEY_SCREENSHOT = "hotkey_screenshot";
@@ -86,7 +87,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private FragmentLaunchBinding binding;
     private LaunchViewModel mViewModel;
     private Game mGame;
-    private Snackbar mSnackbar;
     private final boolean mForceFullScreen = "full screen".equals(SettingsManager.getString("app_video_ratio"));
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
@@ -124,9 +124,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         attachToEmulator();
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
-        mSnackbar = Snackbar.make(binding.snackbarContainer, "", Snackbar.LENGTH_SHORT);
-        mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
-        mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         binding.buttonSavestate.setOnClickListener(this);
         binding.buttonScreenshot.setOnClickListener(this);
@@ -148,18 +145,38 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         parentActivity.setActionBarVisibility(false);
         attachDefaultController();
         if (savedInstanceState == null) {
-            mViewModel.setPendingIndicator(true, getString(R.string.downloading_files));
-            Disposable disposable = BiosProvider.downloadBiosForGame(mGame, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY))
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .doOnError(error -> {
-                        error.printStackTrace(System.err);
-                        Toast.makeText(parentActivity, R.string.load_bios_failed, Toast.LENGTH_SHORT).show();
-                    })
-                    .doFinally(() -> {
-                        mViewModel.setPendingIndicator(false);
-                    })
-                    .subscribe(this::startEmulator, error -> {/*Ignored*/});
+            IEmulator emulator = mViewModel.getEmulator();
+            if (emulator != null) {
+                Optional<EmSystem> system = emulator.getSupportedSystems()
+                        .stream()
+                        .filter(it -> it.tag.equals(mGame.system))
+                        .findFirst();
+                if (system.isPresent()) {
+                    List<Pair<String, File>> items = system.get().biosFiles.stream()
+                            .map(it -> new Pair<String, File>(it.url, getFile(SYSTEM_DIRECTORY, it.name)))
+                            .filter(it -> !it.second.exists())
+                            .collect(Collectors.toList());
+                    if (items.isEmpty()) {
+                        startEmulator();
+                    } else {
+                        mViewModel.setPendingIndicator(true, getString(R.string.downloading_files));
+                        DownloadManager.download(items, new ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                startEmulator();
+                                mViewModel.setPendingIndicator(false);
+                            }
+
+                            @Override
+                            public void onFailure(Throwable e) {
+                                e.printStackTrace(System.err);
+                                showSnackbar(R.string.network_error, Snackbar.LENGTH_LONG);
+                                mViewModel.setPendingIndicator(false);
+                            }
+                        });
+                    }
+                }
+            }
         } else {
             mVideoWidth = savedInstanceState.getInt("video_width");
             mVideoHeight = savedInstanceState.getInt("video_height");
@@ -184,9 +201,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 handler.postDelayed(mViewModel::loadStateAtLast, 300);
             }
         } else if (status == ERR_LOAD_FAILED){
-            showSnackbar(R.string.load_game_failed, SNACKBAR_LENGTH_SHORT);
+            showSnackbar(R.string.load_game_failed, Snackbar.LENGTH_LONG);
         } else if (status == ERR_EMULATOR_NOT_FOUND) {
-            showSnackbar(R.string.no_matching_emulator_found, SNACKBAR_LENGTH_SHORT);
+            showSnackbar(R.string.no_matching_emulator_found, Snackbar.LENGTH_LONG);
         }
     }
 
@@ -381,27 +398,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public static final String ARG_GAME = "game";
     public static final String ARG_AUTO_LOAD_STATE = "auto_load_state";
 
-    @MainThread
-    private void showSnackbar(@NonNull String msg, int duration) {
-        if (!Looper.getMainLooper().isCurrentThread()) {
-            handler.post(() -> {
-                mSnackbar.setText(msg);
-                mSnackbar.setDuration(duration);
-                mSnackbar.show();
-            });
-        } else {
-            mSnackbar.setText(msg);
-            mSnackbar.setDuration(duration);
-            mSnackbar.show();
-        }
-
-    }
-
-    @MainThread
-    private void showSnackbar(@StringRes int resId, int duration) {
-        showSnackbar(getString(resId), duration);
-    }
-
     @Override
     public void onClick(View v) {
         int viewId = v.getId();
@@ -414,7 +410,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         } else {
             mControllerRoutes.get(PLAYER_1).vibrator();
             if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
             } else if (viewId == R.id.button_load_state4) {
                 mViewModel.loadStateAt(3);
             } else if (viewId == R.id.button_load_state3) {
@@ -443,15 +439,15 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             try (FileInputStream from = new FileInputStream(tmp);
                  OutputStream to = contentResolver.openOutputStream(uri)){
                 if (to == null) return;
-                FileManager.copy(from, to);
+                FileUtils.copy(from, to);
                 values.clear();
                 values.put(MediaStore.Images.Media.IS_PENDING, 0);
                 contentResolver.update(uri, values, null, null);
-                showSnackbar(R.string.screenshot_saved, SNACKBAR_LENGTH_SHORT);
+                showSnackbar(R.string.screenshot_saved, Snackbar.LENGTH_SHORT);
             } catch (IOException e) {
                 e.printStackTrace(System.err);
             }
-            FileManager.delete(tmp);
+            FileUtils.delete(tmp);
         }
     }
 
@@ -472,7 +468,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         switch (hotkey.key) {
             case HOTKEY_QUICK_SAVE:
                 mViewModel.saveCurrentSate();
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), SNACKBAR_LENGTH_SHORT);
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
                 break;
             case HOTKEY_QUICK_LOAD:
                 mViewModel.loadStateAtLast();
@@ -506,7 +502,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
         || (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
             mExternalControllers.add(new ExternalController(requireContext(), device.getName(), device.getId()));
-            showSnackbar(getString(R.string.fmt_controller_connected, device.getName()), SNACKBAR_LENGTH_LONG);
             onUpdateControllerRoutes();
         }
     }
@@ -524,7 +519,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     mControllerRoutes.remove(PLAYER_2);
                 }
                 mExternalControllers.remove(controller);
-                showSnackbar(getString(R.string.fmt_controller_disconnected, controller.getName()), SNACKBAR_LENGTH_LONG);
                 updateRoute = true;
                 break;
             }

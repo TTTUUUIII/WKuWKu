@@ -20,6 +20,7 @@
 #define TAG "EmulatorV2"
 
 static std::mutex mtx;
+static std::condition_variable cv;
 static retro_system_info system_info{};
 static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
@@ -585,6 +586,7 @@ static void em_resume(JNIEnv *env, jobject thiz) {
         if (audio_stream_out) {
             audio_stream_out->request_start();
         }
+        cv.notify_one();
     }
 }
 
@@ -601,6 +603,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     if (!hw_render_cb) {
         LOGI(TAG, "Waiting main loop to exit.");
         send_message(MSG_KILL, nullptr)->get_future().get();
+        cv.notify_one();
     }
     clear_message();
     retro_unload_game();
@@ -836,8 +839,16 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 static void entry_main_loop() {
     set_thread_priority(THREAD_PRIORITY_AUDIO);
     for (;;) {
-        retro_run();
         std::shared_ptr<message_t> msg = obtain_message();
+        if (current_state == STATE_RUNNING) {
+            retro_run();
+        } else if (current_state == STATE_PAUSED && !msg) {
+            std::unique_lock<std::mutex> lock(mtx);
+            cv.wait(lock, []() {
+                return current_state != STATE_PAUSED
+                || !message_queue.empty();
+            });
+        }
         if (handle_message(msg)) continue;
         if (msg->what == MSG_KILL) {
             msg->promise->set_value({NO_ERROR, nullptr});
@@ -943,12 +954,14 @@ static void close_audio_stream() {
 static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any &usr) {
     std::shared_ptr<std::promise<result_t>> promise = std::make_shared<std::promise<result_t>>();
     message_queue.push(std::make_shared<message_t>(what, promise, usr));
+    cv.notify_one();
     return promise;
 }
 
 static void send_empty_message(int what) {
     std::lock_guard<std::mutex> lock(mtx);
     message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
+    cv.notify_one();
 }
 
 static bool handle_message(const std::shared_ptr<message_t> &msg) {

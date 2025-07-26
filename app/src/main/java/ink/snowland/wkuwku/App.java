@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import ink.snowland.wkuwku.db.AppDatabase;
-import ink.snowland.wkuwku.util.BiosProvider;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.HotkeysManager;
 import ink.snowland.wkuwku.util.PlugManager;
@@ -23,7 +22,6 @@ public class App extends Application {
         SettingsManager.initialize(getApplicationContext());
         HotkeysManager.initialize(getApplicationContext());
         EmulatorManager.initialize(getApplicationContext());
-        BiosProvider.initialize(getApplicationContext());
         PlugManager.initialize(getApplicationContext());
         Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
     }

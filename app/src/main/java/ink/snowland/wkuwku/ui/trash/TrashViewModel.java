@@ -1,5 +1,7 @@
 package ink.snowland.wkuwku.ui.trash;
 
+import static ink.snowland.wkuwku.util.FileManager.*;
+
 import android.app.Application;
 
 import androidx.annotation.NonNull;
@@ -10,7 +12,7 @@ import java.util.List;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.FileUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -30,9 +32,7 @@ public class TrashViewModel extends BaseViewModel {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::showErrorToast)
-                .subscribe(() -> {
-                    clearFiles(game);
-                }, error -> {/*ignored*/});
+                .subscribe(() -> clearFiles(game), error -> {/*ignored*/});
     }
 
     public void restore(@NonNull Game game) {
@@ -48,23 +48,23 @@ public class TrashViewModel extends BaseViewModel {
     private void clearFiles(@NonNull Game game) {
         /*ROM*/
         File parent = new File(game.filepath).getParentFile();
-        if (parent != null && !parent.equals(FileManager.getFileDirectory(FileManager.ROM_DIRECTORY))) {
-            FileManager.delete(parent);
+        if (parent != null && !parent.equals(getFileDirectory(ROM_DIRECTORY))) {
+            FileUtils.delete(parent);
         } else {
-            FileManager.delete(game.filepath);
+            FileUtils.delete(game.filepath);
         }
 
         /*Screenshot*/
-        FileManager.delete(FileManager.IMAGE_DIRECTORY, game.id + ".png");
+        FileUtils.delete(getFile(IMAGE_DIRECTORY, game.id + ".png"));
 
         /*Status*/
-        File stateDir = FileManager.getFileDirectory(FileManager.STATE_DIRECTORY);
+        File stateDir = getFileDirectory(STATE_DIRECTORY);
         final File[] files = stateDir.listFiles();
         if (files == null) return;
         for (File file : files) {
             String name = file.getName();
             if (name.contains(game.md5)) {
-                boolean ignored = file.delete();
+                FileUtils.delete(file);
             }
         }
     }

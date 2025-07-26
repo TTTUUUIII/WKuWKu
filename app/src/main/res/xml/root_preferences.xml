@@ -66,13 +66,6 @@
         app:key="emulator_category"
         app:iconSpaceReserved="false"
         app:title="@string/emulator">
-
-        <SwitchPreferenceCompat
-            app:iconSpaceReserved="false"
-            app:defaultValue="false"
-            app:key="app_download_optional_bios"
-            app:summary="@string/summary_download_optional_bios"
-            app:title="@string/download_optional_bios" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="false"

@@ -67,6 +67,10 @@ public class PlugViewModel extends BaseViewModel {
         return null;
     }
 
+    public boolean installed(@NonNull String packageName) {
+        return findInstalledPlug(packageName) != null;
+    }
+
     public Completable update(@NonNull PlugManifestExt manifest) {
         return Completable.create(emitter -> {
             AppDatabase.db.plugManifestExtDao().update(manifest);

@@ -20,6 +20,7 @@ public class Fceumm extends Emulator {
 
     public Fceumm(@NonNull Context context) {
         super("fceumm", EmConfig.fromXml(context.getResources().getXml(R.xml.fceumm_config)));
+        System.out.println(config.systems);
     }
 
     @Override
