@@ -4,7 +4,12 @@
         <system
             name="Sega Saturn"
             tag="saturn"
-            manufacturer="sega" />
+            manufacturer="sega">
+            <bios
+                name="saturn_bios.bin"
+                md5="af5828fdff51384f99b3c4926be27762"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/saturn_bios.bin" />
+        </system>
     </systems>
     <content-extensions>
         <item>cue</item>

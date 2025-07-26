@@ -4,7 +4,24 @@
         <system
             name="Sega Saturn"
             tag="saturn"
-            manufacturer="sega" />
+            manufacturer="sega">
+            <bios
+                name="sega_101.bin"
+                md5="85ec9ca47d8f6807718151cbcca8b964"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/sega_101.bin" />
+            <bios
+                name="mpr-17933.bin"
+                md5="3240872c70984b6cbfda1586cab68dbe"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/mpr-17933.bin" />
+            <bios
+                name="mpr-18811-mx.ic1"
+                md5="255113ba943c92a54facd25a10fd780c"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/mpr-18811-mx.ic1" />
+            <bios
+                name="mpr-19367-mx.ic1"
+                md5="1cd19988d1d72a3e7caa0b73234c96b4"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Saturn/mpr-19367-mx.ic1" />
+        </system>
     </systems>
     <content-extensions>
         <item>cue</item>

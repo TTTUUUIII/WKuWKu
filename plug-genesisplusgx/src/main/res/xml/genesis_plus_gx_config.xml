@@ -12,7 +12,20 @@
         <system
             name="Mega-CD"
             tag="mega-cd"
-            manufacturer="sega" />
+            manufacturer="sega">
+            <bios
+                name="bios_CD_E.bin"
+                md5="e66fa1dc5820d254611fdcdba0662372"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Mega%20CD%20-%20Sega%20CD/bios_CD_E.bin" />
+            <bios
+                name="bios_CD_J.bin"
+                md5="278a9397d192149e84e820ac621a8edd"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Mega%20CD%20-%20Sega%20CD/bios_CD_J.bin" />
+            <bios
+                name="bios_CD_U.bin"
+                md5="2efd74e3232ff260e371b99f84024f7f"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Sega%20-%20Mega%20CD%20-%20Sega%20CD/bios_CD_U.bin" />
+        </system>
         <system
             name="Mega Drive"
             tag="mega-drive"

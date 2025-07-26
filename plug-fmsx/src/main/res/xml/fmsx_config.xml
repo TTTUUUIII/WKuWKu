@@ -4,11 +4,33 @@
         <system
             name="MSX"
             tag="msx"
-            manufacturer="microsoft" />
+            manufacturer="microsoft">
+            <bios
+                name="MSX.ROM"
+                md5="aa95aea2563cd5ec0a0919b44cc17d47"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Microsoft%20-%20MSX/MSX.ROM" />
+        </system>
         <system
             name="MSX2"
             tag="msx2"
-            manufacturer="microsoft" />
+            manufacturer="microsoft">
+            <bios
+                name="MSX2.ROM"
+                md5="ec3a01c91f24fbddcbcab0ad301bc9ef"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Microsoft%20-%20MSX/MSX2.ROM" />
+            <bios
+                name="MSX2EXT.ROM"
+                md5="2183c2aff17cf4297bdb496de78c2e8a"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Microsoft%20-%20MSX/MSX2EXT.ROM" />
+            <bios
+                name="MSX2P.ROM"
+                md5="6d8c0ca64e726c82a4b726e9b01cdf1e"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Microsoft%20-%20MSX/MSX2P.ROM" />
+            <bios
+                name="MSX2PEXT.ROM"
+                md5="7c8243c71d8f143b2531f01afa6a05dc"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Microsoft%20-%20MSX/MSX2PEXT.ROM" />
+        </system>
     </systems>
     <content-extensions>
         <item>rom</item>
