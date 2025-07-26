@@ -21,6 +21,7 @@ import java.util.List;
 
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.FileUtils;
 
 public class CheckLatestVersionWorker extends Worker {
 
@@ -69,14 +70,14 @@ public class CheckLatestVersionWorker extends Worker {
                 File apkFile = new File(FileManager.getCacheDirectory(), versionName + ".apk");
                 boolean requestInstall = false;
                 if (apkFile.exists()) {
-                    String md5 = FileManager.calculateMD5Sum(apkFile);
+                    String md5 = FileUtils.getMD5Sum(apkFile);
                     if (md5List.contains(md5))
                         requestInstall = true;
                 }
                 if (!requestInstall) {
                     try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", versionName, Build.SUPPORTED_ABIS[0])).openStream()){
-                        FileManager.copy(ins, apkFile);
-                        String md5 = FileManager.calculateMD5Sum(apkFile);
+                        FileUtils.copy(ins, apkFile);
+                        String md5 = FileUtils.getMD5Sum(apkFile);
                         if (md5List.contains(md5))
                             requestInstall = true;
                     }

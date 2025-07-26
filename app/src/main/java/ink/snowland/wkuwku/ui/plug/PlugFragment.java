@@ -7,6 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.DividerItemDecoration;
@@ -27,7 +28,8 @@ import com.google.android.material.tabs.TabLayout;
 
 
 import java.io.File;
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import ink.snowland.wkuwku.BuildConfig;
@@ -41,13 +43,11 @@ import ink.snowland.wkuwku.databinding.ItemPlugResBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugAvailableBinding;
 import ink.snowland.wkuwku.databinding.LayoutPlugInstalledBinding;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
-import ink.snowland.wkuwku.exception.FileChecksumException;
+import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.PlugManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.core.SingleOnSubscribe;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelectedListener {
@@ -96,20 +96,19 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PlugViewModel.class);
         final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
-        Disposable disposable = mViewModel.getAvailablePlugInfos()
+        mViewModel.getAvailablePlugInfos()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doFinally(() -> {
                     mAvailablePlugListLoaded = true;
                     mViewModel.setPendingIndicator(false);
                 })
-                .subscribe(
-                        data -> submitDelayed(data, mAvailablePlugAdapter, submitDelayedMillis)
-                );
+                .doOnSuccess(data -> submitDelayed(data, mAvailablePlugAdapter, submitDelayedMillis))
+                .subscribe();
         mViewModel.getAll().observe(
                 this,
                 data -> submitDelayed(data, mInstalledPlugAdapter, submitDelayedMillis)
-                );
+        );
     }
 
     @Override
@@ -176,36 +175,46 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
                 mPlugInstalledBinding.recyclerView.addItemDecoration(decoration);
                 mPlugInstalledBinding.emptyListIndicator.setVisibility(mInstalledPlugAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
-                mPlugInstalledBinding.installFromStorage.setOnClickListener(v -> parentActivity.openDocument("application/vnd.android.package-archive", plugUri -> {
-                    if (plugUri == null) return;
-                    File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
+                mPlugInstalledBinding.installFromStorage.setOnClickListener(v -> parentActivity.openDocument("application/vnd.android.package-archive", uri -> {
+                    if (uri == null) return;
+                    DocumentFile document = DocumentFile.fromSingleUri(parentActivity, uri);
+                    if (document == null) return;
+                    String filename = document.getName();
+                    if (filename == null) {
+                        filename = "temp.apk";
+                    }
+                    File temp = new File(FileManager.getCacheDirectory(), filename);
                     mViewModel.setPendingIndicator(true, R.string.copying_files);
-                    FileManager.copyAsync(plugUri, temp, new ActionListener() {
-                        @Override
-                        public void onSuccess() {
-                            mViewModel.setPendingMessage(R.string.installing);
-                            PlugManager.install(temp, new ActionListener() {
-                                @Override
-                                public void onSuccess() {
-                                    FileManager.delete(temp);
-                                    mViewModel.setPendingIndicator(false);
-                                }
+                    try (InputStream from = parentActivity.getContentResolver().openInputStream(uri)) {
+                        FileUtils.asyncCopy(from, temp, new ActionListener() {
+                            @Override
+                            public void onSuccess() {
+                                mViewModel.setPendingMessage(R.string.installing);
+                                PlugManager.install(temp, new ActionListener() {
+                                    @Override
+                                    public void onSuccess() {
+                                        mViewModel.setPendingIndicator(false);
+                                    }
 
-                                @Override
-                                public void onFailure(Throwable e) {
-                                    e.printStackTrace(System.err);
-                                    Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                    FileManager.delete(temp);
-                                    mViewModel.setPendingIndicator(false);
-                                }
-                            });
-                        }
+                                    @Override
+                                    public void onFailure(Throwable e) {
+                                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                        mViewModel.setPendingIndicator(false);
+                                    }
+                                });
+                            }
 
-                        @Override
-                        public void onFailure(Throwable e) {
-                            mViewModel.setPendingIndicator(false);
-                        }
-                    });
+                            @Override
+                            public void onFailure(Throwable e) {
+                                e.printStackTrace(System.err);
+                                Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                mViewModel.setPendingIndicator(false);
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace(System.err);
+                        mViewModel.setPendingIndicator(false);
+                    }
                 }));
             } else {
                 mPlugAvailableBinding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
@@ -313,60 +322,68 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     _binding.installButton.setText(R.string.incompatible);
                 } else {
                     final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
+                    DownloadManager.Session session = DownloadManager.getSession(res.url);
                     if (plug != null) {
                         _binding.installButton.setEnabled(plug.origin.getVersionCode() < res.versionCode);
                         _binding.installButton.setTag(_binding.installButton.isEnabled() ? "upgrade" : "installed");
                         _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.upgrade : R.string.installed);
+                    } else if (session != null){
+                        _binding.installButton.setEnabled(false);
+                        session.doOnProgressUpdate((progress, max) -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
+                                .doOnError(error -> {
+                                    _binding.installButton.setText(R.string.install);
+                                    _binding.installButton.setEnabled(true);
+                                    Toast.makeText(parentActivity, R.string.network_error, Toast.LENGTH_SHORT).show();
+                                })
+                                .doOnComplete(file -> {
+                                    install(res.md5, file);
+                                });
                     } else {
                         _binding.installButton.setEnabled(true);
                         _binding.installButton.setTag("install");
                         _binding.installButton.setText(R.string.install);
                     }
+
                     _binding.installButton.setOnClickListener(v -> {
                         if ("upgrade".equals(v.getTag())) return;
                         _binding.installButton.setText(R.string.connecting);
                         _binding.installButton.setEnabled(false);
-                        Disposable disposable = Single.create((SingleOnSubscribe<File>) emitter -> {
-                                    final File temp = new File(FileManager.getCacheDirectory(), ".plug.apk");
-                                    URL url = new URL(res.url);
-                                    FileManager.copy(url, temp, (progress, max) -> handler.post(() -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100))));
-                                    String md5sum = FileManager.calculateMD5Sum(temp);
-                                    if (res.md5.equals(md5sum)) {
-                                        emitter.onSuccess(temp);
-                                    } else {
-                                        emitter.onError(new FileChecksumException(res.md5, md5sum));
-                                    }
-                                }).subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .doOnSuccess(file -> {
-                                    _binding.installButton.setText(getString(R.string.installing));
-                                    PlugManager.install(file, new ActionListener() {
-                                        @Override
-                                        public void onSuccess() {
-                                            _binding.installButton.setText(R.string.installed);
-                                            FileManager.delete(file);
-                                        }
-
-                                        @Override
-                                        public void onFailure(Throwable e) {
-                                            _binding.installButton.setText(R.string.install);
-                                            _binding.installButton.setEnabled(true);
-                                            e.printStackTrace(System.err);
-                                            Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                            FileManager.delete(file);
-                                        }
-                                    });
-                                })
-                                .subscribe((file, error) -> {
-                                    if (error != null) {
-                                        _binding.installButton.setText(R.string.install);
-                                        _binding.installButton.setEnabled(true);
-                                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                        error.printStackTrace(System.err);
-                                    }
-                                });
+                        DownloadManager.newRequest(res.url, new File(FileManager.getCacheDirectory(), FileUtils.getName(res.url)))
+                                .doOnProgressUpdate((progress, max) -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
+                                .doOnComplete(file -> install(res.md5, file))
+                                .doOnError(error -> {
+                                    error.printStackTrace(System.err);
+                                    _binding.installButton.setText(R.string.install);
+                                    _binding.installButton.setEnabled(true);
+                                    Toast.makeText(parentActivity, R.string.network_error, Toast.LENGTH_SHORT).show();
+                                }).submit();
                     });
                 }
+            }
+        }
+
+        private void install(String md5sum, File file) {
+            ItemPlugResBinding _binding = (ItemPlugResBinding) itemBinding;
+            if (md5sum.equals(FileUtils.getMD5Sum(file))) {
+                _binding.installButton.setText(getString(R.string.installing));
+                PlugManager.install(file, new ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        _binding.installButton.setText(R.string.installed);
+                    }
+
+                    @Override
+                    public void onFailure(Throwable e) {
+                        _binding.installButton.setText(R.string.install);
+                        _binding.installButton.setEnabled(true);
+                        e.printStackTrace(System.err);
+                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                _binding.installButton.setText(R.string.install);
+                _binding.installButton.setEnabled(true);
+                Toast.makeText(parentActivity, R.string.invalid_package, Toast.LENGTH_SHORT).show();
             }
         }
     }

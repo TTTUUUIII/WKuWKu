@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.common;
 import android.content.Intent;
 import android.hardware.input.InputManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,7 +13,9 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -29,6 +32,9 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.navigation.NavOptions;
+
+import com.google.android.material.snackbar.BaseTransientBottomBar;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,7 +60,9 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private final List<OnTouchEventListener> mTouchEventListener = new ArrayList<>();
     private final List<InputManager.InputDeviceListener> mInputDeviceListeners = new ArrayList<>();
     private WindowInsetsCompat mWindowInsets;
+    private final List<InputDevice> mInputDevices = new ArrayList<>();
     private InputManager mInputManager;
+    private Snackbar mSnackbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,6 +90,16 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
                 .setPopEnterAnim(R.anim.zoom_in_left)
                 .build();
         mInputManager = (InputManager) getSystemService(INPUT_SERVICE);
+        int[] deviceIds = mInputManager.getInputDeviceIds();
+        for (int deviceId : deviceIds) {
+            InputDevice device = mInputManager.getInputDevice(deviceId);
+            if (device == null || device.isVirtual()) continue;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && device.isExternal()) {
+                mInputDevices.add(device);
+            } else {
+                mInputDevices.add(device);
+            }
+        }
     }
 
     private final Set<Integer> mPressDownKeys = new ArraySet<>();
@@ -187,16 +205,16 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     }
 
     public List<InputDevice> getInputDevices() {
-        int[] deviceIds = mInputManager.getInputDeviceIds();
-        ArrayList<InputDevice> inputDevices = new ArrayList<>();
-        for (int deviceId : deviceIds) {
-            inputDevices.add(mInputManager.getInputDevice(deviceId));
-        }
-        return inputDevices;
+        return mInputDevices;
     }
 
     public InputDevice getInputDevice(int deviceId) {
-        return mInputManager.getInputDevice(deviceId);
+        for (InputDevice device : mInputDevices) {
+            if (device.getId() == deviceId) {
+                return device;
+            }
+        }
+        return null;
     }
 
     public void addInputDeviceListener(@NonNull InputManager.InputDeviceListener listener) {
@@ -218,15 +236,35 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
 
     @Override
     public void onInputDeviceAdded(int deviceId) {
-        for (InputManager.InputDeviceListener listener : mInputDeviceListeners) {
-            listener.onInputDeviceAdded(deviceId);
+        InputDevice device = mInputManager.getInputDevice(deviceId);
+        if (device == null) return;
+        boolean added = true;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (device.isExternal()) {
+                mInputDevices.add(device);
+            } else {
+                added = false;
+            }
+        } else {
+            mInputDevices.add(device);
+        }
+        if (added) {
+            for (InputManager.InputDeviceListener listener : mInputDeviceListeners) {
+                listener.onInputDeviceAdded(deviceId);
+            }
+            showSnackbar(getString(R.string.fmt_controller_connected, device.getName()), Snackbar.LENGTH_LONG);
         }
     }
 
     @Override
     public void onInputDeviceRemoved(int deviceId) {
-        for (InputManager.InputDeviceListener listener : mInputDeviceListeners) {
-            listener.onInputDeviceRemoved(deviceId);
+        InputDevice device = getInputDevice(deviceId);
+        if (device != null) {
+            mInputDevices.remove(device);
+            showSnackbar(getString(R.string.fmt_controller_disconnected, device.getName()), Snackbar.LENGTH_LONG);
+            for (InputManager.InputDeviceListener listener : mInputDeviceListeners) {
+                listener.onInputDeviceRemoved(deviceId);
+            }
         }
     }
 
@@ -325,6 +363,26 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     }
 
     public void setDrawerLockedMode(int mode) {
+    }
+
+    public void showSnackbar(@StringRes int resId, int duration) {
+        showSnackbar(getString(resId), duration);
+    }
+
+    public void showSnackbar(@NonNull String msg, int duration) {
+        if (mSnackbar == null) {
+            View container = findViewById(R.id.snackbar_container);
+            if (container == null) {
+                container = getWindow().getDecorView();
+            }
+            mSnackbar = Snackbar.make(container, msg, duration);
+            mSnackbar.setAction(R.string.close, snackbar -> mSnackbar.dismiss());
+            mSnackbar.setAnimationMode(Snackbar.ANIMATION_MODE_FADE);
+        } else {
+            mSnackbar.setDuration(duration);
+            mSnackbar.setText(msg);
+        }
+        mSnackbar.show();
     }
 
     public interface OnResultCallback<T> {

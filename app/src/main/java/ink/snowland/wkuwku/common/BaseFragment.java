@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavOptions;
 import androidx.recyclerview.widget.ListAdapter;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -67,6 +69,14 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     protected void run(@NonNull Runnable r) {
         handler.post(r);
+    }
+
+    protected void showSnackbar(@StringRes int resId, int duration) {
+        parentActivity.showSnackbar(resId, duration);
+    }
+
+    protected void showSnackbar(@NonNull String msg, int duration) {
+        parentActivity.showSnackbar(msg, duration);
     }
 
     protected  <T> void submitDelayed(@Nullable List<T> data, ListAdapter<T, ?> adapter, int delayed) {

@@ -169,7 +169,7 @@ public class ArchiveUtils {
                 }
             }
         } catch (IOException e) {
-            FileManager.delete(output);
+            FileUtils.delete(output);
             throw e;
         }
     }

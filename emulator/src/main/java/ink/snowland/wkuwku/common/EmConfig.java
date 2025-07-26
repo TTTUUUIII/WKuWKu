@@ -73,7 +73,27 @@ public class EmConfig {
         String systemTag = parser.getAttributeValue(null, "tag");
         String manufacturer = parser.getAttributeValue(null, "manufacturer");
         if (systemName != null && systemTag != null && manufacturer != null) {
-            return new EmSystem(systemName, systemTag, manufacturer);
+            EmSystem system = new EmSystem(systemName, systemTag, manufacturer);
+            try {
+                int event = parser.next();
+                String tagName = parser.getName();
+                while (event != XmlPullParser.END_TAG || !"system".equals(tagName)) {
+                    if (event == XmlPullParser.START_TAG && "bios".equals(tagName)) {
+                        String name = parser.getAttributeValue(null, "name");
+                        String url = parser.getAttributeValue(null, "url");
+                        String md5 = parser.getAttributeValue(null, "md5");
+                        if (url != null && md5 != null) {
+                            system.biosFiles.add(new EmBiosFile(name, url, md5));
+                        }
+                    }
+                    event = parser.next();
+                    tagName = parser.getName();
+                }
+                return system;
+            } catch (IOException | XmlPullParserException e) {
+                e.printStackTrace(System.err);
+                return null;
+            }
         }
         return null;
     }
