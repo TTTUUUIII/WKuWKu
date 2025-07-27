@@ -17,8 +17,8 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        FileManager.initialize(getApplicationContext());
         AppDatabase.initialize(getApplicationContext());
+        FileManager.initialize(getApplicationContext());
         SettingsManager.initialize(getApplicationContext());
         HotkeysManager.initialize(getApplicationContext());
         EmulatorManager.initialize(getApplicationContext());
