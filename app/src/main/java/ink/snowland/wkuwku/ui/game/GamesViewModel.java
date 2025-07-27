@@ -24,13 +24,11 @@ import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.ArchiveUtils;
 import ink.snowland.wkuwku.util.DownloadManager;
-import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import kotlin.io.FileAlreadyExistsException;
 
 public class GamesViewModel extends BaseViewModel {
     private final MutableLiveData<List<Game>> mAllGames = new MutableLiveData<>();
@@ -149,6 +147,7 @@ public class GamesViewModel extends BaseViewModel {
 
             @Override
             public void onFailure(Throwable e) {
+                GamesViewModel.this.onError(e);
                 e.printStackTrace(System.err);
             }
         });
