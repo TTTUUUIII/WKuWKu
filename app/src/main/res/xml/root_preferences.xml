@@ -69,6 +69,7 @@
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="false"
+            app:isPreferenceVisible="false"
             app:key="app_performance_mode"
             app:summary="@string/summary_switch_to_performance_mode_when_playing"
             app:title="@string/performance_mode" />

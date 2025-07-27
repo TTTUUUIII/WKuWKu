@@ -6,7 +6,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -25,7 +24,6 @@ import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentGameBinding;
 import ink.snowland.wkuwku.databinding.ItemGameBinding;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
@@ -60,11 +58,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         binding.pendingIndicator.setDataModel(mViewModel);
         binding.pendingIndicator.setLifecycleOwner(this);
         return binding.getRoot();
-    }
-
-    @Override
-    public int getTitleRes() {
-        return R.string.all_games;
     }
 
     @Override

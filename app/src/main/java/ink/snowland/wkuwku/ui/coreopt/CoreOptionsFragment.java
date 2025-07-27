@@ -74,11 +74,6 @@ public class CoreOptionsFragment extends BaseFragment {
         saveCurrentEmulatorOptions();
     }
 
-    @Override
-    public int getTitleRes() {
-        return R.string.core_options;
-    }
-
     private void onEmulatorChanged(@NonNull String alias) {
         IEmulator emulator = EmulatorManager.getEmulator(alias);
         if (emulator != null && mEmulator != emulator) {

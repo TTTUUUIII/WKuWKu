@@ -99,10 +99,6 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     }
 
-    public @StringRes int getTitleRes() {
-        return R.string.app_name;
-    }
-
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
         return false;
