@@ -11,6 +11,10 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import java.net.SocketTimeoutException;
+
+import ink.snowland.wkuwku.R;
+
 public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorDataModel{
     protected Handler handler = new Handler(Looper.getMainLooper());
     protected final MutableLiveData<Boolean> emptyListIndicator = new MutableLiveData<>(false);
@@ -75,7 +79,11 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
     }
 
     protected void onError(Throwable throwable) {
-        throwable.printStackTrace(System.err);
-        Toast.makeText(getApplication(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+        if (throwable instanceof SocketTimeoutException) {
+            Toast.makeText(getApplication(), R.string.network_timeout, Toast.LENGTH_SHORT).show();
+        } else {
+            throwable.printStackTrace(System.err);
+            Toast.makeText(getApplication(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 }
