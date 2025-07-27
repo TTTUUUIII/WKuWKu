@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 
 import com.google.android.material.navigation.NavigationBarView;
 
+import java.security.InvalidParameterException;
+
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHomeBinding;
@@ -31,18 +33,12 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
     private static boolean isFirstLaunch = true;
 
     private FragmentHomeBinding binding;
-    private final BaseFragment[] mPages = new BaseFragment[] {
-            new GamesFragment(),
-            new HistoryFragment(),
-            new CoreOptionsFragment()
-    };
-
+    private PagerSlideAdapter mPagerAdapter;
     private final ViewPager2.OnPageChangeCallback mPageChangedCallback = new ViewPager2.OnPageChangeCallback() {
         @Override
         public void onPageSelected(int position) {
             super.onPageSelected(position);
-            final BaseFragment fragment = mPages[position];
-            parentActivity.setActionbarTitle(fragment.getTitleRes());
+            parentActivity.setActionbarTitle(mPagerAdapter.getTitleRes(position));
             int itemId = binding.bottomNavView.getSelectedItemId();
             if (position != getDestinationIndex(itemId)) {
                 binding.bottomNavView.setSelectedItemId(getItemId(position));
@@ -54,7 +50,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(getLayoutInflater());
-        binding.viewPager.setAdapter(new PagerSlideAdapter());
+        mPagerAdapter = new PagerSlideAdapter();
+        binding.viewPager.setAdapter(mPagerAdapter);
         binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
         binding.bottomNavView.setOnItemSelectedListener(this);
         if (isFirstLaunch) {
@@ -86,6 +83,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
     public void onDestroyView() {
         super.onDestroyView();
         binding.viewPager.unregisterOnPageChangeCallback(mPageChangedCallback);
+        mPagerAdapter = null;
+        binding = null;
     }
 
     private int getDestinationIndex(@IdRes int resId) {
@@ -121,12 +120,28 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         @NonNull
         @Override
         public Fragment createFragment(int position) {
-            return mPages[position];
+            switch (position) {
+                case 0: return new GamesFragment();
+                case 1: return new HistoryFragment();
+                case 2: return new CoreOptionsFragment();
+                default:
+                    throw new InvalidParameterException();
+            }
+        }
+
+        public int getTitleRes(int position) {
+            switch (position) {
+                case 0: return R.string.all_games;
+                case 1: return R.string.recent_played;
+                case 2: return R.string.core_options;
+                default:
+                    throw new InvalidParameterException();
+            }
         }
 
         @Override
         public int getItemCount() {
-            return mPages.length;
+            return 3;
         }
     }
 }

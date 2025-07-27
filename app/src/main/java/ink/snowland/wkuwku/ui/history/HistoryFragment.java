@@ -7,7 +7,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -29,7 +28,6 @@ import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHistoryBinding;
 import ink.snowland.wkuwku.databinding.ItemHistoryBinding;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.ui.home.HomeFragment;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
@@ -77,11 +75,6 @@ public class HistoryFragment extends BaseFragment {
     public void onDestroy() {
         super.onDestroy();
         mDisposable.dispose();
-    }
-
-    @Override
-    public int getTitleRes() {
-        return R.string.recent_played;
     }
 
     private void launch(@NonNull Game game) {

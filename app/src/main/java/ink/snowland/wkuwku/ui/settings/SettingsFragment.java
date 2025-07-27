@@ -97,10 +97,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (!mParentActivity.isPerformanceModeSupported()) {
+        if (mParentActivity.isPerformanceModeSupported()) {
             Preference preference = findPreference(SettingsManager.PERFORMANCE_MODE);
             if (preference != null) {
-                preference.setVisible(false);
+                preference.setVisible(true);
             }
         }
     }
