@@ -27,10 +27,14 @@ public interface GameDao {
     Single<Boolean> isExistsHistory();
     @Query("SELECT * FROM tb_game WHERE state == 3 ORDER BY last_modified_time")
     Observable<List<Game>> getTrash();
+    @Query("SELECT * FROM tb_game WHERE state == 3 AND datetime(last_modified_time / 1000, 'unixepoch') < datetime(:timestamp / 1000, 'unixepoch')")
+    List<Game> findTrashByModifiedLT(long timestamp);
     @Delete
-    Completable delete(Game info);
+    Completable delete(Game game);
+    @Delete
+    void delete(List<Game> games);
     @Update
-    Completable update(Game info);
+    Completable update(Game game);
     @Insert
-    Completable insert(Game info);
+    Completable insert(Game game);
 }

@@ -4,7 +4,6 @@
         <variable
             name="game"
             type="ink.snowland.wkuwku.db.entity.Game" />
-        <import type="ink.snowland.wkuwku.util.TimeUtils" />
     </data>
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -32,10 +31,10 @@
                 android:textSize="13sp"
                 tools:text="Super Mario Bros." />
             <TextView
+                android:id="@+id/delete_date"
                 android:layout_marginTop="8dp"
                 android:textStyle="italic"
                 android:textSize="13sp"
-                android:text="@{@string/trash_on + `：` + TimeUtils.toString(game.lastModifiedTime)}"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>

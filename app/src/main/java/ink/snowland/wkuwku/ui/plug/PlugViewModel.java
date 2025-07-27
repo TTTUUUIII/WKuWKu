@@ -23,7 +23,6 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 import ink.snowland.wkuwku.util.NumberUtils;
-import ink.snowland.wkuwku.util.PathUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
@@ -120,6 +119,10 @@ public class PlugViewModel extends BaseViewModel {
         PlugRes info = new PlugRes();
         info.name = xmlPullParser.getAttributeValue(null, "name");
         if (info.name == null) return null;
+        String abIs = xmlPullParser.getAttributeValue(null, "supportedABIs");
+        if (abIs != null) {
+            info.supportedABIs = abIs.split(",");
+        }
         int eventType = xmlPullParser.getEventType();
         String tagName = xmlPullParser.getName();
         while (eventType != XmlPullParser.END_TAG || !"plug".equals(tagName)) {
@@ -133,7 +136,7 @@ public class PlugViewModel extends BaseViewModel {
                 } else if ("filePath".equals(tagName)) {
                     String filePath = xmlPullParser.nextText();
                     if (filePath == null) return null;
-                    info.url = WEB_URL + PathUtils.wrapper(filePath);
+                    info.url = WEB_URL + filePath;
                 } else if ("packageName".equals(tagName)) {
                     info.packageName = xmlPullParser.nextText();
                 } else if ("version".equals(tagName)) {

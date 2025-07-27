@@ -60,20 +60,31 @@ public class FileUtils {
         delete(new File(file));
     }
 
-    public static void delete(File file) {
-        if (!file.exists()) return;
-        if (file.isDirectory()) {
-            File[] list = file.listFiles();
-            if (list != null) {
-                for (File it : list) {
-                    delete(it);
+    public static String getNameNotExtension(File file) {
+        String filename = file.getName();
+        int index = filename.indexOf(".");
+        if (index != -1) {
+            return filename.substring(0, index);
+        }
+        return filename;
+    }
+
+    public static void delete(File ...files) {
+        for (File file: files) {
+            if (!file.exists()) return;
+            if (file.isDirectory()) {
+                File[] list = file.listFiles();
+                if (list != null) {
+                    for (File it : list) {
+                        delete(it);
+                    }
                 }
+                if (!file.delete()) {
+                    logger.e("Unable delete directory at %s", file);
+                }
+            } else if (!file.delete()){
+                logger.e("Unable to delete file at %s.", file);
             }
-            if (!file.delete()) {
-                logger.e("Unable delete directory at %s", file);
-            }
-        } else if (!file.delete()){
-            logger.e("Unable to delete file at %s.", file);
         }
     }
 

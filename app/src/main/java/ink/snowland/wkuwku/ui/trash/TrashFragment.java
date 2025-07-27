@@ -22,24 +22,25 @@ import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentTrashBinding;
 import ink.snowland.wkuwku.databinding.ItemTrashBinding;
 import ink.snowland.wkuwku.db.entity.Game;
+import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class TrashFragment extends BaseFragment {
     private FragmentTrashBinding binding;
     private TrashViewModel mViewModel;
-    private Disposable mDisposable;
+    private int mTrashStorageDays = 15;
     private final ViewAdapter mAdapter = new ViewAdapter();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
         mViewModel = new ViewModelProvider(this).get(TrashViewModel.class);
-        mDisposable = mViewModel.getTrash().subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((data) -> submitDelayed(data, mAdapter, submitDelayedMillis));
+        mViewModel.getTrash()
+                .observe(this, trash -> {
+                    runAtDelayed(() -> {
+                        mAdapter.submitList(trash);
+                    }, savedInstanceState == null ? 300 : 0);
+                });
+        mTrashStorageDays = getResources().getInteger(R.integer.trash_storage_days);
     }
 
     @Override
@@ -60,13 +61,6 @@ public class TrashFragment extends BaseFragment {
         super.onViewCreated(view, savedInstanceState);
         parentActivity.setActionbarTitle(R.string.trash);
     }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mDisposable.dispose();
-    }
-
     private void showDeleteDialog(@NonNull Game game) {
         new MaterialAlertDialogBuilder(requireActivity())
                 .setIcon(R.mipmap.ic_launcher_round)
@@ -91,6 +85,7 @@ public class TrashFragment extends BaseFragment {
         @SuppressLint("SetTextI18n")
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
+            itemBinding.deleteDate.setText(getString(R.string.fmt_delete_after_days, mTrashStorageDays - TimeUtils.elapsedDays(game.lastModifiedTime)));
             itemBinding.buttonDelete.setOnClickListener(v -> {
                 showDeleteDialog(game);
             });

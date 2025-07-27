@@ -1,8 +1,13 @@
 package ink.snowland.wkuwku.bean;
 
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 
+import java.util.Arrays;
 import java.util.Objects;
+
+import ink.snowland.wkuwku.BuildConfig;
 
 public class PlugRes {
     public static final int VERSION_UNKNOW = 0;
@@ -19,6 +24,8 @@ public class PlugRes {
     public int minAppVersion;
     public int maxAppVersion;
 
+    public String[] supportedABIs;
+
     @NonNull
     @Override
     public String toString() {
@@ -29,6 +36,7 @@ public class PlugRes {
                 ", packageName='" + packageName + '\'' +
                 ", version='" + version + '\'' +
                 ", md5='" + md5 + '\'' +
+                ", supportedABIs='" + Arrays.toString(supportedABIs) + '\'' +
                 '}';
     }
 
@@ -43,5 +51,26 @@ public class PlugRes {
     @Override
     public int hashCode() {
         return Objects.hashCode(packageName);
+    }
+
+    public boolean isCompatible() {
+        boolean compatible = false;
+        if (supportedABIs != null) {
+            for (String it: Build.SUPPORTED_ABIS) {
+                for (String abi: supportedABIs) {
+                    if (it.equals(abi)) {
+                        url = url.replaceAll("(?i)\\$\\{ABI\\}", abi);
+                        compatible = true;
+                        break;
+                    }
+                }
+                if (compatible) break;
+            }
+        } else {
+            compatible = true;
+        }
+        return compatible
+                && BuildConfig.VERSION_CODE >= minAppVersion
+                && (maxAppVersion == VERSION_UNKNOW || BuildConfig.VERSION_CODE <= maxAppVersion);
     }
 }

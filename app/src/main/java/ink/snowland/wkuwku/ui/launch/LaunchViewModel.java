@@ -18,14 +18,10 @@ import java.util.Locale;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
-import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchViewModel extends BaseViewModel {
     private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
@@ -41,15 +37,6 @@ public class LaunchViewModel extends BaseViewModel {
     private boolean mPlaying = false;
     public LaunchViewModel(@NonNull Application application) {
         super(application);
-        Disposable ignored = AppDatabase.db.macroScriptDao()
-                .getList()
-                .observeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((macroScripts, throwable) -> {
-                    if (throwable != null) {
-                        showErrorToast(throwable);
-                    }
-                });
     }
 
     public void selectEmulator(@NonNull Game game) {

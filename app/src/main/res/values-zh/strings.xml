@@ -156,4 +156,6 @@
     <string name="incompatible">不兼容</string>
     <string name="screenshot">截图</string>
     <string name="save_state">保存状态</string>
+    <string name="failed_extract">解压文件失败</string>
+    <string name="fmt_delete_after_days">将在%d天后删除</string>
 </resources>
