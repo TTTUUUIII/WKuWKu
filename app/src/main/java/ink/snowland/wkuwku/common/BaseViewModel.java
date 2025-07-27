@@ -11,11 +11,6 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-
-import ink.snowland.wkuwku.R;
-
 public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorDataModel{
     protected Handler handler = new Handler(Looper.getMainLooper());
     protected final MutableLiveData<Boolean> emptyListIndicator = new MutableLiveData<>(false);
@@ -23,22 +18,6 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
     protected final MutableLiveData<String> pendingMessage = new MutableLiveData<>("");
     public BaseViewModel(@NonNull Application application) {
         super(application);
-    }
-
-    protected void showErrorToast(@NonNull Throwable error) {
-        if (error instanceof SocketTimeoutException || error.getCause() instanceof SocketTimeoutException) {
-            Toast.makeText(getApplication(), R.string.network_timeout, Toast.LENGTH_SHORT).show();
-            return;
-        } else if (error instanceof UnknownHostException || error.getCause() instanceof UnknownHostException) {
-            Toast.makeText(getApplication(), R.string.network_error, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (error.getMessage() != null) {
-            Toast.makeText(getApplication(), getApplication().getString(R.string.fmt_operation_failed, error.getMessage()), Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(getApplication(), R.string.operation_failed, Toast.LENGTH_SHORT).show();
-        }
     }
 
     protected String getString(@StringRes int resId) {
@@ -93,5 +72,10 @@ public class BaseViewModel extends AndroidViewModel implements LoadingIndicatorD
 
     public void post(@NonNull Runnable r) {
         handler.post(r);
+    }
+
+    protected void onError(Throwable throwable) {
+        throwable.printStackTrace(System.err);
+        Toast.makeText(getApplication(), throwable.getMessage(), Toast.LENGTH_SHORT).show();
     }
 }

@@ -14,7 +14,7 @@ import java.util.Objects;
 @Entity(tableName = "tb_game", indices = {@Index(value = "filepath", unique = true), @Index(value = "md5", unique = true)})
 public class Game implements Parcelable, Cloneable {
     public static final int STATE_VALID = 1;
-    public static final int STATE_BROKEN = 2;
+    public static final int STATE_PENDING = 2;
     public static final int STATE_DELETED = 3;
 
     @PrimaryKey(autoGenerate = true)

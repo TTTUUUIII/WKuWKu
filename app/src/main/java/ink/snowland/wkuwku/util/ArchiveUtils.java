@@ -14,11 +14,14 @@ import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
 
 import java.io.*;
 
-import kotlin.io.FileAlreadyExistsException;
+import ink.snowland.wkuwku.common.ActionListener;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class ArchiveUtils {
-    public static final int FLAG_ARCHIVE_FILE_TYPE = 1;
-    public static final int FLAG_SUPPORTED_ARCHIVE_FILE_TYPE = 2;
+    public static final int FLAG_ARCHIVE_TYPE = 1;
+    public static final int FLAG_SUPPORTED = 2;
 
     public static int getFileInfoMask(@NonNull String filename) {
         if (filename.endsWith(".zip")
@@ -35,99 +38,94 @@ public class ArchiveUtils {
         return 0;
     }
 
-    public static String extract(@NonNull File file) throws IOException {
-        File parent = file.getParentFile();
-        assert parent != null;
-        return extract(parent.getAbsolutePath(), file);
+    public static boolean isArchiveType(File file) {
+        int mask = getFileInfoMask(file.getName());
+        return (mask & FLAG_ARCHIVE_TYPE) == FLAG_ARCHIVE_TYPE;
     }
 
-    public static String extract(String outputPath, String archive) throws IOException {
-        return extract(outputPath, new File(archive));
+    public static boolean isSupported(File file) {
+        int mask = getFileInfoMask(file.getName());
+        return (mask & FLAG_SUPPORTED) == FLAG_SUPPORTED;
     }
 
-    public static String extract(String outputPath, File archive) throws IOException {
+    public static void asyncExtract(@NonNull File archive, @NonNull File out, @NonNull ActionListener listener) {
+        Completable.create(emitter -> {
+                    extract(archive, out);
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnComplete(listener::onSuccess)
+                .doOnError(listener::onFailure)
+                .onErrorComplete()
+                .subscribe();
+    }
+
+    public static void extract(File archive, File out) throws IOException {
         if (!archive.exists() || !archive.isFile()) {
             throw new RuntimeException(new FileNotFoundException(archive + " not found!"));
         }
         String filename = archive.getName();
-        File outputDir = getOutputFile(outputPath, filename);
         if (filename.endsWith(".zip"))
-            extractZip(outputDir.getAbsolutePath(), archive);
+            extractZip(out, archive);
         else if (filename.endsWith(".jar"))
-            extractJar(outputDir.getAbsolutePath(), archive);
+            extractJar(out, archive);
         else if (filename.endsWith(".7z"))
-            extractSevenZ(outputDir.getAbsolutePath(), archive);
+            extractSevenZ(out, archive);
         else if (filename.endsWith(".tar"))
-            extractTar(outputDir.getAbsolutePath(), archive);
+            extractTar(out, archive);
         else if (filename.endsWith(".ar"))
-            extractAr(outputDir.getAbsolutePath(), archive);
+            extractAr(out, archive);
         else if (filename.endsWith(".tar.gz"))
-            extractTarGz(outputDir.getAbsolutePath(), archive);
+            extractTarGz(out, archive);
         else if (filename.endsWith(".tar.xz"))
-            extractTarXz(outputDir.getAbsolutePath(), archive);
+            extractTarXz(out, archive);
         else
             throw new UnsupportedOperationException();
-        return outputDir.getAbsolutePath();
     }
 
-    @NonNull
-    private static File getOutputFile(String base, String filename) throws IOException {
-        String filenameNotExt = filename.substring(0, filename.lastIndexOf("."));
-        if (filenameNotExt.endsWith(".tar"))
-            filenameNotExt = filename.substring(0, filenameNotExt.lastIndexOf("."));
-        File outputDir = new File(base, filenameNotExt);
-        if (outputDir.exists())
-            throw new FileAlreadyExistsException(outputDir, null, null);
-        if (!outputDir.exists() && !outputDir.mkdirs()) {
-            throw new IOException("Failed to create output directory! \"" + outputDir + "\"");
-        }
-        return outputDir;
-    }
-
-    private static void extractJar(String output, File file) throws IOException {
+    private static void extractJar(File out, File file) throws IOException {
         try (JarArchiveInputStream archive = new JarArchiveInputStream(new FileInputStream(file))) {
-            extract(output, archive);
+            extract(out, archive);
         }
     }
 
-    private static void extractTarXz(String output, File file) throws IOException {
+    private static void extractTarXz(File out, File file) throws IOException {
         try (XZCompressorInputStream archive = new XZCompressorInputStream(new FileInputStream(file));
              TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(archive)) {
-            extract(output, tarArchiveInputStream);
+            extract(out, tarArchiveInputStream);
         }
     }
 
-    private static void extractTarGz(String output, File file) throws IOException {
+    private static void extractTarGz(File out, File file) throws IOException {
         try (GzipCompressorInputStream archive = new GzipCompressorInputStream(new FileInputStream(file));
              TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(archive)) {
-            extract(output, tarArchiveInputStream);
+            extract(out, tarArchiveInputStream);
         }
     }
 
-    private static void extractAr(String output, File file) throws IOException {
+    private static void extractAr(File out, File file) throws IOException {
         try (ArArchiveInputStream archive = new ArArchiveInputStream(new FileInputStream(file))) {
-            extract(output, archive);
+            extract(out, archive);
         }
     }
 
-    private static void extractTar(String output, File file) throws IOException {
+    private static void extractTar(File out, File file) throws IOException {
         try (TarArchiveInputStream archive = new TarArchiveInputStream(new FileInputStream(file))) {
-            extract(output, archive);
+            extract(out, archive);
         }
     }
 
-    private static void extractSevenZ(String output, File file) throws IOException {
+    private static void extractSevenZ(File out, File file) throws IOException {
         try (SevenZFile archive = new SevenZFile.Builder()
                 .setFile(file)
                 .get()) {
             ArchiveEntry entry;
             while ((entry = archive.getNextEntry()) != null) {
-                File item = new File(output, entry.getName());
+                File item = new File(out, entry.getName());
                 if (entry.isDirectory()) {
                     if (!item.mkdirs())
                         System.err.println("Failed to create directory! \"" + item + "\"");
                 } else {
-                    try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
+                    try (FileOutputStream fos = new FileOutputStream(new File(out, entry.getName()))) {
                         byte[] buffer = new byte[1024];
                         int readNumInBytes;
                         while ((readNumInBytes = archive.read(buffer)) != -1) {
@@ -139,17 +137,17 @@ public class ArchiveUtils {
         }
     }
 
-    private static void extractZip(String output, File file) throws IOException {
+    private static void extractZip(File out, File file) throws IOException {
         try (ZipArchiveInputStream archive = new ZipArchiveInputStream(new FileInputStream(file))) {
-            extract(output, archive);
+            extract(out, archive);
         }
     }
 
-    private static void extract(String output, ArchiveInputStream<?> archiveInputStream) throws IOException {
+    private static void extract(File out, ArchiveInputStream<?> archiveInputStream) throws IOException {
         ArchiveEntry entry;
         try {
             while ((entry = archiveInputStream.getNextEntry()) != null) {
-                File item = new File(output, entry.getName());
+                File item = new File(out, entry.getName());
                 if (entry.isDirectory()) {
                     if (!item.mkdirs())
                         System.err.println("Failed to create directory! \"" + item + "\"");
@@ -159,7 +157,7 @@ public class ArchiveUtils {
                         System.err.println("Failed to create directory! \"" + item + "\"");
                         return;
                     }
-                    try (FileOutputStream fos = new FileOutputStream(new File(output, entry.getName()))) {
+                    try (FileOutputStream fos = new FileOutputStream(new File(out, entry.getName()))) {
                         byte[] buffer = new byte[1024];
                         int readNumInBytes;
                         while ((readNumInBytes = archiveInputStream.read(buffer)) != -1) {
@@ -169,7 +167,7 @@ public class ArchiveUtils {
                 }
             }
         } catch (IOException e) {
-            FileUtils.delete(output);
+            FileUtils.delete(out);
             throw e;
         }
     }

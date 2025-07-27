@@ -2,7 +2,18 @@ package ink.snowland.wkuwku.util;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.io.File;
+import java.util.List;
+
+import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.db.AppDatabase;
+import ink.snowland.wkuwku.db.entity.Game;
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
+import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class FileManager {
     public static final String ROM_DIRECTORY = "rom";
@@ -34,11 +45,55 @@ public class FileManager {
 
     public static void initialize(Context context) {
         sApplicationContext = context;
-        File cacheDir = getCacheDirectory();
-        File[] files = cacheDir.listFiles();
+        Completable.create(emitter -> {
+                    File cacheDir = getCacheDirectory();
+                    File[] files = cacheDir.listFiles();
+                    if (files == null) return;
+                    for (File file : files) {
+                        FileUtils.delete(file);
+                    }
+                    int maxStorageDays = sApplicationContext.getResources().getInteger(R.integer.trash_storage_days);
+                    long expiredTimeMillis = System.currentTimeMillis() - (long) maxStorageDays * 24 * 60 * 60 * 1000;
+                    List<Game> list = AppDatabase.db.gameInfoDao()
+                            .findTrashByModifiedLT(expiredTimeMillis);
+                    delete(list);
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnError(error -> error.printStackTrace(System.err))
+                .onErrorComplete()
+                .subscribe();
+    }
+
+    private static void delete(@Nullable List<Game> games) {
+        if (games == null || games.isEmpty()) return;
+        AppDatabase.db.gameInfoDao()
+                .delete(games);
+        for (Game game : games) {
+            clearFiles(game);
+        }
+    }
+
+    public static void clearFiles(@NonNull Game game) {
+        /*ROM*/
+        File parent = new File(game.filepath).getParentFile();
+        if (parent != null && !parent.equals(getFileDirectory(ROM_DIRECTORY))) {
+            FileUtils.delete(parent);
+        } else {
+            FileUtils.delete(game.filepath);
+        }
+
+        /*Screenshot*/
+        FileUtils.delete(getFile(IMAGE_DIRECTORY, game.id + ".png"));
+
+        /*Status*/
+        File stateDir = getFileDirectory(STATE_DIRECTORY);
+        final File[] files = stateDir.listFiles();
         if (files == null) return;
         for (File file : files) {
-            FileUtils.delete(file);
+            String name = file.getName();
+            if (name.contains(game.md5)) {
+                FileUtils.delete(file);
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.ui.macro;
 
 import android.app.Application;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
@@ -8,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.util.List;
 
+import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.MacroScript;
@@ -25,36 +27,40 @@ public class MacroViewModel extends BaseViewModel {
                 .getAll()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(mMacrosList::postValue, error -> {
-                    error.printStackTrace(System.err);
-                });
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe(mMacrosList::postValue);
 
     }
 
     public void add(@NonNull MacroScript script) {
-        Disposable disposable = AppDatabase.db.macroScriptDao()
+        AppDatabase.db.macroScriptDao()
                 .add(script)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
-                }, this::showErrorToast);
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe();
     }
 
     public void update(@NonNull MacroScript script) {
-        Disposable disposable = AppDatabase.db.macroScriptDao()
+        AppDatabase.db.macroScriptDao()
                 .update(script)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {}, this::showErrorToast);
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe();
     }
 
     public void delete(@NonNull MacroScript script) {
-        Disposable disposable = AppDatabase.db.macroScriptDao()
+        AppDatabase.db.macroScriptDao()
                 .delete(script)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
-                }, this::showErrorToast);
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe();
 
     }
 

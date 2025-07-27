@@ -32,11 +32,10 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
         mViewModel = new ViewModelProvider(this).get(MacroViewModel.class);
         mAdapter = new ViewAdapter();
         mViewModel.getAll()
-                .observe(this, data -> submitDelayed(data, mAdapter, submitDelayedMillis));
+                .observe(this, data -> runAtDelayed(() -> mAdapter.submitList(data), savedInstanceState == null ? 300 : 0));
     }
 
     @Override
@@ -80,12 +79,8 @@ public class MacroFragment extends BaseFragment implements View.OnClickListener 
 
         public void bind(@NonNull MacroScript script) {
             itemBinding.setScript(script);
-            itemBinding.buttonDelete.setOnClickListener(v -> {
-                mViewModel.delete(script);
-            });
-            itemBinding.buttonEdit.setOnClickListener(v -> {
-                showEditDialog(script);
-            });
+            itemBinding.buttonDelete.setOnClickListener(v -> mViewModel.delete(script));
+            itemBinding.buttonEdit.setOnClickListener(v -> showEditDialog(script));
         }
     }
 

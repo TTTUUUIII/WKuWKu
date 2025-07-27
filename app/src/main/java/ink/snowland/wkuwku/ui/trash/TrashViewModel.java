@@ -5,67 +5,64 @@ import static ink.snowland.wkuwku.util.FileManager.*;
 import android.app.Application;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
-import java.io.File;
 import java.util.List;
 
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import ink.snowland.wkuwku.util.FileUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class TrashViewModel extends BaseViewModel {
+    private final Disposable mDisposable;
+    private final MutableLiveData<List<Game>> mTrash = new MutableLiveData<>();
+
     public TrashViewModel(@NonNull Application application) {
         super(application);
+        mDisposable = AppDatabase.db.gameInfoDao()
+                .getTrash()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(mTrash::postValue)
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe();
     }
 
-    public Observable<List<Game>> getTrash() {
-        return AppDatabase.db.gameInfoDao().getTrash();
+    public LiveData<List<Game>> getTrash() {
+        return mTrash;
     }
 
     public void delete(@NonNull Game game) {
-        Disposable disposable = AppDatabase.db.gameInfoDao().delete(game)
+        AppDatabase.db.gameInfoDao().delete(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(this::showErrorToast)
-                .subscribe(() -> clearFiles(game), error -> {/*ignored*/});
+                .doOnComplete(() -> clearFiles(game))
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe();
     }
 
     public void restore(@NonNull Game game) {
         game.state = Game.STATE_VALID;
         game.lastModifiedTime = System.currentTimeMillis();
-        Disposable disposable = AppDatabase.db.gameInfoDao().update(game)
+        AppDatabase.db.gameInfoDao().update(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(this::showErrorToast)
-                .subscribe(() -> {}, error -> {/*Ignored*/});
+                .doOnError(this::onError)
+                .onErrorComplete()
+                .subscribe();
     }
 
-    private void clearFiles(@NonNull Game game) {
-        /*ROM*/
-        File parent = new File(game.filepath).getParentFile();
-        if (parent != null && !parent.equals(getFileDirectory(ROM_DIRECTORY))) {
-            FileUtils.delete(parent);
-        } else {
-            FileUtils.delete(game.filepath);
-        }
-
-        /*Screenshot*/
-        FileUtils.delete(getFile(IMAGE_DIRECTORY, game.id + ".png"));
-
-        /*Status*/
-        File stateDir = getFileDirectory(STATE_DIRECTORY);
-        final File[] files = stateDir.listFiles();
-        if (files == null) return;
-        for (File file : files) {
-            String name = file.getName();
-            if (name.contains(game.md5)) {
-                FileUtils.delete(file);
-            }
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (!mDisposable.isDisposed()) {
+            mDisposable.dispose();
         }
     }
 }

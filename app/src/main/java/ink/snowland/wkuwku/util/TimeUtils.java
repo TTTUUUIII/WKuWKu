@@ -1,8 +1,13 @@
 package ink.snowland.wkuwku.util;
 
+import android.content.Context;
+import android.os.SystemClock;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import ink.snowland.wkuwku.R;
 
 public class TimeUtils {
     private final static SimpleDateFormat formatter = new SimpleDateFormat("yy/MM/dd HH:mm:ss", Locale.ROOT);
@@ -18,4 +23,9 @@ public class TimeUtils {
         return new SimpleDateFormat(fmt, Locale.ROOT).format(new Date(timestamp));
     }
 
+    public static int elapsedDays(long timestamp) {
+        long elapsedRealtimeMillis = System.currentTimeMillis() - timestamp;
+        long elapsedSeconds = (long) (elapsedRealtimeMillis / 1e3);
+        return (int) (elapsedSeconds / 86400);
+    }
 }

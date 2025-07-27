@@ -103,11 +103,11 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     mAvailablePlugListLoaded = true;
                     mViewModel.setPendingIndicator(false);
                 })
-                .doOnSuccess(data -> submitDelayed(data, mAvailablePlugAdapter, submitDelayedMillis))
+                .doOnSuccess(data -> runAtDelayed(() -> mAvailablePlugAdapter.submitList(data), submitDelayedMillis))
                 .subscribe();
         mViewModel.getAll().observe(
                 this,
-                data -> submitDelayed(data, mInstalledPlugAdapter, submitDelayedMillis)
+                data -> runAtDelayed(() -> mInstalledPlugAdapter.submitList(data), submitDelayedMillis)
         );
     }
 
@@ -317,10 +317,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .error(R.drawable.ic_extension)
                             .into(_binding.plugIcon);
                 }
-                if (BuildConfig.VERSION_CODE < res.minAppVersion || (res.maxAppVersion != PlugRes.VERSION_UNKNOW && BuildConfig.VERSION_CODE > res.maxAppVersion)) {
-                    _binding.installButton.setEnabled(false);
-                    _binding.installButton.setText(R.string.incompatible);
-                } else {
+                if (res.isCompatible()) {
                     final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
                     DownloadManager.Session session = DownloadManager.getSession(res.url);
                     if (plug != null) {
@@ -358,6 +355,9 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                     Toast.makeText(parentActivity, R.string.network_error, Toast.LENGTH_SHORT).show();
                                 }).submit();
                     });
+                } else {
+                    _binding.installButton.setEnabled(false);
+                    _binding.installButton.setText(R.string.incompatible);
                 }
             }
         }

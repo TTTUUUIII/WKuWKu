@@ -17,8 +17,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.Callable;
@@ -35,7 +36,13 @@ public class DownloadManager {
     public static final int SESSION_STATE_FAILED        = 4;
 
     private final static Logger logger = new Logger("Utils", "DownloadManager");
-    private final static ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final static ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            1,
+            3,
+            30,
+            TimeUnit.SECONDS,
+            new LinkedBlockingDeque<>()
+    );
     private final static Handler handler = new Handler(Looper.getMainLooper());
     private final static SparseArray<Session> sessions = new SparseArray<>();
     private DownloadManager() {}
