@@ -69,6 +69,7 @@
     <string name="reverse_landscape">反向横屏</string>
     <string name="key_macro">按键宏</string>
     <string name="about">关于</string>
+    <string name="fmt_about">版本%s, 构建于%s</string>
     <string name="add_macro">添加宏</string>
     <string name="please_input_macro_script">请输入按键宏脚本</string>
     <string name="key_macro_manage">宏管理</string>

@@ -26,17 +26,19 @@ public class PlugRes {
 
     public String[] supportedABIs;
 
-    @NonNull
     @Override
+    @NonNull
     public String toString() {
         return "PlugRes{" +
                 "name='" + name + '\'' +
-                ", iconUrl='" + iconUrl + '\'' +
                 ", url='" + url + '\'' +
                 ", packageName='" + packageName + '\'' +
                 ", version='" + version + '\'' +
+                ", versionCode=" + versionCode +
                 ", md5='" + md5 + '\'' +
-                ", supportedABIs='" + Arrays.toString(supportedABIs) + '\'' +
+                ", minAppVersion=" + minAppVersion +
+                ", maxAppVersion=" + maxAppVersion +
+                ", supportedABIs=" + Arrays.toString(supportedABIs) +
                 '}';
     }
 
@@ -67,6 +69,7 @@ public class PlugRes {
                 if (compatible) break;
             }
         } else {
+            url = url.replaceAll("(?i)\\$\\{ABI\\}", Build.SUPPORTED_ABIS[0]);
             compatible = true;
         }
         return compatible

@@ -362,9 +362,9 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             }
         }
 
-        private void install(String md5sum, File file) {
+        private void install(String md5sums, File file) {
             ItemPlugResBinding _binding = (ItemPlugResBinding) itemBinding;
-            if (md5sum.equals(FileUtils.getMD5Sum(file))) {
+            if (md5sums.contains(FileUtils.getMD5Sum(file))) {
                 _binding.installButton.setText(getString(R.string.installing));
                 PlugManager.install(file, new ActionListener() {
                     @Override

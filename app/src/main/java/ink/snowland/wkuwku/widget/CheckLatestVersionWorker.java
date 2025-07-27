@@ -1,9 +1,10 @@
 package ink.snowland.wkuwku.widget;
+
+import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.AppConfig.*;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.util.Log;
 import android.util.Xml;
 
 import androidx.annotation.NonNull;
@@ -15,82 +16,68 @@ import org.xmlpull.v1.XmlPullParser;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import ink.snowland.wkuwku.BuildConfig;
-import ink.snowland.wkuwku.util.FileManager;
+import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileUtils;
+import ink.snowland.wkuwku.util.Logger;
+import ink.snowland.wkuwku.util.NumberUtils;
 
 public class CheckLatestVersionWorker extends Worker {
-
+    private static final Logger logger = new Logger("App", "CheckLatestVersionWorker");
     public static final String ACTION_UPDATE_APK = "ink.snowland.wkuwku.action.UPDATE_APK";
     public static final String EXTRA_APK_PATH = "apk.path";
     public static final String EXTRA_APK_VERSION = "apk.version";
-
-    private static final String TAG = "CheckLatestVersionWorker";
     public CheckLatestVersionWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
+    private String mVersionName;
+    private int mVersionCode;
+    private String mMD5Sums;
+
     @NonNull
     @Override
     public Result doWork() {
-        Log.d(TAG, "INFO: start check latest version.");
+        logger.i("Start check latest version.");
         try (InputStream config = new URL(WEB_URL + "app-version.xml").openStream()){
-            String versionName = null;
-            int versionCode = 0;
-            List<String> md5List = Collections.emptyList();
             XmlPullParser xmlPullParser = Xml.newPullParser();
             xmlPullParser.setInput(config, "utf-8");
             int event = xmlPullParser.getEventType();
             while (event != XmlPullParser.END_DOCUMENT) {
                 String name = xmlPullParser.getName();
                 if (event == XmlPullParser.START_TAG && "tag".equals(name)) {
-                    String md5 = xmlPullParser.getAttributeValue(null, "md5");
-                    versionName = xmlPullParser.getAttributeValue(null, "name");
-                    try {
-                        versionCode = Integer.parseInt(xmlPullParser.getAttributeValue(null, "code"), 10);
-                    } catch (NumberFormatException ignored) {}
-                    if (md5 == null)
-                        md5 = "";
                     boolean latest = Boolean.parseBoolean(xmlPullParser.getAttributeValue(null, "latest"));
-                    Log.d(TAG, "INFO: tag " + versionName + ", latest " + latest);
                     if (latest) {
-                        md5List = Arrays.asList(md5.split("\\|"));
+                        mMD5Sums = xmlPullParser.getAttributeValue(null, "md5");
+                        mVersionName = xmlPullParser.getAttributeValue(null, "name");
+                        mVersionCode = NumberUtils.parseInt(xmlPullParser.getAttributeValue(null, "code"), 0);
+                        logger.d("Latest version is %s(%d).", mVersionName, mVersionCode);
                         break;
                     }
                 }
                 event = xmlPullParser.next();
             }
-            if (versionName == null)
-                return Result.success();
-            if (versionCode > BuildConfig.VERSION_CODE) {
-                File apkFile = new File(FileManager.getCacheDirectory(), versionName + ".apk");
-                boolean requestInstall = false;
-                if (apkFile.exists()) {
-                    String md5 = FileUtils.getMD5Sum(apkFile);
-                    if (md5List.contains(md5))
-                        requestInstall = true;
-                }
-                if (!requestInstall) {
-                    try (InputStream ins = new URL(String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", versionName, Build.SUPPORTED_ABIS[0])).openStream()){
-                        FileUtils.copy(ins, apkFile);
-                        String md5 = FileUtils.getMD5Sum(apkFile);
-                        if (md5List.contains(md5))
-                            requestInstall = true;
-                    }
-                }
-                if (requestInstall) {
-                    Intent intent = new Intent(ACTION_UPDATE_APK);
-                    intent.putExtra(EXTRA_APK_PATH, apkFile.getAbsolutePath());
-                    intent.putExtra(EXTRA_APK_VERSION, versionName);
-                    Log.i(TAG, "INFO: request update version: " + versionName);
-                    getApplicationContext().sendBroadcast(intent);
-                }
-            } else {
-                Log.i(TAG, "INFO: new version not found.");
+            if (mVersionCode > BuildConfig.VERSION_CODE && mMD5Sums != null) {
+                File apkFile = new File(getCacheDirectory(), mVersionName + ".apk");
+                final String url = String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", mVersionName, Build.SUPPORTED_ABIS[0]);
+                DownloadManager.newRequest(url, apkFile)
+                        .doOnComplete(file -> {
+                            if (mMD5Sums.contains(FileUtils.getMD5Sum(file))) {
+                                Intent intent = new Intent(ACTION_UPDATE_APK);
+                                intent.putExtra(EXTRA_APK_PATH, apkFile.getAbsolutePath());
+                                intent.putExtra(EXTRA_APK_VERSION, mVersionName);
+                                logger.i("Request update version to %s", mVersionName);
+                                getApplicationContext().sendBroadcast(intent);
+                            } else {
+                                logger.e("Failed to verification package.");
+                            }
+                        })
+                        .doOnError(error -> {
+                            logger.e("Failed to download %s from %s", mVersionName, url);
+                            error.printStackTrace(System.err);
+                        })
+                        .submit();
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);
