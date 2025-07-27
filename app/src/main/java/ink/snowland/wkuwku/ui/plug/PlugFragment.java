@@ -185,7 +185,8 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     }
                     File temp = new File(FileManager.getCacheDirectory(), filename);
                     mViewModel.setPendingIndicator(true, R.string.copying_files);
-                    try (InputStream from = parentActivity.getContentResolver().openInputStream(uri)) {
+                    try {
+                        InputStream from = parentActivity.getContentResolver().openInputStream(uri);
                         FileUtils.asyncCopy(from, temp, new ActionListener() {
                             @Override
                             public void onSuccess() {

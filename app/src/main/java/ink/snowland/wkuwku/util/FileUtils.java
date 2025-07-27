@@ -105,6 +105,7 @@ public class FileUtils {
                         listener.onFailure(error);
                     }
                 })
+                .doFinally(from::close)
                 .subscribe();
     }
 
