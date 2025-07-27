@@ -97,14 +97,6 @@ public class PlugViewModel extends BaseViewModel {
                     if (eventType == XmlPullParser.START_TAG && "plug".equals(tagName)) {
                         PlugRes plugInfo = parsePlugInfo(xmlPullParser);
                         if (plugInfo != null) {
-                            plugInfo.minAppVersion = NumberUtils.parseInt(
-                                    xmlPullParser.getAttributeValue(null, "minAppVersion"),
-                                    PlugRes.VERSION_UNKNOW
-                            );
-                            plugInfo.maxAppVersion = NumberUtils.parseInt(
-                                    xmlPullParser.getAttributeValue(null, "maxAppVersion"),
-                                    PlugRes.VERSION_UNKNOW
-                            );
                             list.add(plugInfo);
                         }
                     }
@@ -119,9 +111,17 @@ public class PlugViewModel extends BaseViewModel {
         PlugRes info = new PlugRes();
         info.name = xmlPullParser.getAttributeValue(null, "name");
         if (info.name == null) return null;
+        info.minAppVersion = NumberUtils.parseInt(
+                xmlPullParser.getAttributeValue(null, "minAppVersion"),
+                PlugRes.VERSION_UNKNOW
+        );
+        info.maxAppVersion = NumberUtils.parseInt(
+                xmlPullParser.getAttributeValue(null, "maxAppVersion"),
+                PlugRes.VERSION_UNKNOW
+        );
         String abIs = xmlPullParser.getAttributeValue(null, "supportedABIs");
         if (abIs != null) {
-            info.supportedABIs = abIs.split(",");
+            info.supportedABIs = abIs.split(";");
         }
         int eventType = xmlPullParser.getEventType();
         String tagName = xmlPullParser.getName();

@@ -90,8 +90,7 @@
     <string name="add_macro">Add a macro</string>
     <string name="please_input_macro_script">Please input macro script.</string>
     <string name="key_macro_manage">Macro management</string>
-    <string name="about_wkuwku" translatable="false">About WkuWku</string>
-    <string name="fmt_about_wkuwku" translatable="false">Version %s, Built on %s</string>
+    <string name="fmt_about">Version %s, Built on %s</string>
     <string name="please_input_valid_marco_script">Please input valid marco script</string>
     <string name="m1" translatable="false">M1</string>
     <string name="please_wait">Please wait</string>

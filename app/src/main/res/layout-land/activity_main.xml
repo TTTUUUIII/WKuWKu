@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.drawerlayout.widget.DrawerLayout
+        android:id="@+id/drawer_layout"
+        tools:context=".activity.MainActivity"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <ink.snowland.wkuwku.view.EmojiWorkshopView
+                android:id="@+id/emoji_workshop_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+            <com.google.android.material.appbar.AppBarLayout
+                android:id="@+id/app_bar_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/tool_bar"
+                    android:layout_width="match_parent"
+                    android:minHeight="?attr/actionBarSize"
+                    android:elevation="4dp"
+                    style="@style/Widget.Material3.Toolbar"
+                    app:popupTheme="@style/ThemeOverlay.Material3.DynamicColors.Light"
+                    android:layout_height="?attr/actionBarSize" />
+            </com.google.android.material.appbar.AppBarLayout>
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/nav_host_fragment"
+                android:name="androidx.navigation.fragment.NavHostFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_below="@id/app_bar_layout"
+                app:navGraph="@navigation/app_navigation"
+                app:defaultNavHost="true" />
+        </RelativeLayout>
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navigation_view"
+            android:layout_gravity="start"
+            app:headerLayout="@layout/layout_drawer_header"
+            app:itemBackground="@android:color/transparent"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            app:itemIconPadding="24dp"
+            app:menu="@menu/main_drawer_menu" />
+    </androidx.drawerlayout.widget.DrawerLayout>
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/snackbar_container"
+        android:layout_width="430dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

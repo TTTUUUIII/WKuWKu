@@ -204,9 +204,9 @@ public class MainActivity extends BaseActivity {
 
     private void showAboutDialog() {
         new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.about_wkuwku)
+                .setTitle(R.string.about)
                 .setIcon(R.mipmap.ic_launcher_round)
-                .setMessage(getString(R.string.fmt_about_wkuwku, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TIME))
+                .setMessage(getString(R.string.fmt_about, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TIME))
                 .show();
     }
 
