@@ -46,6 +46,7 @@ enum rotation_t {
 
 typedef struct {
     JavaVM *jvm;
+    JNIEnv *env;
     jclass input_descriptor_clazz;
     jclass message_ext_clazz;
     jclass array_list_clazz;
@@ -84,7 +85,7 @@ static void free_frame_buffers();
 static void fill_frame_buffer(const void *, unsigned, unsigned, size_t);
 static void notify_video_size_changed();
 static void entry_main_loop();
-static bool attach_env(JNIEnv**);
+static bool attach_env();
 static void detach_env();
 static retro_proc_address_t get_hw_proc_address(const char* sym);
 static uintptr_t get_hw_framebuffer();

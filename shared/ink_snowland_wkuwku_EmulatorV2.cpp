@@ -153,11 +153,8 @@ static void fill_frame_buffer(const void *data, unsigned width, unsigned height,
 }
 
 static void notify_video_size_changed() {
-    JNIEnv *env;
-    if (attach_env(&env)) {
-        env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, video_width, video_height, video_rotation);
-        detach_env();
-    }
+    ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.video_size_cb_method, video_width, video_height,
+                            video_rotation);
 }
 
 static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun_likely) {
@@ -170,32 +167,26 @@ static size_t audio_cb(const int16_t *data, size_t frames) {
         if (audio_stream_out) {
             return audio_stream_out->write(data, (int) frames, 20 * kNanosPerMillisecond);
         } else {
-            JNIEnv *env;
-            if (attach_env(&env)) {
-                if (env->GetArrayLength(audio_buffer) < frames * 2) {
-                    env->DeleteGlobalRef(audio_buffer);
-                    audio_buffer = (jshortArray) env->NewGlobalRef(
-                            env->NewShortArray((int) frames * 2));
-                }
-                env->SetShortArrayRegion(audio_buffer, 0, (int) frames * 2, data);
-                return env->CallIntMethod(ctx.emulator_obj, ctx.audio_buffer_method, audio_buffer,
-                                          frames);
-                detach_env();
+            if (ctx.env->GetArrayLength(audio_buffer) < frames * 2) {
+                ctx.env->DeleteGlobalRef(audio_buffer);
+                audio_buffer = (jshortArray) ctx.env->NewGlobalRef(
+                        ctx.env->NewShortArray((int) frames * 2));
             }
+            ctx.env->SetShortArrayRegion(audio_buffer, 0, (int) frames * 2, data);
+            return ctx.env->CallIntMethod(ctx.emulator_obj, ctx.audio_buffer_method, audio_buffer,
+                                          frames);
         }
     }
     return frames;
 }
 
 static int16_t input_cb(unsigned port, unsigned device, unsigned index, unsigned id) {
-    JNIEnv *env;
-    if (!ctx.emulator_obj || !attach_env(&env)) return 0;
+    if (!ctx.emulator_obj) return 0;
     int16_t input_state;
-    input_state = (int16_t) env->CallIntMethod(ctx.emulator_obj, ctx.input_cb_method, port,
-                                               device,
-                                               index,
-                                               id);
-    detach_env();
+    input_state = (int16_t) ctx.env->CallIntMethod(ctx.emulator_obj, ctx.input_cb_method, port,
+                                                   device,
+                                                   index,
+                                                   id);
     return input_state;
 }
 
@@ -206,26 +197,16 @@ static void input_poll_cb() {
 static bool rumble_state_cb(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
     LOGW(TAG, "Rumble state event ignored, port=%d, effect=%d, strength=%d", port, effect,
          strength);
-    JNIEnv *env;
-    if (attach_env(&env)) {
-        bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.rumble_cb_method, port, effect, strength);
-        detach_env();
-        return ret;
-    }
-    return false;
+    return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.rumble_cb_method, port, effect,
+                                      strength);
 }
 
 static bool environment_cb(unsigned cmd, void *data) {
-    JNIEnv *env;
     switch (cmd) {
         case RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE:
         case RETRO_ENVIRONMENT_GET_FASTFORWARDING:
-            if (attach_env(&env)) {
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   nullptr);
-                detach_env();
-                return ret;
-            }
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              nullptr);
             break;
         case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
             struct retro_log_callback *log_cb;
@@ -260,143 +241,97 @@ static bool environment_cb(unsigned cmd, void *data) {
             interface->set_rumble_state = rumble_state_cb;
             return true;
         case RETRO_ENVIRONMENT_SET_MINIMUM_AUDIO_LATENCY:
-            if (attach_env(&env)) {
-                set_variable_value(env, new_int(env, (jint) (*(unsigned *) data)));
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   variable_object);
-                detach_env();
-                return ret;
-            }
-            break;
+            set_variable_value(ctx.env, new_int(ctx.env, (jint) (*(unsigned *) data)));
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_object);
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-            if (attach_env(&env)) {
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   variable_object);
-                if (ret) {
-                    auto path = (jstring) get_variable_value(env);
-                    *((const char **) data) = env->GetStringUTFChars(path, JNI_FALSE);
-                }
-                detach_env();
-                return ret;
+            if (ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                           variable_object)) {
+                auto path = (jstring) get_variable_value(ctx.env);
+                *((const char **) data) = ctx.env->GetStringUTFChars(path, JNI_FALSE);
+                return true;
             }
             break;
         case RETRO_ENVIRONMENT_SET_MESSAGE:
-            if (attach_env(&env)) {
-                jobject jmsg_ext;
-                struct retro_message *msg;
-                msg = (struct retro_message *) data;
-                jmsg_ext = env->NewObject(ctx.message_ext_clazz,
+            jobject jmsg_ext;
+            struct retro_message *msg;
+            msg = (struct retro_message *) data;
+            jmsg_ext = ctx.env->NewObject(ctx.message_ext_clazz,
                                           ctx.message_ext_constructor,
-                                          env->NewStringUTF(msg->msg),
+                                          ctx.env->NewStringUTF(msg->msg),
                                           0,
                                           RETRO_LOG_INFO,
                                           RETRO_MESSAGE_TARGET_LOG,
                                           RETRO_MESSAGE_TYPE_NOTIFICATION,
                                           -1,
                                           300);
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd, jmsg_ext);
-                detach_env();
-                return ret;
-            }
-            break;
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              jmsg_ext);
         case RETRO_ENVIRONMENT_SET_MESSAGE_EXT:
-            if (attach_env(&env)) {
-                jobject jmsg_ext;
-                struct retro_message_ext *msg_ext;
-                msg_ext = (struct retro_message_ext *) data;
-                jmsg_ext = env->NewObject(ctx.message_ext_clazz,
+            struct retro_message_ext *msg_ext;
+            msg_ext = (struct retro_message_ext *) data;
+            jmsg_ext = ctx.env->NewObject(ctx.message_ext_clazz,
                                           ctx.message_ext_constructor,
-                                          env->NewStringUTF(msg_ext->msg),
+                                          ctx.env->NewStringUTF(msg_ext->msg),
                                           msg_ext->priority,
                                           msg_ext->level,
                                           msg_ext->target,
                                           msg_ext->type,
                                           msg_ext->progress,
                                           msg_ext->duration
-                );
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   jmsg_ext);
-                detach_env();
-                return ret;
-            }
-            break;
+            );
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              jmsg_ext);
         case RETRO_ENVIRONMENT_GET_VARIABLE:
-            if (attach_env(&env)) {
-                struct retro_variable *variable;
-                variable = (struct retro_variable *) data;
-                set_variable_entry(env, variable->key, nullptr);
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   variable_entry_object);
-                if (ret) {
-                    auto value = (jstring) get_variable_entry_value(env);
-                    variable->value = env->GetStringUTFChars(value, JNI_FALSE);
-                }
-                detach_env();
-                return ret;
+            struct retro_variable *variable;
+            variable = (struct retro_variable *) data;
+            set_variable_entry(ctx.env, variable->key, nullptr);
+            if (ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                           variable_entry_object)) {
+                auto value = (jstring) get_variable_entry_value(ctx.env);
+                variable->value = ctx.env->GetStringUTFChars(value, JNI_FALSE);
+                return true;
             }
             break;
         case RETRO_ENVIRONMENT_SET_VARIABLE:
-            if (attach_env(&env)) {
-                struct retro_variable *variable;
-                if (data != nullptr) {
-                    variable = (struct retro_variable *) data;
-                    set_variable_entry(env, variable->key, env->NewStringUTF(variable->value));
-                }
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   variable_entry_object);
-                detach_env();
-                return ret;
+            if (data != nullptr) {
+                variable = (struct retro_variable *) data;
+                set_variable_entry(ctx.env, variable->key, ctx.env->NewStringUTF(variable->value));
             }
-            break;
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              variable_entry_object);
         case RETRO_ENVIRONMENT_GET_INPUT_BITMASKS:
-            if (attach_env(&env)) {
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   nullptr);
-                detach_env();
-                return ret;
-            }
-            break;
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              nullptr);
         case RETRO_ENVIRONMENT_GET_CORE_OPTIONS_VERSION:
-            if (attach_env(&env)) {
-                set_variable_value(env, new_int(env, (jint) *(unsigned *) data));
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   variable_object);
-                detach_env();
-                return ret;
-            }
-            break;
         case RETRO_ENVIRONMENT_GET_DISK_CONTROL_INTERFACE_VERSION:
-            *(unsigned *) data = 2;
+            *(unsigned *) data = 1;
             return true;
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
             pixel_format = *((retro_pixel_format *) data);
             return true;
         case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
-            if (attach_env(&env)) {
-                jobject array_list;
-                jclass controller_desc_clazz;
-                jmethodID constructor;
-                struct retro_controller_info *controller_info;
-                controller_info = (struct retro_controller_info *) data;
-                array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
-                controller_desc_clazz = env->FindClass(
-                        "ink/snowland/wkuwku/common/ControllerDescription");
-                constructor = env->GetMethodID(controller_desc_clazz, "<init>",
+            jobject array_list;
+            jclass controller_desc_clazz;
+            jmethodID constructor;
+            struct retro_controller_info *controller_info;
+            controller_info = (struct retro_controller_info *) data;
+            array_list = ctx.env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
+            controller_desc_clazz = ctx.env->FindClass(
+                    "ink/snowland/wkuwku/common/ControllerDescription");
+            constructor = ctx.env->GetMethodID(controller_desc_clazz, "<init>",
                                                "(Ljava/lang/String;I)V");
-                for (int i = 0; i < controller_info->num_types; ++i) {
-                    jobject controller_desc = env->NewObject(controller_desc_clazz, constructor,
-                                                             env->NewStringUTF(
+            for (int i = 0; i < controller_info->num_types; ++i) {
+                jobject controller_desc = ctx.env->NewObject(controller_desc_clazz, constructor,
+                                                             ctx.env->NewStringUTF(
                                                                      controller_info->types[i].desc),
                                                              (int) controller_info->types[i].id);
-                    env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
-                }
-                env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                       array_list);
-                detach_env();
+                ctx.env->CallVoidMethod(array_list, ctx.array_list_add_method, i, controller_desc);
             }
-            return true;
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              array_list);
         case RETRO_ENVIRONMENT_GET_GAME_INFO_EXT:
         case RETRO_ENVIRONMENT_GET_VFS_INTERFACE:
         case RETRO_ENVIRONMENT_GET_LED_INTERFACE:
@@ -414,6 +349,8 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_SET_GEOMETRY:
         case RETRO_ENVIRONMENT_SET_SYSTEM_AV_INFO:
         case RETRO_ENVIRONMENT_SET_PERFORMANCE_LEVEL:
+        case RETRO_ENVIRONMENT_SET_CORE_OPTIONS_INTL:
+        case RETRO_ENVIRONMENT_SET_SUPPORT_ACHIEVEMENTS:
             return true;
         case RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE:
             if (data) {
@@ -426,39 +363,35 @@ static bool environment_cb(unsigned cmd, void *data) {
             }
             return true;
         case RETRO_ENVIRONMENT_GET_LANGUAGE:
-            *(unsigned *)data = RETRO_LANGUAGE_ENGLISH;
+            *(unsigned *) data = RETRO_LANGUAGE_ENGLISH;
             return true;
-        case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS:
-            if (attach_env(&env)) {
-                jint index = 0;
-                jobject array_list;
-                struct retro_input_descriptor *desc;
-                desc = (struct retro_input_descriptor *) data;
-                array_list = env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
-                while (desc->description != nullptr) {
-                    jobject it = env->NewObject(
-                            ctx.input_descriptor_clazz,
-                            ctx.input_descriptor_constructor,
-                            desc->port,
-                            desc->device,
-                            desc->index,
-                            desc->id,
-                            env->NewStringUTF(desc->description));
-                    env->CallVoidMethod(array_list, ctx.array_list_add_method, index, it);
-                    desc++;
-                    index++;
-                }
-                bool ret = env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                                   array_list);
-                detach_env();
-                return ret;
+        case RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS: {
+            jint index = 0;
+            struct retro_input_descriptor *desc;
+            desc = (struct retro_input_descriptor *) data;
+            array_list = ctx.env->NewObject(ctx.array_list_clazz, ctx.array_list_constructor);
+            while (desc->description != nullptr) {
+                jobject it = ctx.env->NewObject(
+                        ctx.input_descriptor_clazz,
+                        ctx.input_descriptor_constructor,
+                        desc->port,
+                        desc->device,
+                        desc->index,
+                        desc->id,
+                        ctx.env->NewStringUTF(desc->description));
+                ctx.env->CallVoidMethod(array_list, ctx.array_list_add_method, index, it);
+                desc++;
+                index++;
             }
-            return true;
+            return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
+                                              array_list);
+        }
         case RETRO_ENVIRONMENT_GET_AUDIO_VIDEO_ENABLE:
-            *(unsigned *)data = RETRO_AV_ENABLE_AUDIO | RETRO_AV_ENABLE_VIDEO | RETRO_AV_ENABLE_FAST_SAVESTATES;
+            *(unsigned *) data =
+                    RETRO_AV_ENABLE_AUDIO | RETRO_AV_ENABLE_VIDEO | RETRO_AV_ENABLE_FAST_SAVESTATES;
             return true;
         case RETRO_ENVIRONMENT_GET_MESSAGE_INTERFACE_VERSION:
-            *(unsigned *)data = 1;
+            *(unsigned *) data = 1;
             return true;
         default:
             LOGW(TAG, "Environment: %d ignored.", cmd);
@@ -517,6 +450,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     if (ctx.emulator_obj == nullptr) {
         ctx.emulator_obj = env->NewGlobalRef(thiz);
     }
+    ctx.env = env;
     if (current_state == INVALID) {
         retro_set_environment(environment_cb);
         retro_init();
@@ -545,7 +479,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     }
     if (no_error) {
         current_state = STATE_RUNNING;
-        if (get_prop(PROP_OBOE_ENABLED, false)) {
+        if (get_prop(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
         } else {
             audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
@@ -721,7 +655,8 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     if (current_state == STATE_RUNNING || current_state == STATE_PAUSED) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            no_error = stbi_write_png(file_path, video_width, video_height, 4, framebuffers[draw_index]->data,
+            no_error = stbi_write_png(file_path, video_width, video_height, 4,
+                                      framebuffers[draw_index]->data,
                                       video_width * 4);
         } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
             unsigned char data[video_width * video_height * 3];
@@ -837,23 +772,26 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 
 static void entry_main_loop() {
-    set_thread_priority(THREAD_PRIORITY_AUDIO);
-    for (;;) {
-        std::shared_ptr<message_t> msg = obtain_message();
-        if (current_state == STATE_RUNNING) {
-            retro_run();
-        } else if (current_state == STATE_PAUSED && !msg) {
-            std::unique_lock<std::mutex> lock(mtx);
-            cv.wait(lock, []() {
-                return current_state != STATE_PAUSED
-                || !message_queue.empty();
-            });
+    if (attach_env()) {
+        set_thread_priority(THREAD_PRIORITY_AUDIO);
+        for (;;) {
+            std::shared_ptr<message_t> msg = obtain_message();
+            if (current_state == STATE_RUNNING) {
+                retro_run();
+            } else if (current_state == STATE_PAUSED && !msg) {
+                std::unique_lock<std::mutex> lock(mtx);
+                cv.wait(lock, []() {
+                    return current_state != STATE_PAUSED
+                           || !message_queue.empty();
+                });
+            }
+            if (handle_message(msg)) continue;
+            if (msg->what == MSG_KILL) {
+                msg->promise->set_value({NO_ERROR, nullptr});
+                break;
+            }
         }
-        if (handle_message(msg)) continue;
-        if (msg->what == MSG_KILL) {
-            msg->promise->set_value({NO_ERROR, nullptr});
-            break;
-        }
+        detach_env();
     }
 }
 
@@ -863,6 +801,7 @@ static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     set_thread_priority(THREAD_PRIORITY_DISPLAY);
     if (hw_render_cb) {
         hw_render_cb->context_reset();
+        attach_env();
     } else {
         begin_texture();
     }
@@ -877,9 +816,11 @@ static void on_draw_frame() {
         } else {
             int index = draw_index.load();
             if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                texture(GL_RGB, video_width, video_height, video_rotation, framebuffers[index]->data);
+                texture(GL_RGB, video_width, video_height, video_rotation,
+                        framebuffers[index]->data);
             } else {
-                texture(GL_RGBA, video_width, video_height, video_rotation, framebuffers[index]->data);
+                texture(GL_RGBA, video_width, video_height, video_rotation,
+                        framebuffers[index]->data);
             }
             renderer->swap_buffers();
             return;
@@ -893,6 +834,7 @@ static void on_draw_frame() {
 static void on_surface_destroy() {
     if (hw_render_cb != nullptr) {
         hw_render_cb->context_destroy();
+        detach_env();
     } else {
         end_texture();
     }
@@ -908,14 +850,15 @@ static uintptr_t get_hw_framebuffer() {
     return fb;
 }
 
-static bool attach_env(JNIEnv **env) {
+static bool attach_env() {
     bool no_error = false;
-    jint state = ctx.jvm->GetEnv((void **) env, JNI_VERSION_1_6);
+    jint state = ctx.jvm->GetEnv((void **) &ctx.env, JNI_VERSION_1_6);
     if (state == JNI_OK
-        || (state == JNI_EDETACHED && ctx.jvm->AttachCurrentThread(env, nullptr) == JNI_OK)) {
+        || (state == JNI_EDETACHED && ctx.jvm->AttachCurrentThread(&ctx.env, nullptr) == JNI_OK)) {
         if (state == JNI_EDETACHED) {
             env_attached = true;
         }
+        LOGD(TAG, "Attached to env thread! tid=%d", gettid());
         no_error = true;
     } else {
         LOGE(TAG, "Failed to attach env thread! state=%d", state);
@@ -928,6 +871,8 @@ static void detach_env() {
         ctx.jvm->DetachCurrentThread();
         env_attached = false;
     }
+    ctx.env = nullptr;
+    LOGD(TAG, "Detached from env thread! tid=%d", gettid());
 }
 
 static void open_audio_stream() {
