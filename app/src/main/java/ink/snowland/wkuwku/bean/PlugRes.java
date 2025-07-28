@@ -24,7 +24,7 @@ public class PlugRes {
     public int minAppVersion;
     public int maxAppVersion;
 
-    public String[] supportedABIs;
+    public String supportedABIs;
 
     @Override
     @NonNull
@@ -38,7 +38,7 @@ public class PlugRes {
                 ", md5='" + md5 + '\'' +
                 ", minAppVersion=" + minAppVersion +
                 ", maxAppVersion=" + maxAppVersion +
-                ", supportedABIs=" + Arrays.toString(supportedABIs) +
+                ", supportedABIs=" + supportedABIs +
                 '}';
     }
 
@@ -59,14 +59,11 @@ public class PlugRes {
         boolean compatible = false;
         if (supportedABIs != null) {
             for (String it: Build.SUPPORTED_ABIS) {
-                for (String abi: supportedABIs) {
-                    if (it.equals(abi)) {
-                        url = url.replaceAll("(?i)\\$\\{ABI\\}", abi);
-                        compatible = true;
-                        break;
-                    }
+                if (supportedABIs.contains(it)) {
+                    url = url.replaceAll("(?i)\\$\\{ABI\\}", it);
+                    compatible = true;
+                    break;
                 }
-                if (compatible) break;
             }
         } else {
             url = url.replaceAll("(?i)\\$\\{ABI\\}", Build.SUPPORTED_ABIS[0]);

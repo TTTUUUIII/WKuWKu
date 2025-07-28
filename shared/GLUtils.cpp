@@ -27,6 +27,7 @@ static const float vertexes[] = {
 static unsigned int program_id, VAO, VBO, texture0;
 static glm::mat4 model;
 static unsigned rotation = 0;
+static int vw = 0, vh = 0;
 
 void begin_texture() {
     rotation = 0;
@@ -49,7 +50,7 @@ void begin_texture() {
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), vertexes, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * sizeof(float), 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*) (2 * sizeof(float)));
     glEnableVertexAttribArray(1);
@@ -77,7 +78,12 @@ void texture(int format, int w, int h, unsigned rota, const void* data) {
     if (format == GL_RGBA) {
         type = GL_UNSIGNED_BYTE;
     }
-    glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, type, data);
+    if (vw != w || vh != h) {
+        glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, type, data);
+        vw = w; vh = h;
+    } else {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, format, type, data);
+    }
     glUseProgram(program_id);
     if (rotation != rota) {
         rotation = rota;
@@ -95,4 +101,6 @@ void end_texture() {
     glDeleteBuffers(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteTextures(1, &texture0);
+    vw = 0;
+    vh = 0;
 }
