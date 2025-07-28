@@ -119,10 +119,7 @@ public class PlugViewModel extends BaseViewModel {
                 xmlPullParser.getAttributeValue(null, "maxAppVersion"),
                 PlugRes.VERSION_UNKNOW
         );
-        String abIs = xmlPullParser.getAttributeValue(null, "supportedABIs");
-        if (abIs != null) {
-            info.supportedABIs = abIs.split(";");
-        }
+        info.supportedABIs = xmlPullParser.getAttributeValue(null, "supportedABIs");
         int eventType = xmlPullParser.getEventType();
         String tagName = xmlPullParser.getName();
         while (eventType != XmlPullParser.END_TAG || !"plug".equals(tagName)) {
