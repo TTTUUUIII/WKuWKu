@@ -1,7 +1,6 @@
 package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.util.FileManager.*;
-import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 
 import android.annotation.SuppressLint;
@@ -174,6 +173,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                         });
                     }
                 }
+            } else {
+                showSnackbar(R.string.no_matching_emulator_found, Snackbar.LENGTH_LONG);
             }
         } else {
             mVideoWidth = savedInstanceState.getInt("video_width");
@@ -198,10 +199,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             if (mAutoLoadState && !mAutoLoadDisabled) {
                 handler.postDelayed(mViewModel::loadStateAtLast, 300);
             }
-        } else if (status == ERR_LOAD_FAILED){
+        } else {
             showSnackbar(R.string.load_game_failed, Snackbar.LENGTH_LONG);
-        } else if (status == ERR_EMULATOR_NOT_FOUND) {
-            showSnackbar(R.string.no_matching_emulator_found, Snackbar.LENGTH_LONG);
         }
     }
 
@@ -225,8 +224,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         handler.removeCallbacks(mHideTimerTask);
         binding.topControlMenu.setVisibility(View.VISIBLE);
         binding.topControlMenu.setAlpha(1.f);
-        binding.controllerRoot.setVisibility(View.VISIBLE);
-        binding.controllerRoot.setAlpha(1.f);
+        BaseController p1 = mControllerRoutes.get(PLAYER_1);
+        BaseController p2 = mControllerRoutes.get(PLAYER_2);
+        if (p1.isVirtual() || (p2 != null && p2.isVirtual())) {
+            binding.controllerRoot.setVisibility(View.VISIBLE);
+            binding.controllerRoot.setAlpha(1.f);
+        }
         handler.postDelayed(mHideTimerTask, 5000);
     }
 
@@ -488,11 +491,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     @Override
     public void onTouchEvent(MotionEvent ev) {
-        BaseController p1 = mControllerRoutes.get(PLAYER_1);
-        BaseController p2 = mControllerRoutes.get(PLAYER_2);
-        if (p1.isVirtual() || (p2 != null && p2.isVirtual())) {
-            resetHideTimer();
-        }
+        resetHideTimer();
     }
 
     @Override
