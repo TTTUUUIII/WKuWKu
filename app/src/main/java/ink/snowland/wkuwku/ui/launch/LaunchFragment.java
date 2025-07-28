@@ -488,7 +488,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     @Override
     public void onTouchEvent(MotionEvent ev) {
-        resetHideTimer();
+        BaseController p1 = mControllerRoutes.get(PLAYER_1);
+        BaseController p2 = mControllerRoutes.get(PLAYER_2);
+        if (p1.isVirtual() || (p2 != null && p2.isVirtual())) {
+            resetHideTimer();
+        }
     }
 
     @Override
