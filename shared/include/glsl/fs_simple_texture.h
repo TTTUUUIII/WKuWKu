@@ -5,5 +5,5 @@
 "out vec4 FragColor;\n"
 "\n"
 "void main() {\n"
-"    FragColor = texture(texture1, vec2(TexCoord.x, 1.0 - TexCoord.y));\n"
+"    FragColor = texture(texture1, vec2(TexCoord.x, TexCoord.y));\n"
 "}\n"
