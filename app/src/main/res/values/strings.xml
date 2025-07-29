@@ -183,4 +183,6 @@
     <string name="save_state">Save state</string>
     <string name="failed_extract">Failed to extract the file.</string>
     <string name="fmt_delete_after_days">Delete after %d days</string>
+    <string name="fmt_plug_installed_successfully">%s has been installed successfully!</string>
+    <string name="failed_to_access_file">Failed to access file!</string>
 </resources>

@@ -159,4 +159,6 @@
     <string name="save_state">保存状态</string>
     <string name="failed_extract">解压文件失败</string>
     <string name="fmt_delete_after_days">将在%d天后删除</string>
+    <string name="fmt_plug_installed_successfully">%s扩展已为您安装成功！</string>
+    <string name="failed_to_access_file">文件无法访问！</string>
 </resources>

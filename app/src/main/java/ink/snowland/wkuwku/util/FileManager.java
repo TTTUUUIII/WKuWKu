@@ -16,14 +16,15 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class FileManager {
+    public static final String SKIP_CLEAN_PREFIX = "app_";
+
     public static final String ROM_DIRECTORY = "rom";
     public static final String STATE_DIRECTORY = "state";
     public static final String SAVE_DIRECTORY = "save";
     public static final String IMAGE_DIRECTORY = "img";
     public static final String SYSTEM_DIRECTORY = "system";
 
-    private FileManager() {
-    }
+    private FileManager() {}
 
     private static Context sApplicationContext;
 
@@ -50,6 +51,7 @@ public class FileManager {
                     File[] files = cacheDir.listFiles();
                     if (files == null) return;
                     for (File file : files) {
+                        if (file.getName().startsWith(SKIP_CLEAN_PREFIX)) continue;
                         FileUtils.delete(file);
                     }
                     int maxStorageDays = sApplicationContext.getResources().getInteger(R.integer.trash_storage_days);

@@ -1,5 +1,7 @@
 package ink.snowland.wkuwku.activity;
 import static ink.snowland.wkuwku.AppConfig.*;
+
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -44,6 +46,7 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
@@ -118,12 +121,22 @@ public class MainActivity extends BaseActivity {
                 }
             });
         }
+        checkRuntimePermissions();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return true;
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        super.onNewIntent(intent);
+        int resId = intent.getIntExtra(EXTRA_NAVIGATE_RES_ID, 0);
+        if (resId != 0) {
+            mNavController.navigate(resId, null, navAnimOptions);
+        }
     }
 
     private boolean onDrawerItemSelected(MenuItem item) {
@@ -272,6 +285,16 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    private void checkRuntimePermissions() {
+        ArrayList<String> permissions = new ArrayList<>();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        if (!permissions.isEmpty()) {
+            requestPermissions(permissions.toArray(new String[0]), 1);
+        }
+    }
+
     private class InstallApkReceiver extends BroadcastReceiver {
 
         @Override
@@ -286,4 +309,6 @@ public class MainActivity extends BaseActivity {
             }
         }
     }
+
+    public static final String EXTRA_NAVIGATE_RES_ID = "extra_navigate_res_id";
 }

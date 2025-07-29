@@ -1,11 +1,16 @@
 package ink.snowland.wkuwku.ui.plug;
 
+import static ink.snowland.wkuwku.util.ResourceManager.*;
 import android.annotation.SuppressLint;
+import android.app.Notification;
+import android.app.PendingIntent;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.ViewModelProvider;
@@ -32,8 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.activity.MainActivity;
 import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseFragment;
@@ -46,6 +51,7 @@ import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
+import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -157,6 +163,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     public void onDestroyView() {
         super.onDestroyView();
         binding.viewPager.unregisterOnPageChangeCallback(mPageChangedCallback);
+        binding = null;
     }
 
     private LayoutPlugInstalledBinding mPlugInstalledBinding;
@@ -185,32 +192,37 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     }
                     File temp = new File(FileManager.getCacheDirectory(), filename);
                     mViewModel.setPendingIndicator(true, R.string.copying_files);
-                    try (InputStream from = parentActivity.getContentResolver().openInputStream(uri)) {
-                        FileUtils.asyncCopy(from, temp, new ActionListener() {
-                            @Override
-                            public void onSuccess() {
-                                mViewModel.setPendingMessage(R.string.installing);
-                                PlugManager.install(temp, new ActionListener() {
-                                    @Override
-                                    public void onSuccess() {
-                                        mViewModel.setPendingIndicator(false);
-                                    }
+                    try {
+                        InputStream from = parentActivity.getContentResolver().openInputStream(uri);
+                        if (from != null) {
+                            FileUtils.asyncCopy(from, temp, new ActionListener() {
+                                @Override
+                                public void onSuccess() {
+                                    mViewModel.setPendingMessage(R.string.installing);
+                                    PlugManager.install(temp, new ActionListener() {
+                                        @Override
+                                        public void onSuccess() {
+                                            mViewModel.setPendingIndicator(false);
+                                        }
 
-                                    @Override
-                                    public void onFailure(Throwable e) {
-                                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                        mViewModel.setPendingIndicator(false);
-                                    }
-                                });
-                            }
+                                        @Override
+                                        public void onFailure(Throwable e) {
+                                            Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                            mViewModel.setPendingIndicator(false);
+                                        }
+                                    });
+                                }
 
-                            @Override
-                            public void onFailure(Throwable e) {
-                                e.printStackTrace(System.err);
-                                Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
-                                mViewModel.setPendingIndicator(false);
-                            }
-                        });
+                                @Override
+                                public void onFailure(Throwable e) {
+                                    e.printStackTrace(System.err);
+                                    Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                                    mViewModel.setPendingIndicator(false);
+                                }
+                            });
+                        } else {
+                            Toast.makeText(getApplicationContextSafe(), R.string.failed_to_access_file, Toast.LENGTH_SHORT).show();
+                        }
                     } catch (IOException e) {
                         e.printStackTrace(System.err);
                         mViewModel.setPendingIndicator(false);
@@ -286,7 +298,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 PlugManifestExt manifest = (PlugManifestExt) o;
                 Drawable icon = PlugManager.getPlugIcon(manifest.origin);
                 ItemPlugManifestBinding _binding = (ItemPlugManifestBinding) itemBinding;
-                _binding.setManifest(manifest.origin);
+                _binding.setManifest(manifest);
                 if (icon != null) {
                     Glide.with(parentActivity)
                             .load(icon)
@@ -299,7 +311,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .doOnComplete(() -> {
-                                _binding.control.setText(manifest.enabled ? R.string.disable : R.string.enable);
+                                _binding.invalidateAll();
                                 if (manifest.enabled && !PlugManager.isInstalled(manifest.origin)) {
                                     PlugManager.install(manifest.origin, null);
                                 }
@@ -321,69 +333,88 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
                     DownloadManager.Session session = DownloadManager.getSession(res.url);
                     if (plug != null) {
-                        _binding.installButton.setEnabled(plug.origin.getVersionCode() < res.versionCode);
-                        _binding.installButton.setTag(_binding.installButton.isEnabled() ? "upgrade" : "installed");
-                        _binding.installButton.setText(_binding.installButton.isEnabled() ? R.string.upgrade : R.string.installed);
+                        boolean isUpgrade = plug.origin.getVersionCode() < res.versionCode;
+                        res.setUiEnable(isUpgrade);
+                        res.setUiText(getStringSafe(isUpgrade ? R.string.upgrade : R.string.installed));
                     } else if (session != null){
                         _binding.installButton.setEnabled(false);
-                        session.doOnProgressUpdate((progress, max) -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
+                        session.doOnProgressUpdate((progress, max) -> res.setUiText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
                                 .doOnError(error -> {
-                                    _binding.installButton.setText(R.string.install);
-                                    _binding.installButton.setEnabled(true);
-                                    Toast.makeText(parentActivity, R.string.network_error, Toast.LENGTH_SHORT).show();
+                                    res.setUiEnable(true);
+                                    res.setUiText(getStringSafe(R.string.install));
+                                    if (binding != null) {
+                                        Toast.makeText(getApplicationContextSafe(), R.string.network_error, Toast.LENGTH_SHORT).show();
+                                    }
                                 })
                                 .doOnComplete(file -> {
-                                    install(res.md5, file);
+                                    doInstall(res, file);
                                 });
                     } else {
-                        _binding.installButton.setEnabled(true);
-                        _binding.installButton.setTag("install");
-                        _binding.installButton.setText(R.string.install);
+                        res.setUiEnable(true);
+                        res.setUiText(getStringSafe(R.string.install));
                     }
 
                     _binding.installButton.setOnClickListener(v -> {
-                        if ("upgrade".equals(v.getTag())) return;
-                        _binding.installButton.setText(R.string.connecting);
-                        _binding.installButton.setEnabled(false);
+                        res.setUiText(getStringSafe(R.string.connecting));
+                        res.setUiEnable(false);
                         DownloadManager.newRequest(res.url, new File(FileManager.getCacheDirectory(), FileUtils.getName(res.url)))
-                                .doOnProgressUpdate((progress, max) -> _binding.installButton.setText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
-                                .doOnComplete(file -> install(res.md5, file))
+                                .doOnProgressUpdate((progress, max) -> res.setUiText(getStringSafe(R.string.fmt_downloading, (float) progress / max * 100)))
+                                .doOnComplete(file -> doInstall(res, file))
                                 .doOnError(error -> {
                                     error.printStackTrace(System.err);
-                                    _binding.installButton.setText(R.string.install);
-                                    _binding.installButton.setEnabled(true);
-                                    Toast.makeText(parentActivity, R.string.network_error, Toast.LENGTH_SHORT).show();
+                                    res.setUiText(getStringSafe(R.string.install));
+                                    res.setUiEnable(true);
+                                    if (binding != null) {
+                                        Toast.makeText(getApplicationContextSafe(), R.string.network_error, Toast.LENGTH_SHORT).show();
+                                    }
                                 }).submit();
                     });
                 } else {
-                    _binding.installButton.setEnabled(false);
-                    _binding.installButton.setText(R.string.incompatible);
+                    res.setUiEnable(false);
+                    res.setUiText(getStringSafe(R.string.incompatible));
                 }
             }
         }
 
-        private void install(String md5sums, File file) {
-            ItemPlugResBinding _binding = (ItemPlugResBinding) itemBinding;
-            if (md5sums.contains(FileUtils.getMD5Sum(file))) {
-                _binding.installButton.setText(getString(R.string.installing));
+        private void doInstall(PlugRes res, File file) {
+            if (res.md5.contains(FileUtils.getMD5Sum(file))) {
+                res.setUiText(getStringSafe(R.string.installing));
                 PlugManager.install(file, new ActionListener() {
                     @Override
                     public void onSuccess() {
-                        _binding.installButton.setText(R.string.installed);
+                        res.setUiText(getStringSafe(R.string.installed));
+                        if (binding == null) {
+                            Intent intent = new Intent(getApplicationContextSafe(), MainActivity.class);
+                            intent.putExtra(MainActivity.EXTRA_NAVIGATE_RES_ID, R.id.plug_fragment);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContextSafe(), 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                            Notification notification = new NotificationCompat.Builder(getApplicationContextSafe(), NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
+                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                    .setSmallIcon(R.mipmap.ic_launcher_round)
+                                    .setContentTitle(getStringSafe(R.string.extension_manage))
+                                    .setContentText(getStringSafe(R.string.fmt_plug_installed_successfully, res.name))
+                                    .setAutoCancel(true)
+                                    .setContentIntent(pendingIntent)
+                                    .build();
+                            NotificationManager.postNotification(notification);
+                        }
                     }
 
                     @Override
                     public void onFailure(Throwable e) {
-                        _binding.installButton.setText(R.string.install);
-                        _binding.installButton.setEnabled(true);
+                        res.setUiText(getStringSafe(R.string.install));
+                        res.setUiEnable(true);
                         e.printStackTrace(System.err);
-                        Toast.makeText(parentActivity, R.string.install_failed, Toast.LENGTH_SHORT).show();
+                        if (binding != null) {
+                            Toast.makeText(getApplicationContextSafe(), R.string.install_failed, Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
             } else {
-                _binding.installButton.setText(R.string.install);
-                _binding.installButton.setEnabled(true);
-                Toast.makeText(parentActivity, R.string.invalid_package, Toast.LENGTH_SHORT).show();
+                res.setUiText(getStringSafe(R.string.install));
+                res.setUiEnable(true);
+                if (binding != null) {
+                    Toast.makeText(getApplicationContextSafe(), R.string.invalid_package, Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
