@@ -13,7 +13,6 @@ import androidx.core.app.NotificationManagerCompat;
 import ink.snowland.wkuwku.R;
 
 public class NotificationManager {
-    private static final Logger logger = new Logger("App", "NotificationManager");
     public final static String NOTIFICATION_DEFAULT_CHANNEL = "wkuwku_notification_level_default";
     public final static String NOTIFICATION_ERROR_CHANNEL = "wkuwku_notification_level_error";
     private static Context sApplicationContext;
@@ -30,7 +29,6 @@ public class NotificationManager {
                         .setName("Default")
                         .build();
                 NotificationManagerCompat.from(sApplicationContext).createNotificationChannel(defaultChannel);
-                logger.i("Notification channel created for default");
             }
             if (NotificationManagerCompat.from(sApplicationContext).getNotificationChannel(NOTIFICATION_ERROR_CHANNEL) == null) {
                 NotificationChannelCompat errorChannel = new NotificationChannelCompat.Builder(NOTIFICATION_ERROR_CHANNEL, NotificationManagerCompat.IMPORTANCE_HIGH)
@@ -38,7 +36,6 @@ public class NotificationManager {
                         .setVibrationEnabled(true)
                         .build();
                 NotificationManagerCompat.from(sApplicationContext).createNotificationChannel(errorChannel);
-                logger.i("Notification channel created for error");
             }
         }
     }
@@ -65,6 +62,14 @@ public class NotificationManager {
             NotificationManagerCompat.from(sApplicationContext).notify(id, notification);
         }
         return id;
+    }
+
+    public static void cancel(int id) {
+        NotificationManagerCompat.from(sApplicationContext).cancel(id);
+    }
+
+    public static void cancelAll() {
+        NotificationManagerCompat.from(sApplicationContext).cancelAll();
     }
 
     private static String getCategory(String channel) {
