@@ -13,7 +13,9 @@ import androidx.core.app.NotificationManagerCompat;
 import ink.snowland.wkuwku.R;
 
 public class NotificationManager {
-    public final static String NOTIFICATION_DEFAULT_CHANNEL = "default";
+    private static final Logger logger = new Logger("App", "NotificationManager");
+    public final static String NOTIFICATION_DEFAULT_CHANNEL = "wkuwku_notification_level_default";
+    public final static String NOTIFICATION_ERROR_CHANNEL = "wkuwku_notification_level_error";
     private static Context sApplicationContext;
     private static int nextId = 1;
 
@@ -23,10 +25,21 @@ public class NotificationManager {
     public static void initialize(Context applicationContext) {
         sApplicationContext = applicationContext;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannelCompat defaultChannel = new NotificationChannelCompat.Builder(NOTIFICATION_DEFAULT_CHANNEL, NotificationManagerCompat.IMPORTANCE_DEFAULT)
-                    .setName("Default")
-                    .build();
-            NotificationManagerCompat.from(sApplicationContext).createNotificationChannel(defaultChannel);
+            if (NotificationManagerCompat.from(sApplicationContext).getNotificationChannel(NOTIFICATION_DEFAULT_CHANNEL) == null) {
+                NotificationChannelCompat defaultChannel = new NotificationChannelCompat.Builder(NOTIFICATION_DEFAULT_CHANNEL, NotificationManagerCompat.IMPORTANCE_DEFAULT)
+                        .setName("Default")
+                        .build();
+                NotificationManagerCompat.from(sApplicationContext).createNotificationChannel(defaultChannel);
+                logger.i("Notification channel created for default");
+            }
+            if (NotificationManagerCompat.from(sApplicationContext).getNotificationChannel(NOTIFICATION_ERROR_CHANNEL) == null) {
+                NotificationChannelCompat errorChannel = new NotificationChannelCompat.Builder(NOTIFICATION_ERROR_CHANNEL, NotificationManagerCompat.IMPORTANCE_HIGH)
+                        .setName("Error")
+                        .setVibrationEnabled(true)
+                        .build();
+                NotificationManagerCompat.from(sApplicationContext).createNotificationChannel(errorChannel);
+                logger.i("Notification channel created for error");
+            }
         }
     }
 
@@ -36,6 +49,7 @@ public class NotificationManager {
                 .setPriority(getPriority(channel))
                 .setContentTitle(title)
                 .setContentText(content)
+                .setCategory(getCategory(channel))
                 .setAutoCancel(true)
                 .build();
         return postNotification(notification);
@@ -53,7 +67,19 @@ public class NotificationManager {
         return id;
     }
 
+    private static String getCategory(String channel) {
+        if (NOTIFICATION_ERROR_CHANNEL.equals(channel)) {
+            return NotificationCompat.CATEGORY_ERROR;
+        } else {
+            return NotificationCompat.CATEGORY_MESSAGE;
+        }
+    }
+
     private static int getPriority(String channel) {
-        return NotificationCompat.PRIORITY_DEFAULT;
+        if (NOTIFICATION_ERROR_CHANNEL.equals(channel)) {
+            return NotificationCompat.PRIORITY_HIGH;
+        } else {
+            return NotificationCompat.PRIORITY_DEFAULT;
+        }
     }
 }

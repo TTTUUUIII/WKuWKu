@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.activity;
 import static ink.snowland.wkuwku.AppConfig.*;
+import static ink.snowland.wkuwku.util.ResourceManager.getStringSafe;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -52,6 +53,7 @@ import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.util.BlurTransformation;
+import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.view.EmojiWorkshopView;
 import ink.snowland.wkuwku.widget.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
@@ -85,7 +87,7 @@ public class MainActivity extends BaseActivity {
         if (actionBar != null)
             actionBar.setDisplayHomeAsUpEnabled(true);
         NavHostFragment fragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
-        mActionBarDrawerToggle = new ActionBarDrawerToggle(this, binding.drawerLayout, R.string.start, R.string.close);
+        mActionBarDrawerToggle = new ActionBarDrawerToggle(this, binding.drawerLayout, R.string.open, R.string.close);
         binding.drawerLayout.addDrawerListener(mActionBarDrawerToggle);
         binding.navigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         mActionBarDrawerToggle.syncState();
@@ -122,6 +124,12 @@ public class MainActivity extends BaseActivity {
             });
         }
         checkRuntimePermissions();
+        postDelayed(() -> {
+            NotificationManager.postNotification(
+                    NotificationManager.NOTIFICATION_ERROR_CHANNEL,
+                    getStringSafe(R.string.extension_manage),
+                    getStringSafe(R.string.fmt_download_failed_network_error, "123"));
+        }, 3000);
     }
 
     @Override
