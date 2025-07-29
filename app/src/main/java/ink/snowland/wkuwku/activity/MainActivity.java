@@ -1,6 +1,5 @@
 package ink.snowland.wkuwku.activity;
 import static ink.snowland.wkuwku.AppConfig.*;
-import static ink.snowland.wkuwku.util.ResourceManager.getStringSafe;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -53,7 +52,6 @@ import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.util.BlurTransformation;
-import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.view.EmojiWorkshopView;
 import ink.snowland.wkuwku.widget.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
@@ -124,12 +122,6 @@ public class MainActivity extends BaseActivity {
             });
         }
         checkRuntimePermissions();
-        postDelayed(() -> {
-            NotificationManager.postNotification(
-                    NotificationManager.NOTIFICATION_ERROR_CHANNEL,
-                    getStringSafe(R.string.extension_manage),
-                    getStringSafe(R.string.fmt_download_failed_network_error, "123"));
-        }, 3000);
     }
 
     @Override
