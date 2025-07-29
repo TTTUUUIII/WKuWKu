@@ -1,3 +1,6 @@
+import java.nio.file.Paths
+import java.security.MessageDigest
+
 android {
     compileSdk rootProject.ext.versions.compileSdkVersion
     defaultConfig {
@@ -15,7 +18,7 @@ android {
         abi {
             enable true
             reset()
-            include "arm64-v8a", "armeabi-v7a" ,"x86_64", "x86"
+            include "arm64-v8a", "armeabi-v7a", "x86_64", "x86"
             universalApk false
         }
     }
@@ -26,6 +29,38 @@ android {
     }
 
     ndkVersion "28.0.13004108"
+}
+
+static def getMD5(File file) {
+    MessageDigest md = MessageDigest.getInstance("MD5")
+    file.withInputStream { is ->
+        byte[] buffer = new byte[8192]
+        int bytesRead
+        while ((bytesRead = is.read(buffer)) != -1) {
+            md.update(buffer, 0, bytesRead)
+        }
+    }
+    return md.digest().encodeHex().toString()
+}
+
+afterEvaluate {
+    tasks.named("assembleRelease") {
+        doLast {
+            def md5sums = ""
+            def output = Paths.get(rootDir.absolutePath, "build", "outputs", "apk", "release")
+            file("build/outputs/apk/release/")
+                    .listFiles()
+                    .findAll { it.name.endsWith(".apk") }
+                    .forEach {file ->
+                        md5sums += getMD5(file)
+                        copy {
+                            from file.absolutePath
+                            into output
+                        }
+                    }
+            file(Paths.get(output.toString(), "MD5SUMS.TXT")) <<  "${project.name}\t\t\t$md5sums\n"
+        }
+    }
 }
 
 dependencies {

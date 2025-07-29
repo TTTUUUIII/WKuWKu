@@ -39,10 +39,6 @@ void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
     vh = h;
 }
 
-GLRendererCallback* GLRenderer::get_callback() {
-    return &callback;
-}
-
 bool GLRenderer::request_start() {
     bool no_error = true;
     if (state == PREPARED) {
@@ -51,9 +47,7 @@ bool GLRenderer::request_start() {
             LOGI(TAG, "GLThread started, tid=%d", gettid());
             uint16_t current_vw = vw, current_vh = vh;
             eglMakeCurrent(display, surface, surface, context);
-            if (callback.on_surface_create) {
-                callback.on_surface_create(display, surface);
-            }
+            callback->on_surface_create(display, surface);
             for (;;) {
                 if (state != RUNNING) break;
                 if (current_vw != vw || current_vh != vh) {
@@ -61,13 +55,9 @@ bool GLRenderer::request_start() {
                     current_vw = vw;
                     current_vh = vh;
                 }
-                if (state == RUNNING && callback.on_draw_frame) {
-                    callback.on_draw_frame();
-                }
+                callback->on_draw_frame();
             }
-            if (callback.on_surface_destroy) {
-                callback.on_surface_destroy();
-            }
+            callback->on_surface_destroy();
             eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
             std::lock_guard<std::mutex> lock(mtx);
             gl_thread_running = false;
@@ -89,9 +79,7 @@ void GLRenderer::release() {
         std::unique_lock<std::mutex> lock(mtx);
         cv.wait(lock, [this] {return !gl_thread_running;});
     }
-    callback.on_draw_frame = nullptr;
-    callback.on_surface_destroy = nullptr;
-    callback.on_surface_create = nullptr;
+    callback = nullptr;
     eglDestroySurface(display, surface);
     eglDestroyContext(display, context);
     eglTerminate(display);
@@ -105,4 +93,8 @@ void GLRenderer::swap_buffers() {
     } else {
         eglSwapBuffers(display, surface);
     }
+}
+
+void GLRenderer::set_renderer_callback(std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> _cb) {
+    callback = std::move(_cb);
 }

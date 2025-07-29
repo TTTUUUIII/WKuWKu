@@ -423,10 +423,10 @@ em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject
              static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
     }
     renderer = std::make_unique<GLRenderer>(window);
-    GLRendererCallback *render_cb = renderer->get_callback();
-    render_cb->on_surface_create = on_surface_create;
-    render_cb->on_draw_frame = on_draw_frame;
-    render_cb->on_surface_destroy = on_surface_destroy;
+    renderer->set_renderer_callback(std::make_unique<renderer_callback_t<EGLDisplay, EGLSurface >>(
+            on_surface_create,
+            on_draw_frame,
+            on_surface_destroy));
     if (current_state == STATE_RUNNING) {
         renderer->request_start();
     }
