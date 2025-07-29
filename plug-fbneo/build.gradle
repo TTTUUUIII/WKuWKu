@@ -6,8 +6,8 @@ android {
     namespace 'ink.snowland.wkuwku.plug.fbneo'
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.fbneo"
-        versionCode 2
-        versionName "v2.0"
+        versionCode 3
+        versionName "v2.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.snes9x"
-        versionCode 2
-        versionName "v2.0"
+        versionCode 3
+        versionName "v2.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
