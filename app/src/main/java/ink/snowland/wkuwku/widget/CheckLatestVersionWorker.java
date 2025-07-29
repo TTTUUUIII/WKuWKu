@@ -59,25 +59,33 @@ public class CheckLatestVersionWorker extends Worker {
                 event = xmlPullParser.next();
             }
             if (mVersionCode > BuildConfig.VERSION_CODE && mMD5Sums != null) {
-                File apkFile = new File(getCacheDirectory(), mVersionName + ".apk");
+                File file = new File(getCacheDirectory(), SKIP_CLEAN_PREFIX + mVersionName + ".apk");
                 final String url = String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", mVersionName, Build.SUPPORTED_ABIS[0]);
-                DownloadManager.newRequest(url, apkFile)
-                        .doOnComplete(file -> {
-                            if (mMD5Sums.contains(FileUtils.getMD5Sum(file))) {
-                                Intent intent = new Intent(ACTION_UPDATE_APK);
-                                intent.putExtra(EXTRA_APK_PATH, apkFile.getAbsolutePath());
-                                intent.putExtra(EXTRA_APK_VERSION, mVersionName);
-                                logger.i("Request update version to %s", mVersionName);
-                                getApplicationContext().sendBroadcast(intent);
-                            } else {
-                                logger.e("Failed to verification package.");
-                            }
-                        })
-                        .doOnError(error -> {
-                            logger.e("Failed to download %s from %s", mVersionName, url);
-                            error.printStackTrace(System.err);
-                        })
-                        .submit();
+                if (file.exists() && mMD5Sums.contains(FileUtils.getMD5Sum(file))) {
+                    Intent intent = new Intent(ACTION_UPDATE_APK);
+                    intent.putExtra(EXTRA_APK_PATH, file.getAbsolutePath());
+                    intent.putExtra(EXTRA_APK_VERSION, mVersionName);
+                    logger.i("Request update version to %s", mVersionName);
+                    getApplicationContext().sendBroadcast(intent);
+                } else {
+                    DownloadManager.newRequest(url, file)
+                            .doOnComplete(it -> {
+                                if (mMD5Sums.contains(FileUtils.getMD5Sum(file))) {
+                                    Intent intent = new Intent(ACTION_UPDATE_APK);
+                                    intent.putExtra(EXTRA_APK_PATH, it.getAbsolutePath());
+                                    intent.putExtra(EXTRA_APK_VERSION, mVersionName);
+                                    logger.i("Request update version to %s", mVersionName);
+                                    getApplicationContext().sendBroadcast(intent);
+                                } else {
+                                    logger.e("Failed to verification package.");
+                                }
+                            })
+                            .doOnError(error -> {
+                                logger.e("Failed to download %s from %s", mVersionName, url);
+                                error.printStackTrace(System.err);
+                            })
+                            .submit();
+                }
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);

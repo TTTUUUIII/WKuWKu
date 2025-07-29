@@ -9,7 +9,9 @@ import java.io.PrintWriter;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.HotkeysManager;
+import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.PlugManager;
+import ink.snowland.wkuwku.util.ResourceManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 
 public class App extends Application {
@@ -23,6 +25,8 @@ public class App extends Application {
         HotkeysManager.initialize(getApplicationContext());
         EmulatorManager.initialize(getApplicationContext());
         PlugManager.initialize(getApplicationContext());
+        ResourceManager.initialize(getApplicationContext());
+        NotificationManager.initialize(getApplicationContext());
         Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
     }
 
