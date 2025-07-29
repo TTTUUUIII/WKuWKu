@@ -397,11 +397,12 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                         res.setUiText(getStringSafe(R.string.installed));
                         if (binding == null) {
                             Intent intent = new Intent(getApplicationContextSafe(), MainActivity.class);
+                            intent.putExtra(MainActivity.EXTRA_REQUEST_ID, MainActivity.REQUEST_NAVIGATE);
                             intent.putExtra(MainActivity.EXTRA_NAVIGATE_RES_ID, R.id.plug_fragment);
                             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContextSafe(), 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
                             Notification notification = new NotificationCompat.Builder(getApplicationContextSafe(), NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
                                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                    .setSmallIcon(R.mipmap.ic_launcher_round)
+                                    .setSmallIcon(R.drawable.ic_notification)
                                     .setContentTitle(getStringSafe(R.string.extension_manage))
                                     .setContentText(getStringSafe(R.string.fmt_plug_installed_successfully, res.name))
                                     .setAutoCancel(true)

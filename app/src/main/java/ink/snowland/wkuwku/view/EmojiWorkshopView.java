@@ -12,12 +12,14 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.res.ResourcesCompat;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
+import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.util.PoissonDiskSampler;
 
 public class EmojiWorkshopView extends View {
@@ -33,7 +35,7 @@ public class EmojiWorkshopView extends View {
     public EmojiWorkshopView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         if (typeface == null) {
-            typeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/NotoEmoji-VariableFont_wght.ttf");
+            typeface = ResourcesCompat.getFont(context, R.font.noto_emoji_variable_font_wght);
         }
         mPaint.setTypeface(typeface);
         mPaint.setTextAlign(Paint.Align.CENTER);

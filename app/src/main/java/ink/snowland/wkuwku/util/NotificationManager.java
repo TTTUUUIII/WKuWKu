@@ -42,7 +42,7 @@ public class NotificationManager {
 
     public static int postNotification(String channel, String title, String content) {
         Notification notification = new NotificationCompat.Builder(sApplicationContext, channel)
-                .setSmallIcon(R.mipmap.ic_launcher_round)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setPriority(getPriority(channel))
                 .setContentTitle(title)
                 .setContentText(content)
