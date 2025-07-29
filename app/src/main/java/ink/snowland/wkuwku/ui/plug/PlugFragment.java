@@ -109,6 +109,8 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     mAvailablePlugListLoaded = true;
                     mViewModel.setPendingIndicator(false);
                 })
+                .doOnError(error -> error.printStackTrace(System.err))
+                .onErrorComplete()
                 .doOnSuccess(data -> runAtDelayed(() -> mAvailablePlugAdapter.submitList(data), submitDelayedMillis))
                 .subscribe();
         mViewModel.getAll().observe(
@@ -344,6 +346,11 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                     res.setUiText(getStringSafe(R.string.install));
                                     if (binding != null) {
                                         Toast.makeText(getApplicationContextSafe(), R.string.network_error, Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        NotificationManager.postNotification(
+                                                NotificationManager.NOTIFICATION_ERROR_CHANNEL,
+                                                getStringSafe(R.string.extension_manage),
+                                                getStringSafe(R.string.fmt_download_failed_network_error, res.name));
                                     }
                                 })
                                 .doOnComplete(file -> {
@@ -366,6 +373,11 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                     res.setUiEnable(true);
                                     if (binding != null) {
                                         Toast.makeText(getApplicationContextSafe(), R.string.network_error, Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        NotificationManager.postNotification(
+                                                NotificationManager.NOTIFICATION_ERROR_CHANNEL,
+                                                getStringSafe(R.string.extension_manage),
+                                                getStringSafe(R.string.fmt_download_failed_network_error, res.name));
                                     }
                                 }).submit();
                     });

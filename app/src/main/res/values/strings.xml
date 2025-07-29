@@ -33,6 +33,7 @@
     <string name="please_input_title">Please input a title!</string>
     <string name="copy_file_failed">Failed to copy file!</string>
     <string name="fmt_operation_failed">ERROR: %s</string>
+    <string name="fmt_download_failed_network_error">Failed to download %s, Network error!</string>
     <string name="operation_failed">Operation failed!</string>
     <string name="successful">successful</string>
     <string name="options">Options</string>
@@ -185,4 +186,5 @@
     <string name="fmt_delete_after_days">Delete after %d days</string>
     <string name="fmt_plug_installed_successfully">%s has been installed successfully!</string>
     <string name="failed_to_access_file">Failed to access file!</string>
+    <string name="open" translatable="false">Open</string>
 </resources>
