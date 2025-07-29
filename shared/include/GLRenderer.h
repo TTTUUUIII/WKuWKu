@@ -13,17 +13,23 @@
 #include <swappy/swappyGL.h>
 #include <android/native_window_jni.h>
 
-enum WindowState {
+enum renderer_state_t {
     INVALID,
     PREPARED,
     RUNNING
 };
 
-typedef struct {
-    std::function<void(EGLDisplay, EGLSurface)> on_surface_create;
+template<typename T, typename R>
+struct renderer_callback_t{
+    std::function<void(T, R)> on_surface_create;
     std::function<void()> on_draw_frame;
     std::function<void()> on_surface_destroy;
-} GLRendererCallback;
+
+    renderer_callback_t(std::function<void(T, R)> _on_create,
+                        std::function<void()> _on_draw,
+                        std::function<void()> _on_destroy):
+    on_surface_create(std::move(_on_create)), on_draw_frame(std::move(_on_draw)), on_surface_destroy(std::move(_on_destroy)){}
+};
 
 
 class GLRenderer {
@@ -38,8 +44,8 @@ private:
     EGLint version_major, version_minor;
     std::thread gl_thread;
     bool gl_thread_running = false;
-    std::atomic<WindowState> state = INVALID;
-    GLRendererCallback callback = {};
+    std::atomic<renderer_state_t> state = INVALID;
+    std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> callback;
 
 public:
     explicit GLRenderer(ANativeWindow *wd);
@@ -50,7 +56,7 @@ public:
 
     void swap_buffers();
 
-    GLRendererCallback* get_callback();
+    void set_renderer_callback(std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> _cb);
 
     bool request_start();
 
