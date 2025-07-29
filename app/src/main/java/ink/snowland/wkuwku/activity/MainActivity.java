@@ -1,44 +1,33 @@
 package ink.snowland.wkuwku.activity;
-import static ink.snowland.wkuwku.AppConfig.*;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
-import androidx.core.text.HtmlCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.ViewModelProvider;
+//import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.work.ExistingWorkPolicy;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -53,23 +42,25 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.util.BlurTransformation;
 import ink.snowland.wkuwku.view.EmojiWorkshopView;
-import ink.snowland.wkuwku.widget.CheckLatestVersionWorker;
 import ink.snowland.wkuwku.databinding.ActivityMainBinding;
 import ink.snowland.wkuwku.util.SettingsManager;
 
 public class MainActivity extends BaseActivity {
-    private static final String CHECK_UPDATE_WORK = "check_update";
-    private static final String NEW_VERSION_NOTIFICATION = "app_new_version_notification";
+    public static final int REQUEST_UNKNOWN         = 0;
+    public static final int REQUEST_NAVIGATE        = 1;
+    public static final int REQUEST_INSTALL_PACKAGE = 2;
+    public static final String EXTRA_REQUEST_ID = "extra_request_id";
+    public static final String EXTRA_NAVIGATE_RES_ID = "extra_navigate_res_id";
+    public static final String EXTRA_PACKAGE_FILE_PATH = "extra_package_file_path";
     private static final String EMOJI_WORKSHOP_SOURCE = "app_emoji_workshop_source";
     private static final String EMOJI_WORKSHOP_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
     private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
-    private InstallApkReceiver mInstallApkReceiver;
     private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
-    private Uri mNewApkUri;
-    private MainViewModel mViewModel;
+    private Uri mApkUri;
+//    private MainViewModel mViewModel;
     private final EmojiWorkshopView.Options mEmojiWorkshopOptions = new EmojiWorkshopView.Options(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, "\uD83D\uDC22☺️⭐️"), SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, 40), SettingsManager.getInt(EMOJI_WORKSHOP_EMOJI_SIZE, 40));
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -78,7 +69,7 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
-        mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+//        mViewModel = new ViewModelProvider(this).get(MainViewModel.class);
         setSupportActionBar(binding.toolBar);
         setContentView(binding.getRoot());
         ActionBar actionBar = getSupportActionBar();
@@ -106,22 +97,13 @@ public class MainActivity extends BaseActivity {
         mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null);
         });
-        if (!mViewModel.newVersionChecked && SettingsManager.getBoolean(NEW_VERSION_NOTIFICATION, true)) {
-            mViewModel.newVersionChecked = true;
-            checkUpdate();
-            mInstallApkReceiver = new InstallApkReceiver();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                registerReceiver(mInstallApkReceiver, new IntentFilter(CheckLatestVersionWorker.ACTION_UPDATE_APK), Context.RECEIVER_EXPORTED);
-            } else {
-                registerReceiver(mInstallApkReceiver, new IntentFilter(CheckLatestVersionWorker.ACTION_UPDATE_APK));
+        mRequestInstallPackageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
+                installPackage(mApkUri);
             }
-            mRequestInstallPackageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
-                    installPackage(mNewApkUri);
-                }
-            });
-        }
+        });
         checkRuntimePermissions();
+        checkIntent(null);
     }
 
     @Override
@@ -133,10 +115,7 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onNewIntent(@NonNull Intent intent) {
         super.onNewIntent(intent);
-        int resId = intent.getIntExtra(EXTRA_NAVIGATE_RES_ID, 0);
-        if (resId != 0) {
-            mNavController.navigate(resId, null, navAnimOptions);
-        }
+        checkIntent(intent);
     }
 
     private boolean onDrawerItemSelected(MenuItem item) {
@@ -185,13 +164,6 @@ public class MainActivity extends BaseActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mInstallApkReceiver != null)
-            unregisterReceiver(mInstallApkReceiver);
-    }
-
-    @Override
     public void onSettingChanged(@NonNull String key) {
         super.onSettingChanged(key);
         switch (key) {
@@ -221,47 +193,6 @@ public class MainActivity extends BaseActivity {
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setMessage(getString(R.string.fmt_about, BuildConfig.VERSION_NAME, BuildConfig.BUILD_TIME))
                 .show();
-    }
-
-    private void checkUpdate() {
-        WorkManager manager = WorkManager.getInstance(getApplication());
-        manager.beginUniqueWork(CHECK_UPDATE_WORK,
-                        ExistingWorkPolicy.REPLACE,
-                        new OneTimeWorkRequest.Builder(CheckLatestVersionWorker.class)
-                                .build()
-                )
-                .enqueue();
-    }
-
-    private void showUpdateApkDialog(@NonNull String path, @NonNull String version) {
-        String githubReleaseUrl = GITHUB + "releases/tag/" + version;
-        Spanned spanned = HtmlCompat.fromHtml(getString(R.string.fmt_update_version, version, githubReleaseUrl), HtmlCompat.FROM_HTML_MODE_COMPACT);
-        mNewApkUri = FileProvider.getUriForFile(this, "ink.snowland.wkuwku.provider", new File(path));
-        AlertDialog updateDialog = new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.new_version_found)
-                .setMessage(spanned)
-                .setIcon(R.mipmap.ic_launcher_round)
-                .setPositiveButton(R.string.updated, (dialog, which) -> {
-                    boolean request = true;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        if (!getPackageManager().canRequestPackageInstalls()) {
-                            showRequestInstallPackageDialog();
-                            request = false;
-                        }
-                    }
-
-                    if (request) {
-                        installPackage(mNewApkUri);
-                    }
-                })
-                .setNegativeButton(R.string.ignore_for_now, null)
-                .setCancelable(false)
-                .create();
-        updateDialog.show();
-        TextView dialogTextView = (TextView) updateDialog.findViewById(android.R.id.message);
-        if (dialogTextView != null) {
-            dialogTextView.setMovementMethod(LinkMovementMethod.getInstance());
-        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -295,20 +226,32 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private class InstallApkReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (action == null) return;
-            if (action.equals(CheckLatestVersionWorker.ACTION_UPDATE_APK)) {
-                String apkPath = intent.getStringExtra(CheckLatestVersionWorker.EXTRA_APK_PATH);
-                String apkVersion = intent.getStringExtra(CheckLatestVersionWorker.EXTRA_APK_VERSION);
-                if (apkPath == null || apkVersion == null) return;
-                showUpdateApkDialog(apkPath, apkVersion);
-            }
+    private void checkIntent(@Nullable Intent intent) {
+        if (intent == null) {
+            intent = getIntent();
+        }
+        if (intent == null) return;
+        int requestId = intent.getIntExtra(EXTRA_REQUEST_ID, REQUEST_UNKNOWN);
+        switch (requestId) {
+            case REQUEST_NAVIGATE:
+                int fragmentId = intent.getIntExtra(EXTRA_NAVIGATE_RES_ID, 0);
+                if (fragmentId == 0) return;
+                mNavController.navigate(fragmentId, null, navAnimOptions);
+                break;
+            case REQUEST_INSTALL_PACKAGE:
+                String path = intent.getStringExtra(EXTRA_PACKAGE_FILE_PATH);
+                if (path == null) return;
+                File file = new File(path);
+                if (!file.exists() || !file.getName().endsWith(".apk")) return;
+                mApkUri = FileProvider.getUriForFile(this, "ink.snowland.wkuwku.provider", new File(path));
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (!getPackageManager().canRequestPackageInstalls()) {
+                        showRequestInstallPackageDialog();
+                        return;
+                    }
+                }
+                installPackage(mApkUri);
+            default:
         }
     }
-
-    public static final String EXTRA_NAVIGATE_RES_ID = "extra_navigate_res_id";
 }

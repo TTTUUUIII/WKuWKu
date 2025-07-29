@@ -93,15 +93,15 @@
     <string name="new_version_notification">新版本通知</string>
     <string name="updated">更新</string>
     <string name="ignore_for_now">暂时忽略</string>
-    <string name="new_version_found">发现新版本!</string>
-    <string name="fmt_update_version">要现在为您更新到 &lt;b&gt;%s&lt;/b&gt; 版本吗?&lt;br/&gt;&lt;br/&gt;详情见&lt;a href="%s"&gt;Github&lt;/a&gt;</string>
+    <string name="version_notification">版本通知</string>
+    <string name="fmt_click_update_to_new_version">点击这条通知以更新至新版本 (%s)。</string>
     <string name="permission_denied">权限不足!</string>
     <string name="summary_request_install_package_permssion">WkuWku首先需要您授予安装应用的权限才能自动为您更新应用。</string>
     <string name="grant">去授权</string>
     <string name="extension">扩展</string>
     <string name="installed">已安装</string>
     <string name="available">可用扩展</string>
-    <string name="extension_manage">管理扩展</string>
+    <string name="extension_manage">扩展管理</string>
     <string name="no_extensions_installed">🪹 没有安装任何扩展</string>
     <string name="no_available_extensions">🪶 没有可用扩展</string>
     <string name="install">安装</string>

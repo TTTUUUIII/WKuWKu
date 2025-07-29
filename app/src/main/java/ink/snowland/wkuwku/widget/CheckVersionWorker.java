@@ -2,12 +2,16 @@ package ink.snowland.wkuwku.widget;
 
 import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.AppConfig.*;
+
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Xml;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -18,23 +22,24 @@ import java.io.InputStream;
 import java.net.URL;
 
 import ink.snowland.wkuwku.BuildConfig;
+import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.activity.MainActivity;
 import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.Logger;
+import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.NumberUtils;
 
-public class CheckLatestVersionWorker extends Worker {
+public class CheckVersionWorker extends Worker {
     private static final Logger logger = new Logger("App", "CheckLatestVersionWorker");
-    public static final String ACTION_UPDATE_APK = "ink.snowland.wkuwku.action.UPDATE_APK";
-    public static final String EXTRA_APK_PATH = "apk.path";
-    public static final String EXTRA_APK_VERSION = "apk.version";
-    public CheckLatestVersionWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
+    public CheckVersionWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
     }
 
     private String mVersionName;
     private int mVersionCode;
     private String mMD5Sums;
+    private File mFile;
 
     @NonNull
     @Override
@@ -59,23 +64,15 @@ public class CheckLatestVersionWorker extends Worker {
                 event = xmlPullParser.next();
             }
             if (mVersionCode > BuildConfig.VERSION_CODE && mMD5Sums != null) {
-                File file = new File(getCacheDirectory(), SKIP_CLEAN_PREFIX + mVersionName + ".apk");
+                mFile = new File(getCacheDirectory(), SKIP_CLEAN_PREFIX + mVersionName + ".apk");
                 final String url = String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", mVersionName, Build.SUPPORTED_ABIS[0]);
-                if (file.exists() && mMD5Sums.contains(FileUtils.getMD5Sum(file))) {
-                    Intent intent = new Intent(ACTION_UPDATE_APK);
-                    intent.putExtra(EXTRA_APK_PATH, file.getAbsolutePath());
-                    intent.putExtra(EXTRA_APK_VERSION, mVersionName);
-                    logger.i("Request update version to %s", mVersionName);
-                    getApplicationContext().sendBroadcast(intent);
+                if (mFile.exists() && mMD5Sums.contains(FileUtils.getMD5Sum(mFile))) {
+                    sendNotification();
                 } else {
-                    DownloadManager.newRequest(url, file)
+                    DownloadManager.newRequest(url, mFile)
                             .doOnComplete(it -> {
-                                if (mMD5Sums.contains(FileUtils.getMD5Sum(file))) {
-                                    Intent intent = new Intent(ACTION_UPDATE_APK);
-                                    intent.putExtra(EXTRA_APK_PATH, it.getAbsolutePath());
-                                    intent.putExtra(EXTRA_APK_VERSION, mVersionName);
-                                    logger.i("Request update version to %s", mVersionName);
-                                    getApplicationContext().sendBroadcast(intent);
+                                if (mMD5Sums.contains(FileUtils.getMD5Sum(mFile))) {
+                                    sendNotification();
                                 } else {
                                     logger.e("Failed to verification package.");
                                 }
@@ -92,5 +89,21 @@ public class CheckLatestVersionWorker extends Worker {
             return Result.failure();
         }
         return Result.success();
+    }
+
+    private void sendNotification() {
+        Context applicationContext = getApplicationContext();
+        Intent intent = new Intent(applicationContext, MainActivity.class);
+        intent.putExtra(MainActivity.EXTRA_REQUEST_ID, MainActivity.REQUEST_INSTALL_PACKAGE);
+        intent.putExtra(MainActivity.EXTRA_PACKAGE_FILE_PATH, mFile.getAbsolutePath());
+        PendingIntent pendingIntent = PendingIntent.getActivity(applicationContext, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = new NotificationCompat.Builder(applicationContext, NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(applicationContext.getString(R.string.version_notification))
+                .setContentText(applicationContext.getString(R.string.fmt_click_update_to_new_version, mVersionName))
+                .setContentIntent(pendingIntent)
+                .build();
+        NotificationManager.postNotification(notification);
+        logger.i("Notification version %s available!", mVersionName);
     }
 }
