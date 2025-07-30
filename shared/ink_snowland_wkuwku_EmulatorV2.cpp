@@ -19,8 +19,6 @@
 
 #define TAG "EmulatorV2"
 
-#define INVALID_INDEX      (-1)
-
 static std::mutex mtx;
 static std::condition_variable cv;
 static retro_system_info system_info{};
@@ -125,7 +123,6 @@ static void alloc_frame_buffers() {
 }
 
 static void free_frame_buffers() {
-    draw_index.store(INVALID_INDEX);
     delete framebuffers[0];
     delete framebuffers[1];
     framebuffers[0] = nullptr;
@@ -821,8 +818,6 @@ static void on_draw_frame() {
             return;
         } else {
             int index = draw_index.load();
-            if (index == INVALID_INDEX) return;
-            if (index == INVALID_INDEX) return;
             if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
                 texture(GL_RGB, video_width, video_height, video_rotation,
                         framebuffers[index]->data);
