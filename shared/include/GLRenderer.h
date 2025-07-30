@@ -34,8 +34,6 @@ struct renderer_callback_t{
 
 class GLRenderer {
 private:
-    std::mutex mtx;
-    std::condition_variable cv;
     ANativeWindow *window;
     uint16_t vw, vh;
     EGLDisplay display;
@@ -43,7 +41,7 @@ private:
     EGLSurface surface;
     EGLint version_major, version_minor;
     std::thread gl_thread;
-    bool gl_thread_running = false;
+    std::atomic<bool> gl_thread_running = false;
     std::atomic<renderer_state_t> state = INVALID;
     std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> callback;
 

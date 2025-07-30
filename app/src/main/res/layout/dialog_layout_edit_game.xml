@@ -87,12 +87,11 @@
                 android:layout_marginTop="15dp"
                 android:orientation="horizontal">
                 <EditText
-                    android:enabled="false"
                     android:maxLines="1"
                     android:inputType="text"
                     android:layout_weight="1"
                     android:layout_width="0dp"
-                    android:hint="@string/please_select_file"
+                    android:hint="@string/select_file_or_input_url"
                     android:layout_height="match_parent"
                     android:text="@={game.filepath}"/>
                 <Button

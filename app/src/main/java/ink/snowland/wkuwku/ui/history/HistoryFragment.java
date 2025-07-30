@@ -1,7 +1,6 @@
 package ink.snowland.wkuwku.ui.history;
 
 import android.annotation.SuppressLint;
-import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -12,6 +11,8 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -59,16 +60,17 @@ public class HistoryFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         binding = FragmentHistoryBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
-        final int spanCount;
-        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            spanCount = 4;
-        } else {
-            spanCount = 2;
-        }
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, spanCount));
+        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, getGridSpanCount()));
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
         return binding.getRoot();
+    }
+
+    private int getGridSpanCount() {
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInPx = displayMetrics.widthPixels;
+        float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, displayMetrics);
+        return (int) Math.max(1, screenWidthInPx / itemWidthInPx);
     }
 
     @Override

@@ -2,7 +2,6 @@ package ink.snowland.wkuwku.util;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,17 +27,18 @@ public class PlugManager {
 
     public static void initialize(Context applicationContext) {
         sApplicationContext = applicationContext;
-        Disposable disposable = AppDatabase.db.plugManifestExtDao()
+        AppDatabase.db.plugManifestExtDao()
                 .getSingleAll()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(PlugManager::install, error -> {
-                    error.printStackTrace(System.err);
-                });
+                .doOnSuccess(PlugManager::install)
+                .doOnError(error -> error.printStackTrace(System.err))
+                .onErrorComplete()
+                .subscribe();
     }
 
     public static void install(File plugFile, @Nullable ActionListener listener) {
-        Disposable disposable = Completable.create(emitter -> {
+        Completable.create(emitter -> {
                     PlugManifest manifest = PlugUtils.readManifest(sApplicationContext, plugFile);
                     if (manifest == null) {
                         emitter.onError(new RuntimeException("Invalid package!"));
@@ -69,14 +69,12 @@ public class PlugManager {
                     if (listener != null)
                         listener.onFailure(error);
                 })
-                .subscribe(() -> {
-                        },
-                        error -> {/*Ignored*/}
-                );
+                .onErrorComplete()
+                .subscribe();
     }
 
     public static void install(@NonNull PlugManifest manifest, @Nullable ActionListener listener) {
-        Disposable disposable = Completable.create(emitter -> {
+        Completable.create(emitter -> {
                     if (PlugUtils.install(sApplicationContext, manifest)) {
                         emitter.onComplete();
                     } else {
@@ -84,17 +82,21 @@ public class PlugManager {
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
+                .doOnComplete(() -> {
                     if (listener != null)
                         listener.onSuccess();
-                }, error -> {
-                    if (listener != null)
+                })
+                .doOnError(error -> {
+                    if (listener != null) {
                         listener.onFailure(error);
-                });
+                    }
+                })
+                .onErrorComplete()
+                .subscribe();
     }
 
     public static void uninstall(PlugManifest manifest, @Nullable ActionListener listener) {
-        Disposable disposable = Completable.create(emitter -> {
+        Completable.create(emitter -> {
                     try {
                         AppDatabase.db.plugManifestExtDao()
                                 .deleteByPackageName(manifest.packageName);
@@ -105,13 +107,15 @@ public class PlugManager {
                     }
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(() -> {
+                .doOnComplete(() -> {
                     if (listener != null)
                         listener.onSuccess();
-                }, error -> {
+                })
+                .doOnError(error -> {
                     if (listener != null)
                         listener.onFailure(error);
-                });
+                })
+                .subscribe();
     }
 
     public static @Nullable Drawable getPlugIcon(@NonNull PlugManifest manifest) {
@@ -123,7 +127,7 @@ public class PlugManager {
     }
 
     private static void install(@NonNull List<PlugManifestExt> plugs) {
-        Disposable disposable = Single.create((SingleOnSubscribe<Integer>) emitter -> {
+        Single.create((SingleOnSubscribe<Integer>) emitter -> {
                     int installed = 0;
                     for (PlugManifestExt plug : plugs) {
                         if (!plug.enabled) continue;
@@ -133,8 +137,10 @@ public class PlugManager {
                     emitter.onSuccess(installed);
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe((installed) -> {
+                .doOnSuccess(installed -> {
                     sLogger.i(" %d of %d auto installed.", installed, plugs.size());
-                });
+                })
+                .onErrorComplete()
+                .subscribe();
     }
 }

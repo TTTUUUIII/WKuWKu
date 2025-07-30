@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -167,7 +169,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                             @Override
                             public void onFailure(Throwable e) {
                                 e.printStackTrace(System.err);
-                                showSnackbar(R.string.network_error, Snackbar.LENGTH_LONG);
+                                if (e instanceof SocketTimeoutException) {
+                                    showSnackbar(R.string.network_timeout, Snackbar.LENGTH_LONG);
+                                } else {
+                                    showSnackbar(R.string.network_error, Snackbar.LENGTH_LONG);
+                                }
                                 mViewModel.setPendingIndicator(false);
                             }
                         });

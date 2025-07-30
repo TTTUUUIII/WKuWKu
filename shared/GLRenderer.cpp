@@ -59,9 +59,8 @@ bool GLRenderer::request_start() {
             }
             callback->on_surface_destroy();
             eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-            std::lock_guard<std::mutex> lock(mtx);
-            gl_thread_running = false;
-            cv.notify_one();
+            gl_thread_running.store(false);
+            gl_thread_running.notify_one();
             LOGI(TAG, "GLThread exited, tid=%d", gettid());
         });
         state = RUNNING;
@@ -75,10 +74,7 @@ bool GLRenderer::request_start() {
 void GLRenderer::release() {
     if (state == INVALID) return;
     state = INVALID;
-    if (gl_thread_running) {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] {return !gl_thread_running;});
-    }
+    gl_thread_running.wait(true);
     callback = nullptr;
     eglDestroySurface(display, surface);
     eglDestroyContext(display, context);

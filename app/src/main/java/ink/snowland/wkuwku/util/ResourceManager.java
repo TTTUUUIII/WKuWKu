@@ -19,7 +19,6 @@ public class ResourceManager {
     public static String getStringSafe(@StringRes int resId, Object... formatArgs) {
         return sApplicationContext.getString(resId, formatArgs);
     }
-
     public static Context getApplicationContextSafe() {
         return sApplicationContext;
     }

@@ -4,6 +4,7 @@ import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
@@ -28,8 +29,13 @@ public class GSurfaceView extends SurfaceView {
             int orientation = getResources().getConfiguration().orientation;
             mW = MeasureSpec.getSize(widthMeasureSpec);
             mH = MeasureSpec.getSize(heightMeasureSpec);
+            DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 mW = (int) (mH * ratio);
+                if (mW > displayMetrics.widthPixels) {
+                    mW = displayMetrics.widthPixels;
+                    mH = (int) (mW / ratio);
+                }
             } else {
                 mH = (int) (mW / ratio);
             }

@@ -25,7 +25,7 @@
     <string name="cancel">Cancel</string>
     <string name="title">Title</string>
     <string name="select_file">Select File</string>
-    <string name="please_select_file">Please select a file.</string>
+    <string name="select_file_or_input_url">Select file or input url</string>
     <string name="input_remark_info">Remarks (Optional)</string>
     <string name="system">System</string>
     <string name="region">Region</string>
@@ -187,4 +187,5 @@
     <string name="fmt_plug_installed_successfully">%s has been installed successfully!</string>
     <string name="failed_to_access_file">Failed to access file!</string>
     <string name="open" translatable="false">Open</string>
+    <string name="rom_is_required">ROM is required!</string>
 </resources>
