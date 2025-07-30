@@ -2,10 +2,11 @@
 
 setlocal
 set prefix=plug-
-if exist ".\build\outpus\apk\release" (
-    rmdir /s /q ".\build\outpus\apk\release"
+if exist ".\build\outputs\apk\release" (
+    rmdir /s /q ".\build\outputs\apk\release"
 )
-for %%module in (
+
+for %%m in (
     pcsx
     fmsx
     fbneo
@@ -19,5 +20,5 @@ for %%module in (
     mame2003plus
     genesisplusgx
 ) do (
-    .\gradlew.bat :%prefix%%%module:assembleRelease
+    .\gradlew.bat :%prefix%%%m:assembleRelease
 )
