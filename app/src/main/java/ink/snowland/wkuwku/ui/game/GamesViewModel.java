@@ -49,7 +49,6 @@ public class GamesViewModel extends BaseViewModel {
 
     private void copyFiles(@NonNull Uri uri, @NonNull File file, @NonNull ActionListener listener) {
         if ("https".equals(uri.getScheme())) {
-            setPendingIndicator(true, R.string.please_wait);
             DownloadManager.newRequest(uri.toString(), file)
                     .doOnProgressUpdate((progress, max) -> {
                         setPendingMessage(getString(R.string.fmt_downloading, (float) progress / max * 100));
@@ -62,14 +61,11 @@ public class GamesViewModel extends BaseViewModel {
                     .doOnComplete(it -> {
                         listener.onSuccess();
                     })
-                    .doOnFinally(() -> {
-                        setPendingIndicator(false);
-                    })
                     .doOnError(listener::onFailure)
                     .submit();
         } else {
+            setPendingMessage(R.string.copying_files);
             Completable.create(emitter -> {
-                        setPendingIndicator(true, R.string.copying_files);
                         boolean noError = false;
                         try (InputStream from = getApplication().getContentResolver().openInputStream(uri)) {
                             if (from != null) {
@@ -85,9 +81,6 @@ public class GamesViewModel extends BaseViewModel {
                     .observeOn(AndroidSchedulers.mainThread())
                     .doOnComplete(listener::onSuccess)
                     .doOnError(listener::onFailure)
-                    .doFinally(() -> {
-                        setPendingIndicator(false);
-                    })
                     .subscribe();
         }
     }
@@ -99,6 +92,7 @@ public class GamesViewModel extends BaseViewModel {
             Toast.makeText(getApplication(), R.string.unsupported_archive_format, Toast.LENGTH_SHORT).show();
             return;
         }
+        setPendingIndicator(true, R.string.please_wait);
         copyFiles(uri, file, new ActionListener() {
             @Override
             public void onSuccess() {
@@ -111,8 +105,9 @@ public class GamesViewModel extends BaseViewModel {
                     game.state = Game.STATE_VALID;
                     game.md5 = FileUtils.getMD5Sum(file);
                     insert(game);
+                    setPendingIndicator(false);
                 } else if (isArchiveType) {
-                    setPendingIndicator(true, R.string.unzipping_files);
+                    setPendingMessage(R.string.unzipping_files);
                     File outdir = new File(file.getParentFile(), FileUtils.getNameNotExtension(file));
                     ArchiveUtils.asyncExtract(file, outdir, new ActionListener() {
                         @Override
