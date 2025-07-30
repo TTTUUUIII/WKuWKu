@@ -58,7 +58,8 @@ afterEvaluate {
                             into output
                         }
                     }
-            file(Paths.get(output.toString(), "MD5SUMS.TXT")) <<  "${project.name}\t\t\t$md5sums\n"
+
+            file(Paths.get(output.toString(), "MD5SUMS.TXT")) <<  String.format("%-24s%s\n", project.name, md5sums)
         }
     }
 }
