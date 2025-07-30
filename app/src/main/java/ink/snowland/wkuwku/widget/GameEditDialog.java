@@ -72,7 +72,6 @@ public class GameEditDialog {
                 DocumentFile file = DocumentFile.fromSingleUri(activity, uri);
                 if (file != null && file.exists() && file.isFile()) {
                     String filename = file.getName();
-                    assert mGame != null;
                     mGame.filepath = filename;
                     if (filename != null) {
                         mGame.title = filename.substring(0, filename.lastIndexOf("."));
@@ -128,7 +127,9 @@ public class GameEditDialog {
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
-            mGame.system = system.tag;
+            if (system != null) {
+                mGame.system = system.tag;
+            }
             if (mUri == null) {
                 parseFromUrl(mGame.filepath);
             }
