@@ -51,6 +51,7 @@ public class ArchiveUtils {
     public static void asyncExtract(@NonNull File archive, @NonNull File out, @NonNull ActionListener listener) {
         Completable.create(emitter -> {
                     extract(archive, out);
+                    emitter.onComplete();
                 }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(listener::onSuccess)
