@@ -1,0 +1,23 @@
+#!/bin/bash
+
+export JAVA_HOME=/opt/google/android-studio/jbr
+
+prefix=plug-
+modules=(
+  pcsx
+  fmsx
+  fbneo
+  mesen
+  snes9x
+  melonds
+  sameboy
+  geargrafx
+  prosystem
+  beetlesaturn
+  mame2003plus
+  genesisplusgx
+)
+rm -rf build/outputs/apk/release
+for module in "${modules[@]}"; do
+    ./gradlew ":$prefix$module:assembleRelease"
+done
