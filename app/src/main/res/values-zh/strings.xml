@@ -18,7 +18,7 @@
     <string name="cancel">取消</string>
     <string name="title">标题</string>
     <string name="select_file">选择文件</string>
-    <string name="please_select_file">请选择一个文件</string>
+    <string name="select_file_or_input_url">选择一个文件或输入URL</string>
     <string name="input_remark_info">备注信息（可选）</string>
     <string name="system">系统</string>
     <string name="region">区域</string>
@@ -162,4 +162,5 @@
     <string name="fmt_delete_after_days">将在%d天后删除</string>
     <string name="fmt_plug_installed_successfully">%s扩展已安装完成！</string>
     <string name="failed_to_access_file">文件无法访问！</string>
+    <string name="rom_is_required">ROM文件是必须的！</string>
 </resources>

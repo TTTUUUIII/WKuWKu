@@ -74,24 +74,26 @@ public class DownloadManager {
 
     public static void download(List<Pair<String, File>> items, @Nullable ActionListener listener) {
         executor.submit(() -> {
-            try {
-                for (Pair<String, File> it : items) {
+            for (Pair<String, File> it : items) {
+                try {
                     URLConnection conn = new URL(it.first).openConnection();
                     conn.setReadTimeout(1000 * 10);
                     conn.setConnectTimeout(1000 * 10);
                     try (InputStream from = conn.getInputStream()){
                         FileUtils.copy(from, it.second);
                     }
+                } catch (IOException e) {
+                    if (listener != null) {
+                        listener.onFailure(e);
+                    } else {
+                        e.printStackTrace(System.err);
+                    }
+                    FileUtils.delete(it.second);
+                    return;
                 }
-                if (listener != null) {
-                    listener.onSuccess();
-                }
-            } catch (IOException e) {
-                if (listener != null) {
-                    listener.onFailure(e);
-                } else {
-                    e.printStackTrace(System.err);
-                }
+            }
+            if (listener != null) {
+                listener.onSuccess();
             }
         });
     }

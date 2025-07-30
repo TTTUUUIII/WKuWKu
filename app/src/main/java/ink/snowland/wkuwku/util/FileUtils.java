@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.util.Arrays;
 
 import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.OnProgressListener;
@@ -60,6 +61,17 @@ public class FileUtils {
         delete(new File(file));
     }
 
+    public static void asyncDelete(String ...files) {
+        Completable.create(emitter -> {
+                    delete(Arrays.stream(files)
+                            .map(File::new)
+                            .toArray(File[]::new));
+                    emitter.onComplete();
+                })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
+    }
+
     public static String getNameNotExtension(File file) {
         String filename = file.getName();
         int index = filename.indexOf(".");
@@ -67,6 +79,15 @@ public class FileUtils {
             return filename.substring(0, index);
         }
         return filename;
+    }
+
+    public static void asyncDelete(File ...files) {
+        Completable.create(emitter -> {
+                    delete(files);
+                    emitter.onComplete();
+                })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
     }
 
     public static void delete(File ...files) {

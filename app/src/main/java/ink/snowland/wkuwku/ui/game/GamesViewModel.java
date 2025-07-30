@@ -121,22 +121,23 @@ public class GamesViewModel extends BaseViewModel {
                                 game.md5 = FileUtils.getMD5Sum(file);
                                 insert(game);
                             } else {
-                                FileUtils.delete(outdir);
+                                FileUtils.asyncDelete(outdir);
                                 Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_LONG).show();
                             }
-                            FileUtils.delete(file);
+                            FileUtils.asyncDelete(file);
                             setPendingIndicator(false);
                         }
 
                         @Override
                         public void onFailure(Throwable e) {
-                            FileUtils.delete(file);
+                            FileUtils.asyncDelete(file);
                             setPendingIndicator(false);
                             Toast.makeText(getApplication(), R.string.failed_extract, Toast.LENGTH_LONG).show();
                         }
                     });
                 } else {
                     Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_LONG).show();
+                    setPendingIndicator(false);
                 }
             }
 
@@ -176,9 +177,9 @@ public class GamesViewModel extends BaseViewModel {
                     if (!(error instanceof SQLiteConstraintException)) {
                         File parent = new File(game.filepath).getParentFile();
                         if (parent != null && !parent.equals(getFileDirectory(ROM_DIRECTORY))) {
-                            FileUtils.delete(parent);
+                            FileUtils.asyncDelete(parent);
                         } else {
-                            FileUtils.delete(game.filepath);
+                            FileUtils.asyncDelete(game.filepath);
                         }
                         Toast.makeText(getApplication(), getString(R.string.fmt_game_already_exists, game.title), Toast.LENGTH_SHORT).show();
                     } else {

@@ -25,7 +25,6 @@ import ink.snowland.wkuwku.ui.coreopt.CoreOptionsFragment;
 import ink.snowland.wkuwku.ui.game.GamesFragment;
 import ink.snowland.wkuwku.ui.history.HistoryFragment;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HomeFragment extends BaseFragment implements NavigationBarView.OnItemSelectedListener {
@@ -56,15 +55,17 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         binding.bottomNavView.setOnItemSelectedListener(this);
         if (isFirstLaunch) {
             isFirstLaunch = false;
-            Disposable ignored = AppDatabase.db.gameInfoDao()
+            AppDatabase.db.gameInfoDao()
                     .isExistsHistory()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(exists -> {
+                    .doOnSuccess(exists -> {
                         if (exists) {
                             binding.viewPager.setCurrentItem(1, false);
                         }
-                    }, error -> {/*ignored*/});
+                    })
+                    .onErrorComplete()
+                    .subscribe();
         }
         return binding.getRoot();
     }

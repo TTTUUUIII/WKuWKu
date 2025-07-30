@@ -29,7 +29,6 @@ import ink.snowland.wkuwku.databinding.DialogLayoutEditGameBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class GameEditDialog {
@@ -129,10 +128,11 @@ public class GameEditDialog {
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
-            if (system != null)
-                mGame.system = system.tag;
+            mGame.system = system.tag;
+            if (mUri == null) {
+                parseFromUrl(mGame.filepath);
+            }
             if (checkValid()) {
-                assert mUri != null;
                 mCallback.onConfirm(mGame, mUri);
                 mDialog.dismiss();
             }
@@ -177,7 +177,7 @@ public class GameEditDialog {
             binding.errorTextView.setText(mParent.getString(R.string.please_input_title) + " !");
             return false;
         } else if (mGame.filepath == null || mGame.filepath.trim().isEmpty()) {
-            binding.errorTextView.setText(mParent.getString(R.string.please_select_file) + " !");
+            binding.errorTextView.setText(mParent.getString(R.string.rom_is_required) + " !");
             return false;
         } else if (mGame.system == null || mGame.system.trim().isEmpty()) {
             binding.errorTextView.setText(mParent.getString(R.string.please_select_system) + " !");
@@ -188,14 +188,15 @@ public class GameEditDialog {
     }
 
     private void updatePublisherAdapter() {
-        Disposable disposable = AppDatabase.db.gameInfoDao().getPublisherList()
+        AppDatabase.db.gameInfoDao().getPublisherList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSuccess(publisters -> {
                     mPushlisherAdapter.clear();
                     mPushlisherAdapter.addAll(publisters);
                 })
-                .subscribe((publisters, error) -> {/*Ignored*/});
+                .onErrorComplete()
+                .subscribe();
     }
 
     public interface OnConfirmCallback {
