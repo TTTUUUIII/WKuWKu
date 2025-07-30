@@ -108,7 +108,7 @@ public class GamesViewModel extends BaseViewModel {
                     setPendingIndicator(false);
                 } else if (isArchiveType) {
                     setPendingMessage(R.string.unzipping_files);
-                    File outdir = new File(file.getParentFile(), FileUtils.getNameNotExtension(file));
+                    File outdir = new File(file.getParentFile(), FileUtils.getName(file, false));
                     ArchiveUtils.asyncExtract(file, outdir, new ActionListener() {
                         @Override
                         public void onSuccess() {

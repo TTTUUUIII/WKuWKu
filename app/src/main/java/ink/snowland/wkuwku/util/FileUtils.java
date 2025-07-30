@@ -26,9 +26,22 @@ public class FileUtils {
     private FileUtils() {}
 
     public static String getName(String path) {
-        int index = path.lastIndexOf("/");
-        if (index == -1) return path;
-        return path.substring(index + 1);
+        return getName(path, true);
+    }
+
+    public static String getName(String path, boolean includeExtension) {
+        return getName(new File(path), includeExtension);
+    }
+
+    public static String getName(File file, boolean includeExtension) {
+        String name = file.getName();
+        if (!includeExtension) {
+            int index = name.indexOf(".");
+            if (index != -1) {
+                name = name.substring(0, index);
+            }
+        }
+        return name;
     }
 
     public static String getMD5Sum(@NonNull File file) {
@@ -70,15 +83,6 @@ public class FileUtils {
                 })
                 .subscribeOn(Schedulers.io())
                 .subscribe();
-    }
-
-    public static String getNameNotExtension(File file) {
-        String filename = file.getName();
-        int index = filename.indexOf(".");
-        if (index != -1) {
-            return filename.substring(0, index);
-        }
-        return filename;
     }
 
     public static void asyncDelete(File ...files) {
