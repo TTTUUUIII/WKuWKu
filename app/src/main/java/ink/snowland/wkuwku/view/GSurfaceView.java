@@ -24,11 +24,11 @@ public class GSurfaceView extends SurfaceView {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        mW = MeasureSpec.getSize(widthMeasureSpec);
+        mH = MeasureSpec.getSize(heightMeasureSpec);
         if (mOriginH != 0) {
             float ratio = (float) mOriginW / mOriginH;
             int orientation = getResources().getConfiguration().orientation;
-            mW = MeasureSpec.getSize(widthMeasureSpec);
-            mH = MeasureSpec.getSize(heightMeasureSpec);
             DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 mW = (int) (mH * ratio);
@@ -39,9 +39,9 @@ public class GSurfaceView extends SurfaceView {
             } else {
                 mH = (int) (mW / ratio);
             }
+            widthMeasureSpec = MeasureSpec.makeMeasureSpec(mW, MeasureSpec.EXACTLY);
+            heightMeasureSpec = MeasureSpec.makeMeasureSpec(mH, MeasureSpec.EXACTLY);
         }
-        widthMeasureSpec = MeasureSpec.makeMeasureSpec(mW, MeasureSpec.EXACTLY);
-        heightMeasureSpec = MeasureSpec.makeMeasureSpec(mH, MeasureSpec.EXACTLY);
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
