@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.ui.launch;
 
+import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 import android.app.Application;
 
@@ -20,7 +21,6 @@ import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.interfaces.IEmulator;
-import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 
 public class LaunchViewModel extends BaseViewModel {
@@ -30,7 +30,7 @@ public class LaunchViewModel extends BaseViewModel {
     public static final int NO_ERR = 0;
     public static final int ERR_EMULATOR_NOT_FOUND = 1;
     public static final int ERR_LOAD_FAILED = 2;
-    public static final int MAX_COUNT_OF_SNAPSHOT = 4;
+    public static final int MAX_COUNT_OF_SNAPSHOT = 5;
     private IEmulator mEmulator;
     private final List<byte[]> mSnapshots = new ArrayList<>();
     private Game mCurrentGame;
@@ -54,9 +54,9 @@ public class LaunchViewModel extends BaseViewModel {
     public int startEmulator() {
         if (mEmulator != null) {
             applyOptions();
-            mEmulator.setProp(PROP_SYSTEM_DIRECTORY, FileManager.getFileDirectory(FileManager.SYSTEM_DIRECTORY));
-            mEmulator.setProp(PROP_SAVE_DIRECTORY, FileManager.getFileDirectory(FileManager.SAVE_DIRECTORY));
-            mEmulator.setProp(PROP_CORE_ASSETS_DIRECTORY, FileManager.getCacheDirectory());
+            mEmulator.setProp(PROP_SYSTEM_DIRECTORY, getFileDirectory(SYSTEM_DIRECTORY));
+            mEmulator.setProp(PROP_SAVE_DIRECTORY, getFileDirectory(SAVE_DIRECTORY));
+            mEmulator.setProp(PROP_CORE_ASSETS_DIRECTORY, getCacheDirectory());
             mEmulator.setProp(PROP_LOW_LATENCY_AUDIO_ENABLE, SettingsManager.getBoolean(AUDIO_LOW_LATENCY_MODE, true));
             mEmulator.setProp(PROP_AUDIO_UNDERRUN_OPTIMIZATION, SettingsManager.getBoolean(AUDIO_UNDERRUN_OPTIMIZATION, true));
             if ("oboe".equals(SettingsManager.getString(AUDIO_API, "oboe"))) {
@@ -105,7 +105,7 @@ public class LaunchViewModel extends BaseViewModel {
         mEmulator.pause();
         final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
         for (int i = 0; i < mSnapshots.size(); i++) {
-            try (FileOutputStream fos = new FileOutputStream(FileManager.getFile(FileManager.STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1)))) {
+            try (FileOutputStream fos = new FileOutputStream(getFile(STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1)))) {
                 fos.write(mSnapshots.get(i));
             } catch (IOException e) {
                 e.printStackTrace(System.err);
@@ -152,7 +152,7 @@ public class LaunchViewModel extends BaseViewModel {
         if (mEmulator == null) return;
         final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
         for (int i = 0; i < MAX_COUNT_OF_SNAPSHOT; ++i) {
-            File statFile = FileManager.getFile(FileManager.STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1));
+            File statFile = getFile(STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1));
             if (statFile.exists() && statFile.length() != 0) {
                 try (FileInputStream fis = new FileInputStream(statFile)) {
                     byte[] data = new byte[(int) statFile.length()];

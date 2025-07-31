@@ -130,6 +130,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.buttonLoadState2.setOnClickListener(this);
         binding.buttonLoadState3.setOnClickListener(this);
         binding.buttonLoadState4.setOnClickListener(this);
+        binding.buttonLoadLastState.setOnClickListener(this);
         if (mForceFullScreen) {
             binding.getRoot().setFitsSystemWindows(false);
             binding.surfaceView.fullScreen();
@@ -418,6 +419,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mControllerRoutes.get(PLAYER_1).vibrator();
             if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
                 showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
+            } else if (viewId == R.id.button_load_last_state) {
+              mViewModel.loadStateAtLast();
             } else if (viewId == R.id.button_load_state4) {
                 mViewModel.loadStateAt(3);
             } else if (viewId == R.id.button_load_state3) {
