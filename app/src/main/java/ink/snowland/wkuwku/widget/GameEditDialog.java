@@ -2,6 +2,7 @@ package ink.snowland.wkuwku.widget;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.net.Uri;
+import android.util.ArraySet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -19,6 +20,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
@@ -37,9 +39,7 @@ public class GameEditDialog {
     private Game mGame = null;
     private final BaseActivity mParent;
     private Uri mUri;
-    private final Map<String, EmSystem> mAllSupportedSystems = new LinkedHashMap<>();
-    private final String[] mAllSupportedRegions;
-    private final ArrayAdapter<String> mPushlisherAdapter;
+    private final Map<String, EmSystem> mSupportedSystems = new LinkedHashMap<>();
 
     public GameEditDialog(@NonNull BaseActivity activity) {
         mParent = activity;
@@ -52,95 +52,111 @@ public class GameEditDialog {
                 .setNegativeButton(R.string.cancel, null)
                 .setCancelable(false)
                 .create();
-        List<EmSystem> systems = EmulatorManager.getSupportedSystems()
-                .stream()
-                .sorted(Comparator.comparing(system -> system.manufacturer))
-                .collect(Collectors.toList());
-        final String[] allSupportedSystemNames = new String[systems.size()];
-        for (int i = 0; i < systems.size(); i++) {
-            EmSystem system = systems.get(i);
-            allSupportedSystemNames[i] = system.name;
-            mAllSupportedSystems.put(system.name, system);
-        }
-        binding.systemTextView.setAdapter(new NoFilterArrayAdapter<String>(mParent, R.layout.layout_simple_text, allSupportedSystemNames));
-        mAllSupportedRegions = activity.getResources().getStringArray(R.array.all_regions);
-        binding.regionTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, mAllSupportedRegions));
-        mPushlisherAdapter = new ArrayAdapter<String>(mParent, R.layout.layout_simple_text, new ArrayList<String>());
-        binding.publisherTextView.setAdapter(mPushlisherAdapter);
-        binding.buttonSelectFile.setOnClickListener(v -> {
-            activity.openDocument("*/*"/*"application/octet-stream"*/, uri -> {
-                DocumentFile file = DocumentFile.fromSingleUri(activity, uri);
-                if (file != null && file.exists() && file.isFile()) {
-                    String filename = file.getName();
-                    mGame.filepath = filename;
-                    if (filename != null) {
-                        mGame.title = filename.substring(0, filename.lastIndexOf("."));
-                        if (mGame.title.endsWith(".tar"))
-                            mGame.title = mGame.title.substring(0, mGame.title.lastIndexOf("."));
-                    }
-                    binding.invalidateAll();
-                    mUri = uri;
-                }
-            });
-        });
+        binding.systemTextView.setAdapter(new NoFilterArrayAdapter<String>(mParent, R.layout.layout_simple_text, getSupportedSystemNames()));
+        binding.regionTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, activity.getResources().getStringArray(R.array.all_regions)));
+        AppDatabase.db
+                .gameInfoDao()
+                .getPublisherList()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess(publishers -> binding.publisherTextView.setAdapter(new ArrayAdapter<>(mParent, R.layout.layout_simple_text, publishers)))
+                .onErrorComplete()
+                .subscribe();
+        binding.buttonSelectFile.setOnClickListener(v -> openDocument());
     }
 
     private OnConfirmCallback mCallback;
 
     public void show(@NonNull OnConfirmCallback callback, @NonNull Game base) {
         if (mDialog.isShowing()) return;
-        updatePublisherAdapter();
         mGame = base.clone();
         binding.buttonQrCode.setVisibility(View.GONE);
         binding.selectFileLayout.setVisibility(View.GONE);
-        for (EmSystem system : mAllSupportedSystems.values()) {
-            if (mGame.system.equals(system.tag)) {
-                binding.systemTextView.setText(system.name, false);
-                break;
-            }
+        EmSystem system = findSystemByTag(mGame.system);
+        if (system != null) {
+            binding.systemTextView.setText(system.name, false);
         }
         binding.setGame(mGame);
         binding.invalidateAll();
         mCallback = callback;
         mDialog.show();
-        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
-            if (system != null)
-                mGame.system = system.tag;
-            if (checkValid()) {
-                mCallback.onConfirm(mGame, null);
-                mDialog.dismiss();
-            }
-        });
+        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> checkAndConfirm());
     }
 
     public void show(@NonNull OnConfirmCallback callback) {
         if (mDialog.isShowing()) return;
-        updatePublisherAdapter();
         mGame = new Game();
-        mGame.region = mAllSupportedRegions[0];
+        mGame.region = "US";
         binding.setGame(mGame);
-        binding.invalidateAll();
+        binding.executePendingBindings();
         mCallback = callback;
         binding.buttonQrCode.setVisibility(View.VISIBLE);
         binding.selectFileLayout.setVisibility(View.VISIBLE);
         mDialog.show();
-        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
-            EmSystem system = mAllSupportedSystems.get(binding.systemTextView.getText().toString());
-            if (system != null) {
-                mGame.system = system.tag;
-            }
-            if (mUri == null) {
-                parseFromUrl(mGame.filepath);
-            }
-            if (checkValid()) {
-                mCallback.onConfirm(mGame, mUri);
-                mDialog.dismiss();
-            }
-        });
+        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> checkAndConfirm());
         binding.buttonQrCode.setOnClickListener(v -> {
             mParent.scanQrCode(this::parseFromUrl);
         });
+    }
+
+    @Nullable
+    private EmSystem findSystemByName(String systemName) {
+        return mSupportedSystems.get(systemName);
+    }
+
+    @Nullable
+    private EmSystem findSystemByTag(String systemTag) {
+        for (EmSystem system : mSupportedSystems.values()) {
+            if (system.tag.equals(systemTag)) {
+                return system;
+            }
+        }
+        return null;
+    }
+
+    private void checkAndConfirm() {
+        EmSystem system = findSystemByName(binding.systemTextView.getText().toString());
+        if (system != null) {
+            mGame.system = system.tag;
+        }
+        if (mUri == null) {
+            parseFromUrl(mGame.filepath);
+        }
+        if (checkValid()) {
+            mCallback.onConfirm(mGame, mUri);
+            mDialog.dismiss();
+        }
+    }
+
+    private void openDocument() {
+        mParent.openDocument("*/*"/*"application/octet-stream"*/, uri -> {
+            DocumentFile file = DocumentFile.fromSingleUri(mParent, uri);
+            if (file != null && file.exists() && file.isFile()) {
+                String filename = file.getName();
+                mGame.filepath = filename;
+                if (filename != null) {
+                    mGame.title = filename.substring(0, filename.lastIndexOf("."));
+                    if (mGame.title.endsWith(".tar"))
+                        mGame.title = mGame.title.substring(0, mGame.title.lastIndexOf("."));
+                }
+                binding.invalidateAll();
+                mUri = uri;
+            }
+        });
+    }
+
+    private List<String> getSupportedSystemNames() {
+        List<EmSystem> systems = EmulatorManager.getSupportedSystems()
+                .stream()
+                .sorted(Comparator.comparing(system -> system.manufacturer))
+                .collect(Collectors.toList());
+        List<String> systemNames = new ArrayList<>();
+        for (int i = 0; i < systems.size(); i++) {
+            EmSystem system = systems.get(i);
+            systemNames.add(system.name);
+            mSupportedSystems.put(system.name, system);
+        }
+        return systemNames;
     }
 
     private void parseFromUrl(@Nullable String url) {
@@ -186,18 +202,6 @@ public class GameEditDialog {
         }
         binding.errorTextView.setText("");
         return true;
-    }
-
-    private void updatePublisherAdapter() {
-        AppDatabase.db.gameInfoDao().getPublisherList()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(publisters -> {
-                    mPushlisherAdapter.clear();
-                    mPushlisherAdapter.addAll(publisters);
-                })
-                .onErrorComplete()
-                .subscribe();
     }
 
     public interface OnConfirmCallback {

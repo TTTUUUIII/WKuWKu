@@ -121,7 +121,6 @@ public class GamesViewModel extends BaseViewModel {
                                 game.md5 = FileUtils.getMD5Sum(file);
                                 insert(game);
                             } else {
-                                FileUtils.asyncDelete(outdir);
                                 Toast.makeText(getApplication(), R.string.could_not_find_valid_rom_file, Toast.LENGTH_LONG).show();
                             }
                             FileUtils.asyncDelete(file);

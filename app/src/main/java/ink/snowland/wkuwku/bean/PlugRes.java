@@ -13,7 +13,7 @@ import ink.snowland.wkuwku.BR;
 import ink.snowland.wkuwku.BuildConfig;
 
 public class PlugRes extends BaseObservable {
-    public static final int VERSION_UNKNOW = 0;
+    public static final int VERSION_UNKNOWN = 0;
 
     public String name;
     public String author;
@@ -27,7 +27,7 @@ public class PlugRes extends BaseObservable {
     public int minAppVersion;
     public int maxAppVersion;
 
-    public String supportedABIs;
+    public String[] supportedABIs;
 
     private boolean uiEnable;
     private String uiText;
@@ -65,7 +65,7 @@ public class PlugRes extends BaseObservable {
                 ", md5='" + md5 + '\'' +
                 ", minAppVersion=" + minAppVersion +
                 ", maxAppVersion=" + maxAppVersion +
-                ", supportedABIs=" + supportedABIs +
+                ", supportedABIs=" + Arrays.toString(supportedABIs) +
                 '}';
     }
 
@@ -86,11 +86,14 @@ public class PlugRes extends BaseObservable {
         boolean compatible = false;
         if (supportedABIs != null) {
             for (String it: Build.SUPPORTED_ABIS) {
-                if (supportedABIs.contains(it)) {
-                    url = url.replaceAll("(?i)\\$\\{ABI\\}", it);
-                    compatible = true;
-                    break;
+                for (String abi : supportedABIs) {
+                    if (it.equals(abi)) {
+                        url = url.replaceAll("(?i)\\$\\{ABI\\}", it);
+                        compatible = true;
+                        break;
+                    }
                 }
+                if (compatible) break;
             }
         } else {
             url = url.replaceAll("(?i)\\$\\{ABI\\}", Build.SUPPORTED_ABIS[0]);
@@ -98,6 +101,6 @@ public class PlugRes extends BaseObservable {
         }
         return compatible
                 && BuildConfig.VERSION_CODE >= minAppVersion
-                && (maxAppVersion == VERSION_UNKNOW || BuildConfig.VERSION_CODE <= maxAppVersion);
+                && (maxAppVersion == VERSION_UNKNOWN || BuildConfig.VERSION_CODE <= maxAppVersion);
     }
 }

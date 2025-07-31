@@ -353,9 +353,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                                 getStringSafe(R.string.fmt_download_failed_network_error, res.name));
                                     }
                                 })
-                                .doOnComplete(file -> {
-                                    doInstall(res, file);
-                                });
+                                .doOnComplete(file -> doInstall(res, file));
                     } else {
                         res.setUiEnable(true);
                         res.setUiText(getStringSafe(R.string.install));
@@ -436,7 +434,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
 
         private PlugViewAdapter() {
-            super(new DiffUtil.ItemCallback<T>() {
+            super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull T oldItem, @NonNull T newItem) {
                     return oldItem.equals(newItem);

@@ -113,13 +113,16 @@ public class PlugViewModel extends BaseViewModel {
         if (info.name == null) return null;
         info.minAppVersion = NumberUtils.parseInt(
                 xmlPullParser.getAttributeValue(null, "minAppVersion"),
-                PlugRes.VERSION_UNKNOW
+                PlugRes.VERSION_UNKNOWN
         );
         info.maxAppVersion = NumberUtils.parseInt(
                 xmlPullParser.getAttributeValue(null, "maxAppVersion"),
-                PlugRes.VERSION_UNKNOW
+                PlugRes.VERSION_UNKNOWN
         );
-        info.supportedABIs = xmlPullParser.getAttributeValue(null, "supportedABIs");
+        String abiFilter = xmlPullParser.getAttributeValue(null, "supportedABIs");
+        if (abiFilter != null) {
+            info.supportedABIs = abiFilter.split(";");
+        }
         int eventType = xmlPullParser.getEventType();
         String tagName = xmlPullParser.getName();
         while (eventType != XmlPullParser.END_TAG || !"plug".equals(tagName)) {
