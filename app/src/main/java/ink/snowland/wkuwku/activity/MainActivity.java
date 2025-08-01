@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.activity;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.RenderEffect;
 import android.graphics.Shader;
 import android.net.Uri;
@@ -35,7 +36,6 @@ import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import ink.snowland.wkuwku.BuildConfig;
 import ink.snowland.wkuwku.R;
@@ -55,6 +55,7 @@ public class MainActivity extends BaseActivity {
     private static final String EMOJI_WORKSHOP_SOURCE = "app_emoji_workshop_source";
     private static final String EMOJI_WORKSHOP_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
     private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
+
     private NavController mNavController;
     private ActivityMainBinding binding;
     private ActionBarDrawerToggle mActionBarDrawerToggle;
@@ -94,9 +95,7 @@ public class MainActivity extends BaseActivity {
         }
         assert fragment != null;
         mNavController = fragment.getNavController();
-        mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
-            mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null);
-        });
+        mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null));
         mRequestInstallPackageLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && getPackageManager().canRequestPackageInstalls()) {
                 installPackage(mApkUri);
@@ -175,7 +174,7 @@ public class MainActivity extends BaseActivity {
                 mEmojiWorkshopOptions.setSource(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, mEmojiWorkshopOptions.getSource()));
                 binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
                 break;
-            default:;
+            default:
         }
     }
 
@@ -201,9 +200,7 @@ public class MainActivity extends BaseActivity {
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.permission_denied)
                 .setMessage(R.string.summary_request_install_package_permssion)
-                .setPositiveButton(R.string.grant, (dialog, which) -> {
-                    mRequestInstallPackageLauncher.launch(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES));
-                })
+                .setPositiveButton(R.string.grant, (dialog, which) -> mRequestInstallPackageLauncher.launch(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)))
                 .setNegativeButton(R.string.cancel, null)
                 .show();
     }
@@ -216,13 +213,13 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    /*Must call in onCreate*/
     private void checkRuntimePermissions() {
-        ArrayList<String> permissions = new ArrayList<>();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permissions.add(Manifest.permission.POST_NOTIFICATIONS);
-        }
-        if (!permissions.isEmpty()) {
-            requestPermissions(permissions.toArray(new String[0]), 1);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), allowed -> {
+                /*Do Nothing*/
+            }).launch(Manifest.permission.POST_NOTIFICATIONS);
         }
     }
 
