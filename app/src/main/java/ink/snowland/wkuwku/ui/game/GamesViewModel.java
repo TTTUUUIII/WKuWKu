@@ -144,6 +144,7 @@ public class GamesViewModel extends BaseViewModel {
             public void onFailure(Throwable e) {
                 GamesViewModel.this.onError(e);
                 e.printStackTrace(System.err);
+                setPendingIndicator(false);
             }
         });
     }
