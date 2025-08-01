@@ -3,7 +3,7 @@
     <application
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="Mame2003-Plus">
+        android:label="Mame2003 Plus">
         <meta-data
             android:name="plugMainClass"
             android:value="ink.snowland.wkuwku.plug.mame2003plus.Main" />
