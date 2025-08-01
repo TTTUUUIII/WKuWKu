@@ -6,7 +6,12 @@ import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.media.AudioAttributes;
+import android.media.AudioFocusRequest;
+import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -39,7 +44,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,12 +70,13 @@ import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
 import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
+import ink.snowland.wkuwku.util.Logger;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener {
+public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener, AudioManager.OnAudioFocusChangeListener {
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
     private static final String HOTKEY_QUICK_SAVE = "hotkey_quick_save";
@@ -91,10 +96,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
     private BaseController mVirtualController;
+    private final Logger mLogger = new Logger("App", "LaunchFragment");
     private final SparseArray<BaseController> mControllerRoutes = new SparseArray<>();
     private String mPlayer1ControllerName = SettingsManager.getString(PLAYER_1_CONTROLLER);
     private String mPlayer2ControllerName = SettingsManager.getString(PLAYER_2_CONTROLLER);
     private final List<BaseController> mExternalControllers = new ArrayList<>();
+    private AudioManager mAudioManager;
+    private AudioFocusRequest mAudioRequest;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -153,7 +161,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                         .findFirst();
                 if (system.isPresent()) {
                     List<Pair<String, File>> items = system.get().biosFiles.stream()
-                            .map(it -> new Pair<String, File>(it.url, getFile(SYSTEM_DIRECTORY, it.name)))
+                            .map(it -> new Pair<>(it.url, getFile(SYSTEM_DIRECTORY, it.name)))
                             .filter(it -> !it.second.exists())
                             .collect(Collectors.toList());
                     if (items.isEmpty()) {
@@ -202,6 +210,20 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private void startEmulator() {
         int status = mViewModel.startEmulator();
         if (status == LaunchViewModel.NO_ERR) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                mAudioManager = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
+                mAudioRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                        .setAudioAttributes(new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_GAME)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build())
+                        .setOnAudioFocusChangeListener(this)
+                        .setAcceptsDelayedFocusGain(true)
+                        .build();
+                if (mAudioManager.requestAudioFocus(mAudioRequest) == AudioManager.AUDIOFOCUS_REQUEST_FAILED) {
+                    mLogger.e("Request audio focus failed!");
+                }
+            }
             parentActivity.setPerformanceModeEnable(SettingsManager.getBoolean(SettingsManager.PERFORMANCE_MODE));
             if (mAutoLoadState && !mAutoLoadDisabled) {
                 handler.postDelayed(mViewModel::loadStateAtLast, 300);
@@ -216,15 +238,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.topControlMenu.animate()
                 .alpha(0.f)
                 .setDuration(duration)
-                .withEndAction(() -> {
-                    binding.topControlMenu.setVisibility(View.GONE);
-                });
+                .withEndAction(() -> binding.topControlMenu.setVisibility(View.GONE));
         binding.controllerRoot.animate()
                 .alpha(0.f)
                 .setDuration(duration)
-                .withEndAction(() -> {
-            binding.controllerRoot.setVisibility(View.GONE);
-        });
+                .withEndAction(() -> binding.controllerRoot.setVisibility(View.GONE));
     };
 
     private void resetHideTimer() {
@@ -266,6 +284,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private int mVideoWidth = 0;
     private int mVideoHeight = 0;
+
     private void adjustScreenSize(int width, int height) {
         if (!mForceFullScreen) {
             binding.surfaceView.adjustSurfaceSize(width, height);
@@ -312,8 +331,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         for (InputDevice device : devices) {
             if (device.isVirtual()) continue;
             if ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
-            || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-            || ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
+                    || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+                    || ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
                 mExternalControllers.add(new ExternalController(parentActivity, device.getName(), device.getId()));
             }
         }
@@ -341,14 +360,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     .create();
             mControllerAdapter1 = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, new ArrayList<>());
             mExitLayoutBinding.player1Dropdown.setAdapter(mControllerAdapter1);
-            mExitLayoutBinding.player1Dropdown.addTextChangedListener((BaseTextWatcher) (s, start, before, count) -> {
-                onControllerRouteChanged(PLAYER_1, s.toString());
-            });
+            mExitLayoutBinding.player1Dropdown.addTextChangedListener((BaseTextWatcher) (s, start, before, count) -> onControllerRouteChanged(PLAYER_1, s.toString()));
             mControllerAdapter2 = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, new ArrayList<>());
             mExitLayoutBinding.player2Dropdown.setAdapter(mControllerAdapter2);
-            mExitLayoutBinding.player2Dropdown.addTextChangedListener((BaseTextWatcher) (s, start, before, count) -> {
-                onControllerRouteChanged(PLAYER_2, s.toString());
-            });
+            mExitLayoutBinding.player2Dropdown.addTextChangedListener((BaseTextWatcher) (s, start, before, count) -> onControllerRouteChanged(PLAYER_2, s.toString()));
         }
         if (mExitDialog.isShowing()) return;
         mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
@@ -388,13 +403,14 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mAudioManager != null) {
+            mAudioManager.abandonAudioFocusRequest(mAudioRequest);
+        }
         mGame.lastPlayedTime = System.currentTimeMillis();
         AppDatabase.db.gameInfoDao().update(mGame)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError(error -> {
-                    error.printStackTrace(System.err);
-                })
+                .doOnError(error -> error.printStackTrace(System.err))
                 .doFinally(() -> {
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.popBackStack();
@@ -420,7 +436,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
                 showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
             } else if (viewId == R.id.button_load_last_state) {
-              mViewModel.loadStateAtLast();
+                mViewModel.loadStateAtLast();
             } else if (viewId == R.id.button_load_state4) {
                 mViewModel.loadStateAt(3);
             } else if (viewId == R.id.button_load_state3) {
@@ -447,7 +463,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             if (uri == null) return;
             try (FileInputStream from = new FileInputStream(tmp);
-                 OutputStream to = contentResolver.openOutputStream(uri)){
+                 OutputStream to = contentResolver.openOutputStream(uri)) {
                 if (to == null) return;
                 FileUtils.copy(from, to);
                 values.clear();
@@ -467,7 +483,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         boolean handled = false;
         for (BaseController controller : mExternalControllers) {
             if (controller.getDeviceId() != deviceId) continue;
-            handled = controller.onKeyEvent(event);;
+            handled = controller.onKeyEvent(event);
         }
         return handled;
     }
@@ -509,8 +525,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         InputDevice device = getInputDevice(deviceId);
         if (device.isVirtual()) return;
         if ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
-        || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-        || (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
+                || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+                || (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
             mExternalControllers.add(new ExternalController(requireContext(), device.getName(), device.getId()));
             onUpdateControllerRoutes();
         }
@@ -555,7 +571,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         if (deviceInfoText.contains("@")) {
             String[] deviceInfo = deviceInfoText.split("@");
             try {
-                int deviceId = Integer.parseInt(deviceInfo[0]);
+                int ignored /*DeviceId*/ = Integer.parseInt(deviceInfo[0]);
                 String deviceName = deviceInfo[1];
                 final String key;
                 if (player == PLAYER_1) {
@@ -567,7 +583,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 }
                 SettingsManager.putString(key, deviceName);
                 onUpdateControllerRoutes();
-            } catch (NumberFormatException | IndexOutOfBoundsException ignored) {}
+            } catch (NumberFormatException | IndexOutOfBoundsException ignored) {
+            }
         }
     }
 
@@ -596,5 +613,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
             handler.post(() -> showSnackbar(message.msg, message.duration));
         }
+    }
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+        /*Do Nothing*/
     }
 }
