@@ -140,22 +140,10 @@ public class ExternalController extends VirtualController {
         /*DPad*/
         float dx = event.getAxisValue(MotionEvent.AXIS_HAT_X);
         float dy = event.getAxisValue(MotionEvent.AXIS_HAT_Y);
-        if (dx == -1.f) {
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, KEY_DOWN);
-        } else if (dx == 1.f){
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, KEY_DOWN);
-        } else {
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, KEY_UP);
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, KEY_UP);
-        }
-        if (dy == -1.f) {
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, KEY_DOWN);
-        } else if (dy == 1.f) {
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, KEY_DOWN);
-        } else {
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, KEY_UP);
-            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, KEY_UP);
-        }
+        setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, dx == -1.f ? KEY_DOWN : KEY_UP);
+        setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, dx == 1.f ? KEY_DOWN : KEY_UP);
+        setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, dy == -1.f ? KEY_DOWN : KEY_UP);
+        setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, dy == 1.f ? KEY_DOWN : KEY_UP);
         return true;
     }
 }
