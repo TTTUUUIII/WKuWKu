@@ -19,7 +19,7 @@ import java.util.List;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.Hotkey;
 
-public class BaseFragment extends Fragment implements InputManager.InputDeviceListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener {
+public class BaseFragment extends Fragment implements InputManager.InputDeviceListener, BaseActivity.OnInputEventListener, BaseActivity.OnTouchEventListener {
     protected BaseActivity parentActivity;
     protected Handler handler;
     protected NavOptions navAnimOptions;
@@ -38,7 +38,7 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     @Override
     public void onStart() {
         super.onStart();
-        parentActivity.addOnKeyEventListener(this);
+        parentActivity.addOnInputEventListener(this);
         parentActivity.addInputDeviceListener(this);
         parentActivity.addOnTouchEventListener(this);
     }
@@ -46,7 +46,7 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     @Override
     public void onStop() {
         super.onStop();
-        parentActivity.removeOnKeyEventListener(this);
+        parentActivity.addOnInputEventListener(this);
         parentActivity.removeInputDeviceListener(this);
         parentActivity.removeOnTouchEventListener(this);
     }
@@ -101,6 +101,11 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
+        return false;
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(@NonNull MotionEvent event) {
         return false;
     }
 

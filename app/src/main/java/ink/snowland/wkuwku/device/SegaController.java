@@ -66,7 +66,7 @@ public class SegaController extends VirtualController implements View.OnTouchLis
         } else {
             return false;
         }
-        setState(id, state);
+        setState(RETRO_DEVICE_JOYPAD, 0, id, state);
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             vibrator();
         }
@@ -88,14 +88,22 @@ public class SegaController extends VirtualController implements View.OnTouchLis
             double dist = strength / 100.0;
             int xpos = (int) (dist * Math.cos(rad) * 127);
             int ypos = (int) (dist * Math.sin(rad) * 127);
+            setState(RETRO_DEVICE_ANALOG,
+                    RETRO_DEVICE_INDEX_ANALOG_LEFT,
+                    RETRO_DEVICE_ID_ANALOG_X,
+                    xpos * 258);
+            setState(RETRO_DEVICE_ANALOG,
+                    RETRO_DEVICE_INDEX_ANALOG_LEFT,
+                    RETRO_DEVICE_ID_ANALOG_Y,
+                    ypos * 258);
             int left = xpos < -JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
             int right = xpos > JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
             int up = ypos > JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
             int down = ypos < -JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
-            setState(RETRO_DEVICE_ID_JOYPAD_DOWN, down);
-            setState(RETRO_DEVICE_ID_JOYPAD_UP, up);
-            setState(RETRO_DEVICE_ID_JOYPAD_LEFT, left);
-            setState(RETRO_DEVICE_ID_JOYPAD_RIGHT, right);
+            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, down);
+            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, up);
+            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, left);
+            setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, right);
         });
     }
 }
