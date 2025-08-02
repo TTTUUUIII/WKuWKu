@@ -76,7 +76,7 @@ import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnKeyEventListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener, AudioManager.OnAudioFocusChangeListener {
+public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener, AudioManager.OnAudioFocusChangeListener {
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
     private static final String HOTKEY_QUICK_SAVE = "hotkey_quick_save";
@@ -497,6 +497,17 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     @Override
+    public boolean onGenericMotionEvent(@NonNull MotionEvent event) {
+        int deviceId = event.getDeviceId();
+        boolean handled = false;
+        for (BaseController controller: mExternalControllers) {
+            if (controller.getDeviceId() != deviceId) continue;
+            handled = controller.onGenericMotionEvent(event);
+        }
+        return handled;
+    }
+
+    @Override
     public boolean onHotkeyEvent(@NonNull Hotkey hotkey) {
         boolean handled = true;
         switch (hotkey.key) {
@@ -609,7 +620,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public int onPollInputState(int port, int device, int index, int id) {
         BaseController controller = mControllerRoutes.get(port);
         if (controller != null && controller.type == device) {
-            return controller.getState(id);
+            return controller.getState(device, index, id);
         } else if (device == RETRO_DEVICE_POINTER) {
             return binding.surfaceView.getTouch(id);
         }

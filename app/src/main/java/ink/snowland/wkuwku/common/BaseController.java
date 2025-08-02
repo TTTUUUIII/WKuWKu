@@ -8,6 +8,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -54,6 +55,10 @@ public abstract class BaseController {
         return false;
     }
 
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        return false;
+    }
+
     protected LayoutInflater getLayoutInflater() {
         return mLayoutInflater;
     }
@@ -62,9 +67,10 @@ public abstract class BaseController {
     public abstract View getView();
 
 
-    public abstract short getState(int id);
-    public abstract void setState(int id, int v);
+    public abstract short getState(int device, int index, int id);
+    public abstract void setState(int device, int index, int id, int v);
 
+    @NonNull
     @Override
     public String toString() {
         return "BaseController{deviceId=" + getDeviceId() + ", deviceName=" + getName() + "}";

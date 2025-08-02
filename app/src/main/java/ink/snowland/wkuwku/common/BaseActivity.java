@@ -53,7 +53,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private OnResultCallback<String> mOnQRScanResultCallback;
     private final Handler handler = new Handler(Looper.getMainLooper());
     protected NavOptions navAnimOptions = null;
-    private final List<OnKeyEventListener> mKeyListeners = new ArrayList<>();
+    private final List<OnInputEventListener> mKeyListeners = new ArrayList<>();
     private final List<OnTouchEventListener> mTouchEventListener = new ArrayList<>();
     private final List<InputManager.InputDeviceListener> mInputDeviceListeners = new ArrayList<>();
     private WindowInsetsCompat mWindowInsets;
@@ -133,7 +133,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
             }
         }
         boolean handled = false;
-        for (OnKeyEventListener listener : mKeyListeners) {
+        for (OnInputEventListener listener : mKeyListeners) {
             if (listener.onKeyEvent(event)) {
                 handled = true;
             }
@@ -150,12 +150,36 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         mPressDownKeys.clear();
-        for (OnKeyEventListener listener : mKeyListeners) {
+        for (OnInputEventListener listener : mKeyListeners) {
             if (listener.onKeyEvent(event)) {
                 return true;
             }
         }
         return super.onKeyUp(keyCode, event);
+    }
+
+    private int mL2ButtonAction = KeyEvent.ACTION_UP;
+    private int mR2ButtonAction = KeyEvent.ACTION_UP;
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        boolean handled = false;
+        int action = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) > 0.1f ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+        if (mL2ButtonAction != action) {
+            dispatchKeyEvent(new KeyEvent(event.getDownTime(), event.getEventTime(), action, KeyEvent.KEYCODE_BUTTON_L2, 0, event.getMetaState(), event.getDeviceId(), 0, event.getFlags(), event.getDevice().getSources()));
+            mL2ButtonAction = action;
+            handled = true;
+        }
+        action = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) > 0.1f ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
+        if (mR2ButtonAction != action) {
+            dispatchKeyEvent(new KeyEvent(event.getDownTime(), event.getEventTime(), action, KeyEvent.KEYCODE_BUTTON_R2, 0, event.getMetaState(), event.getDeviceId(), 0, event.getFlags(), event.getDevice().getSources()));
+            mR2ButtonAction = action;
+            handled = true;
+        }
+        for (OnInputEventListener listener : mKeyListeners) {
+            handled = listener.onGenericMotionEvent(event);
+            if (handled) break;
+        }
+        return handled;
     }
 
     @NonNull
@@ -272,12 +296,12 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         }
     }
 
-    public void addOnKeyEventListener(OnKeyEventListener listener) {
+    public void addOnInputEventListener(OnInputEventListener listener) {
         if (mKeyListeners.contains(listener)) return;
         mKeyListeners.add(listener);
     }
 
-    public void removeOnKeyEventListener(OnKeyEventListener listener) {
+    public void removeOnInputEventListener(OnInputEventListener listener) {
         mKeyListeners.remove(listener);
     }
 
@@ -397,10 +421,12 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         handler.postDelayed(r, delayMillis);
     }
 
-    public interface OnKeyEventListener {
+    public interface OnInputEventListener {
         boolean onKeyEvent(@NonNull KeyEvent event);
 
         boolean onHotkeyEvent(@NonNull Hotkey hotkey);
+
+        boolean onGenericMotionEvent(@NonNull MotionEvent event);
     }
 
     public interface OnTouchEventListener {
