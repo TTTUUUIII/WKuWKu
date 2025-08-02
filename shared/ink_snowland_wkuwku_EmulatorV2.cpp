@@ -513,6 +513,9 @@ static void em_pause(JNIEnv *env, jobject thiz) {
             audio_stream_out->request_pause();
         }
     }
+    if (renderer) {
+        renderer->request_pause();
+    }
 }
 
 static void em_resume(JNIEnv *env, jobject thiz) {
@@ -524,6 +527,9 @@ static void em_resume(JNIEnv *env, jobject thiz) {
             audio_stream_out->request_start();
         }
         cv.notify_one();
+    }
+    if (renderer) {
+        renderer->request_resume();
     }
 }
 

@@ -69,7 +69,7 @@ public class HistoryFragment extends BaseFragment {
     private int getGridSpanCount() {
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float screenWidthInPx = displayMetrics.widthPixels;
-        float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, displayMetrics);
+        float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 170, displayMetrics);
         return (int) Math.max(1, screenWidthInPx / itemWidthInPx);
     }
 

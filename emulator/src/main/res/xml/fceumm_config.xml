@@ -252,7 +252,7 @@
             </allow-values>
         </option>
         <option
-            defaultValue="nintendo-vc"
+            defaultValue="default"
             key="fceumm_palette"
             title="Color palette">
             <allow-values>
