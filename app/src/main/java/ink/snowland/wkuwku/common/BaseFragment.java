@@ -46,7 +46,7 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     @Override
     public void onStop() {
         super.onStop();
-        parentActivity.addOnInputEventListener(this);
+        parentActivity.removeOnInputEventListener(this);
         parentActivity.removeInputDeviceListener(this);
         parentActivity.removeOnTouchEventListener(this);
     }

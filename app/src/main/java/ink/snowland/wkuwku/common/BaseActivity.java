@@ -162,24 +162,22 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private int mR2ButtonAction = KeyEvent.ACTION_UP;
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        boolean handled = false;
         int action = event.getAxisValue(MotionEvent.AXIS_LTRIGGER) > 0.1f ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
         if (mL2ButtonAction != action) {
             dispatchKeyEvent(new KeyEvent(event.getDownTime(), event.getEventTime(), action, KeyEvent.KEYCODE_BUTTON_L2, 0, event.getMetaState(), event.getDeviceId(), 0, event.getFlags(), event.getDevice().getSources()));
             mL2ButtonAction = action;
-            handled = true;
         }
         action = event.getAxisValue(MotionEvent.AXIS_RTRIGGER) > 0.1f ? KeyEvent.ACTION_DOWN : KeyEvent.ACTION_UP;
         if (mR2ButtonAction != action) {
             dispatchKeyEvent(new KeyEvent(event.getDownTime(), event.getEventTime(), action, KeyEvent.KEYCODE_BUTTON_R2, 0, event.getMetaState(), event.getDeviceId(), 0, event.getFlags(), event.getDevice().getSources()));
             mR2ButtonAction = action;
-            handled = true;
         }
         for (OnInputEventListener listener : mKeyListeners) {
-            handled = listener.onGenericMotionEvent(event);
-            if (handled) break;
+            if (listener.onGenericMotionEvent(event)) {
+                return true;
+            }
         }
-        return handled;
+        return super.onGenericMotionEvent(event);
     }
 
     @NonNull
