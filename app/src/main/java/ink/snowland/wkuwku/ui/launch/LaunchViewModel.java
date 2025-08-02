@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.ui.launch;
 import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
 import android.app.Application;
+import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -24,6 +25,7 @@ import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.SettingsManager;
 
 public class LaunchViewModel extends BaseViewModel {
+    private static final int MIN_INTERVAL_FOR_SAVE_LOAD_STATE = 1100;
     private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
     private static final String AUDIO_API = "app_audio_api";
     private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
@@ -35,6 +37,8 @@ public class LaunchViewModel extends BaseViewModel {
     private final List<byte[]> mSnapshots = new ArrayList<>();
     private Game mCurrentGame;
     private boolean mPlaying = false;
+    private long mPrevSaveStateUptimeMillis;
+    private long mPrevLoadStateUptimeMillis;
     public LaunchViewModel(@NonNull Application application) {
         super(application);
     }
@@ -120,12 +124,16 @@ public class LaunchViewModel extends BaseViewModel {
         return mPlaying;
     }
     public boolean saveCurrentSate() {
-        if (mEmulator == null) return false;
+        if (mEmulator == null
+                || SystemClock.uptimeMillis() - mPrevSaveStateUptimeMillis < MIN_INTERVAL_FOR_SAVE_LOAD_STATE) {
+            return false;
+        }
         byte[] data = mEmulator.getSerializeData();
         if (data == null || data.length == 0) return false;
         if (mSnapshots.size() == MAX_COUNT_OF_SNAPSHOT)
             mSnapshots.remove(0);
         mSnapshots.add(data);
+        mPrevSaveStateUptimeMillis = SystemClock.uptimeMillis();
         return true;
     }
 
@@ -133,7 +141,11 @@ public class LaunchViewModel extends BaseViewModel {
         loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1);
     }
     public void loadStateAt(int at) {
-        if (mSnapshots.isEmpty() || mEmulator == null) return;
+        if ( mEmulator == null
+                || mSnapshots.isEmpty()
+                || SystemClock.uptimeMillis() - mPrevLoadStateUptimeMillis < MIN_INTERVAL_FOR_SAVE_LOAD_STATE) {
+            return;
+        }
         final byte[] data;
         if (at < mSnapshots.size()) {
             data = mSnapshots.get(at);
@@ -141,6 +153,7 @@ public class LaunchViewModel extends BaseViewModel {
             data = mSnapshots.get(mSnapshots.size() - 1);
         }
         mEmulator.setSerializeData(data);
+        mPrevLoadStateUptimeMillis = SystemClock.uptimeMillis();
     }
 
     public int getSnapshotsCount() {
