@@ -40,40 +40,42 @@ void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
 }
 
 bool GLRenderer::request_start() {
-    bool no_error = true;
-    if (state == PREPARED) {
-        gl_thread = std::thread([this]() {
-            gl_thread_running = true;
-            LOGI(TAG, "GLThread started, tid=%d", gettid());
-            uint16_t current_vw = vw, current_vh = vh;
-            eglMakeCurrent(display, surface, surface, context);
-            callback->on_surface_create(display, surface);
-            for (;;) {
-                if (state != RUNNING) break;
+    if (state != PREPARED) return false;
+    gl_thread = std::thread([this]() {
+        gl_thread_running = true;
+        LOGI(TAG, "GLThread started, tid=%d", gettid());
+        uint16_t current_vw = vw, current_vh = vh;
+        eglMakeCurrent(display, surface, surface, context);
+        callback->on_surface_create(display, surface);
+        for (;;) {
+            if (state == RUNNING) {
                 if (current_vw != vw || current_vh != vh) {
                     glViewport(0, 0, vw, vh);
                     current_vw = vw;
                     current_vh = vh;
                 }
                 callback->on_draw_frame();
+            } else if (state == PAUSED) {
+                state.wait(PAUSED);
+            } else {
+                break;
             }
-            callback->on_surface_destroy();
-            eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-            gl_thread_running.store(false);
-            gl_thread_running.notify_one();
-            LOGI(TAG, "GLThread exited, tid=%d", gettid());
-        });
-        state = RUNNING;
-        gl_thread.detach();
-    } else {
-        no_error = false;
-    }
-    return no_error;
+        }
+        callback->on_surface_destroy();
+        eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        gl_thread_running.store(false);
+        gl_thread_running.notify_one();
+        LOGI(TAG, "GLThread exited, tid=%d", gettid());
+    });
+    state = RUNNING;
+    gl_thread.detach();
+    return true;
 }
 
 void GLRenderer::release() {
     if (state == INVALID) return;
     state = INVALID;
+    state.notify_one();
     gl_thread_running.wait(true);
     callback = nullptr;
     eglDestroySurface(display, surface);
@@ -93,4 +95,17 @@ void GLRenderer::swap_buffers() {
 
 void GLRenderer::set_renderer_callback(std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> _cb) {
     callback = std::move(_cb);
+}
+
+void GLRenderer::request_pause() {
+    if (state == RUNNING) {
+        state = PAUSED;
+    }
+}
+
+void GLRenderer::request_resume() {
+    if (state == PAUSED) {
+        state = RUNNING;
+        state.notify_one();
+    }
 }

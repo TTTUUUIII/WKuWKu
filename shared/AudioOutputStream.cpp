@@ -68,7 +68,7 @@ void AudioOutputStream::request_open() {
         return;
     }
     int32_t frames_per_burst = stream->getFramesPerBurst();
-    stream->setBufferSizeInFrames(std::max(frames_per_burst, 96 * 10));
+    stream->setBufferSizeInFrames(std::max(frames_per_burst, 96 * 24));
     stream_state = oboe::StreamState::Open;
     xrun_count = 0;
     underrun_count = 0;

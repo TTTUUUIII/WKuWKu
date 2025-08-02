@@ -102,7 +102,6 @@ public class LaunchViewModel extends BaseViewModel {
 
     public void stopEmulator() {
         if (mEmulator == null) return;
-        mEmulator.pause();
         final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
         for (int i = 0; i < mSnapshots.size(); i++) {
             try (FileOutputStream fos = new FileOutputStream(getFile(STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1)))) {

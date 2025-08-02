@@ -346,7 +346,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private ArrayAdapter<String> mControllerAdapter2;
 
     private AlertDialog mExitDialog;
-
+    private boolean mShouldResumeEmulator = false;
     @SuppressLint("SetTextI18n")
     private void showExitGameDialog() {
         if (mExitDialog == null) {
@@ -357,6 +357,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     .setIcon(R.mipmap.ic_launcher_round)
                     .setTitle(R.string.options)
                     .setView(mExitLayoutBinding.getRoot())
+                    .setOnDismissListener(dialog -> {
+                        if (mShouldResumeEmulator) {
+                            mViewModel.resumeEmulator();
+                        }
+                    })
                     .create();
             mControllerAdapter1 = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, new ArrayList<>());
             mExitLayoutBinding.player1Dropdown.setAdapter(mControllerAdapter1);
@@ -383,7 +388,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         } else {
             mExitLayoutBinding.player2Dropdown.setText("N/A");
         }
+        mViewModel.pauseEmulator();
         mExitDialog.show();
+        mShouldResumeEmulator = true;
     }
 
     private void exit() {
@@ -429,6 +436,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mViewModel.resetEmulator();
             mExitDialog.dismiss();
         } else if (viewId == R.id.exit) {
+            mShouldResumeEmulator = false;
             mExitDialog.dismiss();
             exit();
         } else {

@@ -16,7 +16,8 @@
 enum renderer_state_t {
     INVALID,
     PREPARED,
-    RUNNING
+    RUNNING,
+    PAUSED
 };
 
 template<typename T, typename R>
@@ -57,6 +58,8 @@ public:
     void set_renderer_callback(std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> _cb);
 
     bool request_start();
+    void request_pause();
+    void request_resume();
 
     void release();
 };
