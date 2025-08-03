@@ -93,7 +93,12 @@ public class GameEditDialog {
         binding.buttonQrCode.setVisibility(View.VISIBLE);
         binding.selectFileLayout.setVisibility(View.VISIBLE);
         mDialog.show();
-        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> checkAndConfirm());
+        mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
+            if (mUri == null) {
+                parseFromUrl(mGame.filepath);
+            }
+            checkAndConfirm();
+        });
         binding.buttonQrCode.setOnClickListener(v -> {
             mParent.scanQrCode(this::parseFromUrl);
         });
@@ -119,10 +124,7 @@ public class GameEditDialog {
         if (system != null) {
             mGame.system = system.tag;
         }
-        if (mUri == null) {
-            parseFromUrl(mGame.filepath);
-        }
-        if (checkValid()) {
+                if (checkValid()) {
             mCallback.onConfirm(mGame, mUri);
             mDialog.dismiss();
         }
