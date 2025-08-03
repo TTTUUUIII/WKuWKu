@@ -4,6 +4,12 @@ import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -18,45 +24,59 @@ import java.util.List;
 import java.util.Map;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.bean.MacroEvent;
+import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.databinding.LayoutVirtualControllerBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.MacroScript;
 import ink.snowland.wkuwku.util.MacroCompiler;
+import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class VirtualController extends BaseController implements View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
+public class VirtualController implements Controller, View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
+    private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     public static final String NAME = "Virtual Controller";
-    private short mState = 0;
+    private short mButtonStates = 0;
     private short mAxisX = 0;
     private short mAxisY = 0;
     private short mAxisZ = 0;
     private short mAxisRZ = 0;
     private LayoutVirtualControllerBinding binding;
     private final View mView;
+    private Vibrator mVibrator;
+    private final Handler mHandler;
 
     public VirtualController(@NonNull Context context) {
-        super(context, RETRO_DEVICE_JOYPAD);
-        mView = onCreateView();
+        mView = onCreateView(LayoutInflater.from(context));
+        if (SettingsManager.getBoolean(VIBRATION_FEEDBACK, true)) {
+            mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+            if (!mVibrator.hasVibrator()) {
+                mVibrator = null;
+            }
+        }
+        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Nullable
-    protected View onCreateView() {
-        binding = LayoutVirtualControllerBinding.inflate(getLayoutInflater());
+    protected View onCreateView(LayoutInflater inflater) {
+        binding = LayoutVirtualControllerBinding.inflate(inflater);
         bindMacros();
         bindEvents();
         return binding.getRoot();
     }
 
     @Override
-    public int getDeviceId() {
-        return 0;
+    public boolean isTypes(int device) {
+        return device == RETRO_DEVICE_JOYPAD
+                || device == RETRO_DEVICE_ANALOG;
     }
 
-    @Override
+    public int getDeviceId() {
+        return VIRTUAL_CONTROLLER_DEVICE_ID;
+    }
+
     public View getView() {
         return mView;
     }
@@ -206,7 +226,7 @@ public class VirtualController extends BaseController implements View.OnTouchLis
 
     @Override
     public boolean onLongClick(View v) {
-        if (mAllValidMacros == null || mAllValidMacros.isEmpty()) return true;
+        if (mAllValidMacros.isEmpty()) return true;
         if (binding.layoutMacrosControl.getVisibility() == View.VISIBLE) {
             binding.layoutMacrosControl.setVisibility(View.GONE);
         } else {
@@ -221,6 +241,11 @@ public class VirtualController extends BaseController implements View.OnTouchLis
     }
 
     @Override
+    public String getDescriptor() {
+        return VIRTUAL_CONTROLLER_DESCRIPTOR;
+    }
+
+    @Override
     public boolean isVirtual() {
         return true;
     }
@@ -228,9 +253,9 @@ public class VirtualController extends BaseController implements View.OnTouchLis
     public short getState(int device, int index, int id) {
         if (device == RETRO_DEVICE_JOYPAD) {
             if (id == RETRO_DEVICE_ID_JOYPAD_MASK) {
-                return mState;
+                return mButtonStates;
             } else {
-                return (short) ((mState >> id) & 0x01);
+                return (short) ((mButtonStates >> id) & 0x01);
             }
         } else if (device == RETRO_DEVICE_ANALOG) {
             if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT) {
@@ -253,9 +278,9 @@ public class VirtualController extends BaseController implements View.OnTouchLis
     public void setState(int device, int index, int id, int v) {
         if (device == RETRO_DEVICE_JOYPAD) {
             if (v == KEY_DOWN) {
-                mState |= (short) (0x01 << id);
+                mButtonStates |= (short) (0x01 << id);
             } else {
-                mState &= (short) ~(0x01 << id);
+                mButtonStates &= (short) ~(0x01 << id);
             }
         } else if (device == RETRO_DEVICE_ANALOG) {
             if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT) {
@@ -275,11 +300,11 @@ public class VirtualController extends BaseController implements View.OnTouchLis
     }
 
     protected void postMacroEvent(@NonNull MacroEvent event) {
-        handler.postDelayed(() -> {
+        mHandler.postDelayed(() -> {
             for (int key : event.keys) {
                 setState(RETRO_DEVICE_JOYPAD, 0, key, KEY_DOWN);
             }
-            handler.postDelayed(() -> {
+            mHandler.postDelayed(() -> {
                 for (int key : event.keys) {
                     setState(RETRO_DEVICE_JOYPAD, 0, key, KEY_UP);
                 }
@@ -289,5 +314,14 @@ public class VirtualController extends BaseController implements View.OnTouchLis
 
     protected void postMacroEvents(@NonNull Collection<MacroEvent> events) {
         events.forEach(this::postMacroEvent);
+    }
+
+    public final void vibrator() {
+        if (mVibrator == null) return;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
+        } else {
+            mVibrator.vibrate(20);
+        }
     }
 }

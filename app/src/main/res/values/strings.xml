@@ -188,4 +188,5 @@
     <string name="failed_to_access_file">Failed to access file!</string>
     <string name="open" translatable="false">Open</string>
     <string name="rom_is_required">ROM is required!</string>
+    <string name="none">None</string>
 </resources>

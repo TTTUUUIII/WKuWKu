@@ -55,8 +55,8 @@ import ink.snowland.wkuwku.bean.Hotkey;
 import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
-import ink.snowland.wkuwku.common.BaseController;
 import ink.snowland.wkuwku.common.BaseTextWatcher;
+import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
@@ -86,8 +86,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
-    private static final String PLAYER_1_CONTROLLER = "player_1_controller";
-    private static final String PLAYER_2_CONTROLLER = "player_2_controller";
+    private static final String PLAYER_1_CONTROLLER_DESCRIPTOR = "player_1_controller_descriptor";
+    private static final String PLAYER_2_CONTROLLER_DESCRIPTOR = "player_2_controller_descriptor";
     private FragmentLaunchBinding binding;
     private LaunchViewModel mViewModel;
     private Game mGame;
@@ -95,12 +95,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
-    private BaseController mVirtualController;
     private final Logger mLogger = new Logger("App", "LaunchFragment");
-    private final SparseArray<BaseController> mControllerRoutes = new SparseArray<>();
-    private String mPlayer1ControllerName = SettingsManager.getString(PLAYER_1_CONTROLLER);
-    private String mPlayer2ControllerName = SettingsManager.getString(PLAYER_2_CONTROLLER);
-    private final List<BaseController> mExternalControllers = new ArrayList<>();
+    private final SparseArray<Controller> mControllerRoutes = new SparseArray<>();
+    private int mP1ControllerId;
+    private int mP2ControllerId;
+    private final List<Controller> mControllers = new ArrayList<>();
     private AudioManager mAudioManager;
     private AudioFocusRequest mAudioRequest;
 
@@ -121,6 +120,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mViewModel.selectEmulator(mGame);
         }
         mAutoLoadState = arguments.getBoolean(ARG_AUTO_LOAD_STATE, false);
+        mP1ControllerId = Controller.VIRTUAL_CONTROLLER_DEVICE_ID;
+        mP2ControllerId = Controller.INVALID_CONTROLLER_DEVICE_ID;
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -151,7 +152,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         parentActivity.setActionBarVisibility(false);
-        attachDefaultController();
+        attachToController();
         if (savedInstanceState == null) {
             IEmulator emulator = mViewModel.getEmulator();
             if (emulator != null) {
@@ -249,8 +250,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         handler.removeCallbacks(mHideTimerTask);
         binding.topControlMenu.setVisibility(View.VISIBLE);
         binding.topControlMenu.setAlpha(1.f);
-        BaseController p1 = mControllerRoutes.get(PLAYER_1);
-        BaseController p2 = mControllerRoutes.get(PLAYER_2);
+        Controller p1 = mControllerRoutes.get(PLAYER_1);
+        Controller p2 = mControllerRoutes.get(PLAYER_2);
         if (p1.isVirtual() || (p2 != null && p2.isVirtual())) {
             binding.controllerRoot.setVisibility(View.VISIBLE);
             binding.controllerRoot.setAlpha(1.f);
@@ -325,20 +326,27 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
     }
 
-    private void attachDefaultController() {
-        mVirtualController = new VirtualController(parentActivity);
+    private void attachToController() {
+        VirtualController virtualController = new VirtualController(parentActivity);
+        binding.controllerRoot.addView(virtualController.getView());
+        mControllers.add(virtualController);
         List<InputDevice> devices = getInputDevices();
+        String p1descriptor = SettingsManager.getString(PLAYER_1_CONTROLLER_DESCRIPTOR);
+        String p2descriptor = SettingsManager.getString(PLAYER_2_CONTROLLER_DESCRIPTOR);
         for (InputDevice device : devices) {
-            if (device.isVirtual()) continue;
-            if ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
-                    || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-                    || ((device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK)) {
-                mExternalControllers.add(new ExternalController(parentActivity, device.getName(), device.getId()));
+            if (ExternalController.isSupportedDevice(device)) {
+                Controller controller = ExternalController.from(device);
+                String descriptor = controller.getDescriptor();
+                int deviceId = controller.getDeviceId();
+                if (descriptor.equals(p1descriptor)) {
+                    mP1ControllerId = deviceId;
+                } else if (descriptor.equals(p2descriptor)) {
+                    mP2ControllerId = deviceId;
+                }
+                mControllers.add(controller);
             }
         }
-        binding.controllerRoot.addView(mVirtualController.getView());
-        mControllerRoutes.put(PLAYER_1, mVirtualController);
-        onUpdateControllerRoutes();
+        updateControllerRoutes();
     }
 
     private DialogLayoutExitGameBinding mExitLayoutBinding;
@@ -347,6 +355,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private AlertDialog mExitDialog;
     private boolean mShouldResumeEmulator = false;
+
     @SuppressLint("SetTextI18n")
     private void showExitGameDialog() {
         if (mExitDialog == null) {
@@ -373,20 +382,24 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         if (mExitDialog.isShowing()) return;
         mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
         mControllerAdapter1.clear();
-        mControllerAdapter1.add(mVirtualController.getDeviceId() + "@" + mVirtualController.getName());
-        mControllerAdapter1.addAll(mExternalControllers.stream().map(it -> it.getDeviceId() + "@" + it.getName()).collect(Collectors.toList()));
+        mControllerAdapter1.addAll(mControllers.stream()
+                .map(it -> it.getDeviceId() + "@" + it.getName())
+                .collect(Collectors.toList()));
         mControllerAdapter2.clear();
-        mControllerAdapter2.addAll(mExternalControllers.stream().map(it -> it.getDeviceId() + "@" + it.getName()).collect(Collectors.toList()));
+        mControllerAdapter2.addAll(mControllers.stream()
+                .filter(it -> !it.isVirtual())
+                .map(it -> it.getDeviceId() + "@" + it.getName())
+                .collect(Collectors.toList()));
         mControllerAdapter1.notifyDataSetChanged();
         mControllerAdapter2.notifyDataSetChanged();
-        BaseController primaryController = mControllerRoutes.get(PLAYER_1);
+        Controller primaryController = mControllerRoutes.get(PLAYER_1);
         String primarySource = primaryController.getDeviceId() + "@" + primaryController.getName();
         mExitLayoutBinding.player1Dropdown.setText(primarySource);
-        BaseController controller = mControllerRoutes.get(PLAYER_2);
+        Controller controller = mControllerRoutes.get(PLAYER_2);
         if (controller != null) {
             mExitLayoutBinding.player2Dropdown.setText(controller.getDeviceId() + "@" + controller.getName());
         } else {
-            mExitLayoutBinding.player2Dropdown.setText("N/A");
+            mExitLayoutBinding.player2Dropdown.setText(R.string.none);
         }
         mViewModel.pauseEmulator();
         mExitDialog.show();
@@ -398,6 +411,14 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             NavController navController = NavHostFragment.findNavController(this);
             navController.popBackStack();
             return;
+        }
+        Controller controller = mControllerRoutes.get(PLAYER_1);
+        SettingsManager.putString(PLAYER_1_CONTROLLER_DESCRIPTOR, controller.getDescriptor());
+        controller = mControllerRoutes.get(PLAYER_2);
+        if (controller != null) {
+            SettingsManager.putString(PLAYER_2_CONTROLLER_DESCRIPTOR, controller.getDescriptor());
+        } else {
+            SettingsManager.remove(PLAYER_2_CONTROLLER_DESCRIPTOR);
         }
         File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
         boolean captureScreen = !screenshot.exists();
@@ -440,7 +461,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mExitDialog.dismiss();
             exit();
         } else {
-            mControllerRoutes.get(PLAYER_1).vibrator();
+            Controller controller = mControllers.get(0 /*VirtualController*/);
+            if (controller instanceof VirtualController) {
+                VirtualController vc = (VirtualController) controller;
+                vc.vibrator();
+            }
             if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
                 showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
             } else if (viewId == R.id.button_load_last_state) {
@@ -489,9 +514,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public boolean onKeyEvent(@NonNull KeyEvent event) {
         int deviceId = event.getDeviceId();
         boolean handled = false;
-        for (BaseController controller : mExternalControllers) {
+        for (Controller controller : mControllers) {
             if (controller.getDeviceId() != deviceId) continue;
-            handled = controller.onKeyEvent(event);
+            handled = controller.dispatchKeyEvent(event);
         }
         return handled;
     }
@@ -500,9 +525,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public boolean onGenericMotionEvent(@NonNull MotionEvent event) {
         int deviceId = event.getDeviceId();
         boolean handled = false;
-        for (BaseController controller: mExternalControllers) {
+        for (Controller controller : mControllers) {
             if (controller.getDeviceId() != deviceId) continue;
-            handled = controller.onGenericMotionEvent(event);
+            handled = controller.dispatchGenericMotionEvent(event);
         }
         return handled;
     }
@@ -542,47 +567,58 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public void onInputDeviceAdded(int deviceId) {
         super.onInputDeviceAdded(deviceId);
         InputDevice device = getInputDevice(deviceId);
-        if (device.isVirtual()) return;
-        if ((device.getSources() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
-                || (device.getSources() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-                || (device.getSources() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK) {
-            mExternalControllers.add(new ExternalController(requireContext(), device.getName(), device.getId()));
-            onUpdateControllerRoutes();
+        if (ExternalController.isSupportedDevice(device)) {
+            Controller controller = ExternalController.from(device);
+            String descriptor = controller.getDescriptor();
+            String p1descriptor = SettingsManager.getString(PLAYER_1_CONTROLLER_DESCRIPTOR);
+            String p2descriptor = SettingsManager.getString(PLAYER_2_CONTROLLER_DESCRIPTOR);
+            if (descriptor.equals(p1descriptor)) {
+                mP1ControllerId = deviceId;
+                updateControllerRoutes();
+            } else if (descriptor.equals(p2descriptor)) {
+                mP2ControllerId = deviceId;
+                updateControllerRoutes();
+            }
+            mControllers.add(controller);
         }
     }
 
     @Override
     public void onInputDeviceRemoved(int deviceId) {
         super.onInputDeviceRemoved(deviceId);
-        boolean updateRoute = false;
-        for (BaseController controller : mExternalControllers) {
-            if (controller.getDeviceId() == deviceId) {
-                if (mControllerRoutes.get(PLAYER_1) == controller) {
-                    mControllerRoutes.remove(PLAYER_1);
-                }
-                if (mControllerRoutes.get(PLAYER_2) == controller) {
-                    mControllerRoutes.remove(PLAYER_2);
-                }
-                mExternalControllers.remove(controller);
-                updateRoute = true;
-                break;
+        Optional<Controller> controller = mControllers.stream()
+                .findFirst();
+        if (controller.isPresent()) {
+            Controller it = controller.get();
+            Controller p1 = mControllerRoutes.get(PLAYER_1);
+            Controller p2 = mControllerRoutes.get(PLAYER_2);
+            if (p1 == it) {
+                mP1ControllerId = Controller.VIRTUAL_CONTROLLER_DEVICE_ID;
+                updateControllerRoutes();
+            } else if (p2 == it) {
+                mP2ControllerId = Controller.INVALID_CONTROLLER_DEVICE_ID;
+                updateControllerRoutes();
             }
-        }
-        if (updateRoute) {
-            onUpdateControllerRoutes();
+            mControllers.remove(it);
         }
     }
 
-    private void onUpdateControllerRoutes() {
-        for (BaseController controller : mExternalControllers) {
-            if (mPlayer1ControllerName.equals(controller.getName())) {
+    private void updateControllerRoutes() {
+        for (Controller controller : mControllers) {
+            if (controller.getDeviceId() == mP1ControllerId) {
                 mControllerRoutes.put(PLAYER_1, controller);
-            } else if (mPlayer2ControllerName.equals(controller.getName())) {
+            } else if (controller.getDeviceId() == mP2ControllerId) {
                 mControllerRoutes.put(PLAYER_2, controller);
             }
         }
-        if (mControllerRoutes.get(PLAYER_1) == null || mPlayer1ControllerName.equals(mVirtualController.getName())) {
-            mControllerRoutes.put(PLAYER_1, mVirtualController);
+        if (mControllerRoutes.get(PLAYER_1) == null) {
+            mControllerRoutes.put(PLAYER_1, mControllers.get(0) /*VirtualController*/);
+        }
+        if (mControllerRoutes.get(PLAYER_1) == mControllerRoutes.get(PLAYER_2)) {
+            mControllerRoutes.put(PLAYER_2, null);
+            if (mExitLayoutBinding != null) {
+                mExitLayoutBinding.player2Dropdown.setText(R.string.none);
+            }
         }
     }
 
@@ -590,18 +626,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         if (deviceInfoText.contains("@")) {
             String[] deviceInfo = deviceInfoText.split("@");
             try {
-                int ignored /*DeviceId*/ = Integer.parseInt(deviceInfo[0]);
-                String deviceName = deviceInfo[1];
-                final String key;
+                int deviceId = Integer.parseInt(deviceInfo[0]);
                 if (player == PLAYER_1) {
-                    key = PLAYER_1_CONTROLLER;
-                    mPlayer1ControllerName = deviceName;
+                    mP1ControllerId = deviceId;
                 } else {
-                    key = PLAYER_2_CONTROLLER;
-                    mPlayer2ControllerName = deviceName;
+                    mP2ControllerId = deviceId;
                 }
-                SettingsManager.putString(key, deviceName);
-                onUpdateControllerRoutes();
+                updateControllerRoutes();
             } catch (NumberFormatException | IndexOutOfBoundsException ignored) {
             }
         }
@@ -618,8 +649,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     @Override
     public int onPollInputState(int port, int device, int index, int id) {
-        BaseController controller = mControllerRoutes.get(port);
-        if (controller != null && controller.type == device) {
+        Controller controller = mControllerRoutes.get(port);
+        if (controller != null && controller.isTypes(device)) {
             return controller.getState(device, index, id);
         } else if (device == RETRO_DEVICE_POINTER) {
             return binding.surfaceView.getTouch(id);

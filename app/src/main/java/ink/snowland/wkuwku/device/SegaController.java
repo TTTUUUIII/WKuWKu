@@ -3,6 +3,7 @@ import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,13 +18,12 @@ public class SegaController extends VirtualController implements View.OnTouchLis
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     public SegaController(@NonNull Context context) {
         super(context);
-
     }
 
     @Nullable
     @Override
-    protected View onCreateView() {
-        binding = LayoutSegaControllerBinding.inflate(getLayoutInflater());
+    protected View onCreateView(LayoutInflater inflater) {
+        binding = LayoutSegaControllerBinding.inflate(inflater);
         bindEvents();
         return binding.getRoot();
     }
