@@ -163,4 +163,5 @@
     <string name="fmt_plug_installed_successfully">%s扩展已安装完成！</string>
     <string name="failed_to_access_file">文件无法访问！</string>
     <string name="rom_is_required">ROM文件是必须的！</string>
+    <string name="none">无</string>
 </resources>

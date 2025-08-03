@@ -1,22 +1,29 @@
 package ink.snowland.wkuwku.device;
 
 import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
-import android.content.Context;
+
+import android.os.Build;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
-public class ExternalController extends VirtualController {
+import ink.snowland.wkuwku.common.Controller;
+
+public class ExternalController implements Controller {
     private final String mName;
     private final int mDeviceId;
-    public ExternalController(@NonNull Context context, String name, int deviceId) {
-        super(context);
+    private final String mDescriptor;
+    private short mButtonStates = 0;
+    private short mAxisX = 0;
+    private short mAxisY = 0;
+    private short mAxisZ = 0;
+    private short mAxisRZ = 0;
+    public ExternalController(int deviceId, String name, String descriptor) {
         mName = name;
         mDeviceId = deviceId;
+        mDescriptor = descriptor;
     }
 
     @Override
@@ -25,14 +32,70 @@ public class ExternalController extends VirtualController {
     }
 
     @Override
+    public boolean isTypes(int device) {
+        return device == RETRO_DEVICE_JOYPAD
+                || device == RETRO_DEVICE_ANALOG;
+    }
+
+    @Override
     public int getDeviceId() {
         return mDeviceId;
     }
 
-    @Nullable
     @Override
-    protected View onCreateView() {
-        return null;
+    public String getDescriptor() {
+        return mDescriptor;
+    }
+
+    @Override
+    public short getState(int device, int index, int id) {
+        if (device == RETRO_DEVICE_JOYPAD) {
+            if (id == RETRO_DEVICE_ID_JOYPAD_MASK) {
+                return mButtonStates;
+            } else {
+                return (short) ((mButtonStates >> id) & 0x01);
+            }
+        } else if (device == RETRO_DEVICE_ANALOG) {
+            if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT) {
+                if (id == RETRO_DEVICE_ID_ANALOG_X) {
+                    return mAxisX;
+                } else {
+                    return mAxisY;
+                }
+            } else if (index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) {
+                if (id == RETRO_DEVICE_ID_ANALOG_X) {
+                    return mAxisZ;
+                } else {
+                    return mAxisRZ;
+                }
+            }
+        }
+        return 0;
+    }
+
+    @Override
+    public void setState(int device, int index, int id, int v) {
+        if (device == RETRO_DEVICE_JOYPAD) {
+            if (v == KEY_DOWN) {
+                mButtonStates |= (short) (0x01 << id);
+            } else {
+                mButtonStates &= (short) ~(0x01 << id);
+            }
+        } else if (device == RETRO_DEVICE_ANALOG) {
+            if (index == RETRO_DEVICE_INDEX_ANALOG_LEFT) {
+                if (id == RETRO_DEVICE_ID_ANALOG_X) {
+                    mAxisX = (short) v;
+                } else {
+                    mAxisY = (short) v;
+                }
+            } else if (index == RETRO_DEVICE_INDEX_ANALOG_RIGHT) {
+                if (id == RETRO_DEVICE_ID_ANALOG_X) {
+                    mAxisZ = (short) v;
+                } else {
+                    mAxisRZ = (short) v;
+                }
+            }
+        }
     }
 
     @Override
@@ -41,7 +104,7 @@ public class ExternalController extends VirtualController {
     }
 
     @Override
-    public boolean onKeyEvent(KeyEvent event) {
+    public boolean dispatchKeyEvent(KeyEvent event) {
         if ((event.getSource() & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
                 || (event.getSource() & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
                 || (event.getSource() & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD) {
@@ -114,7 +177,7 @@ public class ExternalController extends VirtualController {
     }
 
     @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
+    public boolean dispatchGenericMotionEvent(MotionEvent event) {
         /*Joystick*/
         float lx = event.getAxisValue(MotionEvent.AXIS_X);
         float ly = event.getAxisValue(MotionEvent.AXIS_Y);
@@ -145,5 +208,19 @@ public class ExternalController extends VirtualController {
         setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP, dy == -1.f ? KEY_DOWN : KEY_UP);
         setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN, dy == 1.f ? KEY_DOWN : KEY_UP);
         return true;
+    }
+
+    public static boolean isSupportedDevice(InputDevice device) {
+        if (device.isVirtual() || (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !device.isExternal())) {
+            return false;
+        }
+        int sources = device.getSources();
+        return (sources & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
+                || (sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
+                || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK;
+    }
+
+    public static Controller from(@NonNull InputDevice device) {
+        return new ExternalController(device.getId(), device.getName(), device.getDescriptor());
     }
 }
