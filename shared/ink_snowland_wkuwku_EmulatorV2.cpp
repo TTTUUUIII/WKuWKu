@@ -454,7 +454,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         ctx.emulator_obj = env->NewGlobalRef(thiz);
     }
     ctx.env = env;
-    if (current_state == INVALID) {
+    if (current_state == STATE_INVALID) {
         retro_set_environment(environment_cb);
         retro_init();
         retro_set_video_refresh(video_cb);
@@ -817,7 +817,7 @@ static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
 }
 
 static void on_draw_frame() {
-    if (current_state == RUNNING) {
+    if (current_state == STATE_RUNNING) {
         if (hw_render_cb) {
             retro_run();
             handle_message(obtain_message());
