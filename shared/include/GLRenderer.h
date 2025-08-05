@@ -8,10 +8,8 @@
 #include <mutex>
 #include <thread>
 #include <unistd.h>
-#include <EGL/egl.h>
-#include <GLES3/gl3.h>
-#include <swappy/swappyGL.h>
 #include <android/native_window_jni.h>
+#include "GLContext.h"
 
 enum renderer_state_t {
     INVALID,
@@ -36,18 +34,16 @@ struct renderer_callback_t{
 class GLRenderer {
 private:
     ANativeWindow *window;
+    EGLContext shared_context;
+    std::unique_ptr<GLContext> context;
     uint16_t vw, vh;
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-    EGLint version_major, version_minor;
     std::thread gl_thread;
     std::atomic<bool> gl_thread_running = false;
     std::atomic<renderer_state_t> state = INVALID;
     std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> callback;
 
 public:
-    explicit GLRenderer(ANativeWindow *wd);
+    explicit GLRenderer(JNIEnv *env, jobject activity, jobject surface);
 
     ~GLRenderer();
 
@@ -60,6 +56,8 @@ public:
     bool request_start();
     void request_pause();
     void request_resume();
+
+    void set_shared_context(const std::unique_ptr<GLContext>& ctx);
 
     void release();
 };

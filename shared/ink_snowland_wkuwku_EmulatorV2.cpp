@@ -9,7 +9,6 @@
 #include <swappy/swappyGL.h>
 #include "GLRenderer.h"
 #include "GLUtils.h"
-#include "Utils.h"
 #include "AudioOutputStream.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
@@ -20,10 +19,12 @@
 #define TAG "EmulatorV2"
 
 static std::mutex mtx;
-static std::condition_variable cv;
+static std::condition_variable looper_cv;
 static retro_system_info system_info{};
+static retro_system_av_info system_av_info{};
 static std::atomic<unsigned> current_state = STATE_INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
+static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
 static buffer_t *framebuffers[2];
@@ -37,6 +38,7 @@ static std::unordered_map<int32_t, std::any> props;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
 
+static std::unique_ptr<GLContext> shared_context;
 static em_context_t ctx{};
 static jobject variable_object;
 static jobject variable_entry_object;
@@ -49,11 +51,6 @@ static void set_variable_value(JNIEnv *env, jobject value) {
 
 static jobject get_variable_value(JNIEnv *env) {
     return env->GetObjectField(variable_object, ctx.variable_value_field);
-}
-
-static jint get_variable_int_value(JNIEnv *env) {
-    jobject integer_obj = env->GetObjectField(variable_object, ctx.variable_value_field);
-    return as_int(env, integer_obj);
 }
 
 static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
@@ -89,13 +86,7 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != STATE_RUNNING) return;
-    if (hw_render_cb) {
-        if (data == RETRO_HW_FRAME_BUFFER_VALID) {
-            renderer->swap_buffers();
-        } else {
-            /*Just still prev frame dupe.*/
-        }
-    } else if (data) {
+    if (!hw_render_cb && data) {
         fill_frame_buffer(data, width, height, pitch);
     }
     if (video_width != width || video_height != height) {
@@ -402,36 +393,16 @@ static bool environment_cb(unsigned cmd, void *data) {
     return false;
 }
 
-static bool initialized = false;
-
 static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     UNUSED(thiz);
-    LOGD(TAG, "Surface attached");
-    ANativeWindow *window = ANativeWindow_fromSurface(env, surface);
-    if (activity != nullptr && !SwappyGL_isEnabled()) {
-        SwappyGL_init(env, activity);
-        int count = SwappyGL_getSupportedRefreshPeriodsNS(nullptr, 0);
-        uint64_t all_swap_ns[count];
-        SwappyGL_getSupportedRefreshPeriodsNS(all_swap_ns, count);
-        uint64_t min_swap_ns = all_swap_ns[0];
-        for (int i = 1; i < count; ++i) {
-            min_swap_ns = std::min(all_swap_ns[i], min_swap_ns);
-        }
-        SwappyGL_setSwapIntervalNS(min_swap_ns);
-        SwappyGL_setAutoSwapInterval(true);
-        SwappyGL_setAutoPipelineMode(true);
-        SwappyGL_setWindow(window);
-        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
-             static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
-    }
-    renderer = std::make_unique<GLRenderer>(window);
+    renderer = std::make_unique<GLRenderer>(env, activity, surface);
     renderer->set_renderer_callback(std::make_unique<renderer_callback_t<EGLDisplay, EGLSurface >>(
             on_surface_create,
             on_draw_frame,
             on_surface_destroy));
     if (current_state == STATE_RUNNING) {
-        renderer->request_start();
+        send_empty_message(MSG_START_RENDERER);
     }
 }
 
@@ -439,14 +410,12 @@ static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
     UNUSED(env);
     UNUSED(thiz);
     renderer->adjust_viewport(vw, vh);
-    LOGD(TAG, "Adjust surface size, vw=%d, vh=%d", vw, vh);
 }
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
     renderer->release();
-    LOGD(TAG, "Surface detached");
 }
 
 static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
@@ -481,6 +450,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         munmap((void *) info.data, info.size);
     }
     if (no_error) {
+        retro_get_system_av_info(&system_av_info);
         current_state = STATE_RUNNING;
         if (get_prop(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
@@ -489,14 +459,9 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         }
         if (!hw_render_cb) {
             alloc_frame_buffers();
-            std::thread main_thread(entry_main_loop);
-            main_thread.detach();
-        } else {
-            LOGI(TAG, "Hardware callback is set, Waiting hardware rendering.");
         }
-        if (renderer) {
-            renderer->request_start();
-        }
+        std::thread main_thread(entry_main_loop);
+        main_thread.detach();
     } else {
         LOGE(TAG, "Unable load the game, file=%s", rom_path);
     }
@@ -526,7 +491,7 @@ static void em_resume(JNIEnv *env, jobject thiz) {
         if (audio_stream_out) {
             audio_stream_out->request_start();
         }
-        cv.notify_one();
+        looper_cv.notify_one();
     }
     if (renderer) {
         renderer->request_resume();
@@ -543,13 +508,14 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
     current_state = STATE_IDLE;
-    if (!hw_render_cb) {
-        LOGI(TAG, "Waiting main loop to exit.");
-        send_message(MSG_KILL, nullptr)->get_future().get();
-        cv.notify_one();
-    }
-    clear_message();
+    LOGI(TAG, "Killing main loop...");
+    send_message(MSG_KILL, nullptr)->get_future().get();
     retro_unload_game();
+#ifdef UNLOAD_AND_DEINIT
+    retro_deinit();
+    current_state = STATE_INVALID;
+#endif
+    clear_message();
     close_audio_stream();
     video_width = 0;
     video_height = 0;
@@ -563,18 +529,16 @@ static void em_stop(JNIEnv *env, jobject thiz) {
 
 static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
     UNUSED(thiz);
-    struct retro_system_av_info av_info = {0};
-    retro_get_system_av_info(&av_info);
     jclass clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemTiming");
     jmethodID constructor = env->GetMethodID(clazz, "<init>", "(DD)V");
-    jobject o0 = env->NewObject(clazz, constructor, av_info.timing.fps,
-                                av_info.timing.sample_rate);
+    jobject o0 = env->NewObject(clazz, constructor, system_av_info.timing.fps,
+                                system_av_info.timing.sample_rate);
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmGameGeometry");
     constructor = env->GetMethodID(clazz, "<init>", "(IIIIF)V");
-    jobject o1 = env->NewObject(clazz, constructor, (int) av_info.geometry.base_width,
-                                (int) av_info.geometry.base_height,
-                                (int) av_info.geometry.max_width,
-                                (int) av_info.geometry.max_height, av_info.geometry.aspect_ratio);
+    jobject o1 = env->NewObject(clazz, constructor, (int) system_av_info.geometry.base_width,
+                                (int) system_av_info.geometry.base_height,
+                                (int) system_av_info.geometry.max_width,
+                                (int) system_av_info.geometry.max_height, system_av_info.geometry.aspect_ratio);
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
     constructor = env->GetMethodID(clazz, "<init>",
                                    "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
@@ -663,21 +627,33 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     bool no_error = false;
     if (current_state == STATE_RUNNING || current_state == STATE_PAUSED) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
-        if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            no_error = stbi_write_png(file_path, video_width, video_height, 4,
-                                      framebuffers[draw_index]->data,
-                                      video_width * 4);
-        } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-            unsigned char data[video_width * video_height * 3];
-            auto *origin = reinterpret_cast<uint16_t *>(framebuffers[draw_index]->data);
-            for (int i = 0; i < video_width * video_height; ++i) {
-                uint16_t pixel = origin[i];
-                data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
-                data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
-                data[i * 3 + 2] = (pixel & 0x1F) << 3;
+        if (hw_render_cb) {
+            std::shared_ptr<std::promise<result_t>> promise = send_message(MSG_READ_PIXELS,
+                                                                                  nullptr);
+            result_t result = promise->get_future().get();
+            if (result.state == NO_ERROR) {
+                auto pixels = std::any_cast<std::shared_ptr<buffer_t>>(result.data);
+                no_error = stbi_write_png(file_path, video_width, video_height, 4,
+                                          pixels->data,
+                                          video_width * 4);
             }
-            no_error = stbi_write_png(file_path, video_width, video_height, 3, data,
-                                      video_width * 3);
+        } else {
+            if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+                no_error = stbi_write_png(file_path, video_width, video_height, 4,
+                                          framebuffers[draw_index]->data,
+                                          video_width * 4);
+            } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+                unsigned char data[video_width * video_height * 3];
+                auto *origin = reinterpret_cast<uint16_t *>(framebuffers[draw_index]->data);
+                for (int i = 0; i < video_width * video_height; ++i) {
+                    uint16_t pixel = origin[i];
+                    data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
+                    data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
+                    data[i * 3 + 2] = (pixel & 0x1F) << 3;
+                }
+                no_error = stbi_write_png(file_path, video_width, video_height, 3, data,
+                                          video_width * 3);
+            }
         }
         env->ReleaseStringUTFChars(path, file_path);
     }
@@ -766,6 +742,9 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return;
     }
+#ifndef UNLOAD_AND_DEINIT
+    retro_deinit();
+#endif
     env->DeleteGlobalRef(ctx.input_descriptor_clazz);
     env->DeleteGlobalRef(ctx.array_list_clazz);
     env->DeleteGlobalRef(ctx.message_ext_clazz);
@@ -781,72 +760,92 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 }
 
 static void entry_main_loop() {
-    if (attach_env()) {
-        set_thread_priority(THREAD_PRIORITY_AUDIO);
-        for (;;) {
-            std::shared_ptr<message_t> msg = obtain_message();
-            if (current_state == STATE_RUNNING) {
-                retro_run();
-            } else if (current_state == STATE_PAUSED && !msg) {
-                std::unique_lock<std::mutex> lock(mtx);
-                cv.wait(lock, []() {
-                    return current_state != STATE_PAUSED
-                           || !message_queue.empty();
-                });
-            }
-            if (handle_message(msg)) continue;
-            if (msg->what == MSG_KILL) {
-                msg->promise->set_value({NO_ERROR, nullptr});
-                break;
-            }
-        }
-        detach_env();
+    if (!attach_env()) {
+        LOGE(TAG, "Unable start main thread, attach env failed!");
+        return;
     }
+    set_thread_priority(THREAD_PRIORITY_AUDIO);
+    if (hw_render_cb) {
+        struct retro_system_av_info av_info{};
+        retro_get_system_av_info(&av_info);
+        int max_width = static_cast<int>(av_info.geometry.max_width);
+        int max_height = static_cast<int>(av_info.geometry.max_height);
+        shared_context = std::make_unique<GLContext>(max_width, max_height);
+        shared_context->make();
+        glGenTextures(1, &hw_texture);
+        glBindTexture(GL_TEXTURE_2D, hw_texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, max_width, max_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     nullptr);
+
+        glGenFramebuffers(1, &hw_fbo);
+        glBindFramebuffer(GL_FRAMEBUFFER, hw_fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hw_texture, 0);
+        glGenRenderbuffers(1, &hw_rbo);
+        glBindRenderbuffer(GL_RENDERBUFFER, hw_rbo);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, max_width, max_height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, hw_rbo);
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+            __android_log_assert("glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE", TAG, "Failed to create framebuffer!");
+        }
+        hw_render_cb->context_reset();
+    }
+    for (;;) {
+        std::shared_ptr<message_t> msg = obtain_message();
+        if (current_state == STATE_RUNNING) {
+            retro_run();
+        } else if (current_state == STATE_PAUSED && !msg) {
+            std::unique_lock<std::mutex> lock(mtx);
+            looper_cv.wait(lock, []() {
+                return current_state != STATE_PAUSED
+                       || !message_queue.empty();
+            });
+        }
+        if (handle_message(msg)) continue;
+        if (msg->what == MSG_KILL) {
+            if (hw_render_cb) {
+                hw_render_cb->context_destroy();
+                glDeleteRenderbuffers(1, &hw_rbo);
+                glDeleteFramebuffers(1, &hw_fbo);
+                glDeleteTextures(1, &hw_texture);
+                shared_context = nullptr;
+            }
+            msg->promise->set_value({NO_ERROR, nullptr});
+            break;
+        }
+    }
+    detach_env();
 }
 
 static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     UNUSED(dyp);
     UNUSED(sr);
     set_thread_priority(THREAD_PRIORITY_DISPLAY);
-    if (hw_render_cb) {
-        hw_render_cb->context_reset();
-        attach_env();
-    } else {
-        begin_texture();
-    }
+    begin_texture(pixel_format,
+                  static_cast<int>(system_av_info.geometry.max_width),
+                  static_cast<int>(system_av_info.geometry.max_height),
+                  video_rotation, !hw_render_cb);
 }
 
 static void on_draw_frame() {
     if (current_state == STATE_RUNNING) {
-        if (hw_render_cb) {
-            retro_run();
-            handle_message(obtain_message());
-            return;
+        if (shared_context) {
+            texture_hw(video_width,
+                    video_height,
+                    hw_texture);
         } else {
             int index = draw_index.load();
-            if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                texture(GL_RGB, video_width, video_height, video_rotation,
-                        framebuffers[index]->data);
-            } else {
-                texture(GL_RGBA, video_width, video_height, video_rotation,
-                        framebuffers[index]->data);
-            }
-            renderer->swap_buffers();
-            return;
+            texture(video_width,
+                    video_height,
+                    framebuffers[index]->data);
         }
+        renderer->swap_buffers();
     }
-
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 static void on_surface_destroy() {
-    if (hw_render_cb != nullptr) {
-        hw_render_cb->context_destroy();
-        detach_env();
-    } else {
-        end_texture();
-    }
+    end_texture();
 }
 
 static retro_proc_address_t get_hw_proc_address(const char *sym) {
@@ -854,9 +853,7 @@ static retro_proc_address_t get_hw_proc_address(const char *sym) {
 }
 
 static uintptr_t get_hw_framebuffer() {
-    GLint fb;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fb);
-    return fb;
+    return hw_fbo;
 }
 
 static bool attach_env() {
@@ -885,10 +882,8 @@ static void detach_env() {
 }
 
 static void open_audio_stream() {
-    struct retro_system_av_info av_info{};
-    retro_get_system_av_info(&av_info);
     audio_stream_out = std::make_shared<AudioOutputStream>();
-    audio_stream_out->set_sample_rate(static_cast<uint16_t>(av_info.timing.sample_rate));
+    audio_stream_out->set_sample_rate(static_cast<uint16_t>(system_av_info.timing.sample_rate));
     audio_stream_out->set_sharing_mode(oboe::SharingMode::Shared);
     audio_stream_out->set_channel_count(oboe::ChannelCount::Stereo);
     if (get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true)) {
@@ -908,14 +903,14 @@ static void close_audio_stream() {
 static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any &usr) {
     std::shared_ptr<std::promise<result_t>> promise = std::make_shared<std::promise<result_t>>();
     message_queue.push(std::make_shared<message_t>(what, promise, usr));
-    cv.notify_one();
+    looper_cv.notify_one();
     return promise;
 }
 
 static void send_empty_message(int what) {
     std::lock_guard<std::mutex> lock(mtx);
     message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
-    cv.notify_one();
+    looper_cv.notify_one();
 }
 
 static bool handle_message(const std::shared_ptr<message_t> &msg) {
@@ -925,6 +920,10 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
     bool no_error = false;
     std::shared_ptr<buffer_t> buffer;
     switch (msg->what) {
+        case MSG_START_RENDERER:
+            renderer->set_shared_context(shared_context);
+            renderer->request_start();
+            break;
         case MSG_SET_SERIALIZE_DATA:
             size = retro_serialize_size();
             buffer = std::any_cast<std::shared_ptr<buffer_t>>(msg->usr);
@@ -947,6 +946,11 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
             break;
         case MSG_RESET_EMULATOR:
             retro_reset();
+            break;
+        case MSG_READ_PIXELS:
+            buffer = std::make_shared<buffer_t>(video_width * video_height * 4);
+            glReadPixels(0, 0, video_width, video_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer->data);
+            msg->promise->set_value({NO_ERROR, buffer});
             break;
         default:
             handled = false;

@@ -5,16 +5,12 @@
 #ifndef WKUWKU_GLUTILS_H
 #define WKUWKU_GLUTILS_H
 #include <GLES3/gl3.h>
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-#ifdef __cplusplus
-extern "C" {
-#endif
-void begin_texture();
-void texture(int format, int w, int h, unsigned rota, const void* data);
+#include <libretro.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+void begin_texture(retro_pixel_format, int /*max width*/, int /*max height*/, int /*rotation*/, bool /*flip y*/);
+void texture_hw(int /*base width*/, int /*base_height*/, GLuint /*texture*/);
+void texture(int /*base width*/, int /*base_height*/, const void* /*data*/);
 void end_texture();
-#ifdef __cplusplus
-}
-#endif
 #endif //WKUWKU_GLUTILS_H

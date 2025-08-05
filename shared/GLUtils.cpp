@@ -5,6 +5,11 @@
 #include "GLUtils.h"
 #include "Log.h"
 
+static void begin_texture();
+static void update_texcoords(int width, int height);
+static void set_mat4(const char* sym, const glm::mat4& mat);
+
+static const char* TAG = "GLUtils";
 static const char* vertex_shader_source =
 #include "glsl/vs_simple_texture.h"
 ;
@@ -14,11 +19,17 @@ static const char* fragment_shader_source =
 ;
 
 static const float vertexes[] = {
-        // positions   // texCoords
-        1.f, 1.f, 1.f, 0.f,
-        -1.f, 1.f, 0.f, 0.f,
-        -1.f, -1.f, 0.f, 1.f,
-        1.f, -1.f, 1.f, 1.f,
+        1.f, 1.f,
+        -1.f, 1.f,
+        -1.f, -1.f,
+        1.f, -1.f,
+};
+
+static float texcoords[] = {
+        1.f, 1.f,
+        0.f, 1.f,
+        0.f, 0.f,
+        1.f, 0.f
 };
 
 static const unsigned indices[] = {
@@ -26,7 +37,7 @@ static const unsigned indices[] = {
         1, 2, 3
 };
 
-struct env_t {
+struct draw_env_t {
     GLuint pid;
     GLuint VAO;
     GLuint VBO;
@@ -35,11 +46,94 @@ struct env_t {
 };
 
 static glm::mat4 model;
-static int vw = 0, vh = 0, rotation = 0;
-static env_t env{};
+static retro_pixel_format pixel_format;
+static bool flip_y = false;
+static int max_width, max_height, rotation;
+static int base_width, base_height;
+static draw_env_t env{};
 
-void begin_texture() {
-    rotation = 0;
+void begin_texture(retro_pixel_format format, int mw /*max width*/, int mh /*max height*/, int rot /*rotation*/, bool flp_y /*flip y*/) {
+    max_width = mw;
+    max_height = mh;
+    pixel_format = format;
+    rotation = rot;
+    flip_y = flp_y;
+    begin_texture();
+}
+
+void texture_hw(int width, int height, GLuint texture) {
+    update_texcoords(width, height);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glUseProgram(env.pid);
+    glBindVertexArray(env.VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*) 0);
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void texture(int width /*base width*/, int height /*base_height*/, const void* data) {
+    update_texcoords(width, height);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, env.texture0);
+    if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, data);
+    } else {
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    }
+    glUseProgram(env.pid);
+    glBindVertexArray(env.VAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*) 0);
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void end_texture() {
+    glDeleteProgram(env.pid);
+    glDeleteVertexArrays(1, &env.VAO);
+    glDeleteBuffers(1, &env.VBO);
+    glDeleteBuffers(1, &env.EBO);
+    glDeleteTextures(1, &env.texture0);
+    base_width = 0;
+    base_height = 0;
+}
+
+static void set_mat4(const char* sym, const glm::mat4& mat) {
+    GLint location = glGetUniformLocation(env.pid, sym);
+    glUseProgram(env.pid);
+    glUniformMatrix4fv(location, 1, false, glm::value_ptr(mat));
+    glUseProgram(0);
+}
+
+static void update_texcoords(int width, int height) {
+    if (width != base_width || height != base_height) {
+        float u_max = static_cast<float>(width) / static_cast<float>(max_width);
+        float v_max = static_cast<float>(height) / static_cast<float>(max_height);
+        if (flip_y) {
+            texcoords[0] = u_max, texcoords[1] = 0.f;
+            texcoords[2] = 0.f, texcoords[3] = 0.f;
+            texcoords[4] = 0.f, texcoords[5] = v_max;
+            texcoords[6] = u_max, texcoords[7] = v_max;
+        } else {
+            texcoords[0] = u_max, texcoords[1] = v_max;
+            texcoords[2] = 0.f, texcoords[3] = v_max;
+            texcoords[4] = 0.f, texcoords[5] = 0.f;
+            texcoords[6] = u_max, texcoords[7] = 0.f;
+        }
+        glBindBuffer(GL_ARRAY_BUFFER, env.VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexes), sizeof(texcoords), texcoords);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        base_width = width;
+        base_height = height;
+    }
+}
+
+static void begin_texture() {
+    /*shader*/
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader_source, nullptr);
     glCompileShader(vs);
@@ -54,63 +148,46 @@ void begin_texture() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
+    model = glm::mat4();
+    model = glm::rotate(model, glm::radians((float) rotation * 90.f), glm::vec3(0.f, 0.f, 1.f));
+    set_mat4("model", model);
+
+    /*buffers*/
     glGenVertexArrays(1, &env.VAO);
-    glGenBuffers(2, &env.VBO);
+    glGenBuffers(1, &env.VBO);
+    glGenBuffers(1, &env.EBO);
     glBindVertexArray(env.VAO);
     glBindBuffer(GL_ARRAY_BUFFER, env.VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes), vertexes, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes) + sizeof(texcoords), nullptr, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexes), vertexes);
+    if (flip_y) {
+        texcoords[1] = 0.f;
+        texcoords[3] = 0.f;
+        texcoords[5] = 1.f;
+        texcoords[7] = 1.f;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertexes), sizeof(texcoords), texcoords);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, env.EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, false, 4 * sizeof(float), (void*) 0);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, false, 2 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, false, 4 * sizeof(float), (void*) (2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, false, 2 * sizeof(float), (void*) (sizeof(vertexes)));
     glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 
+    /*texture*/
     glGenTextures(1, &env.texture0);
     glBindTexture(GL_TEXTURE_2D, env.texture0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    model = glm::mat4();
-    GLint loc = glGetUniformLocation(env.pid, "model");
-    glUseProgram(env.pid);
-    glUniformMatrix4fv(loc, 1, false, glm::value_ptr(model));
-    glUseProgram(0);
-}
-
-void texture(int format, int w, int h, unsigned rota, const void* data) {
-    glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, env.texture0);
-    int type = GL_UNSIGNED_SHORT_5_6_5;
-    if (format == GL_RGBA) {
-        type = GL_UNSIGNED_BYTE;
-    }
-    if (vw != w || vh != h) {
-        glTexImage2D(GL_TEXTURE_2D, 0, format, w, h, 0, format, type, data);
-        vw = w; vh = h;
+    if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, max_width, max_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, nullptr);
+    } else if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, max_width, max_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     } else {
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, format, type, data);
+        __android_log_assert("format != RETRO_PIXEL_FORMAT_RGB565 && format != RETRO_PIXEL_FORMAT_XRGB8888", TAG, "Unsupported pixel format! %d", pixel_format);
     }
-    glUseProgram(env.pid);
-    if (rotation != rota) {
-        rotation = (int) rota;
-        model = glm::rotate(glm::mat4(), glm::radians((float) rota * 90.f), glm::vec3(0.f, 0.f, 1.f));
-        glUniformMatrix4fv(glGetUniformLocation(env.pid, "model"), 1, false, glm::value_ptr(model));
-    }
-    glBindVertexArray(env.VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void*) 0);
-    glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void end_texture() {
-    glDeleteProgram(env.pid);
-    glDeleteVertexArrays(1, &env.VAO);
-    glDeleteBuffers(2, &env.VBO);
-    glDeleteTextures(1, &env.texture0);
-    vw = 0; vh = 0;
 }

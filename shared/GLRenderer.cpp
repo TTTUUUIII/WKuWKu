@@ -2,33 +2,36 @@
 // Created by wn123 on 2025-06-24.
 //
 
+#include <swappy/swappyGL.h>
+#include <swappy/swappyGL_extra.h>
 #include "GLRenderer.h"
 #include "Log.h"
 
 #define TAG "GLRenderer"
 
-GLRenderer::GLRenderer(ANativeWindow *wd): window(wd) {
-    display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+static const long kNanosPerMillisecond = 1000000L;
+
+GLRenderer::GLRenderer(JNIEnv *env, jobject activity, jobject surface) {
+    window = ANativeWindow_fromSurface(env, surface);
     vw = ANativeWindow_getWidth(window);
     vh = ANativeWindow_getHeight(window);
-    version_major = 0;
-    version_minor = 0;
-    eglInitialize(display, &version_major, &version_minor);
-    const EGLint config_attrib_list[] = {
-            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
-            EGL_RED_SIZE, 8,EGL_GREEN_SIZE, 8,EGL_BLUE_SIZE, 8,EGL_ALPHA_SIZE, 8,
-            EGL_DEPTH_SIZE, 16,
-            EGL_NONE
-    };
-    EGLConfig config;
-    EGLint config_num;
-    eglChooseConfig(display, config_attrib_list, &config, 1, &config_num);
-    const EGLint ctx_attrib_list[] = {
-            EGL_CONTEXT_CLIENT_VERSION, 3,
-            EGL_NONE
-    };
-    context = eglCreateContext(display, config, EGL_NO_CONTEXT, ctx_attrib_list);
-    surface = eglCreateWindowSurface(display, config, window, nullptr);
+    if (activity != nullptr && !SwappyGL_isEnabled()) {
+        SwappyGL_init(env, activity);
+        int count = SwappyGL_getSupportedRefreshPeriodsNS(nullptr, 0);
+        uint64_t all_swap_ns[count];
+        SwappyGL_getSupportedRefreshPeriodsNS(all_swap_ns, count);
+        uint64_t min_swap_ns = all_swap_ns[0];
+        for (int i = 1; i < count; ++i) {
+            min_swap_ns = std::min(all_swap_ns[i], min_swap_ns);
+        }
+        SwappyGL_setSwapIntervalNS(min_swap_ns);
+        SwappyGL_setAutoSwapInterval(true);
+        SwappyGL_setAutoPipelineMode(true);
+        SwappyGL_setWindow(window);
+        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
+             static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
+    }
+    shared_context = EGL_NO_CONTEXT;
     state = PREPARED;
 }
 
@@ -44,9 +47,11 @@ bool GLRenderer::request_start() {
     gl_thread = std::thread([this]() {
         gl_thread_running = true;
         LOGI(TAG, "GLThread started, tid=%d", gettid());
+        context = std::make_unique<GLContext>(window, shared_context);
+        context->make();
+        glViewport(0, 0, vw, vh);
         uint16_t current_vw = vw, current_vh = vh;
-        eglMakeCurrent(display, surface, surface, context);
-        callback->on_surface_create(display, surface);
+        callback->on_surface_create(context->get_surface(), context->get_surface());
         for (;;) {
             if (state == RUNNING) {
                 if (current_vw != vw || current_vh != vh) {
@@ -62,7 +67,7 @@ bool GLRenderer::request_start() {
             }
         }
         callback->on_surface_destroy();
-        eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+        context = nullptr;
         gl_thread_running.store(false);
         gl_thread_running.notify_one();
         LOGI(TAG, "GLThread exited, tid=%d", gettid());
@@ -78,18 +83,15 @@ void GLRenderer::release() {
     state.notify_one();
     gl_thread_running.wait(true);
     callback = nullptr;
-    eglDestroySurface(display, surface);
-    eglDestroyContext(display, context);
-    eglTerminate(display);
     ANativeWindow_release(window);
 }
 
 void GLRenderer::swap_buffers() {
     if (state != RUNNING) return;
     if (SwappyGL_isEnabled()) {
-        SwappyGL_swap(display, surface);
+        SwappyGL_swap(context->get_display(), context->get_surface());
     } else {
-        eglSwapBuffers(display, surface);
+        eglSwapBuffers(context->get_display(), context->get_surface());
     }
 }
 
@@ -107,5 +109,15 @@ void GLRenderer::request_resume() {
     if (state == PAUSED) {
         state = RUNNING;
         state.notify_one();
+    }
+}
+
+void GLRenderer::set_shared_context(const std::unique_ptr<GLContext>& ctx) {
+    if (state == PREPARED) {
+        if (ctx) {
+            shared_context = ctx->get_context();
+        }
+    } else {
+        LOGE(TAG, "Unable set shared context at this time, gl thread already started!");
     }
 }

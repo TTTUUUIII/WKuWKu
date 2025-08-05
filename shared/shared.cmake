@@ -6,6 +6,7 @@ include_directories(
 find_package(games-frame-pacing REQUIRED CONFIG)
 find_package(oboe REQUIRED CONFIG)
 set(COMMON_SOURCE
+        ${MY_DIR}/GLContext.cpp
         ${MY_DIR}/GLRenderer.cpp
         ${MY_DIR}/GLUtils.cpp
         ${MY_DIR}/AudioOutputStream.cpp
