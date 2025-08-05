@@ -570,6 +570,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             String descriptor = controller.getDescriptor();
             String p1descriptor = SettingsManager.getString(PLAYER_1_CONTROLLER_DESCRIPTOR);
             String p2descriptor = SettingsManager.getString(PLAYER_2_CONTROLLER_DESCRIPTOR);
+            mControllers.add(controller);
             if (descriptor.equals(p1descriptor)) {
                 mP1ControllerId = deviceId;
                 updateControllerRoutes();
@@ -577,7 +578,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 mP2ControllerId = deviceId;
                 updateControllerRoutes();
             }
-            mControllers.add(controller);
         }
     }
 
@@ -585,11 +585,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public void onInputDeviceRemoved(int deviceId) {
         super.onInputDeviceRemoved(deviceId);
         Optional<Controller> controller = mControllers.stream()
+                .filter(it -> it.getDeviceId() == deviceId)
                 .findFirst();
         if (controller.isPresent()) {
             Controller it = controller.get();
             Controller p1 = mControllerRoutes.get(PLAYER_1);
             Controller p2 = mControllerRoutes.get(PLAYER_2);
+            mControllers.remove(it);
             if (p1 == it) {
                 mP1ControllerId = Controller.VIRTUAL_CONTROLLER_DEVICE_ID;
                 updateControllerRoutes();
@@ -597,7 +599,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 mP2ControllerId = Controller.INVALID_CONTROLLER_DEVICE_ID;
                 updateControllerRoutes();
             }
-            mControllers.remove(it);
         }
     }
 

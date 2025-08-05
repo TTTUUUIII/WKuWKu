@@ -32,14 +32,15 @@ static std::atomic<int> draw_index = 0;
 static rotation_t video_rotation = ROTATION_0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
+static retro_pixel_format origin_pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static std::queue<std::shared_ptr<message_t>> message_queue;
 static std::unordered_map<int32_t, std::any> props;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
 
-static std::unique_ptr<GLContext> shared_context;
 static em_context_t ctx{};
+static std::unique_ptr<GLContext> shared_context;
 static jobject variable_object;
 static jobject variable_entry_object;
 static struct retro_disk_control_callback *disk_control;
@@ -87,6 +88,11 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != STATE_RUNNING) return;
     if (!hw_render_cb && data) {
+        if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+            XRGB8888_PATCH((void*)data, height * pitch);
+        } else if (origin_pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
+            XRGB1555_TO_RGB565((void*)data, height * pitch);
+        }
         fill_frame_buffer(data, width, height, pitch);
     }
     if (video_width != width || video_height != height) {
@@ -124,11 +130,6 @@ static void free_frame_buffers() {
 static void fill_frame_buffer(const void *data, unsigned width, unsigned height, size_t pitch) {
     uint8_t bytes_per_pixel = 2;
     if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        auto *fb = (uint8_t *) data;
-        for (int i = 0; i < height * pitch; i += 4) {
-            std::swap(fb[i], fb[i + 2]);
-            fb[i + 3] = 0xFF;
-        }
         bytes_per_pixel = 4;
     }
 
@@ -304,7 +305,13 @@ static bool environment_cb(unsigned cmd, void *data) {
             *(unsigned *) data = 1;
             return true;
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
-            pixel_format = *((retro_pixel_format *) data);
+            origin_pixel_format = *((retro_pixel_format *) data);
+            if (origin_pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
+                pixel_format = RETRO_PIXEL_FORMAT_RGB565;
+            } else {
+                pixel_format = origin_pixel_format;
+            }
+            LOGI(TAG, "Pixel format %d", pixel_format);
             return true;
         case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
             jobject array_list;
@@ -643,15 +650,8 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
                                           framebuffers[draw_index]->data,
                                           video_width * 4);
             } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                unsigned char data[video_width * video_height * 3];
-                auto *origin = reinterpret_cast<uint16_t *>(framebuffers[draw_index]->data);
-                for (int i = 0; i < video_width * video_height; ++i) {
-                    uint16_t pixel = origin[i];
-                    data[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
-                    data[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
-                    data[i * 3 + 2] = (pixel & 0x1F) << 3;
-                }
-                no_error = stbi_write_png(file_path, video_width, video_height, 3, data,
+                std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(framebuffers[draw_index]->data, video_width * video_height * 2);
+                no_error = stbi_write_png(file_path, video_width, video_height, 3, buffer->data,
                                           video_width * 3);
             }
         }
@@ -911,6 +911,35 @@ static void send_empty_message(int what) {
     std::lock_guard<std::mutex> lock(mtx);
     message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
     looper_cv.notify_one();
+}
+
+static void XRGB8888_PATCH(void* data, size_t len) {
+    auto *fb = (uint8_t *) data;
+    for (int i = 0; i < len; i += 4) {
+        std::swap(fb[i], fb[i + 2]);
+        fb[i + 3] = 0xFF;
+    }
+}
+
+static void XRGB1555_TO_RGB565(void* data, size_t len) {
+    auto *fb = (uint16_t *) data;
+    for (int i = 0; i < len / 2; i++) {
+        uint16_t g = fb[i] >> 5 & 0x1F;
+        fb[i] = ((fb[i] >> 10 & 0x1F) << 11) | ((g << 1 | g >> 4) << 5) | fb[i] & 0x1F;
+    }
+}
+
+static std::unique_ptr<buffer_t> RGB565_TO_RGB888(void* pixels, size_t len) {
+    std::unique_ptr<buffer_t> buffer = std::make_unique<buffer_t>(len / 2 * 3);
+    auto dest = static_cast<uint8_t*>(buffer->data);
+    auto *data = reinterpret_cast<uint16_t *>(pixels);
+    for (int i = 0; i < video_width * video_height; ++i) {
+        uint16_t pixel = data[i];
+        dest[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
+        dest[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
+        dest[i * 3 + 2] = (pixel & 0x1F) << 3;
+    }
+    return std::move(buffer);
 }
 
 static bool handle_message(const std::shared_ptr<message_t> &msg) {

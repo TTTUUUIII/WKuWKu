@@ -79,6 +79,10 @@ struct message_t {
     explicit message_t(int _what, std::shared_ptr<std::promise<result_t>> _promise, std::any _usr): what(_what), promise(std::move(_promise)), usr(std::move(_usr)) {}
 };
 
+static std::unique_ptr<buffer_t> RGB565_TO_RGB888(void*, size_t /*len*/);
+static void XRGB1555_TO_RGB565(void*, size_t /*len*/);
+static void XRGB8888_PATCH(void*, size_t /*len*/);
+
 static void on_surface_create(EGLDisplay, EGLSurface);
 static void on_draw_frame();
 static void on_surface_destroy();
