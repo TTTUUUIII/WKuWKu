@@ -390,8 +390,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 .filter(it -> !it.isVirtual())
                 .map(it -> it.getDeviceId() + "@" + it.getName())
                 .collect(Collectors.toList()));
-        mControllerAdapter1.notifyDataSetChanged();
-        mControllerAdapter2.notifyDataSetChanged();
         Controller primaryController = mControllerRoutes.get(PLAYER_1);
         String primarySource = primaryController.getDeviceId() + "@" + primaryController.getName();
         mExitLayoutBinding.player1Dropdown.setText(primarySource);
