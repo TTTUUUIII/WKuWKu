@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="SNES"
+            tag="snes"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>smc</item>
+        <item>sfc</item>
+        <item>swc</item>
+        <item>fig</item>
+        <item>bs</item>
+        <item>st</item>
+    </content-extensions>
+    <options>
+    </options>
+</em-config>
