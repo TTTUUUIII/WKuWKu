@@ -29,6 +29,8 @@
 #define MSG_SET_SERIALIZE_DATA              1
 #define MSG_GET_SERIALIZE_DATA              2
 #define MSG_RESET_EMULATOR                  3
+#define MSG_START_RENDERER                  4
+#define MSG_READ_PIXELS                     5
 
 #define THREAD_PRIORITY_DISPLAY             (-4)
 #define THREAD_PRIORITY_AUDIO               (-16)
