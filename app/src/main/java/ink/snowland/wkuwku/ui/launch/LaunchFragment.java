@@ -421,7 +421,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
         boolean captureScreen = !screenshot.exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
-            mViewModel.saveCurrentSate();
+            if (!mAutoLoadDisabled) {
+                mViewModel.saveCurrentSate();
+            }
             captureScreen = true;
         }
         if (captureScreen) {
