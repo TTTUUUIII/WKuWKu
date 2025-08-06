@@ -240,14 +240,15 @@ static bool environment_cb(unsigned cmd, void *data) {
                                               variable_object);
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
-        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
-            if (ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.environment_method, cmd,
-                                           variable_object)) {
-                auto path = (jstring) get_variable_value(ctx.env);
-                *((const char **) data) = ctx.env->GetStringUTFChars(path, JNI_FALSE);
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
+            std::string path = get_prop(static_cast<int>(cmd), std::string());
+            if (!path.empty()) {
+                *(const char **)data = path.c_str();
                 return true;
+            } else {
+                return false;
             }
-            break;
+        }
         case RETRO_ENVIRONMENT_SET_MESSAGE:
             jobject jmsg_ext;
             struct retro_message *msg;
@@ -310,7 +311,6 @@ static bool environment_cb(unsigned cmd, void *data) {
             } else {
                 pixel_format = origin_pixel_format;
             }
-            LOGI(TAG, "Pixel format %d", pixel_format);
             return true;
         case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
             jobject array_list;
@@ -514,6 +514,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     current_state = STATE_IDLE;
     LOGI(TAG, "Killing main loop...");
     send_message(MSG_KILL, nullptr)->get_future().get();
+    ctx.env = env;
     retro_unload_game();
 #ifdef DEINIT_AFTER_UNLOAD
     retro_deinit();
@@ -621,6 +622,11 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case PROP_LOW_LATENCY_AUDIO_ENABLE:
         case PROP_AUDIO_UNDERRUN_OPTIMIZATION:
             props[prop] = as_bool(env, val);
+            break;
+        case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+        case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+        case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
+            props[prop] = as_string(env, (jstring)val);
             break;
         default:;
     }
@@ -1017,6 +1023,34 @@ static jobject new_int(JNIEnv *env, int32_t value) {
     jclass clazz = env->FindClass("java/lang/Integer");
     jmethodID method = env->GetMethodID(clazz, "<init>", "(I)V");
     return env->NewObject(clazz, method, value);
+}
+
+static std::string as_string(JNIEnv *env, jobject obj) {
+    jclass clazz = env->FindClass("java/lang/String");
+    jstring src = nullptr;
+    if (env->IsInstanceOf(obj, clazz)) {
+        src = (jstring) obj;
+        goto to_string;
+    }
+    clazz = env->FindClass("java/io/File");
+    if (env->IsInstanceOf(obj, clazz)) {
+        jmethodID method = env->GetMethodID(clazz, "getAbsolutePath", "()Ljava/lang/String;");
+        src = (jstring) env->CallObjectMethod(obj, method);
+        goto to_string;
+    }
+    clazz = env->FindClass("java/nio/file/Path");
+    if (env->IsInstanceOf(obj, clazz)) {
+        jmethodID method = env->GetMethodID(clazz, "toString", "()Ljava/lang/String;");
+        src = (jstring) env->CallObjectMethod(obj, method);
+        goto to_string;
+    }
+    __android_log_assert("obj type != string", TAG, "The object is not a string type!");
+
+    to_string:
+    const char *chars = env->GetStringUTFChars(src, JNI_FALSE);
+    std::string res(chars);
+    env->ReleaseStringUTFChars(src, chars);
+    return res;
 }
 
 static int32_t as_int(JNIEnv *env, jobject obj) {
