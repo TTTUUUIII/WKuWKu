@@ -1,0 +1,263 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="3DS"
+            tag="3ds"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>3ds</item>
+        <item>3dsx</item>
+        <item>elf</item>
+        <item>axf</item>
+        <item>cci</item>
+        <item>cxi</item>
+        <item>app</item>
+    </content-extensions>
+    <options>
+        <option key="citra_use_cpu_jit"
+            title="Enable CPU JIT"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_cpu_scale"
+            title="CPU Clock scale (5 - 400)"
+            defaultValue="100%"
+            inputType="text" />
+        <option key="citra_use_shader_jit"
+            title="Enable shader JIT"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_hw_shaders"
+            title="Enable hardware shaders"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_hw_shader_cache"
+            title="Save hardware shader cache to disk"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_acc_geo_shaders"
+            title="Enable accurate geometry shaders (only for H/W shaders)"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_acc_mul"
+            title="Enable accurate shaders multiplication (only for H/W shaders)"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_texture_filter"
+            title="Texture filter type"
+            defaultValue="none">
+            <allow-values>
+                <value>none</value>
+                <value>Anime4K Ultrafast</value>
+                <value>Bicubic</value>
+                <value>NearestNeighbor</value>
+                <value>ScaleForce</value>
+                <value>xBRZ freescale</value>
+                <value>MMPX</value>
+            </allow-values>
+        </option>
+        <option key="citra_texture_sampling"
+            title="Texture sampling type"
+            defaultValue="GameControlled">
+            <allow-values>
+                <value>GameControlled</value>
+                <value>NearestNeighbor</value>
+                <value>Linear</value>
+            </allow-values>
+        </option>
+        <option key="citra_custom_textures"
+            title="Enable custom textures"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_dump_textures"
+            title="Dump textures"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_resolution_factor"
+            title="Resolution scale factor"
+            defaultValue="1x (Native)">
+            <allow-values>
+                <value>1x (Native)</value>
+                <value>2x</value>
+                <value>3x</value>
+                <value>4x</value>
+                <value>5x</value>
+                <value>6x</value>
+                <value>7x</value>
+                <value>8x</value>
+                <value>9x</value>
+                <value>10x</value>
+            </allow-values>
+        </option>
+        <option key="citra_layout_option"
+            title="Screen layout positioning"
+            defaultValue="Default Top-Bottom Screen">
+            <allow-values>
+                <value>Default Top-Bottom Screen</value>
+                <value>Single Screen Only</value>
+                <value>Large Screen, Small Screen</value>
+                <value>Side by Side</value>
+            </allow-values>
+        </option>
+        <option key="citra_swap_screen"
+            title="Prominent 3DS screen"
+            defaultValue="Top">
+            <allow-values>
+                <value>Top</value>
+                <value>Bottom</value>
+            </allow-values>
+        </option>
+        <option key="citra_swap_screen_mode"
+            title="Swap Screen Mode"
+            defaultValue="Toggle">
+            <allow-values>
+                <value>Toggle</value>
+                <value>Hold</value>
+            </allow-values>
+        </option>
+        <option key="citra_analog_function"
+            title="Right analog function"
+            defaultValue="C-Stick and Touchscreen Pointer">
+            <allow-values>
+                <value>C-Stick and Touchscreen Pointer</value>
+                <value>Touchscreen Pointer</value>
+                <value>C-Stick</value>
+            </allow-values>
+        </option>
+        <option key="citra_deadzone"
+            title="Emulated pointer deadzone (%)"
+            defaultValue="15">
+            <allow-values>
+                <value>0</value>
+                <value>5</value>
+                <value>10</value>
+                <value>15</value>
+                <value>20</value>
+                <value>25</value>
+                <value>30</value>
+                <value>35</value>
+            </allow-values>
+        </option>
+        <option key="citra_mouse_touchscreen"
+            title="Simulate touchscreen interactions with mouse"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_touch_touchscreen"
+            title="Simulate touchscreen interactions with touchscreen"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_render_touchscreen"
+            title="Render simulated touchscreen interactions"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_virtual_sd"
+            title="Enable virtual SD card"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_libretro_save_path"
+            title="Savegame location"
+            defaultValue="LibRetro Default">
+            <allow-values>
+                <value>LibRetro Default</value>
+                <value>Citra Default</value>
+            </allow-values>
+        </option>
+        <option key="citra_is_new_3ds"
+            title="3DS system model"
+            defaultValue="Old 3DS">
+            <allow-values>
+                <value>Old 3DS</value>
+                <value>New 3DS</value>
+            </allow-values>
+        </option>
+        <option key="citra_region_value"
+            title="3DS system region"
+            defaultValue="Auto">
+            <allow-values>
+                <value>Auto</value>
+                <value>Japan</value>
+                <value>USA</value>
+                <value>Europe</value>
+                <value>Australia</value>
+                <value>China</value>
+                <value>Korea</value>
+                <value>Taiwan</value>
+            </allow-values>
+        </option>
+        <option key="citra_language"
+            title="3DS system language"
+            defaultValue="English">
+            <allow-values>
+                <value>English</value>
+                <value>Japanese</value>
+                <value>French</value>
+                <value>Spanish</value>
+                <value>German</value>
+                <value>Italian</value>
+                <value>Dutch</value>
+                <value>Portuguese</value>
+                <value>Russian</value>
+                <value>Korean</value>
+                <value>Traditional Chinese</value>
+                <value>Simplified Chinese</value>
+            </allow-values>
+        </option>
+        <option key="citra_use_gdbstub"
+            title="Enable GDB stub"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
