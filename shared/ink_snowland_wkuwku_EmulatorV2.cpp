@@ -519,7 +519,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     send_message(MSG_KILL, nullptr)->get_future().get();
     ctx.env = env;
     retro_unload_game();
-#ifdef UNLOAD_AND_DEINIT
+#ifdef DEINIT_AFTER_UNLOAD
     retro_deinit();
     current_state = STATE_INVALID;
 #endif
@@ -748,7 +748,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return;
     }
-#ifndef UNLOAD_AND_DEINIT
+#ifndef DEINIT_AFTER_UNLOAD
     retro_deinit();
 #endif
     env->DeleteGlobalRef(ctx.input_descriptor_clazz);
@@ -984,6 +984,7 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
             break;
         case MSG_READ_PIXELS:
             buffer = std::make_shared<buffer_t>(video_width * video_height * 4);
+            glBindFramebuffer(GL_FRAMEBUFFER, hw_fbo);
             glReadPixels(0, 0, video_width, video_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer->data);
             msg->promise->set_value({NO_ERROR, buffer});
             break;
