@@ -128,7 +128,6 @@
     <string name="install_from_storage">从本地安装</string>
     <string name="exit_emulator">关闭模拟器</string>
     <string name="reset_emulator">重置模拟器</string>
-    <string name="save_progress">保存进度</string>
     <string name="upgrade">更新</string>
     <string name="invalid_package">软件包无效！</string>
     <string name="plug_already_installed">扩展已经存在，请勿重复安装!</string>
