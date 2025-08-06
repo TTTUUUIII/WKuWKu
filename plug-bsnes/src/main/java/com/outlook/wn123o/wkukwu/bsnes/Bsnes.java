@@ -7,6 +7,8 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.File;
+
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;

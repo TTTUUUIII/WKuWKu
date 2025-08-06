@@ -9,11 +9,267 @@
     <content-extensions>
         <item>smc</item>
         <item>sfc</item>
-        <item>swc</item>
-        <item>fig</item>
-        <item>bs</item>
-        <item>st</item>
+        <item>bml</item>
     </content-extensions>
     <options>
+        <option
+            defaultValue="Auto"
+            key="bsnes_aspect_ratio"
+            title="Aspect Ratio">
+            <allow-values>
+                <value>Auto</value>
+                <value>8:7</value>
+                <value>4:3</value>
+                <value>NTSC</value>
+                <value>PAL</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_blur_emulation"
+            title="Blur Emulation">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_hotfixes"
+            title="Hotfixes">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="High"
+            key="bsnes_entropy"
+            title="Entropy (randomization)">
+            <allow-values>
+                <value>None</value>
+                <value>Low</value>
+                <value>High</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="100"
+            inputType="number"
+            key="bsnes_cpu_overclock"
+            title="CPU Overclocking (10 - 400)" />
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_cpu_fastmath"
+            title="CPU Fast Math">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="100"
+            inputType="number"
+            key="bsnes_cpu_sa1_overclock"
+            title="SA1 Coprocessor Overclocking (10 - 400)" />
+
+        <option
+            defaultValue="100"
+            inputType="number"
+            key="bsnes_cpu_sfx_overclock"
+            title="SuperFX Coprocessor Overclocking (10 - 800)" />
+
+        <option
+            defaultValue="ON"
+            key="bsnes_ppu_fast">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_ppu_deinterlace"
+            title="PPU Deinterlace">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_ppu_no_sprite_limit"
+            title="PPU No sprite limit">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_ppu_no_vram_blocking"
+            title="PPU No VRAM blocking">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_ppu_show_overscan"
+            title="Show Overscan">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="1x"
+            key="bsnes_mode7_scale"
+            title="HD Mode 7 Scale">
+            <allow-values>
+                <value>1x</value>
+                <value>2x</value>
+                <value>3x</value>
+                <value>4x</value>
+                <value>5x</value>
+                <value>6x</value>
+                <value>7x</value>
+                <value>8x</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_mode7_perspective"
+            title="HD Mode 7 Perspective correction">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_mode7_supersample"
+            title="HD Mode 7 Supersampling">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_mode7_mosaic"
+            title="HD Mode 7 HD->SD Mosaic">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_dsp_fast"
+            title="DSP Fast mode">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_dsp_cubic"
+            title="DSP Cubic interpolation">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_dsp_echo_shadow"
+            title="DSP Echo shadow RAM">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_coprocessor_delayed_sync"
+            title="Coprocessor Delayed Sync">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_coprocessor_prefer_hle"
+            title="Coprocessor Prefer HLE">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="SGB1.sfc"
+            key="bsnes_sgb_bios"
+            title="Preferred Super GameBoy BIOS (restart)">
+            <allow-values>
+                <value>SGB1.sfc</value>
+                <value>SGB2.sfc</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_run_ahead_frames"
+            title="Amount of frames for run-ahead">
+            <allow-values>
+                <value>OFF</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+                <value>4</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="ON"
+            key="bsnes_touchscreen_lightgun"
+            title="Enable Touchscreen Lightgun">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+
+        <option
+            defaultValue="OFF"
+            key="bsnes_touchscreen_lightgun_superscope_reverse"
+            title="Super Scope Reverse Trigger Buttons">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
     </options>
 </em-config>

@@ -11,6 +11,7 @@ for %%m in (
     fmsx
     fbneo
     mesen
+    bsnes
     snes9x
     melonds
     sameboy
