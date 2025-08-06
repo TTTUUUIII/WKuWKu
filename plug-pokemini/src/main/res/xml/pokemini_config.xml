@@ -1,0 +1,152 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Pokémon Mini"
+            tag="pokemini"
+            manufacturer="nintendo" />
+    </systems>
+    <content-extensions>
+        <item>min</item>
+    </content-extensions>
+    <options>
+        <option key="pokemini_video_scale"
+            title="Video Scale (Restart)"
+            defaultValue="4x">
+            <allow-values>
+                <value>1x</value>
+                <value>2x</value>
+                <value>3x</value>
+                <value>4x</value>
+                <value>5x</value>
+                <value>6x</value>
+                <value>7x</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_60hz_mode"
+            title="60Hz Mode"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_lcdfilter"
+            title="LCD Filter"
+            defaultValue="dotmatrix">
+            <allow-values>
+                <value>dotmatrix</value>
+                <value>scanline</value>
+                <value>none</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_lcdmode"
+            title="LCD Mode"
+            defaultValue="analog">
+            <allow-values>
+                <value>analog</value>
+                <value>3shades</value>
+                <value>2shades</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_lcdcontrast"
+            title="LCD Contrast"
+            defaultValue="64">
+            <allow-values>
+                <value>0</value>
+                <value>16</value>
+                <value>32</value>
+                <value>48</value>
+                <value>64</value>
+                <value>80</value>
+                <value>96</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_lcdbright"
+            title="LCD Brightness"
+            defaultValue="0">
+            <allow-values>
+                <value>-80</value>
+                <value>-60</value>
+                <value>-40</value>
+                <value>-20</value>
+                <value>0</value>
+                <value>20</value>
+                <value>40</value>
+                <value>60</value>
+                <value>80</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_palette"
+            title="Palette"
+            defaultValue="Default">
+            <allow-values>
+                <value>Default</value>
+                <value>Old</value>
+                <value>Monochrome</value>
+                <value>Green</value>
+                <value>Green Vector</value>
+                <value>Red</value>
+                <value>Red Vector</value>
+                <value>Blue LCD</value>
+                <value>LEDBacklight</value>
+                <value>Girl Power</value>
+                <value>Blue</value>
+                <value>Blue Vector</value>
+                <value>Sepia</value>
+                <value>Monochrome Vector</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_piezofilter"
+            title="Piezo Filter"
+            defaultValue="enabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_lowpass_filter"
+            title="Low Pass Filter"
+            defaultValue="disabled">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_lowpass_range"
+            title="Low Pass Filter Level (%)"
+            defaultValue="60"
+            inputType="number" />
+        <option key="pokemini_screen_shake_lv"
+            title="Screen Shake Level"
+            defaultValue="3">
+            <allow-values>
+                <value>0</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_rumble_lv"
+            title="Controller Rumble Level"
+            defaultValue="10">
+            <allow-values>
+                <value>0</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+                <value>4</value>
+                <value>5</value>
+                <value>6</value>
+                <value>7</value>
+                <value>8</value>
+                <value>9</value>
+                <value>10</value>
+            </allow-values>
+        </option>
+        <option key="pokemini_turbo_period"
+            title="Turbo Button Period (4 - 120)"
+            defaultValue="18"
+            inputType="number" />
+    </options>
+</em-config>

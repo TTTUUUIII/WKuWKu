@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.plug.prosystem;
+package ink.snowland.wkuwku.plug.pokemini;
 
 import android.app.Activity;
 import android.content.res.Resources;
@@ -7,6 +7,7 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import ink.snowland.wkukwu.plug.pokemini.R;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
@@ -14,14 +15,14 @@ import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.emulator.Emulator;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 
-public class ProSystem extends Emulator {
+public class PokeMini extends Emulator {
 
     static {
-        System.loadLibrary("prosystem");
+        System.loadLibrary("pokemini");
     }
 
-    public ProSystem(@NonNull Resources resources) {
-        super("prosystem", EmConfig.fromXml(resources.getXml(R.xml.prosystem_config)));
+    public PokeMini(@NonNull Resources resources) {
+        super("pokemini", EmConfig.fromXml(resources.getXml(R.xml.pokemini_config)));
     }
 
     @Override
@@ -119,7 +120,7 @@ public class ProSystem extends Emulator {
 
     public static void registerAsEmulator(@NonNull Resources resources) {
         if (sInstance == null) {
-            sInstance = new ProSystem(resources);
+            sInstance = new PokeMini(resources);
         }
         EmulatorManager.registerEmulator(sInstance);
     }

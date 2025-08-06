@@ -15,6 +15,7 @@ for %%m in (
     snes9x
     melonds
     sameboy
+    pokemini
     geargrafx
     prosystem
     beetlesaturn

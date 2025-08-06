@@ -2,15 +2,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="ProSystem">
+        android:label="PokeMini">
         <meta-data
             android:name="plugMainClass"
-            android:value="ink.snowland.wkuwku.plug.prosystem.Main" />
+            android:value="ink.snowland.wkuwku.plug.pokemini.Main" />
         <meta-data
             android:name="plugAuthor"
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
         <meta-data
             android:name="plugSummary"
-            android:value="ProSystem is an Atari 7800 emulator" />
+            android:value="PokeMini is Pokémon-Mini Emulator, Authored by JustBurn." />
     </application>
 </manifest>

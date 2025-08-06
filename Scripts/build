@@ -12,6 +12,7 @@ modules=(
   snes9x
   melonds
   sameboy
+  pokemini
   geargrafx
   prosystem
   beetlesaturn
