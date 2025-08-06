@@ -13,6 +13,7 @@ for %%m in (
     mesen
     bsnes
     snes9x
+    citra
     melonds
     sameboy
     pokemini
