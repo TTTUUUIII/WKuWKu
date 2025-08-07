@@ -408,9 +408,7 @@ em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject
             on_surface_create,
             on_draw_frame,
             on_surface_destroy));
-    if (current_state == STATE_RUNNING) {
-        send_empty_message(MSG_START_RENDERER);
-    }
+    send_empty_message(MSG_START_RENDERER);
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
