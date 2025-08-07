@@ -58,7 +58,7 @@ public class CoreOptionsFragment extends BaseFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Collection<IEmulator> emulators = EmulatorManager.getEmulators();
-        String[] tags = emulators.stream().map(it -> (String) it.getProp(IEmulator.PROP_ALIAS))
+        String[] tags = emulators.stream().map(it -> it.getProp(IEmulator.PROP_ALIAS, String.class))
                 .toArray(String[]::new);
         binding.coreSelector.setAdapter(new NoFilterArrayAdapter<>(requireActivity(), R.layout.layout_simple_text, tags));
         mViewModel.setPendingIndicator(true, R.string.loading);
@@ -79,7 +79,7 @@ public class CoreOptionsFragment extends BaseFragment {
         if (emulator != null && mEmulator != emulator) {
             saveCurrentEmulatorOptions();
             mEmulator = emulator;
-            SettingsManager.putString(SELECTED_CORE, (String) mEmulator.getProp(IEmulator.PROP_ALIAS));
+            SettingsManager.putString(SELECTED_CORE, mEmulator.getProp(IEmulator.PROP_ALIAS, String.class));
             mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
             if (mCurrentOptions == null) {
                 List<EmOption> options = mEmulator.getOptions().stream()

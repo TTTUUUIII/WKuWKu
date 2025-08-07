@@ -80,7 +80,8 @@ public final class EmulatorManager {
     }
 
     public static void registerEmulator(@NonNull IEmulator emulator) {
-        EMULATORS.put((String) emulator.getProp(IEmulator.PROP_ALIAS), emulator);
+        String alias = emulator.getProp(IEmulator.PROP_ALIAS, String.class);
+        EMULATORS.put(alias, emulator);
         EmSystemInfo info = emulator.getSystemInfo();
         mAllSupportedSystems.addAll(emulator.getSupportedSystems().stream().filter(it -> !mAllSupportedSystems.contains(it))
                 .collect(Collectors.toList()));
@@ -92,12 +93,13 @@ public final class EmulatorManager {
     }
 
     public static void unregisterEmulator(@NonNull IEmulator emulator) {
-        EMULATORS.remove((String) emulator.getProp(IEmulator.PROP_ALIAS));
+        String alias = emulator.getProp(IEmulator.PROP_ALIAS, String.class);
+        EMULATORS.remove(alias);
         List<EmSystem> systems = emulator.getSupportedSystems();
         for (EmSystem system : systems) {
             if (findEmulatorBySystemTag(system.tag) == null)
                 mAllSupportedSystems.remove(system);
         }
-        sLogger.i("Unregistered %s.", emulator.getProp(IEmulator.PROP_ALIAS));
+        sLogger.i("Unregistered %s.", alias);
     }
 }

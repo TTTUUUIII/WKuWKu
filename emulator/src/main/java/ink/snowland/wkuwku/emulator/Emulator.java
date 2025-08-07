@@ -91,11 +91,12 @@ public abstract class Emulator implements IEmulator {
     }
 
     @Override
-    public Object getProp(int what) {
-        return props.get(what);
+    public <T> T getProp(int what, Class<T> clazz) {
+        return (T) props.get(what);
     }
 
-    protected <T> T getProp(int what, T defaultValue) {
+    @Override
+    public  <T> T getProp(int what, T defaultValue) {
         return (T) props.get(what, defaultValue);
     }
 

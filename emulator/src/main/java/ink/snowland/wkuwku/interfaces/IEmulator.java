@@ -16,17 +16,22 @@ import ink.snowland.wkuwku.common.EmSystemInfo;
 
 public interface IEmulator extends RetroDefine {
 
-    int PROP_SYSTEM_DIRECTORY                = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
-    int PROP_SAVE_DIRECTORY                  = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
-    int PROP_CORE_ASSETS_DIRECTORY           = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
-    int PROP_ALIAS                           = 101;
-    int PROP_OBOE_ENABLE                     = 102;
-    int PROP_LOW_LATENCY_AUDIO_ENABLE        = 103;
-    int PROP_AUDIO_UNDERRUN_OPTIMIZATION     = 104;
+    int PROP_SYSTEM_DIRECTORY                   = RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY;
+    int PROP_SAVE_DIRECTORY                     = RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY;
+    int PROP_CORE_ASSETS_DIRECTORY              = RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY;
+    int PROP_ALIAS                              = 101;
+    int PROP_OBOE_ENABLE                        = 102;
+    int PROP_LOW_LATENCY_AUDIO_ENABLE           = 103;
+    int PROP_AUDIO_UNDERRUN_OPTIMIZATION        = 104;
+
+    int FEAT_SAVE_STATE                         = 1000;
+    int FEAT_LOAD_STATE                         = 1001;
+    int FEAT_REWIND                             = 1002;
 
     void setProp(int what, Object data);
     boolean captureScreen(String savePath);
-    Object getProp(int what);
+    <T> T getProp(int what, Class<T> clazz);
+    <T> T getProp(int what, T defaultValue);
     List<EmOption> getOptions();
     void setOption(EmOption option);
     void setOnEventListener(@NonNull OnEmulatorV2EventListener listener);

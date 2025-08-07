@@ -19,10 +19,10 @@ public class CoreOptionsViewModel extends BaseViewModel {
     }
 
     public void putEmulatorOptions(IEmulator emulator, List<EmOption> options) {
-        mEmulatorOptions.put((String) emulator.getProp(IEmulator.PROP_ALIAS), options);
+        mEmulatorOptions.put(emulator.getProp(IEmulator.PROP_ALIAS, String.class), options);
     }
 
     public List<EmOption> getEmulatorOptions(IEmulator emulator) {
-        return mEmulatorOptions.get((String) emulator.getProp(IEmulator.PROP_ALIAS));
+        return mEmulatorOptions.get(emulator.getProp(IEmulator.PROP_ALIAS, String.class));
     }
 }

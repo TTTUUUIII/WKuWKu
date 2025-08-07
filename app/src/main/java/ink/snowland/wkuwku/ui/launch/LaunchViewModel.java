@@ -106,7 +106,7 @@ public class LaunchViewModel extends BaseViewModel {
 
     public void stopEmulator() {
         if (mEmulator == null) return;
-        final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
+        final String prefix = mEmulator.getProp(PROP_ALIAS, String.class);
         for (int i = 0; i < mSnapshots.size(); i++) {
             try (FileOutputStream fos = new FileOutputStream(getFile(STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1)))) {
                 fos.write(mSnapshots.get(i));
@@ -125,6 +125,7 @@ public class LaunchViewModel extends BaseViewModel {
     }
     public boolean saveCurrentSate() {
         if (mEmulator == null
+                || !mEmulator.getProp(FEAT_SAVE_STATE, true)
                 || SystemClock.uptimeMillis() - mPrevSaveStateUptimeMillis < MIN_INTERVAL_FOR_SAVE_LOAD_STATE) {
             return false;
         }
@@ -142,6 +143,7 @@ public class LaunchViewModel extends BaseViewModel {
     }
     public void loadStateAt(int at) {
         if ( mEmulator == null
+                || !mEmulator.getProp(FEAT_LOAD_STATE, true)
                 || mSnapshots.isEmpty()
                 || SystemClock.uptimeMillis() - mPrevLoadStateUptimeMillis < MIN_INTERVAL_FOR_SAVE_LOAD_STATE) {
             return;
@@ -162,7 +164,7 @@ public class LaunchViewModel extends BaseViewModel {
 
     private void loadAllStates() {
         if (mEmulator == null) return;
-        final String prefix = (String) mEmulator.getProp(PROP_ALIAS);
+        final String prefix = mEmulator.getProp(PROP_ALIAS, String.class);
         for (int i = 0; i < MAX_COUNT_OF_SNAPSHOT; ++i) {
             File statFile = getFile(STATE_DIRECTORY, String.format(Locale.US, "%s@%s-%02d.st", prefix, mCurrentGame.md5, i + 1));
             if (statFile.exists() && statFile.length() != 0) {
