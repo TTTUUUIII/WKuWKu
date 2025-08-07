@@ -19,6 +19,7 @@ for %%m in (
     pokemini
     geargrafx
     prosystem
+    yabause
     beetlesaturn
     mame2003plus
     genesisplusgx

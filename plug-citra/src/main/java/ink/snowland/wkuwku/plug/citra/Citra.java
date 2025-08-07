@@ -21,6 +21,8 @@ public class Citra extends Emulator {
 
     public Citra(@NonNull Resources resources) {
         super("citra", EmConfig.fromXml(resources.getXml(R.xml.citra_config)));
+        props.put(FEAT_LOAD_STATE, false);
+        props.put(FEAT_SAVE_STATE, false);
     }
 
     @Override

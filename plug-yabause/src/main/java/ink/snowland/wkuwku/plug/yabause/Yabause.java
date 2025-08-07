@@ -21,6 +21,8 @@ public class Yabause extends Emulator {
 
     public Yabause(@NonNull Resources resources) {
         super("yabause", EmConfig.fromXml(resources.getXml(R.xml.yabause_config)));
+        props.put(FEAT_LOAD_STATE, false);
+        props.put(FEAT_SAVE_STATE, false);
     }
 
     @Override
@@ -106,7 +108,12 @@ public class Yabause extends Emulator {
 
     @Override
     protected boolean startGame(@NonNull String path) {
-        return nativeStart(path);
+        boolean noError = nativeStart(path);
+        if (noError) {
+            setControllerPortDevice(0, RETRO_DEVICE_JOYPAD);
+            setControllerPortDevice(1, RETRO_DEVICE_JOYPAD);
+        }
+        return noError;
     }
 
     @Override
