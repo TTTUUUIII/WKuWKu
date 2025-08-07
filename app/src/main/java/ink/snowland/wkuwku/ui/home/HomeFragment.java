@@ -49,7 +49,7 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(getLayoutInflater());
-        mPagerAdapter = new PagerSlideAdapter();
+        mPagerAdapter = new PagerSlideAdapter(this);
         binding.viewPager.setAdapter(mPagerAdapter);
         binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
         binding.bottomNavView.setOnItemSelectedListener(this);
@@ -114,8 +114,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
 
     private class PagerSlideAdapter extends FragmentStateAdapter {
 
-        public PagerSlideAdapter() {
-            super(parentActivity);
+        public PagerSlideAdapter(@NonNull Fragment fragment) {
+            super(fragment);
         }
 
         @NonNull
