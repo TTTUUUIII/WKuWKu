@@ -128,6 +128,15 @@ public abstract class Emulator implements IEmulator {
     }
 
     @Override
+    public boolean hasFeature(int feat) {
+        if (feat == FEAT_LOAD_STATE || feat == FEAT_SAVE_STATE) {
+            return getProp(feat, true);
+        } else {
+            return getProp(feat, false);
+        }
+    }
+
+    @Override
     public boolean onNativeRumbleState(int port, int effect, int strength) {
         return true;
     }

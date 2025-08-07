@@ -2,6 +2,8 @@ package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
+import static ink.snowland.wkuwku.common.Errors.*;
+import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.MAX_COUNT_OF_SNAPSHOT;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -220,7 +222,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private void startEmulator() {
         int status = mViewModel.startEmulator();
-        if (status == LaunchViewModel.NO_ERR) {
+        if (status == NO_ERR) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mAudioManager = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
                 mAudioRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
@@ -237,7 +239,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             }
             parentActivity.setPerformanceModeEnable(SettingsManager.getBoolean(SettingsManager.PERFORMANCE_MODE));
             if (mAutoLoadState && !mAutoLoadDisabled) {
-                handler.postDelayed(mViewModel::loadStateAtLast, 300);
+                handler.postDelayed(() -> loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1, false), 300);
             }
         } else {
             showSnackbar(R.string.load_game_failed, Snackbar.LENGTH_LONG);
@@ -432,7 +434,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         boolean captureScreen = !screenshot.exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
             if (!mAutoLoadDisabled) {
-                mViewModel.saveCurrentSate();
+                saveCurrentState(false);
             }
             captureScreen = true;
         }
@@ -476,20 +478,26 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 VirtualController vc = (VirtualController) controller;
                 vc.vibrator();
             }
-            if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
-            } else if (viewId == R.id.button_load_last_state) {
-                mViewModel.loadStateAtLast();
-            } else if (viewId == R.id.button_load_state4) {
-                mViewModel.loadStateAt(3);
-            } else if (viewId == R.id.button_load_state3) {
-                mViewModel.loadStateAt(2);
-            } else if (viewId == R.id.button_load_state2) {
-                mViewModel.loadStateAt(1);
-            } else if (viewId == R.id.button_load_state1) {
-                mViewModel.loadStateAt(0);
+            if (viewId == R.id.button_savestate) {
+                saveCurrentState(true);
             } else if (viewId == R.id.button_screenshot) {
                 takeScreenshot();
+            } else {
+                int index = -1;
+                if (viewId == R.id.button_load_last_state) {
+                    index = LaunchViewModel.MAX_COUNT_OF_SNAPSHOT - 1;
+                } else if (viewId == R.id.button_load_state4) {
+                    index = 3;
+                } else if (viewId == R.id.button_load_state3) {
+                    index = 2;
+                } else if (viewId == R.id.button_load_state2) {
+                    index = 1;
+                } else if (viewId == R.id.button_load_state1) {
+                    index = 0;
+                }
+                if (index != -1) {
+                    loadStateAt(index, true);
+                }
             }
         }
     }
@@ -547,11 +555,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         boolean handled = true;
         switch (hotkey.key) {
             case HOTKEY_QUICK_SAVE:
-                mViewModel.saveCurrentSate();
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
+                saveCurrentState(true);
                 break;
             case HOTKEY_QUICK_LOAD:
-                mViewModel.loadStateAtLast();
+                loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1, true);
                 break;
             case HOTKEY_SCREENSHOT:
                 takeScreenshot();
@@ -679,5 +686,23 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onAudioFocusChange(int focusChange) {
         /*Do Nothing*/
+    }
+
+    private void loadStateAt(int index, boolean ui) {
+        int error = mViewModel.loadStateAt(index);
+        if (ui && error == ERR_NOT_SUPPORTED) {
+            showSnackbar(R.string.feat_not_supported);
+        }
+    }
+
+    private void saveCurrentState(boolean ui) {
+        int error = mViewModel.saveCurrentSate();
+        if (ui) {
+            if (error == NO_ERR) {
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
+            } else if (error == ERR_NOT_SUPPORTED) {
+                showSnackbar(R.string.feat_not_supported);
+            }
+        }
     }
 }
