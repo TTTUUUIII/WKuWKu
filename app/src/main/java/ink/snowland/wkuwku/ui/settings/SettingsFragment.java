@@ -59,7 +59,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                 }
                 String[] values = new String[supportedEmulators.size()];
                 for (int i = 0; i < supportedEmulators.size(); i++) {
-                    values[i] = (String) supportedEmulators.get(i).getProp(IEmulator.PROP_ALIAS);
+                    values[i] = supportedEmulators.get(i).getProp(IEmulator.PROP_ALIAS, String.class);
                 }
                 listPreference.setKey("app_" + system.tag + "_core");
                 listPreference.setTitle(system.name);
@@ -68,7 +68,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                 listPreference.setIconSpaceReserved(false);
                 IEmulator emulator = EmulatorManager.getDefaultEmulator(system);
                 if (emulator != null)
-                    listPreference.setDefaultValue(emulator.getProp(IEmulator.PROP_ALIAS));
+                    listPreference.setDefaultValue(emulator.getProp(IEmulator.PROP_ALIAS, String.class));
                 listPreference.setSummaryProvider(ListPreference.SimpleSummaryProvider.getInstance());
                 corePreferenceCategory.addPreference(listPreference);
             }
@@ -82,7 +82,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
             autoLoadStateBlackList.setKey("app_blacklist_auto_load_state");
             String[] entries = EmulatorManager.getEmulators()
                     .stream()
-                    .map(it -> (String) it.getProp(IEmulator.PROP_ALIAS))
+                    .map(it -> it.getProp(IEmulator.PROP_ALIAS, String.class))
                     .toArray(String[]::new);
             autoLoadStateBlackList.setEntries(entries);
             autoLoadStateBlackList.setEntryValues(entries);

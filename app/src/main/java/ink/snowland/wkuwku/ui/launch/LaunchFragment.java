@@ -279,7 +279,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     emulator.detachSurface();
                 }
             });
-            mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains((String) emulator.getProp(PROP_ALIAS));
+            mAutoLoadDisabled = SettingsManager.getStringSet(BLACKLIST_AUTO_LOAD_STATE).contains(emulator.getProp(PROP_ALIAS, String.class));
         }
     }
 
