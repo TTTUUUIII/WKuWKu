@@ -2,6 +2,8 @@ package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
+import static ink.snowland.wkuwku.common.Errors.*;
+
 import android.app.Application;
 import android.os.SystemClock;
 
@@ -20,6 +22,7 @@ import java.util.Locale;
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
+import ink.snowland.wkuwku.common.Errors;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -29,9 +32,6 @@ public class LaunchViewModel extends BaseViewModel {
     private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
     private static final String AUDIO_API = "app_audio_api";
     private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
-    public static final int NO_ERR = 0;
-    public static final int ERR_EMULATOR_NOT_FOUND = 1;
-    public static final int ERR_LOAD_FAILED = 2;
     public static final int MAX_COUNT_OF_SNAPSHOT = 5;
     private IEmulator mEmulator;
     private final List<byte[]> mSnapshots = new ArrayList<>();
@@ -39,6 +39,7 @@ public class LaunchViewModel extends BaseViewModel {
     private boolean mPlaying = false;
     private long mPrevSaveStateUptimeMillis;
     private long mPrevLoadStateUptimeMillis;
+
     public LaunchViewModel(@NonNull Application application) {
         super(application);
     }
@@ -55,7 +56,7 @@ public class LaunchViewModel extends BaseViewModel {
         mCurrentGame = game;
     }
 
-    public int startEmulator() {
+    public @Errors int startEmulator() {
         if (mEmulator != null) {
             applyOptions();
             mEmulator.setProp(PROP_SYSTEM_DIRECTORY, getFileDirectory(SYSTEM_DIRECTORY));
@@ -74,10 +75,10 @@ public class LaunchViewModel extends BaseViewModel {
                 return NO_ERR;
             } else {
                 mEmulator = null;
-                return ERR_LOAD_FAILED;
+                return ERR;
             }
         }
-        return ERR_EMULATOR_NOT_FOUND;
+        return ERR_NOT_FOUND;
     }
 
     public void pauseEmulator() {
@@ -123,30 +124,32 @@ public class LaunchViewModel extends BaseViewModel {
     public boolean isPlaying() {
         return mPlaying;
     }
-    public boolean saveCurrentSate() {
+
+    public @Errors int saveCurrentSate() {
         if (mEmulator == null
-                || !mEmulator.getProp(FEAT_SAVE_STATE, true)
                 || SystemClock.uptimeMillis() - mPrevSaveStateUptimeMillis < MIN_INTERVAL_FOR_SAVE_LOAD_STATE) {
-            return false;
+            return ERR;
+        }
+        if (!mEmulator.hasFeature(FEAT_SAVE_STATE)) {
+            return ERR_NOT_SUPPORTED;
         }
         byte[] data = mEmulator.getSerializeData();
-        if (data == null || data.length == 0) return false;
+        if (data == null || data.length == 0) return ERR;
         if (mSnapshots.size() == MAX_COUNT_OF_SNAPSHOT)
             mSnapshots.remove(0);
         mSnapshots.add(data);
         mPrevSaveStateUptimeMillis = SystemClock.uptimeMillis();
-        return true;
+        return NO_ERR;
     }
 
-    public void loadStateAtLast() {
-        loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1);
-    }
-    public void loadStateAt(int at) {
-        if ( mEmulator == null
-                || !mEmulator.getProp(FEAT_LOAD_STATE, true)
+    public @Errors int loadStateAt(int at) {
+        if (mEmulator == null
                 || mSnapshots.isEmpty()
                 || SystemClock.uptimeMillis() - mPrevLoadStateUptimeMillis < MIN_INTERVAL_FOR_SAVE_LOAD_STATE) {
-            return;
+            return ERR;
+        }
+        if (!mEmulator.hasFeature(FEAT_LOAD_STATE)) {
+            return ERR_NOT_SUPPORTED;
         }
         final byte[] data;
         if (at < mSnapshots.size()) {
@@ -156,6 +159,7 @@ public class LaunchViewModel extends BaseViewModel {
         }
         mEmulator.setSerializeData(data);
         mPrevLoadStateUptimeMillis = SystemClock.uptimeMillis();
+        return NO_ERR;
     }
 
     public int getSnapshotsCount() {

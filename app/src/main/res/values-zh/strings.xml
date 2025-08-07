@@ -163,4 +163,5 @@
     <string name="failed_to_access_file">文件无法访问！</string>
     <string name="rom_is_required">ROM文件是必须的！</string>
     <string name="none">无</string>
+    <string name="feat_not_supported">此模拟器不支持该特性！</string>
 </resources>
