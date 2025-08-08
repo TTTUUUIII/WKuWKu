@@ -43,7 +43,6 @@ static em_context_t ctx{};
 static std::unique_ptr<GLContext> shared_context;
 static jobject variable_object;
 static jobject variable_entry_object;
-static struct retro_disk_control_callback *disk_control;
 static struct retro_disk_control_ext_callback *dis_control_ext;
 
 static void set_variable_value(JNIEnv *env, jobject value) {
@@ -356,11 +355,8 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_SET_DISK_CONTROL_EXT_INTERFACE:
             if (data) {
                 dis_control_ext = (struct retro_disk_control_ext_callback *) data;
-            }
-            return true;
-        case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
-            if (data) {
-                disk_control = (struct retro_disk_control_callback *) data;
+            } else {
+                dis_control_ext = nullptr;
             }
             return true;
         case RETRO_ENVIRONMENT_GET_LANGUAGE:
@@ -449,6 +445,9 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         }
         info.size = sb.st_size;
         info.data = mmap(nullptr, sb.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    }
+    if (dis_control_ext && dis_control_ext->replace_image_index(0, &info)) {
+        LOGI(TAG, "Image replaced to %s", rom_path);
     }
     bool no_error = retro_load_game(&info);
     if (info.data != nullptr) {
