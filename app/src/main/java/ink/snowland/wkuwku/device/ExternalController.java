@@ -135,33 +135,41 @@ public class ExternalController implements Controller {
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_RIGHT, RETRO_DEVICE_ID_JOYPAD_DOWN};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_A:
+                case KeyEvent.KEYCODE_Z:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_A};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_B:
+                case KeyEvent.KEYCODE_X:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_B};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_X:
+                case KeyEvent.KEYCODE_C:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_X};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_Y:
+                case KeyEvent.KEYCODE_V:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_Y};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_L1:
+                case KeyEvent.KEYCODE_A:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_L};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_L2:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_L2};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_R1:
+                case KeyEvent.KEYCODE_S:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_R};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_R2:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_R2};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_SELECT:
+                case KeyEvent.KEYCODE_SHIFT_RIGHT:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_SELECT};
                     break;
                 case KeyEvent.KEYCODE_BUTTON_START:
+                case KeyEvent.KEYCODE_ENTER:
                     keys = new int[]{RETRO_DEVICE_ID_JOYPAD_START};
                     break;
                 default:
