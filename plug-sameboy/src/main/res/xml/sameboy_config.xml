@@ -2,13 +2,23 @@
 <em-config>
     <systems>
         <system
-            name="Game Boy"
+            name="GameBoy"
             tag="gb"
-            manufacturer="nintendo" />
+            manufacturer="nintendo">
+            <bios
+                name="gb_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Gameboy/gb_bios.bin"
+                md5="32fbbd84168d3482956eb3c5051637f5" />
+        </system>
         <system
-            name="Game Boy Color"
+            name="GameBoy Color"
             tag="gbc"
-            manufacturer="nintendo" />
+            manufacturer="nintendo">
+            <bios
+                name="gbc_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Gameboy%20Color/gbc_bios.bin"
+                md5="dbfce9db9deaa2567f6a84fde55f9680" />
+        </system>
     </systems>
     <content-extensions>
         <item>gb</item>

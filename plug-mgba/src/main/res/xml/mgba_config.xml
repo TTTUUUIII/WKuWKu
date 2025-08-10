@@ -1,0 +1,198 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="GameBoy"
+            tag="gb"
+            manufacturer="nintendo">
+            <bios
+                name="gb_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Gameboy/gb_bios.bin"
+                md5="32fbbd84168d3482956eb3c5051637f5" />
+        </system>
+        <system
+            name="GameBoy Color"
+            tag="gbc"
+            manufacturer="nintendo">
+            <bios
+                name="gbc_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Gameboy%20Color/gbc_bios.bin"
+                md5="dbfce9db9deaa2567f6a84fde55f9680" />
+        </system>
+        <system
+            name="GameBoy Advance"
+            tag="gba"
+            manufacturer="nintendo">
+            <bios
+                name="gba_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Game%20Boy%20Advance/gba_bios.bin"
+                md5="a860e8c0b6d573d191e4ec7db1b1e4f6" />
+        </system>
+    </systems>
+    <content-extensions>
+        <item>gb</item>
+        <item>gbc</item>
+        <item>gba</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="Autodetect"
+            key="mgba_gb_model"
+            title="Game Boy Model (Restart)">
+            <allow-values>
+                <value>Autodetect</value>
+                <value>Game Boy</value>
+                <value>Super Game Boy</value>
+                <value>Game Boy Color</value>
+                <value>Super Game Boy Color</value>
+                <value>Game Boy Advance</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="ON"
+            key="mgba_use_bios"
+            title="Use BIOS File if Found (Restart)">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="OFF"
+            key="mgba_skip_bios"
+            title="Skip BIOS Intro (Restart)">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Grayscale"
+            key="mgba_gb_colors"
+            title="Default Game Boy Palette">
+            <allow-values>
+                <value>Grayscale</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mgba_gb_colors_preset"
+            title="Hardware Preset Game Boy Palettes (Restart)">
+            <allow-values>
+                <value>0</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="ON"
+            key="mgba_sgb_borders"
+            title="Use Super Game Boy Borders (Restart)">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="OFF"
+            key="mgba_color_correction"
+            title="Color Correction">
+            <allow-values>
+                <value>OFF</value>
+                <value>GBA</value>
+                <value>GBC</value>
+                <value>Auto</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="OFF"
+            key="mgba_interframe_blending"
+            title="Interframe Blending">
+            <allow-values>
+                <value>OFF</value>
+                <value>mix</value>
+                <value>mix_smart</value>
+                <value>lcd_ghosting</value>
+                <value>lcd_ghosting_fast</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="mgba_audio_low_pass_filter"
+            title="Audio Filter">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="60"
+            key="mgba_audio_low_pass_range"
+            inputType="number"
+            title="Audio Filter Level" />
+        <option
+            defaultValue="no"
+            key="mgba_allow_opposing_directions"
+            title="Allow Opposing Directional Input">
+            <allow-values>
+                <value>no</value>
+                <value>yes</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="mgba_solar_sensor_level"
+            inputType="number"
+            title="Solar Sensor Level (0 - 10)" />
+        <option
+            defaultValue="Game Boy #1"
+            key="sameboy_audio_output"
+            title="System - Audio Output">
+            <allow-values>
+                <value>Game Boy #1</value>
+                <value>Game Boy #2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="OFF"
+            key="mgba_force_gbp"
+            title="Game Boy Player Rumble (Restart)">
+            <allow-values>
+                <value>OFF</value>
+                <value>ON</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="Remove Known"
+            key="mgba_idle_optimization"
+            title="Idle Loop Removal">
+            <allow-values>
+                <value>Remove Known</value>
+                <value>Detect and Remove</value>
+                <value>Don't Remove</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="mgba_frameskip"
+            title="Frameskip">
+            <allow-values>
+                <value>disabled</value>
+                <value>auto</value>
+                <value>auto_threshold</value>
+                <value>fixed_interval</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="33"
+            key="mgba_frameskip_threshold"
+            inputType="number"
+            title="Frameskip Threshold (%)" />
+        <option
+            defaultValue="0"
+            key="mgba_frameskip_interval"
+            inputType="number"
+            title="Frameskip Interval (0 - 10)" />
+    </options>
+</em-config>

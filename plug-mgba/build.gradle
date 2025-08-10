@@ -3,14 +3,19 @@ plugins {
 }
 
 android {
-    namespace 'ink.snowland.wkuwku.plug.sameboy'
+    namespace 'org.wkuwku.plug.mgba'
 
     defaultConfig {
-        applicationId "ink.snowland.wkuwku.plug.sameboy"
-        versionCode 4
-        versionName "v2.2"
+        applicationId "org.wkuwku.plug.mgba"
+        versionCode 1
+        versionName "v1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+        }
     }
 
     buildTypes {
@@ -19,7 +24,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
