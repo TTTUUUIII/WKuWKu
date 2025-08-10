@@ -11,7 +11,7 @@ android {
         minSdk rootProject.ext.versions.minSdkVersion
         targetSdk rootProject.ext.versions.targetSdkVersion
         versionCode 13
-        versionName "v0.4.10a"
+        versionName "v0.4.10b"
 
         buildConfigField "String", "BUILD_TIME", "\"" + new Date().format("EEE MMM dd zzz yyyy") + "\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
