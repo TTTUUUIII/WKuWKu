@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="GameBoy Advance"
+            tag="gba"
+            manufacturer="nintendo">
+            <bios
+                name="gba_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Game%20Boy%20Advance/gba_bios.bin"
+                md5="a860e8c0b6d573d191e4ec7db1b1e4f6" />
+        </system>
+    </systems>
+    <content-extensions>
+        <item>gba</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="enabled"
+            key="vbanext_bios"
+            title="Use BIOS if available (Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="auto"
+            key="vbanext_rtc"
+            title="Force Enable RTC (Restart)">
+            <allow-values>
+                <value>auto</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="0"
+            key="vbanext_frameskip"
+            title="Frameskip">
+            <allow-values>
+                <value>0</value>
+                <value>1/3</value>
+                <value>1/2</value>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+                <value>4</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbanext_turboenable"
+            title="Enable Turbo Buttons">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="2"
+            key="vbanext_turbodelay"
+            inputType="number"
+            title="Turbo Delay in frames (1 - 15)" />
+    </options>
+</em-config>
