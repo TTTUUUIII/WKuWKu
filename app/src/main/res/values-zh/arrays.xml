@@ -3,7 +3,8 @@
 
     <string-array name="video_ratio_entries">
         <item>保持比例</item>
-        <item>强制全屏</item>
+        <item>全屏（拉伸）</item>
+        <item>全屏（保持比例）</item>
     </string-array>
     <string-array name="theme_entries">
         <item>跟随系统</item>
