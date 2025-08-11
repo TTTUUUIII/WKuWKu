@@ -49,10 +49,6 @@ static void set_variable_value(JNIEnv *env, jobject value) {
     env->SetObjectField(variable_object, ctx.variable_value_field, value);
 }
 
-static jobject get_variable_value(JNIEnv *env) {
-    return env->GetObjectField(variable_object, ctx.variable_value_field);
-}
-
 static void set_variable_entry(JNIEnv *env, const char *key, jobject value) {
     env->SetObjectField(variable_entry_object, ctx.variable_entry_key_field,
                         env->NewStringUTF(key));
@@ -189,8 +185,6 @@ static void input_poll_cb() {
 }
 
 static bool rumble_state_cb(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
-    LOGW(TAG, "Rumble state event ignored, port=%d, effect=%d, strength=%d", port, effect,
-         strength);
     return ctx.env->CallBooleanMethod(ctx.emulator_obj, ctx.rumble_cb_method, port, effect,
                                       strength);
 }
@@ -241,7 +235,7 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
-            std::string path = get_prop(static_cast<int>(cmd), std::string());
+            const std::string &path = get_prop(static_cast<int>(cmd), std::string());
             if (!path.empty()) {
                 *(const char **)data = path.c_str();
                 return true;
