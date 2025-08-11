@@ -73,12 +73,18 @@ import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.Logger;
+import ink.snowland.wkuwku.util.NumberUtils;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener, AudioManager.OnAudioFocusChangeListener {
+
+//    private static final int TYPE_KEEP                  = 0;
+    private static final int TYPE_FULLSCREEN            = 1;
+    private static final int TYPE_KEEP_FULLSCREEN       = 2;
+
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
     private static final String HOTKEY_QUICK_SAVE = "hotkey_quick_save";
@@ -93,7 +99,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private FragmentLaunchBinding binding;
     private LaunchViewModel mViewModel;
     private Game mGame;
-    private final boolean mForceFullScreen = "full screen".equals(SettingsManager.getString("app_video_ratio"));
+    private final int mVideoRatioType = NumberUtils
+            .parseInt(SettingsManager.getString("app_video_ratio", "0"),
+                    0);
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
@@ -142,9 +150,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.buttonLoadState3.setOnClickListener(this);
         binding.buttonLoadState4.setOnClickListener(this);
         binding.buttonLoadLastState.setOnClickListener(this);
-        if (mForceFullScreen) {
+        if (mVideoRatioType == TYPE_FULLSCREEN) {
             binding.getRoot().setFitsSystemWindows(false);
             binding.surfaceView.fullScreen();
+        } else if (mVideoRatioType == TYPE_KEEP_FULLSCREEN) {
+            binding.getRoot().setBackgroundColor(0xFF000000);
         }
         return binding.getRoot();
     }
@@ -289,7 +299,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private int mVideoHeight = 0;
 
     private void adjustScreenSize(int width, int height) {
-        if (!mForceFullScreen) {
+        if (mVideoRatioType != TYPE_FULLSCREEN) {
             binding.surfaceView.adjustSurfaceSize(width, height);
         }
         mVideoWidth = width;
