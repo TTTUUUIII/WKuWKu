@@ -16,6 +16,8 @@ for %%m in (
     citra
     melonds
     mgba
+    vbam
+    vbanext
     sameboy
     pokemini
     geargrafx

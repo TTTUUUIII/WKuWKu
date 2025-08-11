@@ -13,6 +13,8 @@ modules=(
   citra
   melonds
   mgba
+  vbam
+  vbanext
   sameboy
   pokemini
   geargrafx

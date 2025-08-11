@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="VBA-M">
+        <meta-data
+            android:name="plugMainClass"
+            android:value="org.wkuwku.plug.vbam.Main" />
+        <meta-data
+            android:name="plugAuthor"
+            android:value="wn123o&lt;wn123o@outlook.com&gt;" />
+        <meta-data
+            android:name="plugSummary"
+            android:value="VBA-M is a Game Boy Advance  emulator with the goal to improve upon VisualBoyAdvance by integrating the best features from the various builds floating around. It also supports  Game Boy, Game Boy Color and Super Game Boy." />
+    </application>
+</manifest>

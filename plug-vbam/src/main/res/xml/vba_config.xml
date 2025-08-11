@@ -1,0 +1,317 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="GameBoy"
+            tag="gb"
+            manufacturer="nintendo">
+            <bios
+                name="gb_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Gameboy/gb_bios.bin"
+                md5="32fbbd84168d3482956eb3c5051637f5" />
+        </system>
+        <system
+            name="GameBoy Color"
+            tag="gbc"
+            manufacturer="nintendo">
+            <bios
+                name="gbc_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Gameboy%20Color/gbc_bios.bin"
+                md5="dbfce9db9deaa2567f6a84fde55f9680" />
+        </system>
+        <system
+            name="GameBoy Advance"
+            tag="gba"
+            manufacturer="nintendo">
+            <bios
+                name="gba_bios.bin"
+                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Game%20Boy%20Advance/gba_bios.bin"
+                md5="a860e8c0b6d573d191e4ec7db1b1e4f6" />
+        </system>
+    </systems>
+    <content-extensions>
+        <item>gb</item>
+        <item>gbc</item>
+        <item>gba</item>
+    </content-extensions>
+    <options>
+        <option
+            defaultValue="enabled"
+            key="vbam_usebios"
+            title="Use Official BIOS (If Available)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="vbam_forceRTCenable"
+            title="Force-Enable RTC">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="auto"
+            key="vbam_gbHardware"
+            title="(GB) Emulated Hardware (Needs Restart)">
+            <allow-values>
+                <value>auto</value>
+                <value>gbc</value>
+                <value>sgb</value>
+                <value>gb</value>
+                <value>gba</value>
+                <value>sgb2</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="vbam_allowcolorizerhack"
+            title="(GB) Enable Colorizer Hack (Needs Restart)">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="standard"
+            key="vbam_palettes"
+            title="(GB) Color Palette">
+            <allow-values>
+                <value>standard</value>
+                <value>black and white</value>
+                <value>blue sea</value>
+                <value>dark knight</value>
+                <value>green forest</value>
+                <value>hot desert</value>
+                <value>pink dreams</value>
+                <value>wierd colors</value>
+                <value>original gameboy</value>
+                <value>gba sp</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="vbam_showborders"
+            title="(GB) Show Borders">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+                <value>auto</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="vbam_gbcoloroption"
+            title="(GB) Color Correction">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="vbam_lcdfilter"
+            title="LCD Color Filter">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="disabled"
+            key="vbam_interframeblending"
+            title="Interframe Blending">
+            <allow-values>
+                <value>disabled</value>
+                <value>smart</value>
+                <value>motion blur</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_soundinterpolation"
+            title="Sound Interpolation">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="5"
+            key="vbam_soundfiltering"
+            title="Sound Filtering (0 - 10)"
+            inputType="number" />
+        <option
+            defaultValue="enabled"
+            key="vbam_turboenable"
+            title="Enable Turbo Buttons">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="3"
+            key="vbam_turbodelay"
+            title="Turbo Delay (in frames) (1 - 15)"
+            inputType="number" />
+        <option
+            defaultValue="0"
+            key="vbam_solarsensor"
+            title="Solar Sensor Level (0 - 10)"
+            inputType="number" />
+        <option
+            defaultValue="15"
+            key="vbam_astick_deadzone"
+            title="Sensors Deadzone (%) (0 - 30)"
+            inputType="number" />
+        <option
+            defaultValue="100"
+            key="vbam_gyro_sensitivity"
+            title="Sensor Sensitivity (Gyroscope) (%) (10 - 120)"
+            inputType="number" />
+        <option
+            defaultValue="100"
+            key="vbam_tilt_sensitivity"
+            title="Sensor Sensitivity (Tilt) (%) (10 - 120)"
+            inputType="number" />
+        <option
+            defaultValue="disabled"
+            key="vbam_swap_astick"
+            title="Swap Left/Right Analog">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_sound_1"
+            title="Sound Channel 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_sound_2"
+            title="Sound Channel 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_sound_3"
+            title="Sound Channel 3">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_sound_4"
+            title="Sound Channel 4">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_sound_5"
+            title="Sound DMA Channel A">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_sound_6"
+            title="Sound DMA Channel B">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_1"
+            title="Show Background Layer 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_2"
+            title="Show Background Layer 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_3"
+            title="Show Background Layer 3">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_4"
+            title="Show Background Layer 4">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_5"
+            title="Show Sprite Layer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_6"
+            title="Show Window Layer 1">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_7"
+            title="Show Window Layer 2">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            defaultValue="enabled"
+            key="vbam_layer_8"
+            title="Show Sprite Window Layer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+    </options>
+</em-config>
