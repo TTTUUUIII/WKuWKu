@@ -10,8 +10,8 @@ android {
         applicationId "ink.snowland.wkuwku"
         minSdk rootProject.ext.versions.minSdkVersion
         targetSdk rootProject.ext.versions.targetSdkVersion
-        versionCode 13
-        versionName "v0.4.10b"
+        versionCode 14
+        versionName "v0.4.11b"
 
         buildConfigField "String", "BUILD_TIME", "\"" + new Date().format("EEE MMM dd zzz yyyy") + "\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
