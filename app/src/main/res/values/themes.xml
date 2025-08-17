@@ -15,7 +15,7 @@
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
     <style name="Theme.WKuWKu.TextInputEditText.OutlinedBox" parent="Widget.Material3.TextInputEditText.OutlinedBox">
-        <item name="android:paddingTop">13dp</item>
+        <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
     </style>
     <style name="Theme.WKuWKu.AutoCompleteTextView.OutlinedBox" parent="Widget.Material3.AutoCompleteTextView.OutlinedBox">

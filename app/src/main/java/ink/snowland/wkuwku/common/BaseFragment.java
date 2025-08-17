@@ -14,6 +14,8 @@ import androidx.annotation.StringRes;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavOptions;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.List;
 
 import ink.snowland.wkuwku.R;
@@ -70,6 +72,10 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     protected void showSnackbar(@StringRes int resId, int duration) {
         parentActivity.showSnackbar(resId, duration);
+    }
+
+    protected void showSnackbar(@StringRes int resId) {
+        parentActivity.showSnackbar(resId, Snackbar.LENGTH_SHORT);
     }
 
     protected void showSnackbar(@NonNull String msg, int duration) {

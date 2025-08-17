@@ -7,11 +7,13 @@
     </string-array>
     <string-array name="video_ratio_entries">
         <item>Keep aspect ratio</item>
-        <item>Full screen</item>
+        <item>Full screen (fill)</item>
+        <item>Full screen (keep)</item>
     </string-array>
     <string-array name="video_ratio_values">
-        <item>keep aspect ratio</item>
-        <item>full screen</item>
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </string-array>
 
     <string-array name="nes_core_entries">

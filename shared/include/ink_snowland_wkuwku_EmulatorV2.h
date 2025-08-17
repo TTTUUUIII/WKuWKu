@@ -107,7 +107,8 @@ template <typename T>
 static T get_prop(int32_t prop, const T &default_value);
 
 /*JNI utils*/
-static jobject new_int(JNIEnv *env, int32_t value);
+static jobject new_int(JNIEnv *, int32_t);
+static std::string as_string(JNIEnv *env, jobject obj);
 static jint as_int(JNIEnv *, jobject);
 static bool as_bool(JNIEnv *, jobject);
 #endif //WKUWKU_INK_SNOWLAND_WKUWKU_EMULATORV2_H

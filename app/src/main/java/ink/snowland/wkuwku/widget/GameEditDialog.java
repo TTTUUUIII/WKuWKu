@@ -1,8 +1,6 @@
 package ink.snowland.wkuwku.widget;
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.util.ArraySet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -20,7 +18,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
@@ -52,7 +49,7 @@ public class GameEditDialog {
                 .setNegativeButton(R.string.cancel, null)
                 .setCancelable(false)
                 .create();
-        binding.systemTextView.setAdapter(new NoFilterArrayAdapter<String>(mParent, R.layout.layout_simple_text, getSupportedSystemNames()));
+        binding.systemTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, getSupportedSystemNames()));
         binding.regionTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, activity.getResources().getStringArray(R.array.all_regions)));
         AppDatabase.db
                 .gameInfoDao()
@@ -62,7 +59,7 @@ public class GameEditDialog {
                 .doOnSuccess(publishers -> binding.publisherTextView.setAdapter(new ArrayAdapter<>(mParent, R.layout.layout_simple_text, publishers)))
                 .onErrorComplete()
                 .subscribe();
-        binding.buttonSelectFile.setOnClickListener(v -> openDocument());
+        binding.selectFileLayout.setEndIconOnClickListener(v -> openDocument());
     }
 
     private OnConfirmCallback mCallback;
@@ -99,9 +96,7 @@ public class GameEditDialog {
             }
             checkAndConfirm();
         });
-        binding.buttonQrCode.setOnClickListener(v -> {
-            mParent.scanQrCode(this::parseFromUrl);
-        });
+        binding.buttonQrCode.setOnClickListener(v -> mParent.scanQrCode(this::parseFromUrl));
     }
 
     @Nullable
@@ -190,20 +185,19 @@ public class GameEditDialog {
         }
     }
 
-    @SuppressLint("SetTextI18n")
     private boolean checkValid() {
+        boolean passed = true;
         if (mGame.title == null || mGame.title.trim().isEmpty()) {
-            binding.errorTextView.setText(mParent.getString(R.string.please_input_title) + " !");
-            return false;
+            binding.errorText.setText(R.string.title_is_required);
+            passed = false;
         } else if (mGame.filepath == null || mGame.filepath.trim().isEmpty()) {
-            binding.errorTextView.setText(mParent.getString(R.string.rom_is_required) + " !");
-            return false;
+            binding.errorText.setText(R.string.rom_is_required);
+            passed = false;
         } else if (mGame.system == null || mGame.system.trim().isEmpty()) {
-            binding.errorTextView.setText(mParent.getString(R.string.please_select_system) + " !");
-            return false;
+            binding.errorText.setText(R.string.system_is_required);
+            passed = false;
         }
-        binding.errorTextView.setText("");
-        return true;
+        return passed;
     }
 
     public interface OnConfirmCallback {

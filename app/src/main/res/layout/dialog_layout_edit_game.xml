@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
             name="game"
@@ -48,6 +48,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@id/system_layout"
                 android:layout_marginTop="15dp"
+                android:baselineAligned="false"
                 android:orientation="horizontal">
                 <com.google.android.material.textfield.TextInputLayout
                     android:hint="@string/region"
@@ -79,32 +80,28 @@
                         android:layout_height="match_parent" />
                 </com.google.android.material.textfield.TextInputLayout>
             </LinearLayout>
-            <LinearLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/select_file_layout"
-                android:layout_below="@id/linearLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="15dp"
-                android:orientation="horizontal">
-                <EditText
-                    android:maxLines="1"
-                    android:inputType="text"
-                    android:layout_weight="1"
-                    android:layout_width="0dp"
-                    android:hint="@string/select_file_or_input_url"
-                    android:layout_height="match_parent"
-                    android:text="@={game.filepath}"/>
-                <Button
-                    android:id="@+id/button_select_file"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/select_file" />
-            </LinearLayout>
+                app:endIconContentDescription="@string/select_file"
+                app:endIconMode="custom"
+                app:endIconDrawable="@drawable/ic_add"
+                android:layout_below="@id/linearLayout" >
+                <com.google.android.material.textfield.TextInputEditText
+                    android:text="@={game.filepath}"
+                    style="@style/Theme.WKuWKu.TextInputEditText.OutlinedBox"
+                    android:hint="@string/path_or_url"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+            </com.google.android.material.textfield.TextInputLayout>
             <EditText
                 android:id="@+id/remark_edit_text"
                 android:layout_marginTop="15dp"
+                android:autofillHints="@null"
                 android:hint="@string/input_remark_info"
+                android:inputType="text"
                 android:text="@={game.remark}"
                 android:layout_below="@id/select_file_layout"
                 android:layout_width="match_parent"
@@ -115,7 +112,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
                 <TextView
-                    android:id="@+id/error_text_view"
+                    android:id="@+id/error_text"
                     android:textStyle="bold"
                     android:textColor="@color/error"
                     android:layout_weight="1"

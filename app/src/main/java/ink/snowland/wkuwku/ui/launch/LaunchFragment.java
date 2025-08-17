@@ -2,6 +2,8 @@ package ink.snowland.wkuwku.ui.launch;
 
 import static ink.snowland.wkuwku.util.FileManager.*;
 import static ink.snowland.wkuwku.interfaces.IEmulator.*;
+import static ink.snowland.wkuwku.common.Errors.*;
+import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.MAX_COUNT_OF_SNAPSHOT;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -71,12 +73,18 @@ import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.Logger;
+import ink.snowland.wkuwku.util.NumberUtils;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener, AudioManager.OnAudioFocusChangeListener {
+
+//    private static final int TYPE_KEEP                  = 0;
+    private static final int TYPE_FULLSCREEN            = 1;
+    private static final int TYPE_KEEP_FULLSCREEN       = 2;
+
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
     private static final String HOTKEY_QUICK_SAVE = "hotkey_quick_save";
@@ -91,7 +99,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private FragmentLaunchBinding binding;
     private LaunchViewModel mViewModel;
     private Game mGame;
-    private final boolean mForceFullScreen = "full screen".equals(SettingsManager.getString("app_video_ratio"));
+    private final int mVideoRatioType = NumberUtils
+            .parseInt(SettingsManager.getString("app_video_ratio", "0"),
+                    0);
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
@@ -140,9 +150,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.buttonLoadState3.setOnClickListener(this);
         binding.buttonLoadState4.setOnClickListener(this);
         binding.buttonLoadLastState.setOnClickListener(this);
-        if (mForceFullScreen) {
+        if (mVideoRatioType == TYPE_FULLSCREEN) {
             binding.getRoot().setFitsSystemWindows(false);
             binding.surfaceView.fullScreen();
+        } else if (mVideoRatioType == TYPE_KEEP_FULLSCREEN) {
+            binding.getRoot().setBackgroundColor(0xFF000000);
         }
         return binding.getRoot();
     }
@@ -210,7 +222,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private void startEmulator() {
         int status = mViewModel.startEmulator();
-        if (status == LaunchViewModel.NO_ERR) {
+        if (status == NO_ERR) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 mAudioManager = (AudioManager) parentActivity.getSystemService(Context.AUDIO_SERVICE);
                 mAudioRequest = new AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
@@ -227,7 +239,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             }
             parentActivity.setPerformanceModeEnable(SettingsManager.getBoolean(SettingsManager.PERFORMANCE_MODE));
             if (mAutoLoadState && !mAutoLoadDisabled) {
-                handler.postDelayed(mViewModel::loadStateAtLast, 300);
+                handler.postDelayed(() -> loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1, false), 300);
             }
         } else {
             showSnackbar(R.string.load_game_failed, Snackbar.LENGTH_LONG);
@@ -287,7 +299,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private int mVideoHeight = 0;
 
     private void adjustScreenSize(int width, int height) {
-        if (!mForceFullScreen) {
+        if (mVideoRatioType != TYPE_FULLSCREEN) {
             binding.surfaceView.adjustSurfaceSize(width, height);
         }
         mVideoWidth = width;
@@ -422,7 +434,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         boolean captureScreen = !screenshot.exists();
         if (mExitLayoutBinding.saveState.isChecked()) {
             if (!mAutoLoadDisabled) {
-                mViewModel.saveCurrentSate();
+                saveCurrentState(false);
             }
             captureScreen = true;
         }
@@ -466,20 +478,26 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 VirtualController vc = (VirtualController) controller;
                 vc.vibrator();
             }
-            if (viewId == R.id.button_savestate && mViewModel.saveCurrentSate()) {
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
-            } else if (viewId == R.id.button_load_last_state) {
-                mViewModel.loadStateAtLast();
-            } else if (viewId == R.id.button_load_state4) {
-                mViewModel.loadStateAt(3);
-            } else if (viewId == R.id.button_load_state3) {
-                mViewModel.loadStateAt(2);
-            } else if (viewId == R.id.button_load_state2) {
-                mViewModel.loadStateAt(1);
-            } else if (viewId == R.id.button_load_state1) {
-                mViewModel.loadStateAt(0);
+            if (viewId == R.id.button_savestate) {
+                saveCurrentState(true);
             } else if (viewId == R.id.button_screenshot) {
                 takeScreenshot();
+            } else {
+                int index = -1;
+                if (viewId == R.id.button_load_last_state) {
+                    index = LaunchViewModel.MAX_COUNT_OF_SNAPSHOT - 1;
+                } else if (viewId == R.id.button_load_state4) {
+                    index = 3;
+                } else if (viewId == R.id.button_load_state3) {
+                    index = 2;
+                } else if (viewId == R.id.button_load_state2) {
+                    index = 1;
+                } else if (viewId == R.id.button_load_state1) {
+                    index = 0;
+                }
+                if (index != -1) {
+                    loadStateAt(index, true);
+                }
             }
         }
     }
@@ -537,11 +555,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         boolean handled = true;
         switch (hotkey.key) {
             case HOTKEY_QUICK_SAVE:
-                mViewModel.saveCurrentSate();
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
+                saveCurrentState(true);
                 break;
             case HOTKEY_QUICK_LOAD:
-                mViewModel.loadStateAtLast();
+                loadStateAt(MAX_COUNT_OF_SNAPSHOT - 1, true);
                 break;
             case HOTKEY_SCREENSHOT:
                 takeScreenshot();
@@ -669,5 +686,23 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onAudioFocusChange(int focusChange) {
         /*Do Nothing*/
+    }
+
+    private void loadStateAt(int index, boolean ui) {
+        int error = mViewModel.loadStateAt(index);
+        if (ui && error == ERR_NOT_SUPPORTED) {
+            showSnackbar(R.string.feat_not_supported);
+        }
+    }
+
+    private void saveCurrentState(boolean ui) {
+        int error = mViewModel.saveCurrentSate();
+        if (ui) {
+            if (error == NO_ERR) {
+                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
+            } else if (error == ERR_NOT_SUPPORTED) {
+                showSnackbar(R.string.feat_not_supported);
+            }
+        }
     }
 }

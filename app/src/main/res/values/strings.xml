@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">WKuWKu</string>
     <string name="start" translatable="false">START</string>
     <string name="select" translatable="false">SELECT</string>
@@ -21,8 +21,8 @@
     <string name="search">Search</string>
     <string name="settings">Settings</string>
     <string name="last_played_t">Last played</string>
-    <string name="confirm">Confirm</string>
-    <string name="cancel">Cancel</string>
+    <string name="confirm">CONFIRM</string>
+    <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
     <string name="title">Title</string>
     <string name="select_file">Select File</string>
     <string name="select_file_or_input_url">Select file or input url</string>
@@ -30,7 +30,7 @@
     <string name="system">System</string>
     <string name="region">Region</string>
     <string name="no_title">No Title</string>
-    <string name="please_input_title">Please input a title!</string>
+    <string name="title_is_required">Title field is required!</string>
     <string name="copy_file_failed">Failed to copy file!</string>
     <string name="fmt_operation_failed">ERROR: %s</string>
     <string name="fmt_download_failed_network_error">Failed to download %s, Network error!</string>
@@ -45,11 +45,11 @@
     <string name="delete_confirm">Are you sure you want to delete \"%s\"? \n\nps: this operation cannot be undone!</string>
     <string name="video_options">Video Options</string>
     <string name="input_options">Input Options</string>
-    <string name="video_ratio">Video Ratio</string>
+    <string name="video_ratio">Video ratio</string>
     <string name="all_games">All games</string>
     <string name="recent_played">Recent played</string>
     <string name="app_settings">App settings</string>
-    <string name="virbration_feedback">vibration feedback</string>
+    <string name="virbration_feedback">Vibration feedback</string>
     <string name="via_qr_code">Via QR code</string>
     <string name="invalid_url">Invalid url</string>
     <string name="connecting">Connecting</string>
@@ -74,7 +74,6 @@
     <string name="fmt_downloading">Downloading %.0f%%</string>
     <string name="downloading_files">Downloading files</string>
     <string name="network_error">Network error</string>
-    <string name="please_select_system">Please select a system</string>
     <string name="c" translatable="false">C</string>
     <string name="z" translatable="false">Z</string>
     <string name="mode" translatable="false">MODE</string>
@@ -109,14 +108,13 @@
     <string name="summary_restore_last_state">Auto restore to the last position after entering the game</string>
     <string name="app_options">Application Options</string>
     <string name="summary_new_version_notification">You will be auto notified when a new version is detected</string>
-    <string name="new_version_notification">New Version Notification</string>
+    <string name="new_version_notification">Version Notification</string>
     <string name="updated">Update</string>
     <string name="ignore_for_now">Ignore</string>
     <string name="version_notification">Version Notification</string>
     <string name="fmt_click_update_to_new_version">Click this notification update to the new version (%s).</string>
     <string name="permission_denied">Permission denied!</string>
     <string name="summary_request_install_package_permssion">WkuWku first needs you to grant permission to install apk before it can auto update the app for you</string>
-    <string name="grant">Grant</string>
     <string name="extension">Extension</string>
     <string name="installed">Installed</string>
     <string name="available">Available</string>
@@ -155,7 +153,7 @@
     <string name="upgrade">Upgrade</string>
     <string name="invalid_package">Invalid package!</string>
     <string name="plug_already_installed">This extension already installed!</string>
-    <string name="blacklist_auto_load_state">Auto load state blacklist</string>
+    <string name="blacklist_auto_load_state">Blacklist: Auto load state</string>
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
     <string name="publisher">Publisher</string>
     <string name="screenshot_saved">Screenshot saved</string>
@@ -187,5 +185,8 @@
     <string name="failed_to_access_file">Failed to access file!</string>
     <string name="open" translatable="false">Open</string>
     <string name="rom_is_required">ROM is required!</string>
+    <string name="system_is_required">System field is required!</string>
     <string name="none">None</string>
+    <string name="path_or_url">Path or url</string>
+    <string name="feat_not_supported">The emulator not supported this feature!</string>
 </resources>
