@@ -11,6 +11,6 @@
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
         <meta-data
             android:name="plugSummary"
-            android:value="ProSystem is an Atari 7800 emulator" />
+            android:value="Ruffle is an Adobe Flash Player emulator written in the Rust programming language." />
     </application>
 </manifest>
