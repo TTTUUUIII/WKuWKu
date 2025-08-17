@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<em-config>
+    <systems>
+        <system
+            name="Adobe Flash"
+            tag="flash"
+            manufacturer="adobe" />
+    </systems>
+    <content-extensions>
+        <item>swf</item>
+    </content-extensions>
+    <options>
+    </options>
+</em-config>
