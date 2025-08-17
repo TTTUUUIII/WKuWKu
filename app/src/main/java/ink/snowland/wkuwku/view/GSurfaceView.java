@@ -62,7 +62,7 @@ public class GSurfaceView extends SurfaceView {
         post(this::requestLayout);
     }
 
-    public int getTouch(int id) {
+    public int getTouchState(int id) {
         if (mW == 0 || mH == 0) return 0;
         float x = mTouchX / mW;
         float y = mTouchY / mH;

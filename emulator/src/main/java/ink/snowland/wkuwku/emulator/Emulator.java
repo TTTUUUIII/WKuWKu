@@ -129,10 +129,13 @@ public abstract class Emulator implements IEmulator {
 
     @Override
     public boolean hasFeature(int feat) {
-        if (feat == FEAT_LOAD_STATE || feat == FEAT_SAVE_STATE) {
-            return getProp(feat, true);
-        } else {
-            return getProp(feat, false);
+        switch (feat) {
+            case FEAT_LOAD_STATE:
+            case FEAT_SAVE_STATE:
+            case FEAT_SCREENSHOT:
+                return getProp(feat, true);
+            default:
+                return getProp(feat, false);
         }
     }
 

@@ -26,6 +26,7 @@ public interface IEmulator extends RetroDefine {
 
     int FEAT_SAVE_STATE                         = 1000;
     int FEAT_LOAD_STATE                         = 1001;
+    int FEAT_SCREENSHOT                         = 1002;
 
     boolean hasFeature(int feat);
     void setProp(int what, Object data);

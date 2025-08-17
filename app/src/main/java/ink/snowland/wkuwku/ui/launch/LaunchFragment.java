@@ -439,7 +439,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             captureScreen = true;
         }
         if (captureScreen) {
-            mViewModel.captureScreen(screenshot.getPath());
+            captureScreen(screenshot.getPath(), false);
         }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
@@ -504,7 +504,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private void takeScreenshot() {
         File tmp = new File(FileManager.getCacheDirectory(), "tmp.png");
-        if (mViewModel.captureScreen(tmp.getAbsolutePath())) {
+        if (captureScreen(tmp.getAbsolutePath(), true)) {
             ContentValues values = new ContentValues();
             values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
             values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
@@ -520,7 +520,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 values.clear();
                 values.put(MediaStore.Images.Media.IS_PENDING, 0);
                 contentResolver.update(uri, values, null, null);
-                showSnackbar(R.string.screenshot_saved, Snackbar.LENGTH_SHORT);
             } catch (IOException e) {
                 e.printStackTrace(System.err);
             }
@@ -671,7 +670,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         if (controller != null && controller.isTypes(device)) {
             return controller.getState(device, index, id);
         } else if (device == RETRO_DEVICE_POINTER) {
-            return binding.surfaceView.getTouch(id);
+            return binding.surfaceView.getTouchState(id);
         }
         return 0;
     }
@@ -686,6 +685,20 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onAudioFocusChange(int focusChange) {
         /*Do Nothing*/
+    }
+
+    private boolean captureScreen(String path, boolean ui) {
+        int error = mViewModel.captureScreen(path);
+        if (ui) {
+            if (error == NO_ERR) {
+                showSnackbar(R.string.screenshot_saved, Snackbar.LENGTH_SHORT);
+            } else if (error == ERR_NOT_SUPPORTED) {
+                showSnackbar(R.string.feat_not_supported);
+            } else {
+                showSnackbar(R.string.operation_failed);
+            }
+        }
+        return error == NO_ERR;
     }
 
     private void loadStateAt(int index, boolean ui) {

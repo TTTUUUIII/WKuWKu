@@ -96,9 +96,14 @@ public class LaunchViewModel extends BaseViewModel {
         mEmulator.reset();
     }
 
-    public boolean captureScreen(@NonNull String filepath) {
-        if (mEmulator == null) return false;
-        return mEmulator.captureScreen(filepath);
+    public int captureScreen(@NonNull String filepath) {
+        if (mEmulator == null) return ERR;
+        if (!mEmulator.hasFeature(FEAT_SCREENSHOT)) return ERR_NOT_SUPPORTED;
+        if (mEmulator.captureScreen(filepath)) {
+            return NO_ERR;
+        } else {
+            return ERR;
+        }
     }
 
     public @Nullable IEmulator getEmulator() {
