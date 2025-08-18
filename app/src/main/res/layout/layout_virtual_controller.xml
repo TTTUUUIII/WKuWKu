@@ -145,7 +145,7 @@
 
     <Button
         android:id="@+id/button_a"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginEnd="60dp"
@@ -156,7 +156,7 @@
 
     <Button
         android:id="@+id/button_b"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginBottom="55dp"
@@ -167,7 +167,7 @@
 
     <Button
         android:id="@+id/button_x"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginEnd="120dp"
@@ -179,7 +179,7 @@
 
     <Button
         android:id="@+id/button_y"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginEnd="60dp"
@@ -191,7 +191,7 @@
 
     <Button
         android:id="@+id/button_m1"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="55dp"
         android:layout_height="55dp"
         android:layout_marginBottom="170dp"
@@ -202,7 +202,7 @@
 
     <Button
         android:id="@+id/button_m2"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="55dp"
         android:layout_height="55dp"
         android:layout_marginBottom="170dp"

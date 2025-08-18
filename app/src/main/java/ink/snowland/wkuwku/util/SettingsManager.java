@@ -10,6 +10,7 @@ import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public final class SettingsManager {
@@ -78,6 +79,10 @@ public final class SettingsManager {
 
     public static void removeSettingChangedListener(OnSettingChangedListener listener) {
         mClientListeners.remove(listener);
+    }
+
+    public static boolean equals(String key, String val) {
+        return Objects.equals(sSettings.getString(key, null), val);
     }
 
     public interface OnSettingChangedListener {

@@ -54,4 +54,14 @@
         <item>oboe</item>
         <item>audio_track</item>
     </string-array>
+
+    <string-array name="virtual_controller_layout_entries">
+        <item>Standard</item>
+        <item>Sega</item>
+    </string-array>
+
+    <string-array name="virtual_controller_layout_values">
+        <item>standard</item>
+        <item>sega</item>
+    </string-array>
 </resources>
