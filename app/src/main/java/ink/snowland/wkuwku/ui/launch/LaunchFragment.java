@@ -71,6 +71,7 @@ import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.device.ExternalController;
+import ink.snowland.wkuwku.device.SegaController;
 import ink.snowland.wkuwku.device.VirtualController;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
@@ -95,6 +96,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String HOTKEY_QUICK_LOAD = "hotkey_quick_load";
     private static final String HOTKEY_SCREENSHOT = "hotkey_screenshot";
     private static final String HOTKEY_RESET = "hotkey_reset";
+    private static final String VIRTUAL_CONTROLLER_LAYOUT = "input_virtual_controller_layout";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
@@ -343,7 +345,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     private void attachToController() {
-        VirtualController virtualController = new VirtualController(parentActivity);
+        VirtualController virtualController;
+        if (SettingsManager.equals(VIRTUAL_CONTROLLER_LAYOUT, "sega")) {
+            virtualController = new SegaController(parentActivity);
+        } else {
+            virtualController = new VirtualController(parentActivity);
+        }
         binding.controllerRoot.addView(virtualController.getView());
         mControllers.add(virtualController);
         List<InputDevice> devices = getInputDevices();

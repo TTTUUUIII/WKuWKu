@@ -60,6 +60,14 @@
             android:key="action_custom_hotkeys"
             android:title="@string/hotkeys"
             android:summary="@string/custom_hotkeys" />
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="standard"
+            app:key="input_virtual_controller_layout"
+            app:title="@string/virtual_controller_layout"
+            app:entries="@array/virtual_controller_layout_entries"
+            app:entryValues="@array/virtual_controller_layout_values"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory

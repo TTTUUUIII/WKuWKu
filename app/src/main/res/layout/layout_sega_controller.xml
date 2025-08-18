@@ -15,7 +15,7 @@
 
     <Button
         android:id="@+id/button_a"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:text="@string/a"
@@ -26,7 +26,7 @@
 
     <Button
         android:id="@+id/button_b"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginEnd="70dp"
@@ -38,7 +38,7 @@
 
     <Button
         android:id="@+id/button_c"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_marginBottom="65dp"
@@ -49,7 +49,7 @@
 
     <Button
         android:id="@+id/button_x"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginBottom="15dp"
@@ -61,7 +61,7 @@
 
     <Button
         android:id="@+id/button_y"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginBottom="15dp"
@@ -73,7 +73,7 @@
 
     <Button
         android:id="@+id/button_z"
-        style="@style/Theme.WKuWKu.GPButton"
+        style="@style/Widget.Material3.Button.IconButton.Outlined"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginEnd="25dp"
