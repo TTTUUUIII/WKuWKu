@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import org.wkuwku.util.NumberUtils;
 import org.xmlpull.v1.XmlPullParser;
 
 import java.io.File;
@@ -28,7 +29,6 @@ import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.Logger;
 import ink.snowland.wkuwku.util.NotificationManager;
-import ink.snowland.wkuwku.util.NumberUtils;
 
 public class CheckVersionWorker extends Worker {
     private static final Logger logger = new Logger("App", "CheckLatestVersionWorker");

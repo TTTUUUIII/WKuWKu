@@ -3,11 +3,16 @@ package ink.snowland.wkuwku.view;
 import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.MotionEvent;
+import android.view.PixelCopy;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
+
+import ink.snowland.wkuwku.common.Callable;
+
 
 public class GSurfaceView extends SurfaceView {
     private int mOriginW = 0;
@@ -76,6 +81,18 @@ public class GSurfaceView extends SurfaceView {
             default:
         }
         return 0;
+    }
+
+    public void asyncCopyPixels(Callable<Bitmap> cb) {
+        Bitmap bitmap = Bitmap.createBitmap(mW, mH, Bitmap.Config.ARGB_8888);
+        PixelCopy.request(this, bitmap, res -> {
+            if (res == PixelCopy.SUCCESS) {
+                cb.call(bitmap);
+            } else {
+                bitmap.recycle();
+                cb.call(null);
+            }
+        }, getHandler());
     }
 
     private boolean mTouching = false;

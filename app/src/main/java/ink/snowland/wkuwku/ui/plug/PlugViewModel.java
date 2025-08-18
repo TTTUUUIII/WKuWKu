@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import org.wkuwku.util.NumberUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -22,7 +23,6 @@ import ink.snowland.wkuwku.bean.PlugRes;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
-import ink.snowland.wkuwku.util.NumberUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;

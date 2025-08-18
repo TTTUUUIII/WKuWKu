@@ -7,6 +7,7 @@ import android.os.Build;
 import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -28,7 +29,7 @@ import ink.snowland.wkuwku.util.Logger;
 
 public abstract class Emulator implements IEmulator {
     protected final EmConfig config;
-    protected final Map<String, EmOption> mOptions = new HashMap<>();
+    private final Map<String, EmOption> mOptions = new HashMap<>();
     protected final SparseArray<Object> props = new SparseArray<>();
     protected final Logger logger = new Logger("EmulatorV2", getClass().getSimpleName());
     private AudioTrack mAudioTrack = null;
@@ -260,6 +261,11 @@ public abstract class Emulator implements IEmulator {
             mAudioTrack = null;
             logger.i("AudioTrack released.");
         }
+    }
+
+    @Nullable
+    protected EmOption getOptionByKey(@NonNull String key) {
+        return mOptions.get(key);
     }
 
     protected abstract boolean startGame(@NonNull String path);
