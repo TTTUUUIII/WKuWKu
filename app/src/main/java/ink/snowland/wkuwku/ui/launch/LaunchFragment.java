@@ -9,6 +9,7 @@ import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
 import android.media.AudioManager;
@@ -42,8 +43,11 @@ import android.widget.ArrayAdapter;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.wkuwku.util.NumberUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.SocketTimeoutException;
@@ -58,6 +62,7 @@ import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.BaseTextWatcher;
+import ink.snowland.wkuwku.common.Callable;
 import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmSystem;
@@ -73,7 +78,6 @@ import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.Logger;
-import ink.snowland.wkuwku.util.NumberUtils;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -81,9 +85,9 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class LaunchFragment extends BaseFragment implements View.OnClickListener, BaseActivity.OnTouchEventListener, OnEmulatorV2EventListener, AudioManager.OnAudioFocusChangeListener {
 
-//    private static final int TYPE_KEEP                  = 0;
-    private static final int TYPE_FULLSCREEN            = 1;
-    private static final int TYPE_KEEP_FULLSCREEN       = 2;
+    //    private static final int TYPE_KEEP                  = 0;
+    private static final int TYPE_FULLSCREEN = 1;
+    private static final int TYPE_KEEP_FULLSCREEN = 2;
 
     private static final int PLAYER_1 = 0;
     private static final int PLAYER_2 = 1;
@@ -416,6 +420,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         mShouldResumeEmulator = true;
     }
 
+    private boolean mShouldExit = false;
     private void exit() {
         if (!mViewModel.isPlaying()) {
             NavController navController = NavHostFragment.findNavController(this);
@@ -439,7 +444,14 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             captureScreen = true;
         }
         if (captureScreen) {
-            captureScreen(screenshot.getPath(), false);
+            captureScreen(screenshot.getPath(), error -> {
+                if (mShouldExit) {
+                    NavController navController = NavHostFragment.findNavController(this);
+                    navController.popBackStack();
+                } else {
+                    mShouldExit = true;
+                }
+            });
         }
         SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
         mViewModel.stopEmulator();
@@ -447,16 +459,20 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mAudioManager.abandonAudioFocusRequest(mAudioRequest);
         }
         mGame.lastPlayedTime = System.currentTimeMillis();
+        parentActivity.setPerformanceModeEnable(false);
         AppDatabase.db.gameInfoDao().update(mGame)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> error.printStackTrace(System.err))
                 .doFinally(() -> {
-                    NavController navController = NavHostFragment.findNavController(this);
-                    navController.popBackStack();
+                    if (mShouldExit) {
+                        NavController navController = NavHostFragment.findNavController(this);
+                        navController.popBackStack();
+                    } else {
+                        mShouldExit = true;
+                    }
                 })
                 .subscribe();
-        parentActivity.setPerformanceModeEnable(false);
     }
 
     public static final String ARG_GAME = "game";
@@ -504,27 +520,35 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private void takeScreenshot() {
         File tmp = new File(FileManager.getCacheDirectory(), "tmp.png");
-        if (captureScreen(tmp.getAbsolutePath(), true)) {
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
-            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
-            values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
-            values.put(MediaStore.Images.Media.IS_PENDING, 1);
-            ContentResolver contentResolver = requireContext().getContentResolver();
-            Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            if (uri == null) return;
-            try (FileInputStream from = new FileInputStream(tmp);
-                 OutputStream to = contentResolver.openOutputStream(uri)) {
-                if (to == null) return;
-                FileUtils.copy(from, to);
-                values.clear();
-                values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                contentResolver.update(uri, values, null, null);
-            } catch (IOException e) {
-                e.printStackTrace(System.err);
+        captureScreen(tmp.getAbsolutePath(), err -> {
+            assert err != null;
+            if (err == NO_ERR) {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DISPLAY_NAME, mGame.title + "@" + System.currentTimeMillis() + ".png");
+                values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+                values.put(MediaStore.Images.Media.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + getString(R.string.app_name));
+                values.put(MediaStore.Images.Media.IS_PENDING, 1);
+                ContentResolver contentResolver = requireContext().getContentResolver();
+                Uri uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                if (uri == null) return;
+                try (FileInputStream from = new FileInputStream(tmp);
+                     OutputStream to = contentResolver.openOutputStream(uri)) {
+                    if (to == null) return;
+                    FileUtils.copy(from, to);
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    contentResolver.update(uri, values, null, null);
+                } catch (IOException e) {
+                    e.printStackTrace(System.err);
+                }
+                FileUtils.delete(tmp);
+                showSnackbar(R.string.screenshot_saved, Snackbar.LENGTH_SHORT);
+            } else if (err == ERR_NOT_SUPPORTED){
+                showSnackbar(R.string.feat_not_supported, Snackbar.LENGTH_LONG);
+            } else {
+                showSnackbar(R.string.operation_failed, Snackbar.LENGTH_LONG);
             }
-            FileUtils.delete(tmp);
-        }
+        });
     }
 
     @Override
@@ -687,18 +711,27 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         /*Do Nothing*/
     }
 
-    private boolean captureScreen(String path, boolean ui) {
+    private void captureScreen(@NonNull String path, @NonNull Callable<Integer> listener) {
         int error = mViewModel.captureScreen(path);
-        if (ui) {
-            if (error == NO_ERR) {
-                showSnackbar(R.string.screenshot_saved, Snackbar.LENGTH_SHORT);
-            } else if (error == ERR_NOT_SUPPORTED) {
-                showSnackbar(R.string.feat_not_supported);
-            } else {
-                showSnackbar(R.string.operation_failed);
-            }
+        if (error == NO_ERR) {
+            listener.call(NO_ERR);
+        } else if (error == ERR_NOT_SUPPORTED) {
+            binding.surfaceView.asyncCopyPixels(bitmap -> {
+                if (bitmap != null) {
+                    try (FileOutputStream out = new FileOutputStream(path)) {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                        listener.call(NO_ERR);
+                    } catch (IOException e) {
+                        listener.call(ERR);
+                    }
+                    bitmap.recycle();
+                } else {
+                    listener.call(ERR);
+                }
+            });
+        } else {
+            listener.call(ERR);
         }
-        return error == NO_ERR;
     }
 
     private void loadStateAt(int index, boolean ui) {

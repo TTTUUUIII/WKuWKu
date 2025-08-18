@@ -4,6 +4,7 @@ import android.content.res.XmlResourceParser;
 
 import androidx.annotation.NonNull;
 
+import org.wkuwku.util.NumberUtils;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -16,6 +17,7 @@ public class EmConfig {
         parseXmlConfig(parser);
     }
 
+    private float mVersion = 1.0f;
     public List<EmOption> options = new ArrayList<>();
     public List<EmSystem> systems = new ArrayList<>();
     public List<String> contentExtensions = new ArrayList<>();
@@ -34,6 +36,9 @@ public class EmConfig {
             if (event == XmlResourceParser.START_TAG) {
                 String name = parser.getName();
                 switch (name) {
+                    case "em-config":
+                        mVersion = NumberUtils.parseFloat(parser.getAttributeValue(null, "version"), 1.0f);
+                        break;
                     case "option":
                         EmOption option = parseOption(parser);
                         if (option != null)
@@ -100,7 +105,12 @@ public class EmConfig {
 
     private EmOption parseOption(XmlPullParser parser) throws XmlPullParserException, IOException {
         String key = parser.getAttributeValue(null, "key");
-        String defaultValue = parser.getAttributeValue(null, "defaultValue");
+        String defaultValue = null;
+        if (mVersion > 1.0) {
+            defaultValue = parser.getAttributeValue(null, "value");
+        } else {
+            defaultValue = parser.getAttributeValue(null, "defaultValue");
+        }
         String title = parser.getAttributeValue(null, "title");
         String inputType = parser.getAttributeValue(null, "inputType");
         String text = parser.getAttributeValue(null, "enable");

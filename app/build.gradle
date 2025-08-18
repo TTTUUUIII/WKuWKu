@@ -54,6 +54,7 @@ dependencies {
     def work_version = "2.10.1"
     implementation(project(':emulator'))
     implementation(project(":plug"))
+    implementation(project(":common"))
     implementation "com.github.bumptech.glide:glide:4.16.0"
     implementation "androidx.navigation:navigation-fragment:$navigation_version"
     implementation "androidx.navigation:navigation-ui:$navigation_version"
