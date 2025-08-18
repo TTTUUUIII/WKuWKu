@@ -7,8 +7,11 @@ import android.view.Surface;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.wkuwku.util.NumberUtils;
+
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.common.EmConfig;
+import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.EmSystemAvInfo;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.emulator.Emulator;
@@ -19,19 +22,30 @@ public class Ruffle extends Emulator {
     static {
         System.loadLibrary("ruffle");
     }
+    private static final String PROP_SCALE_FACTOR = "ruffle_scale_factor";
+    private final Resources mResource;
 
     private final EmSystemInfo mSystemInfo;
     private Ruffle(@NonNull Resources resources) {
         super("ruffle", EmConfig.fromXml(resources.getXml(R.xml.ruffle_config)));
-        nativeSetProp("display.density", resources.getDisplayMetrics().density);
         props.put(FEAT_LOAD_STATE, false);
         props.put(FEAT_SAVE_STATE, false);
         props.put(FEAT_SCREENSHOT, false);
         mSystemInfo = new EmSystemInfo("ruffle", "1.0", "swf");
+        mResource = resources;
     }
 
     @Override
     protected boolean startGame(@NonNull String path) {
+        EmOption option = getOptionByKey(PROP_SCALE_FACTOR);
+        float scaleFactor = 0f;
+        if (option != null) {
+            scaleFactor = NumberUtils.parseFloat(option.val, 0f);
+        }
+        if (scaleFactor == 0f) {
+            scaleFactor = mResource.getDisplayMetrics().density;
+        }
+        nativeSetProp(PROP_SCALE_FACTOR, scaleFactor);
         return nativeStart(path);
     }
 

@@ -31,42 +31,7 @@ android {
     ndkVersion "28.0.13004108"
 }
 
-static def getMD5(File file) {
-    MessageDigest md = MessageDigest.getInstance("MD5")
-    file.withInputStream { is ->
-        byte[] buffer = new byte[8192]
-        int bytesRead
-        while ((bytesRead = is.read(buffer)) != -1) {
-            md.update(buffer, 0, bytesRead)
-        }
-    }
-    return md.digest().encodeHex().toString()
-}
-
-if (plugins.hasPlugin("com.android.application")) {
-    afterEvaluate {
-        tasks.named("assembleRelease") {
-            doLast {
-                def md5sums = ""
-                def output = Paths.get(rootDir.absolutePath, "build/outputs/apk/release")
-                def name = project.name
-                def versionName = project.android.defaultConfig.versionName
-                def versionCode = project.android.defaultConfig.versionCode
-                file("build/outputs/apk/release/")
-                        .listFiles()
-                        .findAll { it.name.endsWith(".apk") }
-                        .forEach {file ->
-                            md5sums += getMD5(file)
-                            copy {
-                                from file.absolutePath
-                                into output
-                            }
-                        }
-                file(Paths.get(output.toString(), "manifest.txt")) <<  String.format("%-24s%-8s%-8d%s\n", name, versionName, versionCode, md5sums)
-            }
-        }
-    }
-}
+apply from: rootProject.file("templates/copy_to_root.gradle")
 
 dependencies {
     implementation(libs.games.frame.pacing)
