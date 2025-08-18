@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.interfaces;
 
 import android.app.Activity;
+import android.view.KeyEvent;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -56,6 +57,7 @@ public interface IEmulator extends RetroDefine {
     byte[] getMemoryData(int type);
     void setMemoryData(int type, final byte[] data);
     void setControllerPortDevice(int port, int device);
+    boolean dispatchKeyboardEvent(@NonNull KeyEvent event);
 
     boolean onNativeRumbleState(int port, int effect, int strength);
     boolean onNativeEnvironment(int cmd, Object data);

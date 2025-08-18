@@ -5,6 +5,7 @@ import android.media.AudioFormat;
 import android.media.AudioTrack;
 import android.os.Build;
 import android.util.SparseArray;
+import android.view.KeyEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -221,6 +222,11 @@ public abstract class Emulator implements IEmulator {
             return listener.onPollInputState(port, device, index, id);
         }
         return 0;
+    }
+
+    @Override
+    public boolean dispatchKeyboardEvent(@NonNull KeyEvent event) {
+        return false;
     }
 
     private void createAudioTrack() {

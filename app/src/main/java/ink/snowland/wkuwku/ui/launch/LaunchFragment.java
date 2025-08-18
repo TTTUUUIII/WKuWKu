@@ -553,13 +553,19 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     @Override
     public boolean onKeyEvent(@NonNull KeyEvent event) {
-        int deviceId = event.getDeviceId();
-        boolean handled = false;
-        for (Controller controller : mControllers) {
-            if (controller.getDeviceId() != deviceId) continue;
-            handled = controller.dispatchKeyEvent(event);
+        if ((event.getSource() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD) {
+            IEmulator emulator = mViewModel.getEmulator();
+            if (emulator != null && emulator.dispatchKeyboardEvent(event)) {
+                return true;
+            }
         }
-        return handled;
+        int deviceId = event.getDeviceId();
+        for (Controller controller : mControllers) {
+            if (controller.getDeviceId() == deviceId && controller.dispatchKeyEvent(event)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
