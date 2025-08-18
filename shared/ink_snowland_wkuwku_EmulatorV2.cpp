@@ -43,6 +43,7 @@ static em_context_t ctx{};
 static std::unique_ptr<GLContext> shared_context;
 static jobject variable_object;
 static jobject variable_entry_object;
+static struct retro_keyboard_callback *keyboard_cb;
 static struct retro_disk_control_ext_callback *dis_control_ext;
 
 static void set_variable_value(JNIEnv *env, jobject value) {
@@ -84,9 +85,9 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
     if (current_state != STATE_RUNNING) return;
     if (!hw_render_cb && data) {
         if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            XRGB8888_PATCH((void*)data, height * pitch);
+            XRGB8888_PATCH((void *) data, height * pitch);
         } else if (origin_pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
-            XRGB1555_TO_RGB565((void*)data, height * pitch);
+            XRGB1555_TO_RGB565((void *) data, height * pitch);
         }
         fill_frame_buffer(data, width, height, pitch);
     }
@@ -237,7 +238,7 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
             const std::string &path = get_prop(static_cast<int>(cmd), std::string());
             if (!path.empty()) {
-                *(const char **)data = path.c_str();
+                *(const char **) data = path.c_str();
                 return true;
             } else {
                 return false;
@@ -306,6 +307,9 @@ static bool environment_cb(unsigned cmd, void *data) {
                 pixel_format = origin_pixel_format;
             }
             return true;
+        case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
+            keyboard_cb = reinterpret_cast<retro_keyboard_callback *>(data);
+            break;
         case RETRO_ENVIRONMENT_SET_CONTROLLER_INFO:
             jobject array_list;
             jclass controller_desc_clazz;
@@ -537,7 +541,8 @@ static jobject em_get_system_av_info(JNIEnv *env, jobject thiz) {
     jobject o1 = env->NewObject(clazz, constructor, (int) system_av_info.geometry.base_width,
                                 (int) system_av_info.geometry.base_height,
                                 (int) system_av_info.geometry.max_width,
-                                (int) system_av_info.geometry.max_height, system_av_info.geometry.aspect_ratio);
+                                (int) system_av_info.geometry.max_height,
+                                system_av_info.geometry.aspect_ratio);
     clazz = env->FindClass("ink/snowland/wkuwku/common/EmSystemAvInfo");
     constructor = env->GetMethodID(clazz, "<init>",
                                    "(Link/snowland/wkuwku/common/EmGameGeometry;Link/snowland/wkuwku/common/EmSystemTiming;)V");
@@ -620,7 +625,7 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
-            props[prop] = as_string(env, (jstring)val);
+            props[prop] = as_string(env, (jstring) val);
             break;
         default:;
     }
@@ -633,7 +638,7 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (hw_render_cb) {
             std::shared_ptr<std::promise<result_t>> promise = send_message(MSG_READ_PIXELS,
-                                                                                  nullptr);
+                                                                           nullptr);
             result_t result = promise->get_future().get();
             if (result.state == NO_ERROR) {
                 auto pixels = std::any_cast<std::shared_ptr<buffer_t>>(result.data);
@@ -647,7 +652,8 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
                                           framebuffers[draw_index]->data,
                                           video_width * 4);
             } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(framebuffers[draw_index]->data, video_width * video_height * 2);
+                std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(framebuffers[draw_index]->data,
+                                                                    video_width * video_height * 2);
                 no_error = stbi_write_png(file_path, video_width, video_height, 3, buffer->data,
                                           video_width * 3);
             }
@@ -661,6 +667,10 @@ static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, 
     UNUSED(env);
     UNUSED(thiz);
     retro_set_controller_port_device(port, device);
+}
+
+static void em_dispatch_keyboard_event(JNIEnv *env, jobject thiz, jint port, jobject event) {
+
 }
 
 static const JNINativeMethod methods[] = {
@@ -682,7 +692,8 @@ static const JNINativeMethod methods[] = {
         {"nativeSetMemoryData",           "(I[B)V",                                          (void *) em_set_memory_data},
         {"nativeSetControllerPortDevice", "(II)V",                                           (void *) em_set_controller_port_device},
         {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",                           (void *) em_capture_screen},
-        {"nativeSetProp",                 "(ILjava/lang/Object;)V",                          (void *) em_set_prop}
+        {"nativeSetProp",                 "(ILjava/lang/Object;)V",                          (void *) em_set_prop},
+        {"nativeDispatchKeyboardEvent",   "(Landroid/view/KeyEvent;)Z",                      (void *) em_dispatch_keyboard_event}
 };
 
 extern "C"
@@ -728,6 +739,10 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ctx.input_cb_method = env->GetMethodID(clazz, "onNativePollInput", "(IIII)I");
     ctx.rumble_cb_method = env->GetMethodID(clazz, "onNativeRumbleState", "(III)Z");
     env->RegisterNatives(clazz, methods, ARRAY_SIZE(methods));
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+    }
     retro_get_system_info(&system_info);
     return JNI_VERSION_1_6;
 }
@@ -782,9 +797,12 @@ static void entry_main_loop() {
         glGenRenderbuffers(1, &hw_rbo);
         glBindRenderbuffer(GL_RENDERBUFFER, hw_rbo);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, max_width, max_height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, hw_rbo);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                                  hw_rbo);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            __android_log_assert("glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE", TAG, "Failed to create framebuffer!");
+            __android_log_assert(
+                    "glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE", TAG,
+                    "Failed to create framebuffer!");
         }
         hw_render_cb->context_reset();
     }
@@ -829,8 +847,8 @@ static void on_draw_frame() {
     if (current_state == STATE_RUNNING) {
         if (shared_context) {
             texture_hw(video_width,
-                    video_height,
-                    hw_texture);
+                       video_height,
+                       hw_texture);
         } else {
             int index = draw_index.load();
             texture(video_width,
@@ -910,7 +928,7 @@ static void send_empty_message(int what) {
     looper_cv.notify_one();
 }
 
-static void XRGB8888_PATCH(void* data, size_t len) {
+static void XRGB8888_PATCH(void *data, size_t len) {
     auto *fb = (uint8_t *) data;
     for (int i = 0; i < len; i += 4) {
         std::swap(fb[i], fb[i + 2]);
@@ -918,7 +936,7 @@ static void XRGB8888_PATCH(void* data, size_t len) {
     }
 }
 
-static void XRGB1555_TO_RGB565(void* data, size_t len) {
+static void XRGB1555_TO_RGB565(void *data, size_t len) {
     auto *fb = (uint16_t *) data;
     for (int i = 0; i < len / 2; i++) {
         uint16_t g = fb[i] >> 5 & 0x1F;
@@ -926,9 +944,9 @@ static void XRGB1555_TO_RGB565(void* data, size_t len) {
     }
 }
 
-static std::unique_ptr<buffer_t> RGB565_TO_RGB888(void* pixels, size_t len) {
+static std::unique_ptr<buffer_t> RGB565_TO_RGB888(void *pixels, size_t len) {
     std::unique_ptr<buffer_t> buffer = std::make_unique<buffer_t>(len / 2 * 3);
-    auto dest = static_cast<uint8_t*>(buffer->data);
+    auto dest = static_cast<uint8_t *>(buffer->data);
     auto *data = reinterpret_cast<uint16_t *>(pixels);
     for (int i = 0; i < video_width * video_height; ++i) {
         uint16_t pixel = data[i];

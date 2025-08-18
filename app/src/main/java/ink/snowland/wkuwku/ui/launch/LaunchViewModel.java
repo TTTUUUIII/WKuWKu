@@ -106,7 +106,8 @@ public class LaunchViewModel extends BaseViewModel {
         }
     }
 
-    public @Nullable IEmulator getEmulator() {
+    @Nullable
+    public IEmulator getEmulator() {
         return mEmulator;
     }
 
