@@ -39,8 +39,11 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.sidesheet.SideSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.wkuwku.util.NumberUtils;
@@ -217,6 +220,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 adjustScreenSize(mVideoWidth, mVideoHeight);
             }
         }
+//
+//        SideSheetBehavior<LinearLayout> from = SideSheetBehavior.from(binding.standardSheet);
+//        from.setState(SideSheetBehavior.STATE_EXPANDED);
     }
 
     @Override
