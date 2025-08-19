@@ -2,6 +2,7 @@ package org.wkuwku.plug.ruffle;
 
 import android.app.Activity;
 import android.content.res.Resources;
+import android.view.KeyEvent;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -133,6 +134,11 @@ public class Ruffle extends Emulator {
         /*Unsupported*/
     }
 
+    @Override
+    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        return nativeDispatchKeyEvent(event);
+    }
+
     private static IEmulator sInstance;
     public static void registerAsEmulator(Resources res) {
         if (sInstance == null) {
@@ -151,4 +157,5 @@ public class Ruffle extends Emulator {
     private native boolean nativeStart(@NonNull String path);
     private native void nativeStop();
     private native void nativeSetProp(String key, Object prop);
+    private native boolean nativeDispatchKeyEvent(@NonNull KeyEvent event);
 }
