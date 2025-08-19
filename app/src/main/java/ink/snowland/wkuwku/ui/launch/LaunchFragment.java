@@ -20,7 +20,6 @@ import android.os.Bundle;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -39,11 +38,8 @@ import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.LinearLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.sidesheet.SideSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.wkuwku.util.NumberUtils;
@@ -56,6 +52,7 @@ import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -64,12 +61,10 @@ import ink.snowland.wkuwku.bean.Hotkey;
 import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
-import ink.snowland.wkuwku.common.BaseTextWatcher;
 import ink.snowland.wkuwku.common.Callable;
 import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmSystem;
-import ink.snowland.wkuwku.databinding.DialogLayoutExitGameBinding;
 import ink.snowland.wkuwku.databinding.FragmentLaunchBinding;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
@@ -118,9 +113,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private final SparseArray<Controller> mControllerRoutes = new SparseArray<>();
     private int mP1ControllerId;
     private int mP2ControllerId;
-    private final List<Controller> mControllers = new ArrayList<>();
+    private final List<Controller> mControllerSources = new ArrayList<>();
     private AudioManager mAudioManager;
     private AudioFocusRequest mAudioRequest;
+    private BottomSheetBehavior<?> mBottomSheetBehavior;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -150,21 +146,15 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
         attachToEmulator();
         binding.pendingIndicator.setDataModel(mViewModel);
-        binding.pendingIndicator.setLifecycleOwner(this);
-        parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
-        binding.buttonSavestate.setOnClickListener(this);
-        binding.buttonScreenshot.setOnClickListener(this);
-        binding.buttonLoadState1.setOnClickListener(this);
-        binding.buttonLoadState2.setOnClickListener(this);
-        binding.buttonLoadState3.setOnClickListener(this);
-        binding.buttonLoadState4.setOnClickListener(this);
-        binding.buttonLoadLastState.setOnClickListener(this);
         if (mVideoRatioType == TYPE_FULLSCREEN) {
-            binding.getRoot().setFitsSystemWindows(false);
             binding.surfaceView.fullScreen();
         } else if (mVideoRatioType == TYPE_KEEP_FULLSCREEN) {
             binding.getRoot().setBackgroundColor(0xFF000000);
         }
+        binding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
+        parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
+        mBottomSheetBehavior = BottomSheetBehavior.from(binding.standardSheet);
+        bindEvent();
         return binding.getRoot();
     }
 
@@ -220,9 +210,19 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 adjustScreenSize(mVideoWidth, mVideoHeight);
             }
         }
-//
-//        SideSheetBehavior<LinearLayout> from = SideSheetBehavior.from(binding.standardSheet);
-//        from.setState(SideSheetBehavior.STATE_EXPANDED);
+        ArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
+        List<String> sources = mControllerSources.stream()
+                .map(it -> String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()))
+                .collect(Collectors.toList());
+        adapter.addAll(sources);
+        binding.p1ControllerSelector.setAdapter(adapter);
+        adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
+        sources = mControllerSources.stream()
+                .filter(it -> !it.isVirtual())
+                .map(it -> String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()))
+                .collect(Collectors.toList());
+        adapter.addAll(sources);
+        binding.p2ControllerSelector.setAdapter(adapter);
     }
 
     @Override
@@ -321,7 +321,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private final OnBackPressedCallback mBackPressedCallback = new OnBackPressedCallback(true) {
         @Override
         public void handleOnBackPressed() {
-            showExitGameDialog();
+            requestExit();
         }
     };
 
@@ -358,7 +358,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             virtualController = new VirtualController(parentActivity);
         }
         binding.controllerRoot.addView(virtualController.getView());
-        mControllers.add(virtualController);
+        mControllerSources.add(virtualController);
         List<InputDevice> devices = getInputDevices();
         String p1descriptor = SettingsManager.getString(PLAYER_1_CONTROLLER_DESCRIPTOR);
         String p2descriptor = SettingsManager.getString(PLAYER_2_CONTROLLER_DESCRIPTOR);
@@ -372,69 +372,65 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 } else if (descriptor.equals(p2descriptor)) {
                     mP2ControllerId = deviceId;
                 }
-                mControllers.add(controller);
+                mControllerSources.add(controller);
             }
         }
         updateControllerRoutes();
     }
 
-    private DialogLayoutExitGameBinding mExitLayoutBinding;
-    private ArrayAdapter<String> mControllerAdapter1;
-    private ArrayAdapter<String> mControllerAdapter2;
-
-    private AlertDialog mExitDialog;
-    private boolean mShouldResumeEmulator = false;
-
-    @SuppressLint("SetTextI18n")
-    private void showExitGameDialog() {
-        if (mExitDialog == null) {
-            mExitLayoutBinding = DialogLayoutExitGameBinding.inflate(getLayoutInflater());
-            mExitLayoutBinding.reset.setOnClickListener(this);
-            mExitLayoutBinding.exit.setOnClickListener(this);
-            mExitDialog = new MaterialAlertDialogBuilder(requireActivity())
-                    .setIcon(R.mipmap.ic_launcher_round)
-                    .setTitle(R.string.options)
-                    .setView(mExitLayoutBinding.getRoot())
-                    .setOnDismissListener(dialog -> {
-                        if (mShouldResumeEmulator) {
-                            mViewModel.resumeEmulator();
-                        }
-                    })
-                    .create();
-            mControllerAdapter1 = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, new ArrayList<>());
-            mExitLayoutBinding.player1Dropdown.setAdapter(mControllerAdapter1);
-            mExitLayoutBinding.player1Dropdown.addTextChangedListener((BaseTextWatcher) (s, start, before, count) -> onControllerRouteChanged(PLAYER_1, s.toString()));
-            mControllerAdapter2 = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, new ArrayList<>());
-            mExitLayoutBinding.player2Dropdown.setAdapter(mControllerAdapter2);
-            mExitLayoutBinding.player2Dropdown.addTextChangedListener((BaseTextWatcher) (s, start, before, count) -> onControllerRouteChanged(PLAYER_2, s.toString()));
-        }
-        if (mExitDialog.isShowing()) return;
-        mExitLayoutBinding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
-        mControllerAdapter1.clear();
-        mControllerAdapter1.addAll(mControllers.stream()
-                .map(it -> it.getDeviceId() + "@" + it.getName())
-                .collect(Collectors.toList()));
-        mControllerAdapter2.clear();
-        mControllerAdapter2.addAll(mControllers.stream()
-                .filter(it -> !it.isVirtual())
-                .map(it -> it.getDeviceId() + "@" + it.getName())
-                .collect(Collectors.toList()));
-        Controller primaryController = mControllerRoutes.get(PLAYER_1);
-        String primarySource = primaryController.getDeviceId() + "@" + primaryController.getName();
-        mExitLayoutBinding.player1Dropdown.setText(primarySource);
-        Controller controller = mControllerRoutes.get(PLAYER_2);
-        if (controller != null) {
-            mExitLayoutBinding.player2Dropdown.setText(controller.getDeviceId() + "@" + controller.getName());
+    private void requestExit() {
+        if (mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_COLLAPSED
+         || mBottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+            Controller controller = mControllerRoutes.get(PLAYER_1);
+            binding.p1ControllerSelector.setText(String.format(Locale.US, "%d@%s", controller.getDeviceId(), controller.getName()));
+            controller = mControllerRoutes.get(PLAYER_2);
+            if (controller != null) {
+                binding.p2ControllerSelector.setText(String.format(Locale.US, "%d@%s", controller.getDeviceId(), controller.getName()));
+            } else {
+                binding.p2ControllerSelector.setText(R.string.none);
+            }
+            mViewModel.pauseEmulator();
+            mShouldResumeEmulator = true;
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
         } else {
-            mExitLayoutBinding.player2Dropdown.setText(R.string.none);
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         }
-        mViewModel.pauseEmulator();
-        mExitDialog.show();
-        mShouldResumeEmulator = true;
     }
 
+    private void bindEvent() {
+        binding.pendingIndicator.setLifecycleOwner(this);
+        binding.buttonSavestate.setOnClickListener(this);
+        binding.buttonScreenshot.setOnClickListener(this);
+        binding.buttonLoadState1.setOnClickListener(this);
+        binding.buttonLoadState2.setOnClickListener(this);
+        binding.buttonLoadState3.setOnClickListener(this);
+        binding.buttonLoadState4.setOnClickListener(this);
+        binding.buttonLoadLastState.setOnClickListener(this);
+        binding.exit.setOnClickListener(this);
+        binding.reset.setOnClickListener(this);
+        mBottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if ((newState == BottomSheetBehavior.STATE_HIDDEN
+                        || newState == BottomSheetBehavior.STATE_COLLAPSED)) {
+                    if (mShouldResumeEmulator) {
+                        mViewModel.resumeEmulator();
+                        mShouldResumeEmulator = false;
+                    }
+                    checkControllerRoutes();
+                }
+            }
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                /*Do nothing*/
+            }
+        });
+    }
+
+    private boolean mShouldResumeEmulator = false;
+
     private boolean mShouldExit = false;
-    private void exit() {
+    private void onExit() {
         if (!mViewModel.isPlaying()) {
             NavController navController = NavHostFragment.findNavController(this);
             navController.popBackStack();
@@ -450,7 +446,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
         File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
         boolean captureScreen = !screenshot.exists();
-        if (mExitLayoutBinding.saveState.isChecked()) {
+        if (binding.saveState.isChecked()) {
             if (!mAutoLoadDisabled) {
                 saveCurrentState(false);
             }
@@ -466,7 +462,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 }
             });
         }
-        SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, mExitLayoutBinding.saveState.isChecked());
+        SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, binding.saveState.isChecked());
         mViewModel.stopEmulator();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mAudioManager != null) {
             mAudioManager.abandonAudioFocusRequest(mAudioRequest);
@@ -496,13 +492,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         int viewId = v.getId();
         if (viewId == R.id.reset) {
             mViewModel.resetEmulator();
-            mExitDialog.dismiss();
+            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (viewId == R.id.exit) {
             mShouldResumeEmulator = false;
-            mExitDialog.dismiss();
-            exit();
+            onExit();
         } else {
-            Controller controller = mControllers.get(0 /*VirtualController*/);
+            Controller controller = mControllerSources.get(0 /*VirtualController*/);
             if (controller instanceof VirtualController) {
                 VirtualController vc = (VirtualController) controller;
                 vc.vibrator();
@@ -568,7 +563,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public boolean onKeyEvent(@NonNull KeyEvent event) {
         int deviceId = event.getDeviceId();
         InputDevice device = event.getDevice();
-        if ((event.getSource() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD && !device.isVirtual()) {
+        if (device.getKeyboardType() == InputDevice.KEYBOARD_TYPE_ALPHABETIC && !device.isVirtual()) {
             IEmulator emulator = mViewModel.getEmulator();
             if (emulator != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -580,7 +575,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 }
             }
         } else {
-            for (Controller controller : mControllers) {
+            for (Controller controller : mControllerSources) {
                 if (controller.getDeviceId() == deviceId) {
                     return controller.dispatchKeyEvent(event);
                 }
@@ -593,7 +588,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public boolean onGenericMotionEvent(@NonNull MotionEvent event) {
         int deviceId = event.getDeviceId();
         boolean handled = false;
-        for (Controller controller : mControllers) {
+        for (Controller controller : mControllerSources) {
             if (controller.getDeviceId() != deviceId) continue;
             handled = controller.dispatchGenericMotionEvent(event);
         }
@@ -625,11 +620,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         return super.onHotkeyEvent(hotkey);
     }
 
-    @Override
-    public void onTouchEvent(MotionEvent ev) {
-        resetHideTimer();
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public void onInputDeviceAdded(int deviceId) {
         super.onInputDeviceAdded(deviceId);
@@ -639,7 +630,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             String descriptor = controller.getDescriptor();
             String p1descriptor = SettingsManager.getString(PLAYER_1_CONTROLLER_DESCRIPTOR);
             String p2descriptor = SettingsManager.getString(PLAYER_2_CONTROLLER_DESCRIPTOR);
-            mControllers.add(controller);
+            mControllerSources.add(controller);
+            ((ArrayAdapter<String>)binding.p1ControllerSelector.getAdapter())
+                    .add(String.format(Locale.US, "%d@%s", controller.getDeviceId(), controller.getName()));
+            ((ArrayAdapter<String>)binding.p2ControllerSelector.getAdapter())
+                    .add(String.format(Locale.US, "%d@%s", controller.getDeviceId(), controller.getName()));
             if (descriptor.equals(p1descriptor)) {
                 mP1ControllerId = deviceId;
                 updateControllerRoutes();
@@ -651,16 +646,26 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     @Override
+    public void onTouchEvent(MotionEvent ev) {
+        resetHideTimer();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public void onInputDeviceRemoved(int deviceId) {
         super.onInputDeviceRemoved(deviceId);
-        Optional<Controller> controller = mControllers.stream()
+        Optional<Controller> controller = mControllerSources.stream()
                 .filter(it -> it.getDeviceId() == deviceId)
                 .findFirst();
         if (controller.isPresent()) {
             Controller it = controller.get();
             Controller p1 = mControllerRoutes.get(PLAYER_1);
             Controller p2 = mControllerRoutes.get(PLAYER_2);
-            mControllers.remove(it);
+            mControllerSources.remove(it);
+            ((ArrayAdapter<String>)binding.p1ControllerSelector.getAdapter())
+                    .remove(String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()));
+            ((ArrayAdapter<String>)binding.p2ControllerSelector.getAdapter())
+                    .remove(String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()));
             if (p1 == it) {
                 mP1ControllerId = Controller.VIRTUAL_CONTROLLER_DEVICE_ID;
                 updateControllerRoutes();
@@ -672,7 +677,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     private void updateControllerRoutes() {
-        for (Controller controller : mControllers) {
+        for (Controller controller : mControllerSources) {
             if (controller.getDeviceId() == mP1ControllerId) {
                 mControllerRoutes.put(PLAYER_1, controller);
             } else if (controller.getDeviceId() == mP2ControllerId) {
@@ -680,29 +685,41 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             }
         }
         if (mControllerRoutes.get(PLAYER_1) == null) {
-            mControllerRoutes.put(PLAYER_1, mControllers.get(0) /*VirtualController*/);
+            mControllerRoutes.put(PLAYER_1, mControllerSources.get(0) /*VirtualController*/);
         }
         if (mControllerRoutes.get(PLAYER_1) == mControllerRoutes.get(PLAYER_2)) {
             mControllerRoutes.put(PLAYER_2, null);
-            if (mExitLayoutBinding != null) {
-                mExitLayoutBinding.player2Dropdown.setText(R.string.none);
-            }
+            binding.p2ControllerSelector.setText(R.string.none);
         }
     }
 
-    private void onControllerRouteChanged(int player, @NonNull String deviceInfoText) {
-        if (deviceInfoText.contains("@")) {
-            String[] deviceInfo = deviceInfoText.split("@");
+    private void checkControllerRoutes() {
+        boolean update = false;
+        String summary = binding.p1ControllerSelector.getText().toString();
+        if (summary.contains("@")) {
             try {
-                int deviceId = Integer.parseInt(deviceInfo[0]);
-                if (player == PLAYER_1) {
+                int deviceId = NumberUtils.parseInt(summary.split("@")[0], Controller.INVALID_CONTROLLER_DEVICE_ID);
+                if (deviceId != Controller.INVALID_CONTROLLER_DEVICE_ID
+                        && mP1ControllerId != deviceId) {
                     mP1ControllerId = deviceId;
-                } else {
-                    mP2ControllerId = deviceId;
+                    update = true;
                 }
-                updateControllerRoutes();
-            } catch (NumberFormatException | IndexOutOfBoundsException ignored) {
-            }
+            } catch (IndexOutOfBoundsException ignored) {}
+        }
+
+        if (summary.contains("@")) {
+            try {
+                int deviceId = NumberUtils.parseInt(summary.split("@")[0], Controller.INVALID_CONTROLLER_DEVICE_ID);
+                if (deviceId != Controller.INVALID_CONTROLLER_DEVICE_ID
+                        && mP2ControllerId != deviceId) {
+                    mP2ControllerId = deviceId;
+                    update = true;
+                }
+            } catch (IndexOutOfBoundsException ignored) {}
+        }
+
+        if (update) {
+            updateControllerRoutes();
         }
     }
 
