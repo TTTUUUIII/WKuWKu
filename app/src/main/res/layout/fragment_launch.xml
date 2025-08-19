@@ -55,6 +55,7 @@
                 style="@style/Widget.Material3.Button.IconButton.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
                 android:backgroundTint="@android:color/transparent"
                 app:icon="@drawable/ic_counter_1"
                 app:iconTint="@color/button_outline_color_selector" />
@@ -64,6 +65,7 @@
                 style="@style/Widget.Material3.Button.IconButton.Outlined"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp"
                 android:backgroundTint="@android:color/transparent"
                 app:icon="@drawable/ic_counter_2"
                 app:iconTint="@color/button_outline_color_selector" />
@@ -72,6 +74,7 @@
                 android:id="@+id/button_load_state3"
                 style="@style/Widget.Material3.Button.IconButton.Outlined"
                 android:layout_width="wrap_content"
+                android:paddingHorizontal="8dp"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/transparent"
                 app:icon="@drawable/ic_counter_3"
@@ -79,6 +82,7 @@
             <Button
                 android:id="@+id/button_load_state4"
                 style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:paddingHorizontal="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/transparent"
@@ -87,6 +91,7 @@
             <Button
                 android:id="@+id/button_load_last_state"
                 style="@style/Widget.Material3.Button.IconButton.Outlined"
+                android:paddingHorizontal="8dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@android:color/transparent"
