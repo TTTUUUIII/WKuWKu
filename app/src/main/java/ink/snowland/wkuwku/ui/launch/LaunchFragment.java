@@ -567,10 +567,10 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             if (emulator != null) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     if (device.isExternal()) {
-                        return emulator.dispatchKeyboardEvent(event);
+                        return emulator.dispatchKeyEvent(event);
                     }
                 } else {
-                    return emulator.dispatchKeyboardEvent(event);
+                    return emulator.dispatchKeyEvent(event);
                 }
             }
         } else {

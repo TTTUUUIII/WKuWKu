@@ -225,7 +225,7 @@ public abstract class Emulator implements IEmulator {
     }
 
     @Override
-    public boolean dispatchKeyboardEvent(@NonNull KeyEvent event) {
+    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
         return false;
     }
 

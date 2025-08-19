@@ -161,8 +161,8 @@
     <string name="player_1">Player 1</string>
     <string name="player_2">Player 2</string>
     <string name="incompatible">Incompatible</string>
-    <string name="fmt_controller_disconnected">Controller: %s disconneted!</string>
-    <string name="fmt_controller_connected">Controller: %s connected!</string>
+    <string name="fmt_input_device_disconnected">Input device: %s disconneted!</string>
+    <string name="fmt_input_device_connected">Input device: %s connected!</string>
     <string name="audio_options">Audio Options</string>
     <string name="audio_api">Audio API</string>
     <string name="low_latency_mode">Low latency mode</string>

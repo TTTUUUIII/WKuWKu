@@ -59,6 +59,11 @@ public class GSurfaceView extends SurfaceView {
         post(this::requestLayout);
     }
 
+    @Override
+    public boolean hasFocus() {
+        return true;
+    }
+
     public void fullScreen() {
         mOriginW = 0;
         mOriginH = 0;
