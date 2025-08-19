@@ -276,7 +276,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.topControlMenu.setAlpha(1.f);
         Controller p1 = mControllerRoutes.get(PLAYER_1);
         Controller p2 = mControllerRoutes.get(PLAYER_2);
-        if (p1.isVirtual() || (p2 != null && p2.isVirtual())) {
+        if (binding.switchVirtualController.isChecked()
+                && (p1.isVirtual() || (p2 != null && p2.isVirtual()))) {
             binding.controllerRoot.setVisibility(View.VISIBLE);
             binding.controllerRoot.setAlpha(1.f);
         }
