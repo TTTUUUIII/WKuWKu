@@ -125,7 +125,9 @@
     <string name="emoji_distance">背景符号间距</string>
     <string name="install_from_storage">从本地安装</string>
     <string name="exit_emulator">关闭模拟器</string>
+    <string name="exit">退出</string>
     <string name="reset_emulator">重置模拟器</string>
+    <string name="reset">重置</string>
     <string name="upgrade">更新</string>
     <string name="invalid_package">软件包无效！</string>
     <string name="plug_already_installed">扩展已经存在，请勿重复安装!</string>
@@ -155,6 +157,7 @@
     <string name="incompatible">不兼容</string>
     <string name="screenshot">截图</string>
     <string name="save_state">保存状态</string>
+    <string name="save">保存</string>
     <string name="failed_extract">解压文件失败</string>
     <string name="fmt_delete_after_days">将在%d天后删除</string>
     <string name="fmt_plug_installed_successfully">%s扩展已安装完成！</string>

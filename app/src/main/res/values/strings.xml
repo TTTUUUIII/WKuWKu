@@ -134,7 +134,6 @@
     <string name="install_failed">Install failed!</string>
     <string name="l3" translatable="false">L3</string>
     <string name="r3" translatable="false">R3</string>
-    <string name="save" translatable="false">SAVE</string>
     <string name="load" translatable="false">LOAD</string>
     <string name="fmt_state_saved">State#%d saved!</string>
     <string name="fmt_state_loaded">State#%d loaded!</string>
@@ -149,7 +148,9 @@
     <string name="emoji_distance">Distance Between Emojis</string>
     <string name="install_from_storage">Install from storage</string>
     <string name="exit_emulator">Exit emulator</string>
+    <string name="exit">Exit</string>
     <string name="reset_emulator">Reset emulator</string>
+    <string name="reset">Reset</string>
     <string name="upgrade">Upgrade</string>
     <string name="invalid_package">Invalid package!</string>
     <string name="plug_already_installed">This extension already installed!</string>
@@ -179,6 +180,7 @@
     <string name="performance_mode">Performance mode</string>
     <string name="screenshot">Screenshot</string>
     <string name="save_state">Save State</string>
+    <string name="save">Save</string>
     <string name="failed_extract">Failed to extract the file.</string>
     <string name="fmt_delete_after_days">Delete after %d days</string>
     <string name="fmt_plug_installed_successfully">%s has been installed successfully!</string>
