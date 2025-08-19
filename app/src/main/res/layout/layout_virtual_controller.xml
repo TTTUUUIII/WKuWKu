@@ -76,7 +76,7 @@
             android:id="@+id/button_l2"
             android:backgroundTint="@android:color/transparent"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="68dp"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorPrimary"
             android:text="@string/l2" />
@@ -84,7 +84,7 @@
             android:id="@+id/button_l3"
             android:backgroundTint="@android:color/transparent"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+            android:layout_width="68dp"
             android:layout_height="wrap_content"
             android:textColor="?attr/colorPrimary"
             android:text="@string/l3" />
@@ -92,7 +92,7 @@
     <Button
         android:id="@+id/button_l"
         style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="wrap_content"
+        android:layout_width="68dp"
         android:layout_height="wrap_content"
         android:text="@string/l"
         app:layout_constraintStart_toStartOf="parent"
@@ -109,7 +109,7 @@
             android:id="@+id/button_r3"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:backgroundTint="@android:color/transparent"
-            android:layout_width="wrap_content"
+            android:layout_width="68dp"
             android:layout_height="wrap_content"
             android:text="@string/r3"
             android:textColor="?attr/colorPrimary"
@@ -120,7 +120,7 @@
             android:id="@+id/button_r2"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:backgroundTint="@android:color/transparent"
-            android:layout_width="wrap_content"
+            android:layout_width="68dp"
             android:layout_height="wrap_content"
             android:text="@string/r2"
             android:textColor="?attr/colorPrimary"
@@ -130,7 +130,7 @@
     <Button
         android:id="@+id/button_r"
         style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="wrap_content"
+        android:layout_width="68dp"
         android:layout_height="wrap_content"
         android:text="@string/r"
         app:layout_constraintEnd_toEndOf="parent"
