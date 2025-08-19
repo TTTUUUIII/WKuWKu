@@ -14,6 +14,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -271,7 +272,11 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
             for (InputManager.InputDeviceListener listener : mInputDeviceListeners) {
                 listener.onInputDeviceAdded(deviceId);
             }
-            showSnackbar(getString(R.string.fmt_controller_connected, device.getName()), Snackbar.LENGTH_LONG);
+            if ((device.getSources() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD) {
+                Toast.makeText(getApplicationContext(), getString(R.string.fmt_input_device_connected, device.getName()), Toast.LENGTH_LONG).show();
+            } else {
+                showSnackbar(getString(R.string.fmt_input_device_connected, device.getName()), Snackbar.LENGTH_LONG);
+            }
         }
     }
 
@@ -279,10 +284,14 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     public void onInputDeviceRemoved(int deviceId) {
         InputDevice device = getInputDevice(deviceId);
         if (device != null) {
-            mInputDevices.remove(device);
-            showSnackbar(getString(R.string.fmt_controller_disconnected, device.getName()), Snackbar.LENGTH_LONG);
             for (InputManager.InputDeviceListener listener : mInputDeviceListeners) {
                 listener.onInputDeviceRemoved(deviceId);
+            }
+            mInputDevices.remove(device);
+            if ((device.getSources() & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD) {
+                Toast.makeText(getApplicationContext(), getString(R.string.fmt_input_device_disconnected, device.getName()), Toast.LENGTH_LONG).show();
+            } else {
+                showSnackbar(getString(R.string.fmt_input_device_disconnected, device.getName()), Snackbar.LENGTH_LONG);
             }
         }
     }

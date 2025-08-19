@@ -34,8 +34,7 @@ public class ExternalController implements Controller {
     @Override
     public boolean isTypes(int device) {
         return device == RETRO_DEVICE_JOYPAD
-                || device == RETRO_DEVICE_ANALOG
-                || device == RETRO_DEVICE_KEYBOARD;
+                || device == RETRO_DEVICE_ANALOG;
     }
 
     @Override
@@ -218,8 +217,7 @@ public class ExternalController implements Controller {
         int sources = device.getSources();
         return (sources & InputDevice.SOURCE_DPAD) == InputDevice.SOURCE_DPAD
                 || (sources & InputDevice.SOURCE_GAMEPAD) == InputDevice.SOURCE_GAMEPAD
-                || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK
-                || (sources & InputDevice.SOURCE_KEYBOARD) == InputDevice.SOURCE_KEYBOARD;
+                || (sources & InputDevice.SOURCE_JOYSTICK) == InputDevice.SOURCE_JOYSTICK;
     }
 
     public static Controller from(@NonNull InputDevice device) {

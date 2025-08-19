@@ -136,8 +136,8 @@
     <string name="theme">主题</string>
     <string name="player_1">玩家 1</string>
     <string name="player_2">玩家 2</string>
-    <string name="fmt_controller_disconnected">控制器： %s 已断开!</string>
-    <string name="fmt_controller_connected">控制器： %s 已连接!</string>
+    <string name="fmt_input_device_disconnected">输入设备： %s 已断开!</string>
+    <string name="fmt_input_device_connected">输入设备： %s 已连接!</string>
     <string name="audio_options">音频选项</string>
     <string name="audio_api">音频接口</string>
     <string name="low_latency_mode">低延迟模式</string>

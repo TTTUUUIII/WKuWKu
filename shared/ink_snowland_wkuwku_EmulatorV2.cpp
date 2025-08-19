@@ -693,7 +693,7 @@ static const JNINativeMethod methods[] = {
         {"nativeSetControllerPortDevice", "(II)V",                                           (void *) em_set_controller_port_device},
         {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",                           (void *) em_capture_screen},
         {"nativeSetProp",                 "(ILjava/lang/Object;)V",                          (void *) em_set_prop},
-        {"nativeDispatchKeyboardEvent",   "(Landroid/view/KeyEvent;)Z",                      (void *) em_dispatch_keyboard_event}
+        {"nativeDispatchKeyEvent",   "(Landroid/view/KeyEvent;)V",                      (void *) em_dispatch_keyboard_event}
 };
 
 extern "C"
