@@ -97,7 +97,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String VIRTUAL_CONTROLLER_LAYOUT = "input_virtual_controller_layout";
     private static final String KEEP_SCREEN_ON = "app_keep_screen_on";
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
-    private static final String AUTO_SAVE_STATE_CHECKED = "app_auto_save_state_checked";
     private static final String PLAYER_1_CONTROLLER_DESCRIPTOR = "player_1_controller_descriptor";
     private static final String PLAYER_2_CONTROLLER_DESCRIPTOR = "player_2_controller_descriptor";
     private FragmentLaunchBinding binding;
@@ -151,7 +150,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         } else if (mVideoRatioType == TYPE_KEEP_FULLSCREEN) {
             binding.getRoot().setBackgroundColor(0xFF000000);
         }
-        binding.saveState.setChecked(SettingsManager.getBoolean(AUTO_SAVE_STATE_CHECKED, true));
+        binding.setViewModel(mViewModel);
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.standardSheet);
         bindEvent();
@@ -263,21 +262,22 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         binding.topControlMenu.animate()
                 .alpha(0.f)
                 .setDuration(duration)
-                .withEndAction(() -> binding.topControlMenu.setVisibility(View.GONE));
+                .withEndAction(() -> binding.topControlMenu.setVisibility(View.INVISIBLE));
         binding.controllerRoot.animate()
                 .alpha(0.f)
                 .setDuration(duration)
-                .withEndAction(() -> binding.controllerRoot.setVisibility(View.GONE));
+                .withEndAction(() -> binding.controllerRoot.setVisibility(View.INVISIBLE));
     };
 
     private void resetHideTimer() {
         handler.removeCallbacks(mHideTimerTask);
-        binding.topControlMenu.setVisibility(View.VISIBLE);
-        binding.topControlMenu.setAlpha(1.f);
+        if (mViewModel.topControlMenuOption.getValue()) {
+            binding.topControlMenu.setVisibility(View.VISIBLE);
+            binding.topControlMenu.setAlpha(1.f);
+        }
         Controller p1 = mControllerRoutes.get(PLAYER_1);
-        Controller p2 = mControllerRoutes.get(PLAYER_2);
-        if (binding.switchVirtualController.isChecked()
-                && (p1.isVirtual() || (p2 != null && p2.isVirtual()))) {
+        if (mViewModel.virtualControllerOption.getValue()
+                && p1.isVirtual()) {
             binding.controllerRoot.setVisibility(View.VISIBLE);
             binding.controllerRoot.setAlpha(1.f);
         }
@@ -400,15 +400,26 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private void bindEvent() {
         binding.pendingIndicator.setLifecycleOwner(this);
-        binding.buttonSavestate.setOnClickListener(this);
+        IEmulator emulator = mViewModel.getEmulator();
+        if (emulator != null) {
+            if (emulator.hasFeature(FEAT_LOAD_STATE)) {
+                binding.buttonLoadState1.setOnClickListener(this);
+                binding.buttonLoadState2.setOnClickListener(this);
+                binding.buttonLoadState3.setOnClickListener(this);
+                binding.buttonLoadState4.setOnClickListener(this);
+                binding.buttonLoadLastState.setOnClickListener(this);
+            } else {
+                binding.loadStateButtonGroup.setVisibility(View.GONE);
+            }
+            if (emulator.hasFeature(FEAT_SAVE_STATE)) {
+                binding.buttonSavestate.setOnClickListener(this);
+            } else {
+                binding.buttonSavestate.setVisibility(View.GONE);
+            }
+        }
         binding.buttonScreenshot.setOnClickListener(this);
-        binding.buttonLoadState1.setOnClickListener(this);
-        binding.buttonLoadState2.setOnClickListener(this);
-        binding.buttonLoadState3.setOnClickListener(this);
-        binding.buttonLoadState4.setOnClickListener(this);
-        binding.buttonLoadLastState.setOnClickListener(this);
-        binding.exit.setOnClickListener(this);
         binding.reset.setOnClickListener(this);
+        binding.exit.setOnClickListener(this);
         mBottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -430,7 +441,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
 
     private boolean mShouldResumeEmulator = false;
 
-    private boolean mShouldExit = false;
+    private boolean mExiting = false;
     private void onExit() {
         if (!mViewModel.isPlaying()) {
             NavController navController = NavHostFragment.findNavController(this);
@@ -447,7 +458,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
         File screenshot = FileManager.getFile(FileManager.IMAGE_DIRECTORY, mGame.id + ".png");
         boolean captureScreen = !screenshot.exists();
-        if (binding.saveState.isChecked()) {
+        if (mViewModel.saveStateWhenExitOption.getValue()) {
             if (!mAutoLoadDisabled) {
                 saveCurrentState(false);
             }
@@ -455,15 +466,16 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
         if (captureScreen) {
             captureScreen(screenshot.getPath(), error -> {
-                if (mShouldExit) {
+                if (mExiting) {
                     NavController navController = NavHostFragment.findNavController(this);
                     navController.popBackStack();
                 } else {
-                    mShouldExit = true;
+                    mExiting = true;
                 }
             });
+        } else {
+            mExiting = true;
         }
-        SettingsManager.putBoolean(AUTO_SAVE_STATE_CHECKED, binding.saveState.isChecked());
         mViewModel.stopEmulator();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mAudioManager != null) {
             mAudioManager.abandonAudioFocusRequest(mAudioRequest);
@@ -475,11 +487,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> error.printStackTrace(System.err))
                 .doFinally(() -> {
-                    if (mShouldExit) {
+                    if (mExiting) {
                         NavController navController = NavHostFragment.findNavController(this);
                         navController.popBackStack();
                     } else {
-                        mShouldExit = true;
+                        mExiting = true;
                     }
                 })
                 .subscribe();

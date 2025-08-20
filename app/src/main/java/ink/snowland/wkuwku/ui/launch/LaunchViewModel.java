@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Locale;
 
 import ink.snowland.wkuwku.EmulatorManager;
+import ink.snowland.wkuwku.R;
+import ink.snowland.wkuwku.bean.BooleanOption;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.common.EmOption;
 import ink.snowland.wkuwku.common.Errors;
@@ -39,9 +41,31 @@ public class LaunchViewModel extends BaseViewModel {
     private boolean mPlaying = false;
     private long mPrevSaveStateUptimeMillis;
     private long mPrevLoadStateUptimeMillis;
+    public final BooleanOption virtualControllerOption;
+    public final BooleanOption topControlMenuOption;
+    public final BooleanOption saveStateWhenExitOption;
 
     public LaunchViewModel(@NonNull Application application) {
         super(application);
+        virtualControllerOption = new BooleanOption(
+                "virtual_controller_enabled",
+                application.getString(R.string.virtual_controller),
+                application.getString(R.string.summary_enable_virtual_controller),
+                true
+        );
+        topControlMenuOption = new BooleanOption(
+                "top_control_menu_enabled",
+                application.getString(R.string.top_menu),
+                application.getString(R.string.summary_enable_top_menu),
+                true
+        );
+        saveStateWhenExitOption = new BooleanOption(
+                "save_state_when_exit",
+                application.getString(R.string.save_state),
+                null,
+                true
+
+        );
     }
 
     public void selectEmulator(@NonNull Game game) {
