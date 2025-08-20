@@ -249,7 +249,9 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         for (OnTouchEventListener listener : mTouchEventListener) {
-            listener.onTouchEvent(ev);
+            if (listener.dispatchTouchEvent(ev)) {
+                return true;
+            }
         }
         return super.dispatchTouchEvent(ev);
     }
@@ -437,6 +439,6 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     }
 
     public interface OnTouchEventListener {
-        void onTouchEvent(MotionEvent ev);
+        boolean dispatchTouchEvent(MotionEvent ev);
     }
 }

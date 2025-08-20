@@ -116,7 +116,7 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     }
 
     @Override
-    public void onTouchEvent(MotionEvent ev) {
-
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        return false;
     }
 }
