@@ -659,8 +659,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     @Override
-    public void onTouchEvent(MotionEvent ev) {
+    public boolean dispatchTouchEvent(MotionEvent ev) {
         resetHideTimer();
+        return super.dispatchTouchEvent(ev);
     }
 
     @SuppressWarnings("unchecked")
