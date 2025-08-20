@@ -171,5 +171,7 @@
     <string name="device_options">设备选项</string>
     <string name="view_options">视图选项</string>
     <string name="virtual_controller">虚拟控制器</string>
-    <string name="summary_enable_virtual_controller_view">显示虚拟控制器视图</string>
+    <string name="summary_enable_virtual_controller">显示虚拟控制器</string>
+    <string name="top_menu">顶部菜单</string>
+    <string name="summary_enable_top_menu">显示顶部菜单</string>
 </resources>

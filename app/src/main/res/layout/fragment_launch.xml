@@ -1,266 +1,252 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".ui.launch.LaunchFragment">
-
-    <ink.snowland.wkuwku.view.GSurfaceView
-        android:id="@+id/surface_view"
-        android:layout_width="match_parent"
-        android:layout_height="340dp"
-        app:layout_constraintVertical_bias="0.35"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-    <LinearLayout
-        android:fitsSystemWindows="true"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="ink.snowland.wkuwku.ui.launch.LaunchViewModel" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-        <FrameLayout
-            android:id="@+id/top_control_menu"
+        tools:context=".ui.launch.LaunchFragment">
+
+        <ink.snowland.wkuwku.view.GSurfaceView
+            android:id="@+id/surface_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="15dp">
-            <Button
-                android:id="@+id/button_savestate"
-                style="@style/Widget.Material3.Button.IconButton.Outlined"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:contentDescription="@string/save_state"
-                app:icon="@drawable/ic_more_time"
-                app:iconTint="@color/button_outline_color_selector" />
-            <Button
-                android:id="@+id/button_screenshot"
-                style="@style/Widget.Material3.Button.IconButton.Outlined"
-                android:layout_marginStart="48dp"
-                android:contentDescription="@string/screenshot"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:icon="@drawable/ic_add_a_photo" />
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/state_button_group"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:enabled="true"
-                android:layout_gravity="end"
-                app:singleSelection="true">
-
-                <Button
-                    android:id="@+id/button_load_state1"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="8dp"
-                    android:backgroundTint="@android:color/transparent"
-                    app:icon="@drawable/ic_counter_1"
-                    app:iconTint="@color/button_outline_color_selector" />
-
-                <Button
-                    android:id="@+id/button_load_state2"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:paddingHorizontal="8dp"
-                    android:backgroundTint="@android:color/transparent"
-                    app:icon="@drawable/ic_counter_2"
-                    app:iconTint="@color/button_outline_color_selector" />
-
-                <Button
-                    android:id="@+id/button_load_state3"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:layout_width="wrap_content"
-                    android:paddingHorizontal="8dp"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@android:color/transparent"
-                    app:icon="@drawable/ic_counter_3"
-                    app:iconTint="@color/button_outline_color_selector" />
-                <Button
-                    android:id="@+id/button_load_state4"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:paddingHorizontal="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@android:color/transparent"
-                    app:icon="@drawable/ic_counter_4"
-                    app:iconTint="@color/button_outline_color_selector" />
-                <Button
-                    android:id="@+id/button_load_last_state"
-                    style="@style/Widget.Material3.Button.IconButton.Outlined"
-                    android:paddingHorizontal="8dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:backgroundTint="@android:color/transparent"
-                    app:icon="@drawable/ic_history"
-                    app:iconTint="@color/button_outline_color_selector" />
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-        </FrameLayout>
-        <FrameLayout
-            android:id="@+id/controller_root"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-    </LinearLayout>
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+            android:layout_height="340dp"
+            app:layout_constraintVertical_bias="0.35"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
         <LinearLayout
-            android:id="@+id/standard_sheet"
-            style="@style/Widget.Material3.BottomSheet"
+            android:fitsSystemWindows="true"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="15dp"
+            android:layout_height="match_parent"
             android:orientation="vertical"
-            app:behavior_peekHeight="0dp"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
-            <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/top_control_menu"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <LinearLayout
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="15dp">
+                <Button
+                    android:id="@+id/button_savestate"
+                    style="@style/Widget.Material3.Button.IconButton.Outlined"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/reset"
-                        style="@style/Widget.Material3.Button.IconButton"
+                    android:contentDescription="@string/save_state"
+                    app:icon="@drawable/ic_more_time"
+                    app:iconTint="@color/button_outline_color_selector"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+                <Button
+                    android:id="@+id/button_screenshot"
+                    style="@style/Widget.Material3.Button.IconButton.Outlined"
+                    android:contentDescription="@string/screenshot"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:icon="@drawable/ic_add_a_photo"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/button_savestate" />
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/load_state_button_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleSelection="true"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <Button
+                        android:id="@+id/button_load_state1"
+                        style="@style/Widget.Material3.Button.IconButton.Outlined"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/reset"
-                        app:iconPadding="8dp"
-                        app:iconGravity="textTop"
-                        app:icon="@drawable/ic_reset_wrench" />
-                </LinearLayout>
-            </HorizontalScrollView>
-            <com.google.android.material.divider.MaterialDivider
+                        android:paddingHorizontal="8dp"
+                        android:backgroundTint="@android:color/transparent"
+                        app:icon="@drawable/ic_counter_1"
+                        app:iconTint="@color/button_outline_color_selector" />
+
+                    <Button
+                        android:id="@+id/button_load_state2"
+                        style="@style/Widget.Material3.Button.IconButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:backgroundTint="@android:color/transparent"
+                        app:icon="@drawable/ic_counter_2"
+                        app:iconTint="@color/button_outline_color_selector" />
+
+                    <Button
+                        android:id="@+id/button_load_state3"
+                        style="@style/Widget.Material3.Button.IconButton.Outlined"
+                        android:layout_width="wrap_content"
+                        android:paddingHorizontal="8dp"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@android:color/transparent"
+                        app:icon="@drawable/ic_counter_3"
+                        app:iconTint="@color/button_outline_color_selector" />
+                    <Button
+                        android:id="@+id/button_load_state4"
+                        style="@style/Widget.Material3.Button.IconButton.Outlined"
+                        android:paddingHorizontal="8dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@android:color/transparent"
+                        app:icon="@drawable/ic_counter_4"
+                        app:iconTint="@color/button_outline_color_selector" />
+                    <Button
+                        android:id="@+id/button_load_last_state"
+                        style="@style/Widget.Material3.Button.IconButton.Outlined"
+                        android:paddingHorizontal="8dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:backgroundTint="@android:color/transparent"
+                        app:icon="@drawable/ic_history"
+                        app:iconTint="@color/button_outline_color_selector" />
+                </com.google.android.material.button.MaterialButtonToggleGroup>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+            <FrameLayout
+                android:id="@+id/controller_root"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-            <androidx.core.widget.NestedScrollView
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+            <LinearLayout
+                android:id="@+id/standard_sheet"
+                style="@style/Widget.Material3.BottomSheet"
                 android:layout_width="match_parent"
-                android:layout_height="370dp">
-                <LinearLayout
+                android:layout_height="wrap_content"
+                android:paddingHorizontal="15dp"
+                android:orientation="vertical"
+                app:behavior_peekHeight="0dp"
+                app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
+                <com.google.android.material.bottomsheet.BottomSheetDragHandleView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:layout_height="wrap_content" />
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
                     <LinearLayout
-                        android:paddingTop="15dp"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
-                        <TextView
-                            android:textColor="?android:textColorSecondary"
+                        android:orientation="horizontal">
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/reset"
+                            style="@style/Widget.Material3.Button.IconButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:paddingBottom="8dp"
-                            android:text="@string/device_options" />
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layout1"
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent">
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/p1_controller_selector"
-                                android:hint="@string/player_1"
-                                android:inputType="none"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent" />
-                        </com.google.android.material.textfield.TextInputLayout>
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/layout2"
-                            android:layout_marginTop="8dp"
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:layout_constraintTop_toBottomOf="@id/layout1"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent">
-                            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                                android:id="@+id/p2_controller_selector"
-                                android:hint="@string/player_2"
-                                android:inputType="none"
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                            android:text="@string/reset"
+                            app:iconPadding="8dp"
+                            app:iconGravity="textTop"
+                            app:icon="@drawable/ic_reset_wrench" />
                     </LinearLayout>
+                </HorizontalScrollView>
+                <com.google.android.material.divider.MaterialDivider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="370dp">
                     <LinearLayout
-                        android:paddingTop="15dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical">
-                        <TextView
-                            android:textColor="?android:textColorSecondary"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:paddingBottom="8dp"
-                            android:text="@string/view_options"/>
                         <LinearLayout
+                            android:paddingTop="15dp"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal">
-                            <LinearLayout
-                                android:layout_width="0dp"
-                                android:layout_weight="1"
-                                android:layout_gravity="center_vertical"
-                                android:layout_height="match_parent"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:textStyle="bold"
-                                    android:textSize="15sp"
-                                    android:text="@string/virtual_controller" />
-                                <TextView
-                                    android:textColor="?android:textColorSecondary"
-                                    android:text="@string/summary_enable_virtual_controller_view"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content" />
-                            </LinearLayout>
-                            <com.google.android.material.materialswitch.MaterialSwitch
-                                android:id="@+id/switch_virtual_controller"
+                            android:orientation="vertical">
+                            <TextView
+                                android:textColor="?android:textColorSecondary"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:checked="true"
-                                app:layout_constraintEnd_toEndOf="parent"
+                                android:paddingBottom="8dp"
+                                android:text="@string/device_options" />
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/layout1"
+                                style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
                                 app:layout_constraintTop_toTopOf="parent"
-                                app:layout_constraintBottom_toBottomOf="parent" />
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent">
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/p1_controller_selector"
+                                    android:hint="@string/player_1"
+                                    android:inputType="none"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent" />
+                            </com.google.android.material.textfield.TextInputLayout>
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/layout2"
+                                android:layout_marginTop="8dp"
+                                style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:layout_constraintTop_toBottomOf="@id/layout1"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent">
+                                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                                    android:id="@+id/p2_controller_selector"
+                                    android:hint="@string/player_2"
+                                    android:inputType="none"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent" />
+                            </com.google.android.material.textfield.TextInputLayout>
                         </LinearLayout>
+                        <LinearLayout
+                            android:paddingTop="15dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical">
+                            <TextView
+                                android:textColor="?android:textColorSecondary"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/view_options"/>
+                            <include
+                                app:option="@{viewModel.virtualControllerOption}"
+                                layout="@layout/layout_switch_option" />
+                            <include
+                                app:option="@{viewModel.topControlMenuOption}"
+                                layout="@layout/layout_switch_option" />
+                        </LinearLayout>
+                        <Button
+                            android:id="@+id/exit"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:text="@string/exit"
+                            app:icon="@drawable/ic_power_settings_new"
+                            app:iconGravity="textStart" />
+                        <CheckBox
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="end"
+                            android:checked="@={viewModel.saveStateWhenExitOption.value}"
+                            android:text="@string/save_state" />
                     </LinearLayout>
-                    <Button
-                        android:id="@+id/exit"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
-                        android:text="@string/exit"
-                        app:icon="@drawable/ic_power_settings_new"
-                        app:iconGravity="textStart" />
-                    <CheckBox
-                        android:id="@+id/save_state"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:checked="true"
-                        android:text="@string/save_state" />
-                </LinearLayout>
-            </androidx.core.widget.NestedScrollView>
-        </LinearLayout>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
-    <include
-        android:id="@+id/pending_indicator"
-        layout="@layout/layout_loading_indicator" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <include
+            android:id="@+id/pending_indicator"
+            layout="@layout/layout_loading_indicator" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

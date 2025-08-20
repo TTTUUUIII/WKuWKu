@@ -757,6 +757,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
 #ifndef DEINIT_AFTER_UNLOAD
     retro_deinit();
 #endif
+    jclass clazz;
     env->DeleteGlobalRef(ctx.input_descriptor_clazz);
     env->DeleteGlobalRef(ctx.array_list_clazz);
     env->DeleteGlobalRef(ctx.message_ext_clazz);
@@ -766,6 +767,12 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     }
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
+    #ifndef MAIN_CLASS
+        clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
+    #else
+        clazz = env->FindClass(MAIN_CLASS);
+    #endif
+        env->UnregisterNatives(clazz);
     if (SwappyGL_isEnabled())
         SwappyGL_destroy();
     ctx.jvm = nullptr;

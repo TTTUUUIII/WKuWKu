@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="option"
+            type="ink.snowland.wkuwku.bean.BooleanOption" />
+    </data>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="Option Title"
+            android:text="@{option.title}"
+            android:gravity="bottom"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/material_switch"
+            app:layout_constraintBottom_toTopOf="@id/summary" />
+        <TextView
+            android:id="@+id/summary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            tools:text="Option Summary"
+            android:textSize="13sp"
+            android:text="@{option.summary}"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/material_switch"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/material_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="@={option.value}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>
