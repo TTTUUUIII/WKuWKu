@@ -23,7 +23,8 @@ public class Ruffle extends Emulator {
     static {
         System.loadLibrary("ruffle");
     }
-    private static final String PROP_SCALE_FACTOR = "ruffle_scale_factor";
+    private static final String PROP_KEY_SCALE_FACTOR = "ruffle_scale_factor";
+    private static final String PROP_KEY_SAVE_DIRECTORY = "ruffle_save_directory";
     private final Resources mResource;
 
     private final EmSystemInfo mSystemInfo;
@@ -37,8 +38,16 @@ public class Ruffle extends Emulator {
     }
 
     @Override
+    public void setProp(int what, Object data) {
+        super.setProp(what, data);
+        if (what == PROP_SAVE_DIRECTORY) {
+            nativeSetProp(PROP_KEY_SAVE_DIRECTORY, data);
+        }
+    }
+
+    @Override
     protected boolean startGame(@NonNull String path) {
-        EmOption option = getOptionByKey(PROP_SCALE_FACTOR);
+        EmOption option = getOptionByKey(PROP_KEY_SCALE_FACTOR);
         float scaleFactor = 0f;
         if (option != null) {
             scaleFactor = NumberUtils.parseFloat(option.val, 0f);
@@ -46,7 +55,7 @@ public class Ruffle extends Emulator {
         if (scaleFactor == 0f) {
             scaleFactor = mResource.getDisplayMetrics().density;
         }
-        nativeSetProp(PROP_SCALE_FACTOR, scaleFactor);
+        nativeSetProp(PROP_KEY_SCALE_FACTOR, scaleFactor);
         return nativeStart(path);
     }
 
