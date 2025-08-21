@@ -4,10 +4,10 @@ plugins {
 
 android {
     namespace 'org.wkuwku.common'
-    compileSdk 35
+    compileSdk rootProject.ext.versions.compileSdkVersion
 
     defaultConfig {
-        minSdk 24
+        minSdk rootProject.ext.versions.minSdkVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
