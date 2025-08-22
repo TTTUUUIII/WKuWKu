@@ -1,36 +1,34 @@
 # WKuWKu ![Application icon](app/src/main/res/drawable/app_icon_mdpi.png)
 
-[简体中文](README.zh_CN.md)]
-
 | <img src="Screenshots/sc_001.png" style="zoom:30%;" /> | <img src="Screenshots/sc_002.png" style="zoom:30%;" /> | <img src="Screenshots/sc_003.png" style="zoom:30%;" /> | <img src="Screenshots/sc_004.png" style="zoom:30%;" /> |
 |--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|
 | <img src="Screenshots/sc_005.png" style="zoom:40%;" /> | <img src="Screenshots/sc_006.png" style="zoom:30%;" /> | <img src="Screenshots/sc_007.png" style="zoom:30%;" /> | <img src="Screenshots/sc_008.png" style="zoom:30%;" /> |
 
-## What is WKuWKu ?
+## WKuWKu是什么？
 
-WkuWku aims to transform your existing Android devices into a multi-platform retro gaming console, allowing you to enjoy classic retro games anytime, anywhere—much like [RetroArch](https://github.com/libretro/RetroArch). However, unlike RetroArch, its goal is not only to run various [libretro](https://www.libretro.com/index.php/api/) cores, but also to support other systems — such as running [Flash](https://en.wikipedia.org/wiki/Adobe_Flash) content through [Ruffle](https://github.com/ruffle-rs/ruffle). In short, it is a libretro frontend, but also more than just a libretro frontend.
+WkuWku的目标是将您身边现有的Android设备变成一个多平台的复古游戏机，以便让您可以随时随地游玩那些经典的复古游戏，就像RetroArch一样，但和[RertoArch](https://github.com/libretro/RetroArch)不同的点是，它的目标并不只是运行各种[libretro](https://www.libretro.com/index.php/api/)核心，也可能是其它系统(例如：通过[ruffle](https://github.com/ruffle-rs/ruffle)运行[Flash](https://zh.wikipedia.org/wiki/Adobe_Flash)内容)。简单来说，它是一个libretro前端，但又不只是一个libretro前端。
 
-## What's goal?
+## 最终目标是什么？
 
-I think, WkuWku should be:
+我认为, WkuWku应该:
 
-- Feature-rich and stable
+- 功能丰富且稳定
 
-- Simple yet aesthetically pleasing in design
+- 界面简洁但美观
 
-- Easy to operate
+- 操作简单
 
-- Lightweight
+- 小巧
 
-- iOS support? (Perhaps)
+- iOS支持？(也许)
 
-> Update frequency is weekly
+> 更新频率为每周
 
-## What is the current status?
+## 进展如何？
 
-The project is currently in **development**, with many features not yet finalized or requiring testing. If you’re interested in the application, feel free to visit the [release page](https://github.com/TTTUUUIII/WKuWKu/releases) to download and try it out.
+目前项目处于**开发阶段**，许多功能还未实现或需要测试。如果您对这个应用感兴趣, 欢迎前往[发布页](https://github.com/TTTUUUIII/WKuWKu/releases)下载使用。
 
-### Currently supported systems:
+### 目前支持的系统：
 
 | System                              | manufacturer | optional core       |
 |-------------------------------------|--------------|---------------------|
@@ -52,6 +50,6 @@ The project is currently in **development**, with many features not yet finalize
 | PC Engine                           | NEC          | geargrafx           |
 | Flash                               | Adobe        | ruffle              |
 
-## At last
+## 最后
 
-Have fun!
+玩的开心！
