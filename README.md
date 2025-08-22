@@ -1,6 +1,6 @@
 # WKuWKu ![Application icon](app/src/main/res/drawable/app_icon_mdpi.png)
 
-[简体中文](README.zh_CN.md)]
+[简体中文](README.zh_CN.md)
 
 | <img src="Screenshots/sc_001.png" style="zoom:30%;" /> | <img src="Screenshots/sc_002.png" style="zoom:30%;" /> | <img src="Screenshots/sc_003.png" style="zoom:30%;" /> | <img src="Screenshots/sc_004.png" style="zoom:30%;" /> |
 |--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|
