@@ -6,7 +6,7 @@
 
 ## What is WKuWKu ?
 
-WkuWku aims to transform your existing Android devices into a multi-platform retro gaming console, allowing you to enjoy classic retro games anytime, anywhere—much like [RetroArch](https://github.com/libretro/RetroArch). However, unlike RetroArch, its goal is not only to run various libretro cores, but also to support other systems — such as running Flash content through [Ruffle](https://github.com/ruffle-rs/ruffle). In short, it is a libretro frontend, but also more than just a libretro frontend.
+WkuWku aims to transform your existing Android devices into a multi-platform retro gaming console, allowing you to enjoy classic retro games anytime, anywhere—much like [RetroArch](https://github.com/libretro/RetroArch). However, unlike RetroArch, its goal is not only to run various [libretro](https://www.libretro.com/index.php/api/) cores, but also to support other systems — such as running Flash content through [Ruffle](https://github.com/ruffle-rs/ruffle). In short, it is a libretro frontend, but also more than just a libretro frontend.
 
 ## What's goal?
 
