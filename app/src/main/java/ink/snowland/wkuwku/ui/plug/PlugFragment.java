@@ -102,7 +102,6 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(PlugViewModel.class);
-        final int submitDelayedMillis = savedInstanceState == null ? 300 : 0;
         mViewModel.getAvailablePlugInfos()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -112,11 +111,11 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 })
                 .doOnError(error -> error.printStackTrace(System.err))
                 .onErrorComplete()
-                .doOnSuccess(data -> runAtDelayed(() -> mAvailablePlugAdapter.submitList(data), submitDelayedMillis))
+                .doOnSuccess(mAvailablePlugAdapter::submitList)
                 .subscribe();
         mViewModel.getAll().observe(
                 this,
-                data -> runAtDelayed(() -> mInstalledPlugAdapter.submitList(data), submitDelayedMillis)
+                mInstalledPlugAdapter::submitList
         );
     }
 
