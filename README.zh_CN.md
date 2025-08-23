@@ -4,7 +4,9 @@
     <img src="Screenshots/logo.svg" alt="Application icon" width="110" />
 </p>
 
-[![Lecense GPLv3](https://img.shields.io/github/license/TTTUUUIII/WkuWku?label=License&color=33A1E0)](LICENSE)[![Release](https://img.shields.io/github/v/tag/TTTUUUIII/WkuWku?label=Release)](https://github.com/TTTUUUIII/WKuWKu/releases)[![Build Release](https://img.shields.io/github/actions/workflow/status/TTTUUUIII/WkuWku/release.yml?label=Build)](https://github.com/TTTUUUIII/WKuWKu/actions/workflows/release.yml)
+[![Lecense GPLv3](https://img.shields.io/github/license/TTTUUUIII/WkuWku?label=License&color=33A1E0)](LICENSE)
+[![Release](https://img.shields.io/github/v/tag/TTTUUUIII/WkuWku?label=Release)](https://github.com/TTTUUUIII/WKuWKu/releases)
+[![Build Release](https://img.shields.io/github/actions/workflow/status/TTTUUUIII/WkuWku/release.yml?label=Build)](https://github.com/TTTUUUIII/WKuWKu/actions/workflows/release.yml)
 
 ## 截图
 
