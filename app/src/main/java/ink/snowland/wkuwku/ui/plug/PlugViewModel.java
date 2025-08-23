@@ -32,7 +32,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlugViewModel extends BaseViewModel {
     private final MutableLiveData<List<PlugManifestExt>> mInstalledPlugs = new MutableLiveData<>();
-    private final MutableLiveData<Integer> mCurrentPagePosition = new MutableLiveData<>(0);
     private final Disposable mDisposable;
     public PlugViewModel(@NonNull Application application) {
         super(application);
@@ -47,13 +46,6 @@ public class PlugViewModel extends BaseViewModel {
         return mInstalledPlugs;
     }
 
-    public LiveData<Integer> getPagePosition() {
-        return mCurrentPagePosition;
-    }
-
-    public void updatePagePosition(int position) {
-        mCurrentPagePosition.postValue(position);
-    }
 
     public PlugManifestExt findInstalledPlug(@NonNull String packageName) {
         List<PlugManifestExt> plugs = mInstalledPlugs.getValue();

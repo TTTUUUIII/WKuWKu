@@ -53,6 +53,7 @@ import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.PlugManager;
+import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -135,17 +136,15 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         binding.viewPager.setAdapter(mPagerAdapter);
         binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
         parentActivity.setActionbarTitle(R.string.extension_manage);
-        mViewModel.getPagePosition().observe(getViewLifecycleOwner(), position -> {
-            if (position != binding.viewPager.getCurrentItem()) {
-                binding.viewPager.setCurrentItem(position);
-            }
-        });
     }
 
     @Override
     public void onTabSelected(TabLayout.Tab tab) {
         int position = tab.getPosition();
-        mViewModel.updatePagePosition(position);
+        if (position != binding.viewPager.getCurrentItem()) {
+            binding.viewPager.setCurrentItem(position,
+                    SettingsManager.getBoolean(SettingsManager.NAVIGATION_ANIMATION, true));
+        }
         if (position == AVAILABLE_SCREEN && !mAvailablePlugListLoaded) {
             mViewModel.setPendingIndicator(true, R.string.loading);
         }

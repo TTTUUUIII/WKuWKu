@@ -198,4 +198,6 @@
     <string name="summary_enable_virtual_controller">Enable virtual controller</string>
     <string name="top_menu">Top menu</string>
     <string name="summary_enable_top_menu">Enable top menu</string>
+    <string name="summary_nav_animation">Apply transition animation when navigation</string>
+    <string name="nav_animation">Navigation animation</string>
 </resources>

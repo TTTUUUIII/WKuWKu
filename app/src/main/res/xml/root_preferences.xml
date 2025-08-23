@@ -117,6 +117,12 @@
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="true"
+            app:key="app_nav_transition_anim"
+            app:title="@string/nav_animation"
+            android:summary="@string/summary_nav_animation" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:defaultValue="true"
             app:key="app_new_version_notification"
             app:summary="@string/summary_new_version_notification"
             app:title="@string/new_version_notification" />
