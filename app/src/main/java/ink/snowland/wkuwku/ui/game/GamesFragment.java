@@ -109,7 +109,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         NavController navController = NavHostFragment.findNavController(this);
         Bundle args = new Bundle();
         args.putParcelable(LaunchFragment.ARG_GAME, game);
-        navController.navigate(R.id.launch_fragment, args, navAnimOptions);
+        navController.navigate(R.id.launch_fragment, args, getNavAnimOptions());
     }
 
     private class ViewHolder extends GameViewAdapter.GameViewHolder {

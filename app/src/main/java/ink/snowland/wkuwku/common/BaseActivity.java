@@ -53,7 +53,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private OnResultCallback<Uri> mOpenDocumentCallback;
     private OnResultCallback<String> mOnQRScanResultCallback;
     private final Handler handler = new Handler(Looper.getMainLooper());
-    protected NavOptions navAnimOptions = null;
+    protected NavOptions mNavAnimOptions = null;
     private final List<OnInputEventListener> mKeyListeners = new ArrayList<>();
     private final List<OnTouchEventListener> mTouchEventListener = new ArrayList<>();
     private final List<InputManager.InputDeviceListener> mInputDeviceListeners = new ArrayList<>();
@@ -83,7 +83,12 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
                 }
             }
         });
-        updateNavAnimOptions();
+        mNavAnimOptions = new NavOptions.Builder()
+                .setEnterAnim(R.anim.slide_in_right)
+                .setExitAnim(R.anim.slide_out_left)
+                .setPopEnterAnim(R.anim.slide_in_left)
+                .setPopExitAnim(R.anim.slide_out_right)
+                .build();
         mInputManager = (InputManager) getSystemService(INPUT_SERVICE);
         int[] deviceIds = mInputManager.getInputDeviceIds();
         for (int deviceId : deviceIds) {
@@ -207,23 +212,17 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     public void onSettingChanged(@NonNull String key) {
         if (APP_THEME.equals(key)) {
             updateAppTheme();
-        } else if (SettingsManager.NAVIGATION_ANIMATION.equals(key)) {
-            updateNavAnimOptions();
         }
     }
 
-    private void updateNavAnimOptions() {
+    protected NavOptions getNavAnimOptions() {
         if (SettingsManager.getBoolean(SettingsManager.NAVIGATION_ANIMATION, true)) {
-            navAnimOptions = new NavOptions.Builder()
-                    .setEnterAnim(R.anim.slide_in_right)
-                    .setExitAnim(R.anim.slide_out_left)
-                    .setPopEnterAnim(R.anim.slide_in_left)
-                    .setPopExitAnim(R.anim.slide_out_right)
-                    .build();
+            return mNavAnimOptions;
         } else {
-            navAnimOptions = null;
+            return null;
         }
     }
+
     private void updateAppTheme() {
         String theme = SettingsManager.getString(APP_THEME, "system");
         if (theme.equals("dark")) {
