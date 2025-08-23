@@ -1,10 +1,16 @@
-# WKuWKu ![Application icon](app/src/main/res/drawable/app_icon_mdpi.png)
+# WKuWKu
 
-[简体中文](README.zh_CN.md)
+<img src="Screenshots/logo.svg" alt="Application icon" style="zoom: 25%;" />
 
-| <img src="Screenshots/sc_001.png" style="zoom:30%;" /> | <img src="Screenshots/sc_002.png" style="zoom:30%;" /> | <img src="Screenshots/sc_003.png" style="zoom:30%;" /> | <img src="Screenshots/sc_004.png" style="zoom:30%;" /> |
-|--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|--------------------------------------------------------|
-| <img src="Screenshots/sc_005.png" style="zoom:40%;" /> | <img src="Screenshots/sc_006.png" style="zoom:30%;" /> | <img src="Screenshots/sc_007.png" style="zoom:30%;" /> | <img src="Screenshots/sc_008.png" style="zoom:30%;" /> |
+[[简体中文]](README.zh_CN.md)
+
+[![Lecense GPLv3](https://img.shields.io/github/license/TTTUUUIII/WkuWku?label=License&color=33A1E0)](LICENSE)[![Release](https://img.shields.io/github/v/tag/TTTUUUIII/WkuWku?label=Release)](https://github.com/TTTUUUIII/WKuWKu/releases)
+
+## Screenshots
+
+| <img src="Screenshots/sc_001.png" style="zoom:30%;" title="All games" /> | <img src="Screenshots/sc_002.png" style="zoom:30%;" title="Recent played" /> | <img src="Screenshots/sc_003.png" style="zoom:30%;" title="Extension manage" /> | <img src="Screenshots/sc_004.png" style="zoom:30%;" title="Core options" /> |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| <img src="Screenshots/sc_005.png" style="zoom:40%;" title="Sonic The Hedgehog" /> | <img src="Screenshots/sc_006.png" style="zoom:30%;" title="Metal Slug" /> | <img src="Screenshots/sc_007.png" style="zoom:30%;" title="Castlevania" /> | <img src="Screenshots/sc_008.png" style="zoom:30%;" title="Double Edged" /> |
 
 ## What is WKuWKu ?
 
@@ -12,16 +18,10 @@ WkuWku aims to transform your existing Android devices into a multi-platform ret
 
 ## What's goal?
 
-I think, WkuWku should be:
-
-- Feature-rich and stable
-
-- Simple yet aesthetically pleasing in design
-
-- Easy to operate
-
-- Lightweight
-
+- Feature-rich and stable;
+- Simple yet aesthetically pleasing in design;
+- Easy to operate;
+- Lightweight;
 - iOS support? (Perhaps)
 
 > Update frequency is weekly
