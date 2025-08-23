@@ -20,16 +20,17 @@ import java.util.List;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.Hotkey;
+import ink.snowland.wkuwku.util.SettingsManager;
 
 public class BaseFragment extends Fragment implements InputManager.InputDeviceListener, BaseActivity.OnInputEventListener, BaseActivity.OnTouchEventListener {
     protected BaseActivity parentActivity;
     protected Handler handler;
-    protected NavOptions navAnimOptions;
+    private NavOptions mNavAnimOptions;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        navAnimOptions = new NavOptions.Builder()
+        mNavAnimOptions = new NavOptions.Builder()
                 .setEnterAnim(R.anim.zoom_in_right)
                 .setPopEnterAnim(R.anim.zoom_in_left)
                 .build();
@@ -88,6 +89,14 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     protected InputDevice getInputDevice(int deviceId) {
         return parentActivity.getInputDevice(deviceId);
+    }
+
+    protected NavOptions getNavAnimOptions() {
+        if (SettingsManager.getBoolean(SettingsManager.NAVIGATION_ANIMATION, true)) {
+            return mNavAnimOptions;
+        } else {
+            return null;
+        }
     }
 
     @Override

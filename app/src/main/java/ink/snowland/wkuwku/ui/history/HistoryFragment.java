@@ -39,7 +39,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class HistoryFragment extends BaseFragment {
 
-    private FragmentHistoryBinding binding;
     private HistoryViewModel mViewModel;
     private Disposable mDisposable;
     private final ViewAdapter mAdapter = new ViewAdapter();
@@ -58,7 +57,7 @@ public class HistoryFragment extends BaseFragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentHistoryBinding.inflate(inflater);
+        FragmentHistoryBinding binding = FragmentHistoryBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, getGridSpanCount()));
         binding.setViewModel(mViewModel);
@@ -84,7 +83,7 @@ public class HistoryFragment extends BaseFragment {
         Bundle args = new Bundle();
         args.putBoolean(LaunchFragment.ARG_AUTO_LOAD_STATE, true);
         args.putParcelable(LaunchFragment.ARG_GAME, game);
-        navController.navigate(R.id.launch_fragment, args, navAnimOptions);
+        navController.navigate(R.id.launch_fragment, args, getNavAnimOptions());
     }
 
     private void showMorePopupMenu(@NonNull View view, @NonNull Game game) {
@@ -118,9 +117,7 @@ public class HistoryFragment extends BaseFragment {
         @SuppressLint("SetTextI18n")
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
-            itemBinding.buttonMore.setOnClickListener(v -> {
-                showMorePopupMenu(v, game);
-            });
+            itemBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(v, game));
             RequestOptions options = new RequestOptions()
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true);

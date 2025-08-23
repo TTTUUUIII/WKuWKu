@@ -133,7 +133,7 @@ public class MainActivity extends BaseActivity {
                 navResId = 0;
             }
             if (navResId != 0 && isNavigateAble(navResId)) {
-                mNavController.navigate(navResId, null, navAnimOptions);
+                mNavController.navigate(navResId, null, getNavAnimOptions());
             }
             binding.drawerLayout.closeDrawers();
         }
@@ -146,7 +146,7 @@ public class MainActivity extends BaseActivity {
             return true;
         } else if (item.getItemId() == R.id.action_settings) {
             if (isNavigateAble(R.id.settings_fragment)) {
-                mNavController.navigate(R.id.settings_fragment, null, navAnimOptions);
+                mNavController.navigate(R.id.settings_fragment, null, getNavAnimOptions());
             }
         }
         return super.onOptionsItemSelected(item);
@@ -233,7 +233,7 @@ public class MainActivity extends BaseActivity {
             case REQUEST_NAVIGATE:
                 int fragmentId = intent.getIntExtra(EXTRA_NAVIGATE_RES_ID, 0);
                 if (fragmentId == 0) return;
-                mNavController.navigate(fragmentId, null, navAnimOptions);
+                mNavController.navigate(fragmentId, null, getNavAnimOptions());
                 break;
             case REQUEST_INSTALL_PACKAGE:
                 String path = intent.getStringExtra(EXTRA_PACKAGE_FILE_PATH);
