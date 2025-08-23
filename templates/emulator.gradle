@@ -25,7 +25,7 @@ android {
         prefab true
     }
 
-    ndkVersion "28.0.13004108"
+    ndkVersion rootProject.ext.versions.ndkVersion
 }
 
 dependencies {
