@@ -26,7 +26,6 @@ import ink.snowland.wkuwku.util.TimeUtils;
 import ink.snowland.wkuwku.widget.GameViewAdapter;
 
 public class TrashFragment extends BaseFragment {
-    private FragmentTrashBinding binding;
     private TrashViewModel mViewModel;
     private int mTrashStorageDays = 15;
     private final ViewAdapter mAdapter = new ViewAdapter();
@@ -35,18 +34,14 @@ public class TrashFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(TrashViewModel.class);
         mViewModel.getTrash()
-                .observe(this, trash -> {
-                    runAtDelayed(() -> {
-                        mAdapter.submitList(trash);
-                    }, savedInstanceState == null ? 300 : 0);
-                });
+                .observe(this, mAdapter::submitList);
         mTrashStorageDays = getResources().getInteger(R.integer.trash_storage_days);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentTrashBinding.inflate(inflater, container, false);
+        FragmentTrashBinding binding = FragmentTrashBinding.inflate(inflater, container, false);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(parentActivity));
@@ -66,9 +61,7 @@ public class TrashFragment extends BaseFragment {
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.emergency)
                 .setMessage(getString(R.string.delete_confirm, game.title))
-                .setPositiveButton(R.string.confirm, (dialog, which) -> {
-                    mViewModel.delete(game);
-                })
+                .setPositiveButton(R.string.confirm, (dialog, which) -> mViewModel.delete(game))
                 .setNegativeButton(R.string.cancel, null)
                 .setCancelable(false)
                 .show();
@@ -86,12 +79,8 @@ public class TrashFragment extends BaseFragment {
         public void bind(@NonNull Game game) {
             itemBinding.setGame(game);
             itemBinding.deleteDate.setText(getString(R.string.fmt_delete_after_days, mTrashStorageDays - TimeUtils.elapsedDays(game.lastModifiedTime)));
-            itemBinding.buttonDelete.setOnClickListener(v -> {
-                showDeleteDialog(game);
-            });
-            itemBinding.buttonRestore.setOnClickListener(v -> {
-                mViewModel.restore(game);
-            });
+            itemBinding.buttonDelete.setOnClickListener(v -> showDeleteDialog(game));
+            itemBinding.buttonRestore.setOnClickListener(v -> mViewModel.restore(game));
         }
     }
 
