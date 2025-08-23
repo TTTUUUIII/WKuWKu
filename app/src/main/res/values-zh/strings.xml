@@ -174,4 +174,6 @@
     <string name="summary_enable_virtual_controller">显示虚拟控制器</string>
     <string name="top_menu">顶部菜单</string>
     <string name="summary_enable_top_menu">显示顶部菜单</string>
+    <string name="summary_nav_animation">页面间导航时应用动画</string>
+    <string name="nav_animation">导航动画</string>
 </resources>

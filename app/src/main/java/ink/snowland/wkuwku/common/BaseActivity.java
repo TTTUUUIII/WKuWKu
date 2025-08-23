@@ -83,10 +83,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
                 }
             }
         });
-        navAnimOptions = new NavOptions.Builder()
-                .setEnterAnim(R.anim.zoom_in_right)
-                .setPopEnterAnim(R.anim.zoom_in_left)
-                .build();
+        updateNavAnimOptions();
         mInputManager = (InputManager) getSystemService(INPUT_SERVICE);
         int[] deviceIds = mInputManager.getInputDeviceIds();
         for (int deviceId : deviceIds) {
@@ -210,9 +207,23 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     public void onSettingChanged(@NonNull String key) {
         if (APP_THEME.equals(key)) {
             updateAppTheme();
+        } else if (SettingsManager.NAVIGATION_ANIMATION.equals(key)) {
+            updateNavAnimOptions();
         }
     }
 
+    private void updateNavAnimOptions() {
+        if (SettingsManager.getBoolean(SettingsManager.NAVIGATION_ANIMATION, true)) {
+            navAnimOptions = new NavOptions.Builder()
+                    .setEnterAnim(R.anim.slide_in_right)
+                    .setExitAnim(R.anim.slide_out_left)
+                    .setPopEnterAnim(R.anim.slide_in_left)
+                    .setPopExitAnim(R.anim.slide_out_right)
+                    .build();
+        } else {
+            navAnimOptions = null;
+        }
+    }
     private void updateAppTheme() {
         String theme = SettingsManager.getString(APP_THEME, "system");
         if (theme.equals("dark")) {

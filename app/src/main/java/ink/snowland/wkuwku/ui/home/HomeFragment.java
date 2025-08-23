@@ -24,6 +24,7 @@ import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.ui.coreopt.CoreOptionsFragment;
 import ink.snowland.wkuwku.ui.game.GamesFragment;
 import ink.snowland.wkuwku.ui.history.HistoryFragment;
+import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
@@ -75,7 +76,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         int itemId = item.getItemId();
         int position = getDestinationIndex(itemId);
         if (position != binding.viewPager.getCurrentItem()) {
-            binding.viewPager.setCurrentItem(position);
+            binding.viewPager.setCurrentItem(position,
+                    SettingsManager.getBoolean(SettingsManager.NAVIGATION_ANIMATION, true));
         }
         return true;
     }
