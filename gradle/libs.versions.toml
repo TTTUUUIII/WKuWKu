@@ -1,5 +1,6 @@
 [versions]
 agp = "8.8.0"
+barcodeScanning = "17.3.0"
 gamesFramePacing = "2.1.2"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -12,6 +13,7 @@ oboe = "1.9.3"
 preference = "1.2.0"
 
 [libraries]
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
 games-frame-pacing = { module = "androidx.games:games-frame-pacing", version.ref = "gamesFramePacing" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

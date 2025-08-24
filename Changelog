@@ -1,0 +1,7 @@
+@v0.4.12a
+[Add] switch virtual controller's layout;
+[Add] disable navigation animation setting;
+[Add] dispatch keyboard event;
+[Opt] view overlapping;
+[Change] exit game dialog style.
+@end
