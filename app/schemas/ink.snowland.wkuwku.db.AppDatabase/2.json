@@ -1,0 +1,176 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "9b39fdc735409c89fc9c740011c327b3",
+    "entities": [
+      {
+        "tableName": "tb_game",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT, `filepath` TEXT, `system` TEXT, `state` INTEGER NOT NULL, `region` TEXT DEFAULT 'unknown', `added_time` INTEGER NOT NULL, `last_modified_time` INTEGER NOT NULL, `last_played_time` INTEGER NOT NULL, `remark` TEXT DEFAULT '', `md5` TEXT, `publisher` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "filepath",
+            "columnName": "filepath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "system",
+            "columnName": "system",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "state",
+            "columnName": "state",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "region",
+            "columnName": "region",
+            "affinity": "TEXT",
+            "defaultValue": "'unknown'"
+          },
+          {
+            "fieldPath": "addedTime",
+            "columnName": "added_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastModifiedTime",
+            "columnName": "last_modified_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastPlayedTime",
+            "columnName": "last_played_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "remark",
+            "columnName": "remark",
+            "affinity": "TEXT",
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "md5",
+            "columnName": "md5",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "publisher",
+            "columnName": "publisher",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_tb_game_filepath",
+            "unique": true,
+            "columnNames": [
+              "filepath"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_tb_game_filepath` ON `${TABLE_NAME}` (`filepath`)"
+          },
+          {
+            "name": "index_tb_game_md5",
+            "unique": true,
+            "columnNames": [
+              "md5"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_tb_game_md5` ON `${TABLE_NAME}` (`md5`)"
+          }
+        ]
+      },
+      {
+        "tableName": "tb_plug_manifest_ext",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`enabled` INTEGER NOT NULL, `package_name` TEXT NOT NULL, `origin_name` TEXT, `origin_packageName` TEXT, `origin_mainClass` TEXT, `origin_author` TEXT, `origin_summary` TEXT, `origin_installPath` TEXT, `origin_versionName` TEXT, `origin_versionCode` INTEGER, PRIMARY KEY(`package_name`))",
+        "fields": [
+          {
+            "fieldPath": "enabled",
+            "columnName": "enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "origin.name",
+            "columnName": "origin_name",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.packageName",
+            "columnName": "origin_packageName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.mainClass",
+            "columnName": "origin_mainClass",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.author",
+            "columnName": "origin_author",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.summary",
+            "columnName": "origin_summary",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.installPath",
+            "columnName": "origin_installPath",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.versionName",
+            "columnName": "origin_versionName",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "origin.versionCode",
+            "columnName": "origin_versionCode",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "package_name"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9b39fdc735409c89fc9c740011c327b3')"
+    ]
+  }
+}

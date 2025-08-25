@@ -4,7 +4,8 @@ ext {
     versions = [
             compileSdkVersion: 35,
             minSdkVersion    : 24,
-            targetSdkVersion : 35
+            targetSdkVersion : 35,
+            ndkVersion       : "27.3.13750724"
     ]
 
     configApplicationSiging = { project ->

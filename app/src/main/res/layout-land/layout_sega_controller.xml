@@ -7,7 +7,7 @@
     android:paddingBottom="15dp">
     <ink.snowland.wkuwku.view.JoystickView
         android:id="@+id/joystick_view"
-        android:layout_width="140dp"
+        android:layout_width="148dp"
         android:layout_height="wrap_content"
         app:JV_borderWidth="2dp"
         app:layout_constraintBottom_toBottomOf="parent"
