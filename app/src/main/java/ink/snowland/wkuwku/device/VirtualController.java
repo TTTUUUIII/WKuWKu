@@ -12,29 +12,19 @@ import android.os.Vibrator;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.databinding.LayoutVirtualControllerBinding;
-import ink.snowland.wkuwku.db.AppDatabase;
-import ink.snowland.wkuwku.db.entity.MacroScript;
-import ink.snowland.wkuwku.util.MacroCompiler;
 import ink.snowland.wkuwku.util.SettingsManager;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class VirtualController implements Controller, View.OnTouchListener, View.OnClickListener, View.OnLongClickListener {
+public class VirtualController implements Controller, View.OnTouchListener {
     private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     public static final String NAME = "Virtual Controller";
@@ -62,7 +52,6 @@ public class VirtualController implements Controller, View.OnTouchListener, View
     @Nullable
     protected View onCreateView(LayoutInflater inflater) {
         binding = LayoutVirtualControllerBinding.inflate(inflater);
-        bindMacros();
         bindEvents();
         return binding.getRoot();
     }
@@ -154,10 +143,6 @@ public class VirtualController implements Controller, View.OnTouchListener, View
         binding.buttonR2.setOnTouchListener(this);
         binding.buttonR3.setOnTouchListener(this);
         binding.buttonAB.setOnTouchListener(this);
-        binding.buttonM1.setOnClickListener(this);
-        binding.buttonM2.setOnClickListener(this);
-        binding.buttonM1.setOnLongClickListener(this);
-        binding.buttonM2.setOnLongClickListener(this);
         binding.joystickView.setOnMoveListener((angle, strength) -> {
             double rad = Math.toRadians(angle);
             double dist = strength / 100.0;
@@ -180,59 +165,6 @@ public class VirtualController implements Controller, View.OnTouchListener, View
             setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT, left);
             setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, right);
         });
-    }
-
-    private final Map<String, MacroScript> mAllValidMacros = new HashMap<>();
-    private void bindMacros() {
-        ArrayList<String> macroTitles = new ArrayList<>();
-        AppDatabase.db.macroScriptDao()
-                .getList()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSuccess(scripts -> {
-                    scripts.forEach(script -> {
-                        macroTitles.add(script.title);
-                        mAllValidMacros.put(script.title, script);
-                    });
-                    binding.m1Marco.setAdapter(new ArrayAdapter<>(binding.getRoot().getContext(), R.layout.layout_simple_text, macroTitles.toArray(new String[0])));
-                    binding.m2Marco.setAdapter(new ArrayAdapter<>(binding.getRoot().getContext(), R.layout.layout_simple_text, macroTitles.toArray(new String[0])));
-                })
-                .onErrorComplete()
-                .subscribe();
-    }
-
-    @Override
-    public void onClick(View v) {
-        int viewId = v.getId();
-        String macroTitle = "";
-        if (viewId == R.id.button_m2) {
-            Object item = binding.m2Marco.getSelectedItem();
-            if (item != null)
-                macroTitle = item.toString();
-        } else if (viewId == R.id.button_m1) {
-            Object item = binding.m1Marco.getSelectedItem();
-            if (item != null)
-                macroTitle = item.toString();
-        }
-        if (!macroTitle.isEmpty()) {
-            MacroScript script = mAllValidMacros.get(macroTitle);
-            if (script != null) {
-                List<MacroEvent> events = MacroCompiler.compile(script);
-                postMacroEvents(events);
-            }
-        }
-        vibrator();
-    }
-
-    @Override
-    public boolean onLongClick(View v) {
-        if (mAllValidMacros.isEmpty()) return true;
-        if (binding.layoutMacrosControl.getVisibility() == View.VISIBLE) {
-            binding.layoutMacrosControl.setVisibility(View.GONE);
-        } else {
-            binding.layoutMacrosControl.setVisibility(View.VISIBLE);
-        }
-        return true;
     }
 
     @Override

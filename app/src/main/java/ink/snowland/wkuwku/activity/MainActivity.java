@@ -123,9 +123,7 @@ public class MainActivity extends BaseActivity {
             showAboutDialog();
         } else {
             final int navResId;
-            if (itemId == R.id.action_macro) {
-                navResId = R.id.macro_fragment;
-            } else if (itemId == R.id.action_trash) {
+            if (itemId == R.id.action_trash) {
                 navResId = R.id.trash_fragment;
             } else if (itemId == R.id.action_extension) {
                 navResId = R.id.plug_fragment;

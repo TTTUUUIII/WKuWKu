@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.room)
 }
 
 android {
@@ -44,6 +45,11 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    room {
+        schemaDirectory "$projectDir/schemas"
+    }
+
     ndkVersion rootProject.ext.versions.ndkVersion
 }
 
@@ -59,10 +65,10 @@ dependencies {
     implementation "com.github.bumptech.glide:glide:4.16.0"
     implementation "androidx.navigation:navigation-fragment:$navigation_version"
     implementation "androidx.navigation:navigation-ui:$navigation_version"
-    implementation "androidx.room:room-runtime:$room_version"
-    annotationProcessor "androidx.room:room-compiler:$room_version"
-    implementation "androidx.room:room-rxjava3:$room_version"
-    implementation "io.reactivex.rxjava3:rxandroid:3.0.0"
+    implementation libs.room.runtime
+    annotationProcessor libs.room.compiler
+    implementation libs.room.rxjava3
+    implementation libs.rxandroid
     implementation "androidx.preference:preference-ktx:1.2.0"
     implementation libs.barcode.scanning
     implementation "androidx.camera:camera-core:$camera_version"
