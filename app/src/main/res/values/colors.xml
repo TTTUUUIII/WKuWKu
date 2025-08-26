@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="ic_launcher_background">#FE8E37</color>
     <color name="modal_mask">#7BFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="white_alpha_800">#C8FFFFFF</color>
-    <color name="primary">#DF491E</color>
-    <color name="primary_container">#E8805F</color>
-    <color name="surface">#FFECDB</color>
-    <color name="background">#F4C5B0</color>
-    <color name="secondary_container">#E8805F</color>
-
-    <color name="primary_dark">@color/black</color>
+    <color name="white_alpha_400">#66FFFFFF</color>
+    <color name="white_alpha_300">#4CFFFFFF</color>
     <color name="info">#3D90D7</color>
     <color name="error">#E52020</color>
     <color name="error_700">#E96262</color>
-    <color name="ic_launcher_background">#FE8E37</color>
+
+    <!--light theme-->
+    <color name="primary">#FF6600</color>
+    <color name="container">#FFB38E</color>
+    <color name="surface">#FFECDB</color>
+    <color name="background">@color/white</color>
+    <color name="on_background">#F4C5B0</color>
+    <color name="secondary_container">#EFB495</color>
     <color name="text_color_light">#737373</color>
+
+    <!--dark theme-->
+    <color name="primary_dark">#352F44</color>
+    <color name="container_dark">@color/primary_dark</color>
+    <color name="surface_dark">@color/primary_dark</color>
+    <color name="secondary_container_dark">@color/white_alpha_300</color>
+    <color name="background_dark">@color/black</color>
+    <color name="on_background_dark">@color/white_alpha_300</color>
 </resources>

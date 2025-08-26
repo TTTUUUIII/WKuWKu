@@ -4,6 +4,7 @@ import android.os.Bundle;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -68,6 +69,7 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
                     .onErrorComplete()
                     .subscribe();
         }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavView, null);
         return binding.getRoot();
     }
 
@@ -114,7 +116,7 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         }
     }
 
-    private class PagerSlideAdapter extends FragmentStateAdapter {
+    private static class PagerSlideAdapter extends FragmentStateAdapter {
 
         public PagerSlideAdapter(@NonNull Fragment fragment) {
             super(fragment);

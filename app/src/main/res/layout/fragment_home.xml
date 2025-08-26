@@ -26,6 +26,7 @@
 <!--        tools:ignore="PrivateResource" />-->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_nav_view"
+        style="@style/Theme.WKuWKu.BottomNavigationView"
         app:menu="@menu/home_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
