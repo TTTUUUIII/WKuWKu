@@ -3,17 +3,21 @@
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorPrimaryContainer">@color/container</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorSurfaceContainer">@color/surface</item>
-        <item name="colorSecondaryContainer">@color/secondary_container</item>
         <item name="colorSurfaceContainerHigh">@color/surface</item>
-        <item name="backgroundColor">@color/background</item>
-        <item name="popupMenuBackground">@color/surface</item>
+        <item name="colorSecondaryContainer">@color/secondary_container</item>
+        <item name="colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+        <item name="popupMenuBackground">@color/white</item>
         <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
+    <style name="Theme.WKuWKu.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="elevation">@null</item>
+    </style>
     <style name="Theme.WKuWKu.TextInputEditText.OutlinedBox" parent="Widget.Material3.TextInputEditText.OutlinedBox">
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>

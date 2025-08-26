@@ -11,7 +11,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.DiffUtil;
@@ -247,12 +246,6 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         public PagerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             if (viewType == INSTALLED_SCREEN) {
                 mPlugInstalledBinding = LayoutPlugInstalledBinding.inflate(getLayoutInflater(), parent, false);
-                WindowInsetsCompat windowInsets = parentActivity.getWindowInsets();
-                if (windowInsets != null) {
-                    int paddingVertical = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-                    View view = mPlugInstalledBinding.installFromStorage;
-                    view.setPadding(view.getLeft(), paddingVertical, view.getRight(), paddingVertical);
-                }
             } else {
                 mPlugAvailableBinding = LayoutPlugAvailableBinding.inflate(getLayoutInflater(), parent, false);
             }

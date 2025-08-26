@@ -40,7 +40,7 @@ public class EmojiWorkshopView extends View {
         mPaint.setTypeface(typeface);
         mPaint.setTextAlign(Paint.Align.CENTER);
         TypedValue typedValue = new TypedValue();
-        if (context.getTheme().resolveAttribute(com.google.android.material.R.attr.backgroundColor, typedValue, true)) {
+        if (context.getTheme().resolveAttribute(R.attr.colorOnBackground, typedValue, true)) {
             mPaint.setColor(typedValue.data);
         }
         mPaint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8, getResources().getDisplayMetrics()));

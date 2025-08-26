@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
 //import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -178,10 +179,15 @@ public class MainActivity extends BaseActivity {
 
     @NonNull
     @Override
-    public WindowInsetsCompat onApplyWindowInsets(@NonNull View root, @NonNull WindowInsetsCompat insets) {
-        AppBarLayout view = binding.appBarLayout;
-        view.setPadding(view.getPaddingLeft(), insets.getInsets(WindowInsetsCompat.Type.statusBars()).top, view.getPaddingRight(), view.getPaddingBottom());
-        return super.onApplyWindowInsets(root, insets);
+    public WindowInsetsCompat onApplyWindowInsets(@NonNull View root, @NonNull WindowInsetsCompat insetsCompat) {
+        View view = binding.getRoot();
+        Insets insets = insetsCompat.getInsets(WindowInsetsCompat.Type.systemBars());
+        view.setPadding(
+                insets.left,
+                insets.top,
+                insets.right,
+                insets.bottom);
+        return super.onApplyWindowInsets(root, insetsCompat);
     }
 
     private void showAboutDialog() {

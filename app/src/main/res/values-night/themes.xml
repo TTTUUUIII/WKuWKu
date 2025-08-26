@@ -2,7 +2,15 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-<!--         <item name="colorPrimary">@color/primary_dark</item>-->
+        <item name="colorPrimary">@color/primary_dark</item>
+        <item name="colorPrimaryContainer">@color/container_dark</item>
+        <item name="colorSurface">@color/surface_dark</item>
+        <item name="colorSurfaceContainer">@color/primary_dark</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_dark</item>
+        <item name="colorSecondaryContainer">@color/secondary_container_dark</item>
+        <item name="colorBackground">@color/background_dark</item>
+        <item name="colorOnBackground">@color/on_background_dark</item>
+        <item name="popupMenuBackground">@color/white_alpha_400</item>
         <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
     </style>
 </resources>
