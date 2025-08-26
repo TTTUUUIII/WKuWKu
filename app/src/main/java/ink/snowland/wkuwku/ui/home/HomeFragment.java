@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.ui.home;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 
 import androidx.annotation.IdRes;
@@ -25,11 +26,10 @@ import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.ui.coreopt.CoreOptionsFragment;
 import ink.snowland.wkuwku.ui.game.GamesFragment;
 import ink.snowland.wkuwku.ui.history.HistoryFragment;
-import ink.snowland.wkuwku.util.SettingsManager;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
-public class HomeFragment extends BaseFragment implements NavigationBarView.OnItemSelectedListener {
+public class HomeFragment extends BaseFragment implements NavigationBarView.OnItemSelectedListener, View.OnClickListener {
 
     private static boolean isFirstLaunch = true;
 
@@ -43,6 +43,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
             int itemId = binding.bottomNavView.getSelectedItemId();
             if (position != getDestinationIndex(itemId)) {
                 binding.bottomNavView.setSelectedItemId(getItemId(position));
+                binding.prev.setEnabled(position != 0);
+                binding.next.setEnabled(position != 2);
             }
         }
     };
@@ -69,6 +71,18 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
                     .onErrorComplete()
                     .subscribe();
         }
+        Configuration configuration = getResources().getConfiguration();
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            binding.bottomNavView.setVisibility(View.GONE);
+            binding.next.setVisibility(View.VISIBLE);
+            binding.prev.setVisibility(View.VISIBLE);
+            int position = binding.viewPager.getCurrentItem();
+            binding.prev.setEnabled(position != 0);
+            binding.next.setEnabled(position != 2);
+            binding.next.setOnClickListener(this);
+            binding.prev.setOnClickListener(this);
+        }
+        /*Disable default padding*/
         ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavView, null);
         return binding.getRoot();
     }
@@ -78,8 +92,7 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         int itemId = item.getItemId();
         int position = getDestinationIndex(itemId);
         if (position != binding.viewPager.getCurrentItem()) {
-            binding.viewPager.setCurrentItem(position,
-                    SettingsManager.getBoolean(SettingsManager.NAVIGATION_ANIMATION, true));
+            binding.viewPager.setCurrentItem(position, getNavAnimOptions() != null);
         }
         return true;
     }
@@ -113,6 +126,22 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
             return R.id.core_fragment;
         } else {
             throw new IndexOutOfBoundsException();
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        int viewId = v.getId();
+        int position = binding.viewPager.getCurrentItem();
+        if (viewId == R.id.prev) {
+            position -= 1;
+        } else {
+            position += 1;
+        }
+        if (position >= 0 && position < 3) {
+            binding.viewPager.setCurrentItem(position, getNavAnimOptions() != null);
+            binding.prev.setEnabled(position != 0);
+            binding.next.setEnabled(position != 2);
         }
     }
 
