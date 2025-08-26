@@ -31,8 +31,10 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNavAnimOptions = new NavOptions.Builder()
-                .setEnterAnim(R.anim.zoom_in_right)
-                .setPopEnterAnim(R.anim.zoom_in_left)
+                .setEnterAnim(R.anim.slide_in_right)
+                .setExitAnim(R.anim.slide_out_left)
+                .setPopEnterAnim(R.anim.slide_in_left)
+                .setPopExitAnim(R.anim.slide_out_right)
                 .build();
         parentActivity = (BaseActivity) requireActivity();
         handler = new Handler(Looper.getMainLooper());
