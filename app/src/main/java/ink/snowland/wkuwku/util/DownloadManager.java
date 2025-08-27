@@ -7,6 +7,7 @@ import android.util.SparseArray;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.WorkerThread;
 
 import org.wkuwku.util.NumberUtils;
 
@@ -74,16 +75,26 @@ public class DownloadManager {
         }
     }
 
+    @WorkerThread
+    public static void download(Pair<String, File> it) throws IOException {
+        try {
+            URLConnection conn = new URL(it.first).openConnection();
+            conn.setReadTimeout(1000 * 10);
+            conn.setConnectTimeout(1000 * 10);
+            try (InputStream from = conn.getInputStream()){
+                FileUtils.copy(from, it.second);
+            }
+        } catch (IOException e) {
+            FileUtils.delete(it.second);
+            throw e;
+        }
+    }
+
     public static void download(List<Pair<String, File>> items, @Nullable ActionListener listener) {
         executor.submit(() -> {
             for (Pair<String, File> it : items) {
                 try {
-                    URLConnection conn = new URL(it.first).openConnection();
-                    conn.setReadTimeout(1000 * 10);
-                    conn.setConnectTimeout(1000 * 10);
-                    try (InputStream from = conn.getInputStream()){
-                        FileUtils.copy(from, it.second);
-                    }
+                    download(it);
                 } catch (IOException e) {
                     if (listener != null) {
                         listener.onFailure(e);

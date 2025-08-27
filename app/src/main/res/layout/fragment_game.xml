@@ -24,8 +24,8 @@
             android:contentDescription="@string/add_game_rom"
             android:src="@drawable/ic_add"
             android:layout_gravity="end|bottom"
-            android:layout_marginVertical="46dp"
-            android:layout_marginHorizontal="16dp" />
+            android:layout_marginBottom="45dp"
+            android:layout_marginEnd="24dp" />
         <include
             android:id="@+id/pending_indicator"
             layout="@layout/layout_loading_indicator" />

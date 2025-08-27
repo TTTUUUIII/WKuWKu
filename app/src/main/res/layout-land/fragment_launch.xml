@@ -70,7 +70,7 @@
                         android:layout_height="wrap_content"
                         android:backgroundTint="@android:color/transparent"
                         app:icon="@drawable/ic_counter_1"
-                        app:iconTint="?attr/colorPrimary" />
+                        app:iconTint="@color/button_outline_color_selector" />
 
                     <Button
                         android:id="@+id/button_load_state2"
@@ -79,7 +79,7 @@
                         android:layout_height="wrap_content"
                         android:backgroundTint="@android:color/transparent"
                         app:icon="@drawable/ic_counter_2"
-                        app:iconTint="?attr/colorPrimary" />
+                        app:iconTint="@color/button_outline_color_selector" />
 
                     <Button
                         android:id="@+id/button_load_state3"
@@ -88,7 +88,7 @@
                         android:layout_height="wrap_content"
                         android:backgroundTint="@android:color/transparent"
                         app:icon="@drawable/ic_counter_3"
-                        app:iconTint="?attr/colorPrimary" />
+                        app:iconTint="@color/button_outline_color_selector" />
 
                     <Button
                         android:id="@+id/button_load_state4"
@@ -97,7 +97,7 @@
                         android:layout_height="wrap_content"
                         android:backgroundTint="@android:color/transparent"
                         app:icon="@drawable/ic_counter_4"
-                        app:iconTint="?attr/colorPrimary" />
+                        app:iconTint="@color/button_outline_color_selector" />
 
                     <Button
                         android:id="@+id/button_load_last_state"
@@ -106,7 +106,7 @@
                         android:layout_height="wrap_content"
                         android:backgroundTint="@android:color/transparent"
                         app:icon="@drawable/ic_history"
-                        app:iconTint="?attr/colorPrimary" />
+                        app:iconTint="@color/button_outline_color_selector" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
 
             </androidx.constraintlayout.widget.ConstraintLayout>

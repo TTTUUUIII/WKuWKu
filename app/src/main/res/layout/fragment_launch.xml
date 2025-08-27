@@ -44,7 +44,6 @@
                     android:layout_height="wrap_content"
                     android:contentDescription="@string/save_state"
                     app:icon="@drawable/ic_more_time"
-                    app:iconTint="@color/button_outline_color_selector"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent" />

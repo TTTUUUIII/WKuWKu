@@ -5,7 +5,9 @@ import android.os.Process;
 
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -20,12 +22,10 @@ import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import ink.snowland.wkuwku.util.ResourceManager;
 import ink.snowland.wkuwku.util.SettingsManager;
-import ink.snowland.wkuwku.widget.CheckVersionWorker;
+import ink.snowland.wkuwku.widget.CheckConfigWorker;
 
 public class App extends Application {
-
-    private static final String NEW_VERSION_NOTIFICATION = "app_new_version_notification";
-    private static final String WORK_ID_VERSION_CHECK = "weekly_version_check";
+    private static final String WORKER_CHECK_REMOTE_CONFIG = "check_remote_config_worker";
 
     @Override
     public void onCreate() {
@@ -39,7 +39,7 @@ public class App extends Application {
         ResourceManager.initialize(getApplicationContext());
         NotificationManager.initialize(getApplicationContext());
         Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
-        setVersionCheckEnable(SettingsManager.getBoolean(NEW_VERSION_NOTIFICATION, true));
+        checkRemoteConfig();
     }
 
     private final Thread.UncaughtExceptionHandler mUncaughtExceptionHandler = (thread, throwable) -> {
@@ -50,25 +50,21 @@ public class App extends Application {
         Process.killProcess(Process.myPid());
     };
 
-    private void setVersionCheckEnable(boolean enable) {
+    private void checkRemoteConfig() {
         WorkManager workManager = WorkManager.getInstance(this);
-        if (enable) {
-            Constraints constraints = new Constraints.Builder()
-                    .setRequiresStorageNotLow(true)
-                    .setRequiresDeviceIdle(true)
-                    .setRequiresBatteryNotLow(true)
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build();
-            PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(CheckVersionWorker.class, 3, TimeUnit.DAYS)
-                    .setConstraints(constraints)
-                    .build();
+        Constraints constraints = new Constraints.Builder()
+                .setRequiresStorageNotLow(true)
+                .setRequiresDeviceIdle(true)
+                .setRequiresBatteryNotLow(true)
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(CheckConfigWorker.class, 3, TimeUnit.DAYS)
+                .setConstraints(constraints)
+                .build();
 
-            workManager.enqueueUniquePeriodicWork(WORK_ID_VERSION_CHECK,
-                    ExistingPeriodicWorkPolicy.KEEP,
-                    request
-            );
-        } else {
-            workManager.cancelUniqueWork(WORK_ID_VERSION_CHECK);
-        }
+        workManager.enqueueUniquePeriodicWork(WORKER_CHECK_REMOTE_CONFIG,
+                ExistingPeriodicWorkPolicy.KEEP,
+                request
+        );
     }
 }
