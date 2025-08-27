@@ -1,7 +1,5 @@
 package ink.snowland.wkuwku.activity;
 
-import static ink.snowland.wkuwku.util.FileManager.*;
-
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;

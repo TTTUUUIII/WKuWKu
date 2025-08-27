@@ -44,7 +44,6 @@ public class CheckConfigWorker extends Worker {
     public Result doWork() {
         try (InputStream in = new URL(WEB_URL + "app-config.xml").openStream()){
             AppConfig appConfig = AppConfig.from(in);
-            System.out.println(appConfig);
             if (SettingsManager.getBoolean(VERSION_NOTIFICATION, true) && appConfig.getVersionCode() > BuildConfig.VERSION_CODE) {
                 mFile = new File(getCacheDirectory(), SKIP_CLEAN_PREFIX + appConfig.getVersionName() + ".apk");
                 final String url = String.format("https://github.com/TTTUUUIII/WKuWKu/releases/download/%s/app-%s-release.apk", appConfig.getVersionName(), Build.SUPPORTED_ABIS[0]);
