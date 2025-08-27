@@ -1,5 +1,7 @@
 package ink.snowland.wkuwku.activity;
 
+import static ink.snowland.wkuwku.util.FileManager.*;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
@@ -33,7 +35,6 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
@@ -53,9 +54,10 @@ public class MainActivity extends BaseActivity {
     public static final String EXTRA_REQUEST_ID = "extra_request_id";
     public static final String EXTRA_NAVIGATE_RES_ID = "extra_navigate_res_id";
     public static final String EXTRA_PACKAGE_FILE_PATH = "extra_package_file_path";
-    private static final String EMOJI_WORKSHOP_SOURCE = "app_emoji_workshop_source";
-    private static final String EMOJI_WORKSHOP_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
-    private static final String DISTANCE_BETWEEN_EMOJIS = "app_distance_between_emojis";
+
+    private static final String BACKGROUND_EMOJI_SOURCE = "app_emoji_workshop_source";
+    private static final String BACKGROUND_EMOJI_SIZE = "app_emoji_workshop_emoji_size";
+    private static final String BACKGROUND_EMOJI_DISTANCE = "app_distance_between_emojis";
 
     private NavController mNavController;
     private ActivityMainBinding binding;
@@ -63,7 +65,10 @@ public class MainActivity extends BaseActivity {
     private ActivityResultLauncher<Intent> mRequestInstallPackageLauncher;
     private Uri mApkUri;
 //    private MainViewModel mViewModel;
-    private final EmojiWorkshopView.Options mEmojiWorkshopOptions = new EmojiWorkshopView.Options(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, "\uD83D\uDC22☺️⭐️"), SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, 40), SettingsManager.getInt(EMOJI_WORKSHOP_EMOJI_SIZE, 40));
+    private final EmojiWorkshopView.Options mEmojiWorkshopOptions = new EmojiWorkshopView.Options(
+            SettingsManager.getString(BACKGROUND_EMOJI_SOURCE, "\uD83D\uDC22☺️⭐️"),
+        SettingsManager.getInt(BACKGROUND_EMOJI_DISTANCE, 40),
+        SettingsManager.getInt(BACKGROUND_EMOJI_SIZE, 40));
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
@@ -82,18 +87,7 @@ public class MainActivity extends BaseActivity {
         binding.drawerLayout.addDrawerListener(mActionBarDrawerToggle);
         binding.navigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         mActionBarDrawerToggle.syncState();
-        ImageView heroImageView = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Glide.with(this)
-                    .load(R.drawable.snow_bros_genesis)
-                    .into(heroImageView);
-            heroImageView.setRenderEffect(RenderEffect.createBlurEffect(18, 18, Shader.TileMode.CLAMP));
-        } else {
-            Glide.with(this)
-                    .load(R.drawable.snow_bros_genesis)
-                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 18)))
-                    .into(heroImageView);
-        }
+        updateDrawerHeroImage();
         assert fragment != null;
         mNavController = fragment.getNavController();
         mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null));
@@ -139,6 +133,24 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
+    private void updateDrawerHeroImage() {
+        ImageView view = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
+        File file = new File(SettingsManager.getString(SettingsManager.DRAWER_HERO_IMAGE_PATH, "not_exists_file.png"));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            Glide.with(this)
+                    .load(file)
+                    .error(R.drawable.snow_bros_genesis)
+                    .into(view);
+            view.setRenderEffect(RenderEffect.createBlurEffect(8, 8, Shader.TileMode.CLAMP));
+        } else {
+            Glide.with(this)
+                    .load(file)
+                    .error(R.drawable.snow_bros_genesis)
+                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 8)))
+                    .into(view);
+        }
+    }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (mActionBarDrawerToggle.onOptionsItemSelected(item)) {
@@ -165,14 +177,16 @@ public class MainActivity extends BaseActivity {
     public void onSettingChanged(@NonNull String key) {
         super.onSettingChanged(key);
         switch (key) {
-            case EMOJI_WORKSHOP_EMOJI_SIZE:
-            case EMOJI_WORKSHOP_SOURCE:
-            case DISTANCE_BETWEEN_EMOJIS:
-                mEmojiWorkshopOptions.setFontSize(SettingsManager.getInt(EMOJI_WORKSHOP_EMOJI_SIZE, mEmojiWorkshopOptions.getFontSize()));
-                mEmojiWorkshopOptions.setMinDistance(SettingsManager.getInt(DISTANCE_BETWEEN_EMOJIS, mEmojiWorkshopOptions.getMinDistance()));
-                mEmojiWorkshopOptions.setSource(SettingsManager.getString(EMOJI_WORKSHOP_SOURCE, mEmojiWorkshopOptions.getSource()));
+            case BACKGROUND_EMOJI_SIZE:
+            case BACKGROUND_EMOJI_SOURCE:
+            case BACKGROUND_EMOJI_DISTANCE:
+                mEmojiWorkshopOptions.setFontSize(SettingsManager.getInt(BACKGROUND_EMOJI_SIZE, mEmojiWorkshopOptions.getFontSize()));
+                mEmojiWorkshopOptions.setMinDistance(SettingsManager.getInt(BACKGROUND_EMOJI_DISTANCE, mEmojiWorkshopOptions.getMinDistance()));
+                mEmojiWorkshopOptions.setSource(SettingsManager.getString(BACKGROUND_EMOJI_SOURCE, mEmojiWorkshopOptions.getSource()));
                 binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
                 break;
+            case SettingsManager.DRAWER_HERO_IMAGE_PATH:
+                updateDrawerHeroImage();
             default:
         }
     }

@@ -44,6 +44,11 @@ public class FileUtils {
         return name;
     }
 
+    public static boolean equals(@NonNull File f1, @NonNull File f2) {
+        if (!f1.exists() || !f2.exists()) return false;
+        return getMD5Sum(f1).equals(getMD5Sum(f2));
+    }
+
     public static String getMD5Sum(@NonNull File file) {
         if (!file.exists() || !file.isFile() || !file.canRead()) return "";
         try {
@@ -70,7 +75,8 @@ public class FileUtils {
         return "";
     }
 
-    public static void delete(String file) {
+    public static void delete(@Nullable String file) {
+        if (file == null) return;
         delete(new File(file));
     }
 

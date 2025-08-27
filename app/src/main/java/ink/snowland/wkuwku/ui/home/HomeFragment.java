@@ -40,11 +40,11 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         public void onPageSelected(int position) {
             super.onPageSelected(position);
             parentActivity.setActionbarTitle(mPagerAdapter.getTitleRes(position));
+            binding.prev.setEnabled(position != 0);
+            binding.next.setEnabled(position != 2);
             int itemId = binding.bottomNavView.getSelectedItemId();
             if (position != getDestinationIndex(itemId)) {
                 binding.bottomNavView.setSelectedItemId(getItemId(position));
-                binding.prev.setEnabled(position != 0);
-                binding.next.setEnabled(position != 2);
             }
         }
     };
@@ -76,9 +76,6 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
             binding.bottomNavView.setVisibility(View.GONE);
             binding.next.setVisibility(View.VISIBLE);
             binding.prev.setVisibility(View.VISIBLE);
-            int position = binding.viewPager.getCurrentItem();
-            binding.prev.setEnabled(position != 0);
-            binding.next.setEnabled(position != 2);
             binding.next.setOnClickListener(this);
             binding.prev.setOnClickListener(this);
         }
@@ -140,8 +137,6 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         }
         if (position >= 0 && position < 3) {
             binding.viewPager.setCurrentItem(position, getNavAnimOptions() != null);
-            binding.prev.setEnabled(position != 0);
-            binding.next.setEnabled(position != 2);
         }
     }
 

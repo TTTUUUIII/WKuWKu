@@ -1,4 +1,5 @@
 package ink.snowland.wkuwku.widget;
+import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -32,10 +33,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class GameEditDialog {
     private final DialogLayoutEditGameBinding binding;
-    private final AlertDialog mDialog;
     private Game mGame = null;
-    private final BaseActivity mParent;
     private Uri mUri;
+    private final BaseActivity mParent;
+    private final AlertDialog mDialog;
     private final Map<String, EmSystem> mSupportedSystems = new LinkedHashMap<>();
 
     public GameEditDialog(@NonNull BaseActivity activity) {
@@ -92,11 +93,11 @@ public class GameEditDialog {
         mDialog.show();
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> {
             if (mUri == null) {
-                parseFromUrl(mGame.filepath);
+                parseUrl(mGame.filepath);
             }
             checkAndConfirm();
         });
-        binding.buttonQrCode.setOnClickListener(v -> mParent.scanQrCode(this::parseFromUrl));
+        binding.buttonQrCode.setOnClickListener(v -> mParent.scanQrCode(this::parseUrl));
     }
 
     @Nullable
@@ -135,6 +136,7 @@ public class GameEditDialog {
                     mGame.title = filename.substring(0, filename.lastIndexOf("."));
                     if (mGame.title.endsWith(".tar"))
                         mGame.title = mGame.title.substring(0, mGame.title.lastIndexOf("."));
+                    parseSystem(filename);
                 }
                 binding.invalidateAll();
                 mUri = uri;
@@ -156,7 +158,7 @@ public class GameEditDialog {
         return systemNames;
     }
 
-    private void parseFromUrl(@Nullable String url) {
+    private void parseUrl(@Nullable String url) {
         if (url == null) return;
         boolean noError = false;
         try {
@@ -170,6 +172,7 @@ public class GameEditDialog {
                         mGame.title = path.substring(start + 1, end);
                         mGame.filepath = path.substring(start + 1);
                         mUri = uri;
+                        parseSystem(path);
                         binding.invalidateAll();
                         noError = true;
                     } catch (Exception e) {
@@ -182,6 +185,16 @@ public class GameEditDialog {
         }
         if (!noError) {
             Toast.makeText(mParent.getApplicationContext(), R.string.invalid_url, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void parseSystem(@Nullable String path) {
+        if (path == null) return;
+        if (path.endsWith(".nes")) {
+            binding.systemTextView.setText("NES");
+        } else if (path.endsWith(".fds")) {
+            binding.systemTextView.setText("Famicom");
         }
     }
 

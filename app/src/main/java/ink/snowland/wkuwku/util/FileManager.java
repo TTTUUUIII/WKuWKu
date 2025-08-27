@@ -11,12 +11,11 @@ import java.util.List;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class FileManager {
-    public static final String SKIP_CLEAN_PREFIX = "app_";
+    public static final String SKIP_CLEAN_PREFIX = "keep_";
 
     public static final String ROM_DIRECTORY = "rom";
     public static final String STATE_DIRECTORY = "state";
@@ -59,8 +58,8 @@ public class FileManager {
                     List<Game> list = AppDatabase.db.gameInfoDao()
                             .findTrashByModifiedLT(expiredTimeMillis);
                     delete(list);
+                    emitter.onComplete();
                 }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> error.printStackTrace(System.err))
                 .onErrorComplete()
                 .subscribe();
