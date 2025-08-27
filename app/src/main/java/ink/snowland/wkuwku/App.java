@@ -58,7 +58,7 @@ public class App extends Application {
                 .setRequiresBatteryNotLow(true)
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
-        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(CheckConfigWorker.class, 3, TimeUnit.DAYS)
+        PeriodicWorkRequest request = new PeriodicWorkRequest.Builder(CheckConfigWorker.class, 2, TimeUnit.DAYS)
                 .setConstraints(constraints)
                 .build();
 
