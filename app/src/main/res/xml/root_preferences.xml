@@ -40,7 +40,7 @@
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="true"
-            app:summary="@string/underrun_optimization_summary"
+            app:summary="@string/summary_underrun_optimization"
             app:title="@string/underrun_optimization"
             app:key="app_audio_underrun_optimization" />
     </PreferenceCategory>

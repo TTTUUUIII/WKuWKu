@@ -114,7 +114,7 @@
     <string name="version_notification">Version Notification</string>
     <string name="fmt_click_update_to_new_version">Click this notification update to the new version (%s).</string>
     <string name="permission_denied">Permission denied!</string>
-    <string name="summary_request_install_package_permssion">WkuWku first needs you to grant permission to install apk before it can auto update the app for you</string>
+    <string name="summary_request_install_package_permission">Oops! App need you to grant the [Install Package] permission before continuing.</string>
     <string name="extension">Extension</string>
     <string name="installed">Installed</string>
     <string name="available">Available</string>
@@ -174,7 +174,7 @@
     <string name="waiting_keys">Waiting…</string>
     <string name="no_input_device">No input device!</string>
     <string name="underrun_optimization">Underrun optimization</string>
-    <string name="underrun_optimization_summary">Actively detect audio underrun and make necessary optimizations</string>
+    <string name="summary_underrun_optimization">Do something when audio underrun occurs</string>
     <string name="summary_switch_to_performance_mode_when_playing">Switch performance mode when playing (Consumes more battery life)</string>
     <string name="performance_mode">Performance mode</string>
     <string name="screenshot">Screenshot</string>
