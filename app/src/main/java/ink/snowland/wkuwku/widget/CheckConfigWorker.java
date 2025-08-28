@@ -90,7 +90,7 @@ public class CheckConfigWorker extends Worker {
         intent.putExtra(MainActivity.EXTRA_PACKAGE_FILE_PATH, mFile.getAbsolutePath());
         PendingIntent pendingIntent = PendingIntent.getActivity(applicationContext, 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = new NotificationCompat.Builder(applicationContext, NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
-                .setSmallIcon(R.drawable.ic_notification)
+                .setSmallIcon(R.drawable.im_notification)
                 .setContentTitle(applicationContext.getString(R.string.version_notification))
                 .setContentText(applicationContext.getString(R.string.fmt_click_update_to_new_version, versionName))
                 .setContentIntent(pendingIntent)

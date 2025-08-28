@@ -133,7 +133,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         binding.tabLayout.addOnTabSelectedListener(this);
         binding.viewPager.setAdapter(mPagerAdapter);
         binding.viewPager.registerOnPageChangeCallback(mPageChangedCallback);
-        parentActivity.setActionbarTitle(R.string.extension_manage);
+        parentActivity.setActionbarTitle(R.string.extension);
     }
 
     @Override
@@ -340,7 +340,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                     } else {
                                         NotificationManager.postNotification(
                                                 NotificationManager.NOTIFICATION_ERROR_CHANNEL,
-                                                getStringSafe(R.string.extension_manage),
+                                                getStringSafe(R.string.extension),
                                                 getStringSafe(R.string.fmt_download_failed_network_error, res.name));
                                     }
                                 })
@@ -365,7 +365,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                                     } else {
                                         NotificationManager.postNotification(
                                                 NotificationManager.NOTIFICATION_ERROR_CHANNEL,
-                                                getStringSafe(R.string.extension_manage),
+                                                getStringSafe(R.string.extension),
                                                 getStringSafe(R.string.fmt_download_failed_network_error, res.name));
                                     }
                                 }).submit();
@@ -391,8 +391,8 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContextSafe(), 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
                             Notification notification = new NotificationCompat.Builder(getApplicationContextSafe(), NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
                                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                    .setSmallIcon(R.drawable.ic_notification)
-                                    .setContentTitle(getStringSafe(R.string.extension_manage))
+                                    .setSmallIcon(R.drawable.im_notification)
+                                    .setContentTitle(getStringSafe(R.string.extension))
                                     .setContentText(getStringSafe(R.string.fmt_plug_installed_successfully, res.name))
                                     .setAutoCancel(true)
                                     .setContentIntent(pendingIntent)

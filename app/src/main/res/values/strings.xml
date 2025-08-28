@@ -118,7 +118,6 @@
     <string name="extension">Extension</string>
     <string name="installed">Installed</string>
     <string name="available">Available</string>
-    <string name="extension_manage">Extension manage</string>
     <string name="no_extensions_installed">🪹 No extensions installed</string>
     <string name="no_available_extensions">🪶 No available extensions</string>
     <string name="install">Install</string>

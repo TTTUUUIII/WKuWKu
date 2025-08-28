@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavOptions;
 
@@ -22,7 +23,10 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.Hotkey;
 import ink.snowland.wkuwku.util.SettingsManager;
 
-public class BaseFragment extends Fragment implements InputManager.InputDeviceListener, BaseActivity.OnInputEventListener, BaseActivity.OnTouchEventListener {
+public abstract class BaseFragment extends Fragment implements InputManager.InputDeviceListener,
+        BaseActivity.OnInputEventListener,
+        BaseActivity.OnTouchEventListener,
+        SearchView.OnQueryTextListener {
     protected BaseActivity parentActivity;
     protected Handler handler;
     private NavOptions mNavAnimOptions;
@@ -46,6 +50,7 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
         parentActivity.addOnInputEventListener(this);
         parentActivity.addInputDeviceListener(this);
         parentActivity.addOnTouchEventListener(this);
+        parentActivity.setQueryTextListener(this);
     }
 
     @Override
@@ -54,6 +59,7 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
         parentActivity.removeOnInputEventListener(this);
         parentActivity.removeInputDeviceListener(this);
         parentActivity.removeOnTouchEventListener(this);
+        parentActivity.setQueryTextListener(null);
     }
 
     @Override
@@ -128,6 +134,16 @@ public class BaseFragment extends Fragment implements InputManager.InputDeviceLi
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
         return false;
     }
 }
