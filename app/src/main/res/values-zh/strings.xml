@@ -95,7 +95,7 @@
     <string name="version_notification">版本通知</string>
     <string name="fmt_click_update_to_new_version">点击这条通知以更新至新版本 (%s)。</string>
     <string name="permission_denied">权限不足!</string>
-    <string name="summary_request_install_package_permssion">WkuWku首先需要您授予安装应用的权限才能自动为您更新应用。</string>
+    <string name="summary_request_install_package_permission">Oops！应用需要您授予[安装应用]的权限后，才能执行后续操作。</string>
     <string name="extension">扩展</string>
     <string name="installed">已安装</string>
     <string name="available">可用扩展</string>
@@ -150,7 +150,7 @@
     <string name="waiting_keys">等待按键…</string>
     <string name="no_input_device">无输入设备！</string>
     <string name="underrun_optimization">欠载优化</string>
-    <string name="underrun_optimization_summary">主动检测音频欠载情况并做必要优化</string>
+    <string name="summary_underrun_optimization">发生音频欠载时做适当优化</string>
     <string name="summary_switch_to_performance_mode_when_playing">在游戏时切换到性能模式（消耗更多电量）</string>
     <string name="performance_mode">性能模式</string>
     <string name="incompatible">不兼容</string>

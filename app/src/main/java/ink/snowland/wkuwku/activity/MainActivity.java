@@ -219,7 +219,7 @@ public class MainActivity extends BaseActivity {
         new MaterialAlertDialogBuilder(this)
                 .setIcon(R.mipmap.ic_launcher_round)
                 .setTitle(R.string.permission_denied)
-                .setMessage(R.string.summary_request_install_package_permssion)
+                .setMessage(R.string.summary_request_install_package_permission)
                 .setPositiveButton(R.string.confirm, (dialog, which) -> mRequestInstallPackageLauncher.launch(new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)))
                 .setNegativeButton(R.string.cancel, null)
                 .show();
