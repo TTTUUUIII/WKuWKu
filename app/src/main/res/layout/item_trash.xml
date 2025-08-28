@@ -10,7 +10,6 @@
         android:layout_height="wrap_content"
         xmlns:app="http://schemas.android.com/apk/res-auto"
         android:paddingHorizontal="15dp"
-        android:paddingVertical="4dp"
         android:orientation="horizontal"
         tools:background="?attr/colorSurfaceContainerHigh"
         xmlns:tools="http://schemas.android.com/tools">
@@ -32,7 +31,6 @@
                 tools:text="Super Mario Bros." />
             <TextView
                 android:id="@+id/delete_date"
-                android:layout_marginTop="8dp"
                 android:textStyle="italic"
                 android:textSize="13sp"
                 android:layout_width="match_parent"
@@ -45,13 +43,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:iconTint="@color/info"
-            app:icon="@drawable/ic_undo" />
+            app:icon="@drawable/ic_reply" />
         <Button
             android:id="@+id/button_delete"
             style="@style/Theme.WKuWKu.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:iconTint="@color/error"
-            app:icon="@drawable/ic_cancel" />
+            app:icon="@drawable/ic_close" />
     </LinearLayout>
 </layout>
