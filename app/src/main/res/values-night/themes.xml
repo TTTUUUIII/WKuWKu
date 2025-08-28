@@ -10,7 +10,8 @@
         <item name="colorSecondaryContainer">@color/secondary_container_dark</item>
         <item name="colorBackground">@color/background_dark</item>
         <item name="colorOnBackground">@color/on_background_dark</item>
-        <item name="popupMenuBackground">@color/white_alpha_400</item>
+        <item name="colorControlNormal">@color/control_normal_dark</item>
+        <item name="popupMenuBackground">@color/white_alpha_300</item>
         <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
     </style>
 </resources>

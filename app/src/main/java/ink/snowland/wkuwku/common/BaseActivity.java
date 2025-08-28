@@ -25,6 +25,7 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -34,6 +35,7 @@ import androidx.navigation.NavOptions;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,7 +48,10 @@ import ink.snowland.wkuwku.bean.Hotkey;
 import ink.snowland.wkuwku.util.HotkeysManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 
-public abstract class BaseActivity extends AppCompatActivity implements OnApplyWindowInsetsListener, SettingsManager.OnSettingChangedListener, InputManager.InputDeviceListener {
+public abstract class BaseActivity extends AppCompatActivity implements OnApplyWindowInsetsListener,
+        SettingsManager.OnSettingChangedListener,
+        InputManager.InputDeviceListener,
+        SearchView.OnQueryTextListener {
     private static final String APP_THEME = "app_theme";
     private ActivityResultLauncher<Intent> mQRCodeScannerLauncher;
     private ActivityResultLauncher<String[]> mOpenDocumentLauncher;
@@ -61,6 +66,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private final List<InputDevice> mInputDevices = new ArrayList<>();
     private InputManager mInputManager;
     private Snackbar mSnackbar;
+    private WeakReference<SearchView.OnQueryTextListener> mQueryTextListenerRef = new WeakReference<>(null);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -256,6 +262,10 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         mInputDeviceListeners.remove(listener);
     }
 
+    public void setQueryTextListener(@Nullable SearchView.OnQueryTextListener listener) {
+        mQueryTextListenerRef = new WeakReference<>(listener);
+    }
+
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         for (OnTouchEventListener listener : mTouchEventListener) {
@@ -315,6 +325,24 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         }
     }
 
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        SearchView.OnQueryTextListener listener = mQueryTextListenerRef.get();
+        if (listener != null) {
+            return listener.onQueryTextChange(newText);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        SearchView.OnQueryTextListener listener = mQueryTextListenerRef.get();
+        if (listener != null) {
+            return listener.onQueryTextSubmit(query);
+        }
+        return false;
+    }
+
     public void addOnInputEventListener(OnInputEventListener listener) {
         if (mKeyListeners.contains(listener)) return;
         mKeyListeners.add(listener);
@@ -358,17 +386,6 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.setTitle(resId);
-        }
-    }
-
-    public void clearActionbarSubTitle(@StringRes int resId) {
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            CharSequence subtitle = actionBar.getSubtitle();
-            if (subtitle == null) return;
-            if (subtitle.equals(getString(resId))) {
-                actionBar.setSubtitle("");
-            }
         }
     }
 

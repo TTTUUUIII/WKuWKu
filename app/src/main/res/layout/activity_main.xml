@@ -5,10 +5,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    tools:context=".activity.MainActivity"
     android:background="?attr/colorSurfaceContainer">
     <androidx.drawerlayout.widget.DrawerLayout
         android:id="@+id/drawer_layout"
-        tools:context=".activity.MainActivity"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -33,10 +33,7 @@
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/tool_bar"
                     android:layout_width="match_parent"
-                    android:minHeight="?attr/actionBarSize"
-                    android:elevation="4dp"
-                    style="@style/Widget.Material3.Toolbar"
-                    app:popupTheme="@style/ThemeOverlay.Material3.DynamicColors.Light"
+                    app:titleMarginBottom="18dp"
                     android:layout_height="?attr/actionBarSize" />
             </com.google.android.material.appbar.AppBarLayout>
             <androidx.fragment.app.FragmentContainerView
@@ -54,13 +51,14 @@
 
         <com.google.android.material.navigation.NavigationView
             android:id="@+id/navigation_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:maxWidth="270dp"
             android:layout_gravity="start"
             app:headerLayout="@layout/layout_drawer_header"
             app:itemBackground="@android:color/transparent"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
             app:itemIconPadding="24dp"
-            app:menu="@menu/main_drawer_menu" />
+            app:menu="@menu/drawer_menu" />
     </androidx.drawerlayout.widget.DrawerLayout>
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/snackbar_container"

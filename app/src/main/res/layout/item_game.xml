@@ -1,58 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
-            name="game"
-            type="ink.snowland.wkuwku.db.entity.Game" />
+            name="viewData"
+            type="ink.snowland.wkuwku.bean.UiGameState" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
         <import type="android.view.View" />
         <import type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.FlagUtils" />
     </data>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:paddingHorizontal="15dp"
-        android:paddingVertical="4dp"
-        tools:background="?attr/colorSurfaceContainerHigh"
-        android:orientation="horizontal"
-        xmlns:tools="http://schemas.android.com/tools">
+        app:hidden="@{viewData.hidden}"
+        android:orientation="vertical">
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_gravity="center_vertical"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-            <TextView
-                android:id="@+id/title"
-                android:layout_width="match_parent"
+            android:paddingHorizontal="15dp"
+            android:orientation="horizontal">
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_gravity="center_vertical"
                 android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="@{game.title}"
-                tools:text="Super Mario Bros." />
-            <TextView
-                android:layout_gravity="bottom"
-                android:textSize="13sp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="@{viewData.origin.title}"
+                    tools:text="Super Mario Bros." />
+                <TextView
+                    android:layout_gravity="bottom"
+                    android:textSize="13sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Nintendo"
+                    android:visibility="@{viewData.origin.publisher == null || viewData.origin.publisher.isEmpty() ? View.GONE : View.VISIBLE}"
+                    android:text="@{viewData.origin.publisher}" />
+            </LinearLayout>
+            <Button
+                android:id="@+id/button_launch"
+                style="@style/Theme.WKuWKu.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                tools:text="Nintendo"
-                android:visibility="@{game.publisher == null || game.publisher.isEmpty() ? View.GONE : View.VISIBLE}"
-                android:text="@{game.publisher}" />
+                app:icon="@drawable/ic_play_arrow" />
+            <Button
+                android:id="@+id/button_more"
+                style="@style/Theme.WKuWKu.Button.IconButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:icon="@drawable/ic_more_vert" />
         </LinearLayout>
-        <Button
-            android:id="@+id/button_launch"
-            style="@style/Theme.WKuWKu.Button.IconButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon="@drawable/ic_play_arrow" />
-        <Button
-            android:id="@+id/button_more"
-            style="@style/Theme.WKuWKu.Button.IconButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:icon="@drawable/ic_more_vert" />
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 </layout>

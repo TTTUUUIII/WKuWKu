@@ -99,7 +99,6 @@
     <string name="extension">扩展</string>
     <string name="installed">已安装</string>
     <string name="available">可用扩展</string>
-    <string name="extension_manage">扩展管理</string>
     <string name="no_extensions_installed">🪹 没有安装任何扩展</string>
     <string name="no_available_extensions">🪶 没有可用扩展</string>
     <string name="install">安装</string>

@@ -23,6 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.content.FileProvider;
 import androidx.core.graphics.Insets;
 import androidx.core.view.WindowInsetsCompat;
@@ -101,6 +102,11 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+        MenuItem item = menu.findItem(R.id.menu_search);
+        View view = item.getActionView();
+        if (view instanceof SearchView) {
+            ((SearchView) view).setOnQueryTextListener(this);
+        }
         return true;
     }
 
@@ -116,10 +122,12 @@ public class MainActivity extends BaseActivity {
             showAboutDialog();
         } else {
             final int navResId;
-            if (itemId == R.id.action_trash) {
+            if (itemId == R.id.menu_trash) {
                 navResId = R.id.trash_fragment;
-            } else if (itemId == R.id.action_extension) {
+            } else if (itemId == R.id.menu_extension) {
                 navResId = R.id.plug_fragment;
+            } else if (itemId == R.id.menu_settings) {
+                navResId = R.id.settings_fragment;
             } else {
                 navResId = 0;
             }
@@ -137,13 +145,13 @@ public class MainActivity extends BaseActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Glide.with(this)
                     .load(file)
-                    .error(R.drawable.snow_bros_genesis)
+                    .error(R.drawable.im_drawer_hero)
                     .into(view);
             view.setRenderEffect(RenderEffect.createBlurEffect(8, 8, Shader.TileMode.CLAMP));
         } else {
             Glide.with(this)
                     .load(file)
-                    .error(R.drawable.snow_bros_genesis)
+                    .error(R.drawable.im_drawer_hero)
                     .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 8)))
                     .into(view);
         }
@@ -153,10 +161,6 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (mActionBarDrawerToggle.onOptionsItemSelected(item)) {
             return true;
-        } else if (item.getItemId() == R.id.action_settings) {
-            if (isNavigateAble(R.id.settings_fragment)) {
-                mNavController.navigate(R.id.settings_fragment, null, getNavAnimOptions());
-            }
         }
         return super.onOptionsItemSelected(item);
     }
