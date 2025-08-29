@@ -74,7 +74,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
     @Override
     public boolean onQueryTextChange(String newText) {
-        mAdapter.filter(newText.toLowerCase(Locale.US));
+        mAdapter.filter(newText.toLowerCase(Locale.US).trim());
         return true;
     }
 
