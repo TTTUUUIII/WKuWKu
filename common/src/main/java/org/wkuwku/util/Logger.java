@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.util;
+package org.wkuwku.util;
 
 import android.util.Log;
 

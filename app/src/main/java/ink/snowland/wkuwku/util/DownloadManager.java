@@ -9,6 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
+import org.wkuwku.interfaces.ActionListener;
+import org.wkuwku.interfaces.OnProgressListener;
+import org.wkuwku.util.FileUtils;
+import org.wkuwku.util.Logger;
 import org.wkuwku.util.NumberUtils;
 
 import java.io.File;
@@ -24,10 +28,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.Callable;
 import ink.snowland.wkuwku.common.OnErrorListener;
-import ink.snowland.wkuwku.common.OnProgressListener;
 
 public class DownloadManager {
 

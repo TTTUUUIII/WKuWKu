@@ -16,7 +16,7 @@ import ink.snowland.wkuwku.common.EmSystem;
 import ink.snowland.wkuwku.common.EmSystemInfo;
 import ink.snowland.wkuwku.emulator.Fceumm;
 import ink.snowland.wkuwku.interfaces.IEmulator;
-import ink.snowland.wkuwku.util.Logger;
+import org.wkuwku.util.Logger;
 
 public final class EmulatorManager {
     private EmulatorManager() {

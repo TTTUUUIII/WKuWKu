@@ -59,7 +59,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         binding.bottomNavView.setOnItemSelectedListener(this);
         if (isFirstLaunch) {
             isFirstLaunch = false;
-            AppDatabase.db.gameInfoDao()
+            AppDatabase.getDefault()
+                    .gameInfoDao()
                     .isExistsHistory()
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())

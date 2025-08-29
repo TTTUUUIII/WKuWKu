@@ -23,7 +23,8 @@ public class TrashViewModel extends BaseViewModel {
 
     public TrashViewModel(@NonNull Application application) {
         super(application);
-        mDisposable = AppDatabase.db.gameInfoDao()
+        mDisposable = AppDatabase.getDefault()
+                .gameInfoDao()
                 .getTrash()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -38,7 +39,8 @@ public class TrashViewModel extends BaseViewModel {
     }
 
     public void delete(@NonNull Game game) {
-        AppDatabase.db.gameInfoDao().delete(game)
+        AppDatabase.getDefault()
+                .gameInfoDao().delete(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> clearFiles(game))
@@ -50,7 +52,8 @@ public class TrashViewModel extends BaseViewModel {
     public void restore(@NonNull Game game) {
         game.state = Game.STATE_VALID;
         game.lastModifiedTime = System.currentTimeMillis();
-        AppDatabase.db.gameInfoDao().update(game)
+        AppDatabase.getDefault()
+                .gameInfoDao().update(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::onError)

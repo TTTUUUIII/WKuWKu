@@ -1,4 +1,4 @@
-package ink.snowland.wkuwku.common;
+package org.wkuwku.interfaces;
 
 public interface ActionListener {
     void onSuccess();

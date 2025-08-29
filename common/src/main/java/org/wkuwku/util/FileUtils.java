@@ -1,9 +1,10 @@
-package ink.snowland.wkuwku.util;
-
-import android.net.Uri;
+package org.wkuwku.util;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import org.wkuwku.interfaces.ActionListener;
+import org.wkuwku.interfaces.OnProgressListener;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,12 +12,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.Arrays;
 
-import ink.snowland.wkuwku.common.ActionListener;
-import ink.snowland.wkuwku.common.OnProgressListener;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;

@@ -24,8 +24,8 @@ import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.activity.MainActivity;
 import ink.snowland.wkuwku.bean.AppConfig;
 import ink.snowland.wkuwku.util.DownloadManager;
-import ink.snowland.wkuwku.util.FileUtils;
-import ink.snowland.wkuwku.util.Logger;
+import org.wkuwku.util.FileUtils;
+import org.wkuwku.util.Logger;
 import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 

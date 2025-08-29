@@ -9,18 +9,17 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.FileUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.wkuwku.util.FileUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,10 +37,7 @@ public class PlugUtils {
         PlugManifest manifest = readManifest(context, plugFile);
         if (manifest == null) return null;
         installDir = new File(installDir, manifest.packageName);
-        if (installDir.exists() && !installDir.delete()) {
-            Log.e(TAG, "Failed to delete old dir: " + installDir);
-            return null;
-        }
+        FileUtils.delete(installDir);
         if (!installDir.mkdirs()) {
             Log.e(TAG, "Failed to create dir: " + installDir);
             return null;
@@ -51,7 +47,7 @@ public class PlugUtils {
         if (!plug.exists()) {
             try (FileInputStream from = new FileInputStream(plugFile);
                  FileOutputStream to = new FileOutputStream(plug)){
-                copy(from, to);
+                FileUtils.copy(from, to);
                 extractLibrary(plug, installDir);
                 if (!plug.setReadOnly()) {
                     throw new IOException("Unable set file read only mode!");
@@ -126,18 +122,6 @@ public class PlugUtils {
             }
         }
         return file.delete();
-    }
-
-    private static void copy(InputStream from, OutputStream to) throws IOException {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            FileUtils.copy(from, to);
-        } else {
-            byte[] buffer = new byte[1024];
-            int readNumInBytes;
-            while ((readNumInBytes = from.read(buffer)) != -1) {
-                to.write(buffer, 0, readNumInBytes);
-            }
-        }
     }
 
     public static @Nullable PlugManifest readManifest(@NonNull Context context, @NonNull File plug) {

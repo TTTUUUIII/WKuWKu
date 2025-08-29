@@ -27,8 +27,8 @@ android {
 
 dependencies {
 
-    implementation libs.appcompat
-    implementation libs.material
+    compileOnly(project(":common"))
+    compileOnly libs.appcompat
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

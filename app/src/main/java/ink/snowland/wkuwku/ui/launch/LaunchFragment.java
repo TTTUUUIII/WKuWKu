@@ -42,6 +42,7 @@ import android.widget.ArrayAdapter;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.wkuwku.interfaces.ActionListener;
 import org.wkuwku.util.NumberUtils;
 
 import java.io.File;
@@ -58,7 +59,6 @@ import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.Hotkey;
-import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.Callable;
@@ -75,8 +75,8 @@ import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
 import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
-import ink.snowland.wkuwku.util.FileUtils;
-import ink.snowland.wkuwku.util.Logger;
+import org.wkuwku.util.FileUtils;
+import org.wkuwku.util.Logger;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -482,7 +482,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
         mGame.lastPlayedTime = System.currentTimeMillis();
         parentActivity.setPerformanceModeEnable(false);
-        AppDatabase.db.gameInfoDao().update(mGame)
+        AppDatabase.getDefault()
+                .gameInfoDao()
+                .update(mGame)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(error -> error.printStackTrace(System.err))

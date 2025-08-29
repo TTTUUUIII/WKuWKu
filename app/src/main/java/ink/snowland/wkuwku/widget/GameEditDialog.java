@@ -52,7 +52,7 @@ public class GameEditDialog {
                 .create();
         binding.systemTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, getSupportedSystemNames()));
         binding.regionTextView.setAdapter(new NoFilterArrayAdapter<>(mParent, R.layout.layout_simple_text, activity.getResources().getStringArray(R.array.all_regions)));
-        AppDatabase.db
+        AppDatabase.getDefault()
                 .gameInfoDao()
                 .getPublisherList()
                 .subscribeOn(Schedulers.io())

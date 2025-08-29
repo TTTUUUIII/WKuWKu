@@ -17,10 +17,14 @@ import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 public abstract class AppDatabase extends RoomDatabase {
     public abstract GameDao gameInfoDao();
     public abstract PlugManifestExtDao plugManifestExtDao();
-    public static AppDatabase db;
+    private static AppDatabase sInstance;
     public static void initialize(Context applicationContext) {
-        db = Room.databaseBuilder(applicationContext, AppDatabase.class, "db-wkuwku")
+        sInstance = Room.databaseBuilder(applicationContext, AppDatabase.class, "db-wkuwku")
                 .addMigrations(MIGRATION_1_2)
                 .build();
+    }
+
+    public static AppDatabase getDefault() {
+        return sInstance;
     }
 }

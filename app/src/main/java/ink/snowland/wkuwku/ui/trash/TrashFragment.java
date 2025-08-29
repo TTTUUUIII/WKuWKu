@@ -59,7 +59,7 @@ public class TrashFragment extends BaseFragment {
     private void showDeleteDialog(@NonNull Game game) {
         new MaterialAlertDialogBuilder(requireActivity())
                 .setIcon(R.mipmap.ic_launcher_round)
-                .setTitle(R.string.emergency)
+                .setTitle(R.string.attention)
                 .setMessage(getString(R.string.delete_confirm, game.title))
                 .setPositiveButton(R.string.confirm, (dialog, which) -> mViewModel.delete(game))
                 .setNegativeButton(R.string.cancel, null)

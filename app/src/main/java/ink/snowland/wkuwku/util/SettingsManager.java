@@ -41,6 +41,12 @@ public final class SettingsManager {
         return sSettings.getStringSet(key, new ArraySet<String>());
     }
 
+    public static void putStringSet(@NonNull String key, Set<String> v) {
+        sSettings.edit()
+                .putStringSet(key, v)
+                .apply();
+    }
+
     public static int getInt(@NonNull String key, int defaultValue) {
         return sSettings.getInt(key, defaultValue);
     }

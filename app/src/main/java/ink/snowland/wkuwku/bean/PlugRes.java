@@ -3,16 +3,13 @@ package ink.snowland.wkuwku.bean;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
-import androidx.databinding.BaseObservable;
-import androidx.databinding.Bindable;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import ink.snowland.wkuwku.BR;
 import ink.snowland.wkuwku.BuildConfig;
 
-public class PlugRes extends BaseObservable {
+public class PlugRes {
     public static final int VERSION_UNKNOWN = 0;
 
     public String name;
@@ -28,30 +25,6 @@ public class PlugRes extends BaseObservable {
     public int maxAppVersion;
 
     public String[] supportedABIs;
-
-    private boolean uiEnable;
-    private String uiText;
-
-    @Bindable
-    public String getUiText() {
-        return uiText;
-    }
-
-    public void setUiText(String text) {
-        this.uiText = text;
-        notifyPropertyChanged(BR.uiText);
-    }
-
-    @Bindable
-    public boolean isUiEnable() {
-        return uiEnable;
-    }
-
-    public void setUiEnable(boolean enable) {
-        this.uiEnable = enable;
-        notifyPropertyChanged(BR.uiEnable);
-    }
-
 
     @Override
     @NonNull
