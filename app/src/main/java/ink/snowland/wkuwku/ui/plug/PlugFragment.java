@@ -137,6 +137,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
         binding = FragmentPlugBinding.inflate(inflater, container, false);
         binding.loadingIndicator.setLifecycleOwner(this);
         binding.loadingIndicator.setDataModel(mViewModel);
+        parentActivity.setSearchEnable(false);
         return binding.getRoot();
     }
 
