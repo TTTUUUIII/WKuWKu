@@ -48,6 +48,7 @@ public class TrashFragment extends BaseFragment {
         binding.recyclerView.setAdapter(mAdapter);
         DividerItemDecoration decoration = new DividerItemDecoration(requireActivity(), DividerItemDecoration.VERTICAL);
         binding.recyclerView.addItemDecoration(decoration);
+        parentActivity.setSearchEnable(false);
         return binding.getRoot();
     }
 

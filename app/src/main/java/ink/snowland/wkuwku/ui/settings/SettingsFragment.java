@@ -37,6 +37,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         mParentActivity = (BaseActivity) requireActivity();
         mParentActivity.setActionbarTitle(R.string.app_settings);
         mHotkeysDialog = new HotkeysDialog(mParentActivity);
+        mParentActivity.setSearchEnable(false);
     }
 
     @Override

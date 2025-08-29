@@ -66,6 +66,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private final List<InputDevice> mInputDevices = new ArrayList<>();
     private InputManager mInputManager;
     private Snackbar mSnackbar;
+    private boolean mSupportedSearch = true;
     private WeakReference<SearchView.OnQueryTextListener> mQueryTextListenerRef = new WeakReference<>(null);
 
     @Override
@@ -213,6 +214,17 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         super.onStop();
         mInputManager.unregisterInputDeviceListener(this);
         SettingsManager.removeSettingChangedListener(this);
+    }
+
+    protected boolean isSupportedSearch() {
+        return mSupportedSearch;
+    }
+
+    public void setSearchEnable(boolean enable) {
+        if (mSupportedSearch != enable) {
+            mSupportedSearch = enable;
+            invalidateOptionsMenu();
+        }
     }
 
     public void onSettingChanged(@NonNull String key) {
