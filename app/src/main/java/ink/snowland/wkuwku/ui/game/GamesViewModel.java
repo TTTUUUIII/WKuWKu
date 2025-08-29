@@ -17,14 +17,15 @@ import java.util.List;
 
 import ink.snowland.wkuwku.EmulatorManager;
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.common.ActionListener;
 import ink.snowland.wkuwku.common.BaseViewModel;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.util.ArchiveUtils;
 import ink.snowland.wkuwku.util.DownloadManager;
-import ink.snowland.wkuwku.util.FileUtils;
+
+import org.wkuwku.interfaces.ActionListener;
+import org.wkuwku.util.FileUtils;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -36,7 +37,8 @@ public class GamesViewModel extends BaseViewModel {
 
     public GamesViewModel(@NonNull Application application) {
         super(application);
-        mDisposable = AppDatabase.db.gameInfoDao()
+        mDisposable = AppDatabase.getDefault()
+                .gameInfoDao()
                 .getAll()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -150,7 +152,8 @@ public class GamesViewModel extends BaseViewModel {
     }
 
     public void update(@NonNull Game game) {
-        AppDatabase.db.gameInfoDao().update(game)
+        AppDatabase.getDefault()
+                .gameInfoDao().update(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnError(this::onError)
@@ -159,7 +162,8 @@ public class GamesViewModel extends BaseViewModel {
     }
 
     public void delete(@NonNull Game game) {
-        AppDatabase.db.gameInfoDao().delete(game)
+        AppDatabase.getDefault()
+                .gameInfoDao().delete(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnComplete(() -> FileUtils.delete(game.filepath))
@@ -169,7 +173,8 @@ public class GamesViewModel extends BaseViewModel {
     }
 
     private void insert(@NonNull Game game) {
-        AppDatabase.db.gameInfoDao()
+        AppDatabase.getDefault()
+                .gameInfoDao()
                 .insert(game)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

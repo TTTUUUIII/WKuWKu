@@ -35,7 +35,8 @@ public class PlugViewModel extends BaseViewModel {
     private final Disposable mDisposable;
     public PlugViewModel(@NonNull Application application) {
         super(application);
-        mDisposable = AppDatabase.db.plugManifestExtDao().getAll()
+        mDisposable = AppDatabase.getDefault()
+                .plugManifestExtDao().getAll()
                 .observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe(mInstalledPlugs::postValue, error -> error.printStackTrace(System.err));
@@ -64,14 +65,17 @@ public class PlugViewModel extends BaseViewModel {
 
     public Completable update(@NonNull PlugManifestExt manifest) {
         return Completable.create(emitter -> {
-            AppDatabase.db.plugManifestExtDao().update(manifest);
+            AppDatabase.getDefault()
+                    .plugManifestExtDao().update(manifest);
             emitter.onComplete();
         });
     }
 
     public Completable delete(@NonNull PlugManifestExt manifest) {
         return Completable.create(emitter -> {
-            AppDatabase.db.plugManifestExtDao().delete(manifest);
+            AppDatabase.getDefault()
+                    .plugManifestExtDao()
+                    .delete(manifest);
             emitter.onComplete();
         });
     }

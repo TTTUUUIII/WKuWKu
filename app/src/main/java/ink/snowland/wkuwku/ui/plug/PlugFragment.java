@@ -1,6 +1,7 @@
 package ink.snowland.wkuwku.ui.plug;
 
 import static ink.snowland.wkuwku.util.ResourceManager.*;
+
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -21,6 +22,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.os.Process;
+import android.util.ArraySet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,11 +38,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.activity.MainActivity;
 import ink.snowland.wkuwku.bean.PlugRes;
-import ink.snowland.wkuwku.common.ActionListener;
+import ink.snowland.wkuwku.bean.UiPlugResState;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentPlugBinding;
 import ink.snowland.wkuwku.databinding.ItemPlugManifestBinding;
@@ -49,7 +54,9 @@ import ink.snowland.wkuwku.databinding.LayoutPlugInstalledBinding;
 import ink.snowland.wkuwku.db.entity.PlugManifestExt;
 import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
-import ink.snowland.wkuwku.util.FileUtils;
+
+import org.wkuwku.interfaces.ActionListener;
+import org.wkuwku.util.FileUtils;
 import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -59,6 +66,9 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelectedListener {
     private static final int INSTALLED_SCREEN = 0;
     private static final int AVAILABLE_SCREEN = 1;
+
+    private static final Set<String> sNeedRebootList = new ArraySet<>();
+
     private FragmentPlugBinding binding;
 
     private PlugViewModel mViewModel;
@@ -72,9 +82,9 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
             }
         }
     };
-    private final PlugViewAdapter<PlugRes> mAvailablePlugAdapter = new PlugViewAdapter<>() {
+    private final PlugViewAdapter<UiPlugResState> mAvailablePlugAdapter = new PlugViewAdapter<>() {
         @Override
-        public void submitList(@Nullable List<PlugRes> list) {
+        public void submitList(@Nullable List<UiPlugResState> list) {
             super.submitList(list);
             if (mPlugAvailableBinding != null) {
                 mPlugAvailableBinding.emptyListIndicator.setVisibility(list == null || list.isEmpty() ? View.VISIBLE : View.GONE);
@@ -110,7 +120,10 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                 })
                 .doOnError(error -> error.printStackTrace(System.err))
                 .onErrorComplete()
-                .doOnSuccess(mAvailablePlugAdapter::submitList)
+                .doOnSuccess(plugRes ->
+                        mAvailablePlugAdapter.submitList(plugRes.stream()
+                                .map(UiPlugResState::from)
+                                .collect(Collectors.toList())))
                 .subscribe();
         mViewModel.getAll().observe(
                 this,
@@ -271,7 +284,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     private void showDeletePlugDialog(@NonNull PlugManifestExt manifest) {
         new MaterialAlertDialogBuilder(parentActivity)
                 .setIcon(R.mipmap.ic_launcher_round)
-                .setTitle(R.string.emergency)
+                .setTitle(R.string.attention)
                 .setMessage(getString(R.string.fmt_delete_plug, manifest.origin.name))
                 .setPositiveButton(R.string.delete, (dialog, which) -> PlugManager.uninstall(manifest.origin, null))
                 .setNegativeButton(R.string.cancel, null)
@@ -312,113 +325,156 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                             .subscribe();
                 });
                 _binding.uninstall.setOnClickListener(v -> showDeletePlugDialog(manifest));
-            } else if (itemBinding instanceof ItemPlugResBinding && o instanceof PlugRes) {
-                PlugRes res = (PlugRes) o;
+            } else if (itemBinding instanceof ItemPlugResBinding && o instanceof UiPlugResState) {
+                UiPlugResState resState = (UiPlugResState) o;
                 ItemPlugResBinding _binding = (ItemPlugResBinding) itemBinding;
-                _binding.setPlugRes(res);
-                if (res.iconUrl != null) {
-                    Glide.with(parentActivity)
-                            .load(res.iconUrl)
-                            .error(R.drawable.ic_extension)
-                            .into(_binding.plugIcon);
+                _binding.setViewData(resState);
+                Glide.with(parentActivity)
+                        .load(resState.origin.iconUrl)
+                        .error(R.drawable.ic_extension)
+                        .into(_binding.plugIcon);
+
+                if (sNeedRebootList.contains(resState.origin.packageName)) {
+                    resState.setText(getStringSafe(R.string.need_restart));
+                    resState.setInstallable(false);
+                    return;
                 }
-                if (res.isCompatible()) {
-                    final PlugManifestExt plug = mViewModel.findInstalledPlug(res.packageName);
-                    DownloadManager.Session session = DownloadManager.getSession(res.url);
-                    if (plug != null) {
-                        boolean isUpgrade = plug.origin.getVersionCode() < res.versionCode;
-                        res.setUiEnable(isUpgrade);
-                        res.setUiText(getStringSafe(isUpgrade ? R.string.upgrade : R.string.installed));
-                    } else if (session != null){
+
+                if (resState.origin.isCompatible()) {
+                    final PlugManifestExt plug = mViewModel.findInstalledPlug(resState.origin.packageName);
+                    DownloadManager.Session session = DownloadManager.getSession(resState.origin.url);
+                    if (session != null) {
                         _binding.installButton.setEnabled(false);
-                        session.doOnProgressUpdate((progress, max) -> res.setUiText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
+                        session.doOnProgressUpdate((progress, max) -> resState.setText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
                                 .doOnError(error -> {
-                                    res.setUiEnable(true);
-                                    res.setUiText(getStringSafe(R.string.install));
+                                    resState.setInstallable(true);
+                                    resState.setText(plug == null ? getStringSafe(R.string.install) : getStringSafe(R.string.upgrade));
                                     if (binding != null) {
                                         Toast.makeText(getApplicationContextSafe(), R.string.network_error, Toast.LENGTH_SHORT).show();
                                     } else {
                                         NotificationManager.postNotification(
                                                 NotificationManager.NOTIFICATION_ERROR_CHANNEL,
                                                 getStringSafe(R.string.extension),
-                                                getStringSafe(R.string.fmt_download_failed_network_error, res.name));
+                                                getStringSafe(R.string.fmt_download_failed_network_error, resState.origin.name));
                                     }
                                 })
-                                .doOnComplete(file -> doInstall(res, file));
+                                .doOnComplete(file -> doInstall(resState, file));
                     } else {
-                        res.setUiEnable(true);
-                        res.setUiText(getStringSafe(R.string.install));
+                        boolean upgrade = false;
+                        if (plug != null) {
+                            upgrade = plug.origin.getVersionCode() < resState.origin.versionCode;
+                        }
+                        resState.setInstallable(plug == null || upgrade);
+                        resState.setUpgrade(upgrade);
+                        if (resState.isInstallable()) {
+                            resState.setText(getStringSafe(upgrade ? R.string.upgrade : R.string.install));
+                        } else {
+                            resState.setText(getStringSafe(R.string.installed));
+                        }
                     }
 
                     _binding.installButton.setOnClickListener(v -> {
-                        res.setUiText(getStringSafe(R.string.connecting));
-                        res.setUiEnable(false);
-                        DownloadManager.newRequest(res.url, new File(FileManager.getCacheDirectory(), FileUtils.getName(res.url)))
-                                .doOnProgressUpdate((progress, max) -> res.setUiText(getStringSafe(R.string.fmt_downloading, (float) progress / max * 100)))
-                                .doOnComplete(file -> doInstall(res, file))
+                        if (sNeedRebootList.contains(resState.origin.packageName)) {
+                            requestRestartApp();
+                            return;
+                        }
+
+                        resState.setText(getStringSafe(R.string.connecting));
+                        resState.setInstallable(false);
+                        DownloadManager.newRequest(resState.origin.url, new File(FileManager.getCacheDirectory(), FileUtils.getName(resState.origin.url)))
+                                .doOnProgressUpdate((progress, max) -> resState.setText(getStringSafe(R.string.fmt_downloading, (float) progress / max * 100)))
+                                .doOnComplete(file -> doInstall(resState, file))
                                 .doOnError(error -> {
                                     error.printStackTrace(System.err);
-                                    res.setUiText(getStringSafe(R.string.install));
-                                    res.setUiEnable(true);
+                                    resState.setText(getStringSafe(R.string.install));
+                                    resState.setInstallable(true);
                                     if (binding != null) {
                                         Toast.makeText(getApplicationContextSafe(), R.string.network_error, Toast.LENGTH_SHORT).show();
                                     } else {
                                         NotificationManager.postNotification(
                                                 NotificationManager.NOTIFICATION_ERROR_CHANNEL,
                                                 getStringSafe(R.string.extension),
-                                                getStringSafe(R.string.fmt_download_failed_network_error, res.name));
+                                                getStringSafe(R.string.fmt_download_failed_network_error, resState.origin.name));
                                     }
                                 }).submit();
                     });
                 } else {
-                    res.setUiEnable(false);
-                    res.setUiText(getStringSafe(R.string.incompatible));
+                    resState.setInstallable(false);
+                    resState.setText(getStringSafe(R.string.incompatible));
                 }
             }
         }
 
-        private void doInstall(PlugRes res, File file) {
-            if (res.md5.contains(FileUtils.getMD5Sum(file))) {
-                res.setUiText(getStringSafe(R.string.installing));
-                PlugManager.install(file, new ActionListener() {
-                    @Override
-                    public void onSuccess() {
-                        res.setUiText(getStringSafe(R.string.installed));
-                        if (binding == null) {
-                            Intent intent = new Intent(getApplicationContextSafe(), MainActivity.class);
-                            intent.putExtra(MainActivity.EXTRA_REQUEST_ID, MainActivity.REQUEST_NAVIGATE);
-                            intent.putExtra(MainActivity.EXTRA_NAVIGATE_RES_ID, R.id.plug_fragment);
-                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContextSafe(), 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-                            Notification notification = new NotificationCompat.Builder(getApplicationContextSafe(), NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
-                                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                                    .setSmallIcon(R.drawable.im_notification)
-                                    .setContentTitle(getStringSafe(R.string.extension))
-                                    .setContentText(getStringSafe(R.string.fmt_plug_installed_successfully, res.name))
-                                    .setAutoCancel(true)
-                                    .setContentIntent(pendingIntent)
-                                    .build();
-                            NotificationManager.postNotification(notification);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(Throwable e) {
-                        res.setUiText(getStringSafe(R.string.install));
-                        res.setUiEnable(true);
-                        e.printStackTrace(System.err);
-                        if (binding != null) {
-                            Toast.makeText(getApplicationContextSafe(), R.string.install_failed, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            } else {
-                res.setUiText(getStringSafe(R.string.install));
-                res.setUiEnable(true);
+        private void doInstall(UiPlugResState resState, File file) {
+            final PlugRes res = resState.origin;
+            if (!res.md5.contains(FileUtils.getMD5Sum(file))) {
+                resState.setText(getStringSafe(R.string.install));
+                resState.setInstallable(true);
                 if (binding != null) {
                     Toast.makeText(getApplicationContextSafe(), R.string.invalid_package, Toast.LENGTH_SHORT).show();
                 }
+                return;
             }
+
+            if (resState.isUpgrade()) {
+                sNeedRebootList.add(resState.origin.packageName);
+                resState.setInstallable(true);
+                resState.setText(getStringSafe(R.string.need_restart));
+                PlugManager.upgrade(resState.origin.packageName, file);
+                return;
+            }
+
+            resState.setText(getStringSafe(R.string.installing));
+            PlugManager.install(file, new ActionListener() {
+                @Override
+                public void onSuccess() {
+                    resState.setText(getStringSafe(R.string.installed));
+                    if (binding == null) {
+                        Intent intent = new Intent(getApplicationContextSafe(), MainActivity.class);
+                        intent.putExtra(MainActivity.EXTRA_REQUEST_ID, MainActivity.REQUEST_NAVIGATE);
+                        intent.putExtra(MainActivity.EXTRA_NAVIGATE_RES_ID, R.id.plug_fragment);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContextSafe(), 1, intent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
+                        Notification notification = new NotificationCompat.Builder(getApplicationContextSafe(), NotificationManager.NOTIFICATION_DEFAULT_CHANNEL)
+                                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                                .setSmallIcon(R.drawable.im_notification)
+                                .setContentTitle(getStringSafe(R.string.extension))
+                                .setContentText(getStringSafe(R.string.fmt_plug_installed_successfully, res.name))
+                                .setAutoCancel(true)
+                                .setContentIntent(pendingIntent)
+                                .build();
+                        NotificationManager.postNotification(notification);
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable e) {
+                    resState.setText(getStringSafe(R.string.install));
+                    resState.setInstallable(true);
+                    e.printStackTrace(System.err);
+                    if (binding != null) {
+                        Toast.makeText(getApplicationContextSafe(), R.string.install_failed, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
         }
+    }
+
+    private void requestRestartApp() {
+        new MaterialAlertDialogBuilder(parentActivity)
+                .setTitle(R.string.attention)
+                .setMessage(R.string.restart_app_confirmation)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.confirm, (dialog, which) -> restartApp())
+                .show();
+    }
+
+    private void restartApp() {
+        Intent intent = new Intent(getApplicationContextSafe(), MainActivity.class);
+        intent.putExtra(MainActivity.EXTRA_REQUEST_ID, MainActivity.REQUEST_NAVIGATE);
+        intent.putExtra(MainActivity.EXTRA_NAVIGATE_RES_ID, R.id.plug_fragment);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        Process.killProcess(Process.myPid());
     }
 
     private class PlugViewAdapter<T> extends ListAdapter<T, PlugViewHolder> {

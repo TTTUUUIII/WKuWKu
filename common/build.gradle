@@ -26,6 +26,8 @@ android {
 }
 
 dependencies {
+    compileOnly libs.room.rxjava3
+    compileOnly libs.rxandroid
     compileOnly libs.appcompat
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit

@@ -17,6 +17,8 @@ public class HistoryViewModel extends BaseViewModel {
     }
 
     public Observable<List<Game>> getHistory() {
-        return AppDatabase.db.gameInfoDao().getHistory();
+        return AppDatabase.getDefault()
+                .gameInfoDao()
+                .getHistory();
     }
 }

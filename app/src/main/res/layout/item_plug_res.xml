@@ -4,8 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
         <variable
-            name="plugRes"
-            type="ink.snowland.wkuwku.bean.PlugRes" />
+            name="viewData"
+            type="ink.snowland.wkuwku.bean.UiPlugResState" />
     </data>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -51,7 +51,7 @@
                     android:ellipsize="end"
                     android:maxLines="2"
                     android:textStyle="bold"
-                    android:text="@{plugRes.name}"
+                    android:text="@{viewData.origin.name}"
                     tools:text="Mame" />
                 <TextView
                     android:id="@+id/plug_version"
@@ -59,7 +59,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="13sp"
                     android:layout_marginStart="8dp"
-                    android:text="@{plugRes.version}"
+                    android:text="@{viewData.origin.version}"
                     tools:text="v1.0" />
             </LinearLayout>
             <TextView
@@ -68,7 +68,7 @@
                 android:textStyle="italic"
                 tools:text="by wn123o"
                 android:textSize="13sp"
-                android:text="@{`by ` + plugRes.author}" />
+                android:text="@{`by ` + viewData.origin.author}" />
             <TextView
                 android:id="@+id/plug_summary"
                 android:layout_width="wrap_content"
@@ -76,7 +76,7 @@
                 android:textSize="13sp"
                 android:ellipsize="end"
                 android:maxLines="3"
-                android:text="@{plugRes.summary}"
+                android:text="@{viewData.origin.summary}"
                 tools:text="Support arcade platforms." />
             <TextView
                 android:id="@+id/warning"
@@ -92,8 +92,8 @@
             app:layout_constraintTop_toBottomOf="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:enabled="@{plugRes.uiEnable}"
-            android:text="@{plugRes.uiText}"
+            android:enabled="@{viewData.installable}"
+            android:text="@{viewData.text}"
             tools:text="@string/install" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

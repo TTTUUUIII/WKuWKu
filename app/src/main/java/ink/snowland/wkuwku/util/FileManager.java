@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.wkuwku.util.FileUtils;
+
 import java.io.File;
 import java.util.List;
 
@@ -55,7 +57,8 @@ public class FileManager {
                     }
                     int maxStorageDays = sApplicationContext.getResources().getInteger(R.integer.trash_storage_days);
                     long expiredTimeMillis = System.currentTimeMillis() - (long) maxStorageDays * 24 * 60 * 60 * 1000;
-                    List<Game> list = AppDatabase.db.gameInfoDao()
+                    List<Game> list = AppDatabase.getDefault()
+                            .gameInfoDao()
                             .findTrashByModifiedLT(expiredTimeMillis);
                     delete(list);
                     emitter.onComplete();
@@ -67,7 +70,8 @@ public class FileManager {
 
     private static void delete(@Nullable List<Game> games) {
         if (games == null || games.isEmpty()) return;
-        AppDatabase.db.gameInfoDao()
+        AppDatabase.getDefault()
+                .gameInfoDao()
                 .delete(games);
         for (Game game : games) {
             clearFiles(game);

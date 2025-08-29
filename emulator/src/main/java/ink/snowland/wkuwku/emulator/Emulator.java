@@ -26,7 +26,7 @@ import ink.snowland.wkuwku.common.Variable;
 import ink.snowland.wkuwku.common.VariableEntry;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
-import ink.snowland.wkuwku.util.Logger;
+import org.wkuwku.util.Logger;
 
 public abstract class Emulator implements IEmulator {
     protected final EmConfig config;

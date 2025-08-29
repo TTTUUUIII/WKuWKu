@@ -41,7 +41,7 @@
     <string name="delete">Delete</string>
     <string name="edit">Edit</string>
     <string name="detail">Detail</string>
-    <string name="emergency">Emergency</string>
+    <string name="attention">Attention</string>
     <string name="delete_confirm">Are you sure you want to delete \"%s\"? \n\nps: this operation cannot be undone!</string>
     <string name="video_options">Video Options</string>
     <string name="input_options">Input Options</string>
@@ -199,4 +199,5 @@
     <string name="summary_enable_top_menu">Enable top menu</string>
     <string name="summary_nav_animation">Apply transition animation when navigation</string>
     <string name="nav_animation">Navigation animation</string>
+    <string name="restart_app_confirmation">Are you sure reboot this app now? \n\nWarning: If there are background tasks, they will be terminated!</string>
 </resources>
