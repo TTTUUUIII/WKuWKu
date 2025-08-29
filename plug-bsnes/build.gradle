@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId "com.outlook.wn123o.wkukwu.bsnes"
-        versionCode 1
-        versionName "v1.0"
+        versionCode 2
+        versionName "v1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {

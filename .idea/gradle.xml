@@ -18,7 +18,6 @@
             <option value="$PROJECT_DIR$/plug-bsnes" />
             <option value="$PROJECT_DIR$/plug-citra" />
             <option value="$PROJECT_DIR$/plug-desmume" />
-            <option value="$PROJECT_DIR$/plug-dolphin" />
             <option value="$PROJECT_DIR$/plug-fbneo" />
             <option value="$PROJECT_DIR$/plug-fmsx" />
             <option value="$PROJECT_DIR$/plug-geargrafx" />
@@ -38,7 +37,6 @@
             <option value="$PROJECT_DIR$/plug-yabause" />
           </set>
         </option>
-        <option name="resolveExternalAnnotations" value="false" />
       </GradleProjectSettings>
     </option>
   </component>

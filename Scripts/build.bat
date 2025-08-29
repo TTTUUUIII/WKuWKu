@@ -15,6 +15,7 @@ for %%m in (
     snes9x
     citra
     melonds
+    ruffle
     mgba
     vbam
     vbanext
