@@ -5,8 +5,6 @@ import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.LayoutInflater;
@@ -16,10 +14,7 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Collection;
-
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.bean.MacroEvent;
 import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.databinding.LayoutVirtualControllerBinding;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -36,7 +31,6 @@ public class VirtualController implements Controller, View.OnTouchListener {
     private LayoutVirtualControllerBinding binding;
     private final View mView;
     private Vibrator mVibrator;
-    private final Handler mHandler;
 
     public VirtualController(@NonNull Context context) {
         mView = onCreateView(LayoutInflater.from(context));
@@ -46,7 +40,6 @@ public class VirtualController implements Controller, View.OnTouchListener {
                 mVibrator = null;
             }
         }
-        mHandler = new Handler(Looper.getMainLooper());
     }
 
     @Nullable
@@ -155,7 +148,7 @@ public class VirtualController implements Controller, View.OnTouchListener {
             setState(RETRO_DEVICE_ANALOG,
                     RETRO_DEVICE_INDEX_ANALOG_LEFT,
                     RETRO_DEVICE_ID_ANALOG_Y,
-                    ypos * 258);
+                    ypos * 258 * -1);
             int left = xpos < -JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
             int right = xpos > JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
             int up = ypos > JOYSTICK_TRIGGER_THRESHOLD ? KEY_DOWN : KEY_UP;
@@ -229,23 +222,6 @@ public class VirtualController implements Controller, View.OnTouchListener {
                 }
             }
         }
-    }
-
-    protected void postMacroEvent(@NonNull MacroEvent event) {
-        mHandler.postDelayed(() -> {
-            for (int key : event.keys) {
-                setState(RETRO_DEVICE_JOYPAD, 0, key, KEY_DOWN);
-            }
-            mHandler.postDelayed(() -> {
-                for (int key : event.keys) {
-                    setState(RETRO_DEVICE_JOYPAD, 0, key, KEY_UP);
-                }
-            }, event.duration);
-        }, event.delayed);
-    }
-
-    protected void postMacroEvents(@NonNull Collection<MacroEvent> events) {
-        events.forEach(this::postMacroEvent);
     }
 
     public final void vibrator() {

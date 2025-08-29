@@ -120,6 +120,7 @@ void AudioOutputStream::request_pause() {
         LOGE(TAG, "Unable pause stream, invalid state=%d", stream_state);
         return;
     }
+    stream->requestPause();
     oboe::StreamState input_state = oboe::StreamState::Pausing;
     oboe::StreamState next_state = oboe::StreamState::Uninitialized;
     stream->waitForStateChange(input_state, &next_state, 100 * kNanosPerMillisecond);
