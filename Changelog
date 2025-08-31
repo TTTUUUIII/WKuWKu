@@ -1,3 +1,13 @@
+@v0.4.13a
+[Feat] search function;
+[Feat] upgrade extension;
+[Fix] axis y not work (virtual controller);
+[Fix] audio not work when game resume from paused state (video fps also drop);
+[Del] macro script (not easy to use);
+[Opt] dark theme;
+[Opt] layout;
+@end
+
 @v0.4.12a
 [Add] switch virtual controller's layout;
 [Add] disable navigation animation setting;
