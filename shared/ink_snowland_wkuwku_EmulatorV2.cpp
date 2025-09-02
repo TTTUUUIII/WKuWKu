@@ -32,6 +32,7 @@ static std::atomic<int> draw_index = 0;
 static rotation_t video_rotation = ROTATION_0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
+static int8_t video_effect = FILTER_NONE;
 static retro_pixel_format origin_pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static std::queue<std::shared_ptr<message_t>> message_queue;
@@ -622,6 +623,9 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case PROP_AUDIO_UNDERRUN_OPTIMIZATION:
             props[prop] = as_bool(env, val);
             break;
+        case PROP_VIDEO_FILTER:
+            video_effect = static_cast<int8_t>(as_int(env, val));
+            break;
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
@@ -669,7 +673,7 @@ static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, 
     retro_set_controller_port_device(port, device);
 }
 
-static void em_dispatch_keyboard_event(JNIEnv *env, jobject thiz, jint port, jobject event) {
+static void em_dispatch_keyboard_event(JNIEnv *env, jobject thiz, jobject event) {
 
 }
 
@@ -693,7 +697,7 @@ static const JNINativeMethod methods[] = {
         {"nativeSetControllerPortDevice", "(II)V",                                           (void *) em_set_controller_port_device},
         {"nativeCaptureScreen",           "(Ljava/lang/String;)Z",                           (void *) em_capture_screen},
         {"nativeSetProp",                 "(ILjava/lang/Object;)V",                          (void *) em_set_prop},
-        {"nativeDispatchKeyEvent",   "(Landroid/view/KeyEvent;)V",                      (void *) em_dispatch_keyboard_event}
+        {"nativeDispatchKeyEvent",        "(Landroid/view/KeyEvent;)V",                      (void *) em_dispatch_keyboard_event}
 };
 
 extern "C"
@@ -767,12 +771,12 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     }
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
-    #ifndef MAIN_CLASS
-        clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
-    #else
-        clazz = env->FindClass(MAIN_CLASS);
-    #endif
-        env->UnregisterNatives(clazz);
+#ifndef MAIN_CLASS
+    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
+#else
+    clazz = env->FindClass(MAIN_CLASS);
+#endif
+    env->UnregisterNatives(clazz);
     if (SwappyGL_isEnabled())
         SwappyGL_destroy();
     ctx.jvm = nullptr;
@@ -844,7 +848,7 @@ static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     UNUSED(dyp);
     UNUSED(sr);
     set_thread_priority(THREAD_PRIORITY_DISPLAY);
-    begin_texture(pixel_format,
+    begin_texture(video_effect, pixel_format,
                   static_cast<int>(system_av_info.geometry.max_width),
                   static_cast<int>(system_av_info.geometry.max_height),
                   video_rotation, !hw_render_cb);

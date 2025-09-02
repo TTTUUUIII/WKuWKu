@@ -3,6 +3,7 @@ package ink.snowland.wkuwku.emulator;
 
 import android.app.Activity;
 import android.content.Context;
+import android.view.KeyEvent;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -96,6 +97,12 @@ public class Fceumm extends Emulator {
     }
 
     @Override
+    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        nativeDispatchKeyEvent(event);
+        return false;
+    }
+
+    @Override
     public void setProp(int what, Object data) {
         super.setProp(what, data);
         nativeSetProp(what, data);
@@ -128,4 +135,5 @@ public class Fceumm extends Emulator {
     private native void nativeSetMemoryData(int type, byte[] data);
     private native void nativeSetControllerPortDevice(int port, int device);
     private native void nativeSetProp(int prop, Object val);
+    private native void nativeDispatchKeyEvent(@NonNull KeyEvent event);
 }

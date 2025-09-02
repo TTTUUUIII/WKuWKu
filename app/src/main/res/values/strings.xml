@@ -155,7 +155,7 @@
     <string name="plug_already_installed">This extension already installed!</string>
     <string name="blacklist_auto_load_state">Blacklist: Auto load state</string>
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
-    <string name="publisher">Publisher</string>
+    <string name="publisher">Pub</string>
     <string name="screenshot_saved">Screenshot saved</string>
     <string name="theme">Theme</string>
     <string name="player_1">Player 1</string>
@@ -188,7 +188,7 @@
     <string name="rom_is_required">ROM is required!</string>
     <string name="system_is_required">System field is required!</string>
     <string name="none">None</string>
-    <string name="path_or_url">Path or url</string>
+    <string name="path_or_url">Path or URL</string>
     <string name="feat_not_supported">The emulator not supported this feature!</string>
     <string name="virtual_controller_layout">Virtual controller layout</string>
     <string name="device_options">Device options</string>
@@ -200,4 +200,5 @@
     <string name="summary_nav_animation">Apply transition animation when navigation</string>
     <string name="nav_animation">Navigation animation</string>
     <string name="restart_app_confirmation">Are you sure reboot this app now? \n\nWarning: If there are background tasks, they will be terminated!</string>
+    <string name="video_filter">Filter</string>
 </resources>

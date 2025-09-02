@@ -12,6 +12,14 @@
             app:key="app_video_ratio"
             app:title="@string/video_ratio"
             app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="0"
+            app:entries="@array/video_filter_entries"
+            app:entryValues="@array/video_filter_values"
+            app:key="video_filter"
+            android:title="@string/video_filter"
+            app:useSimpleSummaryProvider="true" />
         <SwitchPreferenceCompat
             app:iconSpaceReserved="false"
             app:defaultValue="true"

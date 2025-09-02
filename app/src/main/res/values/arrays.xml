@@ -64,4 +64,13 @@
         <item>standard</item>
         <item>sega</item>
     </string-array>
+
+    <string-array name="video_filter_entries">
+        <item>None</item>
+        <item>CRT</item>
+    </string-array>
+    <string-array name="video_filter_values">
+        <item>0</item>
+        <item>1</item>
+    </string-array>
 </resources>

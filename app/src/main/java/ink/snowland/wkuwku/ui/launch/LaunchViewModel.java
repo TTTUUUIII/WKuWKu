@@ -10,6 +10,8 @@ import android.os.SystemClock;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.wkuwku.util.NumberUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -88,6 +90,7 @@ public class LaunchViewModel extends BaseViewModel {
             mEmulator.setProp(PROP_CORE_ASSETS_DIRECTORY, getCacheDirectory());
             mEmulator.setProp(PROP_LOW_LATENCY_AUDIO_ENABLE, SettingsManager.getBoolean(AUDIO_LOW_LATENCY_MODE, true));
             mEmulator.setProp(PROP_AUDIO_UNDERRUN_OPTIMIZATION, SettingsManager.getBoolean(AUDIO_UNDERRUN_OPTIMIZATION, true));
+            mEmulator.setProp(PROP_VIDEO_FILTER, NumberUtils.parseInt(SettingsManager.getString("video_filter", "0"), 0));
             if ("oboe".equals(SettingsManager.getString(AUDIO_API, "oboe"))) {
                 mEmulator.setProp(PROP_OBOE_ENABLE, true);
             } else {
