@@ -10,13 +10,53 @@ static void update_texcoords(int width, int height);
 static void set_mat4(const char* sym, const glm::mat4& mat);
 
 static const char* TAG = "GLUtils";
-static const char* vertex_shader_source =
-#include "glsl/vs_simple_texture.h"
-;
+static const char* vertex_shader_source = R"(
+    #version 300 es
+    layout (location = 0) in vec2 vPosition;
+    layout (location = 1) in vec2 vTexCoord;
 
-static const char* fragment_shader_source =
-#include "glsl/fs_simple_texture.h"
-;
+    uniform mat4 model;
+    out vec2 TexCoord;
+
+    void main() {
+        gl_Position = model * vec4(vPosition, 0.0, 1.0);
+        TexCoord = vTexCoord;
+    }
+)";
+
+static const char* fragment_shader_source = R"(
+    #version 300 es
+    precision mediump float;
+
+    const int VF_NONE   = 0;
+    const int VF_CRT    = 1;
+
+    in vec2 TexCoord;
+    uniform int vf;
+    uniform sampler2D texture1;
+    out vec4 FragColor;
+
+    vec4 applyCRTFilter(vec4 color) {
+        vec3 rgb = pow(color.rgb, vec3(2.2));
+        float scanline = mod(gl_FragCoord.y, 2.0) < 1.0 ? 0.75 : 1.0;
+        float strip = mod(gl_FragCoord.x, 3.0);
+        vec3 mask = strip < 1.0 ? vec3(1.0, 0.25, 0.25) :
+                    strip < 2.0 ? vec3(0.25, 1.0, 0.25) :
+                    vec3(0.25, 0.25, 1.0);
+        vec3 result = pow(rgb * mask * scanline, vec3(0.45));
+        result = clamp(result * 1.3, 0.0, 1.0);
+        return vec4(result, color.a);
+    }
+
+    void main() {
+        vec4 color = texture(texture1, vec2(TexCoord.x, TexCoord.y));
+        if (vf == VF_CRT) {
+            FragColor = applyCRTFilter(color);
+        } else {
+            FragColor = color;
+        }
+    }
+)";
 
 static const float vertexes[] = {
         1.f, 1.f,
@@ -49,10 +89,17 @@ static glm::mat4 model;
 static retro_pixel_format pixel_format;
 static bool flip_y = false;
 static int max_width, max_height, rotation;
+static int8_t video_filter;
 static int base_width, base_height;
 static draw_env_t env{};
 
-void begin_texture(retro_pixel_format format, int mw /*max width*/, int mh /*max height*/, int rot /*rotation*/, bool flp_y /*flip y*/) {
+void begin_texture(int8_t vf /*video filter*/,
+                   retro_pixel_format format,
+                   int mw /*max width*/,
+                   int mh /*max height*/,
+                   int rot /*rotation*/,
+                   bool flp_y /*flip y*/) {
+    video_filter = vf;
     max_width = mw;
     max_height = mh;
     pixel_format = format;
@@ -109,6 +156,13 @@ static void set_mat4(const char* sym, const glm::mat4& mat) {
     glUseProgram(0);
 }
 
+static void set_i(const char* sym, const int &v) {
+    GLint location = glGetUniformLocation(env.pid, sym);
+    glUseProgram(env.pid);
+    glUniform1i(location, v);
+    glUseProgram(0);
+}
+
 static void update_texcoords(int width, int height) {
     if (width != base_width || height != base_height) {
         float u_max = static_cast<float>(width) / static_cast<float>(max_width);
@@ -151,6 +205,7 @@ static void begin_texture() {
     model = glm::mat4();
     model = glm::rotate(model, glm::radians((float) rotation * 90.f), glm::vec3(0.f, 0.f, 1.f));
     set_mat4("model", model);
+    set_i("vf", video_filter);
 
     /*buffers*/
     glGenVertexArrays(1, &env.VAO);

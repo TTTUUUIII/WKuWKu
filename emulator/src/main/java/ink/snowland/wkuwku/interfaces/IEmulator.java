@@ -24,10 +24,14 @@ public interface IEmulator extends RetroDefine {
     int PROP_OBOE_ENABLE                        = 102;
     int PROP_LOW_LATENCY_AUDIO_ENABLE           = 103;
     int PROP_AUDIO_UNDERRUN_OPTIMIZATION        = 104;
+    int PROP_VIDEO_FILTER                       = 105;
 
     int FEAT_SAVE_STATE                         = 1000;
     int FEAT_LOAD_STATE                         = 1001;
     int FEAT_SCREENSHOT                         = 1002;
+
+    int FILTER_NONE                             = 0;
+    int FILTER_CRT                              = 1;
 
     boolean hasFeature(int feat);
     void setProp(int what, Object data);
