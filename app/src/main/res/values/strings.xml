@@ -21,8 +21,8 @@
     <string name="search">Search</string>
     <string name="settings">Settings</string>
     <string name="last_played_t">Last played</string>
-    <string name="confirm">CONFIRM</string>
-    <string name="cancel" tools:ignore="ButtonCase">CANCEL</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
     <string name="title">Title</string>
     <string name="select_file">Select File</string>
     <string name="select_file_or_input_url">Select file or input url</string>
@@ -175,7 +175,7 @@
     <string name="no_input_device">No input device!</string>
     <string name="underrun_optimization">Underrun optimization</string>
     <string name="summary_underrun_optimization">Do something when audio underrun occurs</string>
-    <string name="summary_switch_to_performance_mode_when_playing">Switch performance mode when playing (Consumes more battery life)</string>
+    <string name="summary_switch_to_performance_mode_when_playing">Switch to performance mode when playing (May Consume more power)</string>
     <string name="performance_mode">Performance mode</string>
     <string name="screenshot">Screenshot</string>
     <string name="save_state">Save State</string>
