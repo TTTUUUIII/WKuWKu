@@ -13,6 +13,7 @@
         <item name="popupMenuBackground">@color/white</item>
         <item name="colorControlNormal">@color/control_normal</item>
         <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
