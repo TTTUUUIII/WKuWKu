@@ -157,11 +157,17 @@ public class MainActivity extends BaseActivity {
                     .into(view);
             view.setRenderEffect(RenderEffect.createBlurEffect(8, 8, Shader.TileMode.CLAMP));
         } else {
-            Glide.with(this)
-                    .load(file)
-                    .error(R.drawable.im_drawer_hero)
-                    .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 8)))
-                    .into(view);
+            if (file.exists()) {
+                Glide.with(this)
+                        .load(file)
+                        .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 14)))
+                        .into(view);
+            } else {
+                Glide.with(this)
+                        .load(R.drawable.im_drawer_hero)
+                        .apply(RequestOptions.bitmapTransform(new BlurTransformation(this, 14)))
+                        .into(view);
+            }
         }
     }
 
