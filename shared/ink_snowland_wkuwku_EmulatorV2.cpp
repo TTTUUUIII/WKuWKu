@@ -771,12 +771,12 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     }
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
-#ifndef MAIN_CLASS
-    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
-#else
-    clazz = env->FindClass(MAIN_CLASS);
-#endif
-    env->UnregisterNatives(clazz);
+//#ifndef MAIN_CLASS
+//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
+//#else
+//    clazz = env->FindClass(MAIN_CLASS);
+//#endif
+//    env->UnregisterNatives(clazz);
     if (SwappyGL_isEnabled())
         SwappyGL_destroy();
     ctx.jvm = nullptr;
