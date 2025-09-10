@@ -144,23 +144,18 @@ public class PlugUtils {
         return null;
     }
     private static void extractLibrary(File plug, File installDir) {
-        String abi = Build.SUPPORTED_ABIS[0];
-        installDir = new File(installDir, "lib");
-        boolean mkdir = installDir.mkdir();
+        File libDir = new File(installDir, "lib");
+        boolean ignored = libDir.mkdir();
         try (ZipInputStream zip = new ZipInputStream(new FileInputStream(plug))){
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
-                String name = entry.getName();
-                if (name.startsWith("lib/" + abi)) {
-                    if (!entry.isDirectory()) {
-                        File lib = new File(installDir, new File(entry.getName()).getName());
-                        try (FileOutputStream fos = new FileOutputStream(lib)){
-                            byte[] buffer = new byte[1024];
-                            int readNumInBytes;
-                            while ((readNumInBytes = zip.read(buffer)) != -1) {
-                                fos.write(buffer, 0, readNumInBytes);
-                            }
-                        }
+                String path = entry.getName();
+                if (!path.endsWith(".so")) {continue;}
+                for (String libAbi : Build.SUPPORTED_ABIS) {
+                    if (path.contains(libAbi)) {
+                        File lib = new File(libDir, new File(entry.getName()).getName());
+                        FileUtils.copy(zip, lib);
+                        break;
                     }
                 }
             }
