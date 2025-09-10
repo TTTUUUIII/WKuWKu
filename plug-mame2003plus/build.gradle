@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId 'ink.snowland.wkuwku.plug.mame2003plus'
-        versionCode 6
-        versionName "v2.5"
+        versionCode 7
+        versionName "v2.6"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
