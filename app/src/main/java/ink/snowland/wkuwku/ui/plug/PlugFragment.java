@@ -57,6 +57,8 @@ import ink.snowland.wkuwku.util.FileManager;
 
 import org.wkuwku.interfaces.ActionListener;
 import org.wkuwku.util.FileUtils;
+import org.wkuwku.util.Logger;
+
 import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.PlugManager;
 import ink.snowland.wkuwku.util.SettingsManager;
@@ -68,6 +70,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     private static final int AVAILABLE_SCREEN = 1;
 
     private static final Set<String> sNeedRebootList = new ArraySet<>();
+    private static final Logger sLogger = new Logger("Plug", "PlugFragment");
 
     private FragmentPlugBinding binding;
 
@@ -408,12 +411,14 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
 
         private void doInstall(UiPlugResState resState, File file) {
             final PlugRes res = resState.origin;
-            if (!res.md5.contains(FileUtils.getMD5Sum(file))) {
+            String md5Sum = FileUtils.getMD5Sum(file);
+            if (!res.md5.contains(md5Sum)) {
                 resState.setText(getStringSafe(R.string.install));
                 resState.setInstallable(true);
                 if (binding != null) {
                     Toast.makeText(getApplicationContextSafe(), R.string.invalid_package, Toast.LENGTH_SHORT).show();
                 }
+                sLogger.e("Plug checksum failed! %s not contains in %s", md5Sum, res.md5);
                 return;
             }
 
