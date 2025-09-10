@@ -10,8 +10,7 @@ static void update_texcoords(int width, int height);
 static void set_mat4(const char* sym, const glm::mat4& mat);
 
 static const char* TAG = "GLUtils";
-static const char* vertex_shader_source = R"(
-    #version 300 es
+static const char* vertex_shader_source = R"(#version 300 es
     layout (location = 0) in vec2 vPosition;
     layout (location = 1) in vec2 vTexCoord;
 
@@ -24,8 +23,7 @@ static const char* vertex_shader_source = R"(
     }
 )";
 
-static const char* fragment_shader_source = R"(
-    #version 300 es
+static const char* fragment_shader_source = R"(#version 300 es
     precision mediump float;
 
     const int VF_NONE   = 0;
@@ -188,13 +186,30 @@ static void update_texcoords(int width, int height) {
 
 static void begin_texture() {
     /*shader*/
+    GLint compileState = GL_FALSE;
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertex_shader_source, nullptr);
     glCompileShader(vs);
+    glGetShaderiv(vs, GL_COMPILE_STATUS, &compileState);
+    if (compileState != GL_TRUE) {
+        GLint len = 0;
+        glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &len);
+        char errorMsg[len];
+        glGetShaderInfoLog(vs, len, &len, errorMsg);
+        __android_log_assert("compileState != GL_TRUE", TAG, "Compile vertex shader failed! %s", errorMsg);
+    }
 
     GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fs, 1, &fragment_shader_source, nullptr);
     glCompileShader(fs);
+    glGetShaderiv(fs, GL_COMPILE_STATUS, &compileState);
+    if (compileState != GL_TRUE) {
+        GLint len = 0;
+        glGetShaderiv(fs, GL_INFO_LOG_LENGTH, &len);
+        char errorMsg[len];
+        glGetShaderInfoLog(vs, len, &len, errorMsg);
+        __android_log_assert("compileState != GL_TRUE", TAG, "Compile fragment shader failed! %s", errorMsg);
+    }
     env.pid = glCreateProgram();
     glAttachShader(env.pid, vs);
     glAttachShader(env.pid, fs);
