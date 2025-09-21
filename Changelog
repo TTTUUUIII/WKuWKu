@@ -1,3 +1,7 @@
+@v0.4.15b
+Fix: black screen on Android 16+;
+@end
+
 @v0.4.14b
 [Feat] supported video filter;
 [Add] backup rules;
