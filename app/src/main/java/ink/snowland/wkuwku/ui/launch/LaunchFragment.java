@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.bean.Hotkey;
+import ink.snowland.wkuwku.bean.UiTooltipState;
 import ink.snowland.wkuwku.common.BaseActivity;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.common.Callable;
@@ -116,6 +117,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private AudioManager mAudioManager;
     private AudioFocusRequest mAudioRequest;
     private BottomSheetBehavior<?> mBottomSheetBehavior;
+    private final UiTooltipState mTooltip = new UiTooltipState();
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -151,6 +153,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             binding.getRoot().setBackgroundColor(0xFF000000);
         }
         binding.setViewModel(mViewModel);
+        binding.setTooltipState(mTooltip);
         parentActivity.getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), mBackPressedCallback);
         mBottomSheetBehavior = BottomSheetBehavior.from(binding.standardSheet);
         bindEvent();
@@ -565,11 +568,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                     e.printStackTrace(System.err);
                 }
                 FileUtils.delete(tmp);
-                showSnackbar(R.string.screenshot_saved, Snackbar.LENGTH_SHORT);
+                mTooltip.show(parentActivity, R.string.screenshot_saved, UiTooltipState.LENGTH_SHORT);
             } else if (err == ERR_NOT_SUPPORTED){
-                showSnackbar(R.string.feat_not_supported, Snackbar.LENGTH_LONG);
+                mTooltip.show(parentActivity, R.string.feat_not_supported, UiTooltipState.LENGTH_LONG);
             } else {
-                showSnackbar(R.string.operation_failed, Snackbar.LENGTH_LONG);
+                mTooltip.show(parentActivity, R.string.operation_failed, UiTooltipState.LENGTH_LONG);
             }
         });
     }
@@ -762,7 +765,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onMessage(@NonNull EmMessageExt message) {
         if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
-            handler.post(() -> showSnackbar(message.msg, message.duration));
+            mTooltip.show(message.msg, message.duration);
         }
     }
 
@@ -797,7 +800,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private void loadStateAt(int index, boolean ui) {
         int error = mViewModel.loadStateAt(index);
         if (ui && error == ERR_NOT_SUPPORTED) {
-            showSnackbar(R.string.feat_not_supported);
+            mTooltip.show(parentActivity, R.string.feat_not_supported, UiTooltipState.LENGTH_LONG);
         }
     }
 
@@ -805,9 +808,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         int error = mViewModel.saveCurrentSate();
         if (ui) {
             if (error == NO_ERR) {
-                showSnackbar(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), Snackbar.LENGTH_SHORT);
+                mTooltip.show(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), UiTooltipState.LENGTH_SHORT);
             } else if (error == ERR_NOT_SUPPORTED) {
-                showSnackbar(R.string.feat_not_supported);
+                mTooltip.show(parentActivity, R.string.feat_not_supported, UiTooltipState.LENGTH_SHORT);
             }
         }
     }

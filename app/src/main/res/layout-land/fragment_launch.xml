@@ -21,6 +21,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Tooltip text"
+            android:text="@{tooltipState.text}"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?attr/hintTextColor"
+            app:layout_constraintStart_toStartOf="@id/surface_view"
+            app:layout_constraintBottom_toBottomOf="@id/surface_view"/>
         <LinearLayout
             android:fitsSystemWindows="true"
             android:layout_width="match_parent"
