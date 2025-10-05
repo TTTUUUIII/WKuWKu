@@ -1,3 +1,8 @@
+@v0.4.16b
+[Fix] can't pick controller for p2;
+[Opt] launch screen tooltips.
+@end
+
 @v0.4.15b
 Fix: black screen on Android 16+;
 @end
