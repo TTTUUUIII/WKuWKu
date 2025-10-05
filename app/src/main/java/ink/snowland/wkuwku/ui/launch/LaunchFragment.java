@@ -726,6 +726,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             } catch (IndexOutOfBoundsException ignored) {}
         }
 
+        summary = binding.p2ControllerSelector.getText().toString();
         if (summary.contains("@")) {
             try {
                 int deviceId = NumberUtils.parseInt(summary.split("@")[0], Controller.INVALID_CONTROLLER_DEVICE_ID);
