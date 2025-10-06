@@ -11,6 +11,8 @@
     <color name="error">#E52020</color>
     <color name="error_700">#E96262</color>
 
+    <color name="hit_text">@color/container</color>
+
     <!--light theme-->
     <color name="primary">#FF6600</color>
     <color name="container">#FFB38E</color>
