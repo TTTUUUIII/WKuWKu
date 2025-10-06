@@ -32,6 +32,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:text="@{tooltipState.text}"
+            android:textColor="@color/hit_text"
             app:layout_constraintStart_toStartOf="@id/surface_view"
             app:layout_constraintBottom_toBottomOf="@id/surface_view"/>
         <LinearLayout
