@@ -45,8 +45,8 @@ public abstract class BaseFragment extends Fragment implements InputManager.Inpu
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onResume() {
+        super.onResume();
         parentActivity.addOnInputEventListener(this);
         parentActivity.addInputDeviceListener(this);
         parentActivity.addOnTouchEventListener(this);
@@ -54,8 +54,8 @@ public abstract class BaseFragment extends Fragment implements InputManager.Inpu
     }
 
     @Override
-    public void onStop() {
-        super.onStop();
+    public void onPause() {
+        super.onPause();
         parentActivity.removeOnInputEventListener(this);
         parentActivity.removeInputDeviceListener(this);
         parentActivity.removeOnTouchEventListener(this);
