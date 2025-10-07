@@ -165,7 +165,6 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         parentActivity.setActionBarVisibility(false);
-        attachToController();
         if (savedInstanceState == null) {
             IEmulator emulator = mViewModel.getEmulator();
             if (emulator != null) {
@@ -211,6 +210,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             if (mVideoWidth != 0 && mVideoHeight != 0) {
                 adjustScreenSize(mVideoWidth, mVideoHeight);
             }
+            mP1ControllerId = savedInstanceState.getInt("p1_controller_id");
+            mP2ControllerId = savedInstanceState.getInt("p2_controller_id");
         }
         ArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
         List<String> sources = mControllerSources.stream()
@@ -225,6 +226,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 .collect(Collectors.toList());
         adapter.addAll(sources);
         binding.p2ControllerSelector.setAdapter(adapter);
+        attachToController();
     }
 
     @Override
@@ -232,6 +234,8 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         super.onSaveInstanceState(outState);
         outState.putInt("video_width", mVideoWidth);
         outState.putInt("video_height", mVideoHeight);
+        outState.putInt("p1_controller_id", mP1ControllerId);
+        outState.putInt("p2_controller_id", mP2ControllerId);
     }
 
     private void startEmulator() {
