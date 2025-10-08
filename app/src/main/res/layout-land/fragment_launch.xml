@@ -138,7 +138,6 @@
                 android:id="@+id/standard_sheet"
                 style="@style/Widget.Material3.BottomSheet"
                 android:layout_width="match_parent"
-                android:maxWidth="430dp"
                 android:layout_gravity="start"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="15dp"
