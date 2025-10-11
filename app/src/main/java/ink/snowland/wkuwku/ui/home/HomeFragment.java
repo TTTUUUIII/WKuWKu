@@ -74,7 +74,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
                     .subscribe();
         }
         Configuration configuration = getResources().getConfiguration();
-        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                && configuration.touchscreen == Configuration.TOUCHSCREEN_NOTOUCH) {
             binding.bottomNavView.setVisibility(View.GONE);
             binding.next.setVisibility(View.VISIBLE);
             binding.prev.setVisibility(View.VISIBLE);
