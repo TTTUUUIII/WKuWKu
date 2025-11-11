@@ -34,27 +34,34 @@ WkuWku aims to transform your existing Android devices into a multi-platform ret
 
 The project is currently in **development**, with many features not yet finalized or requiring testing. If you’re interested in the application, feel free to visit the [release page](https://github.com/TTTUUUIII/WKuWKu/releases) to download and try it out.
 
-### Currently supported systems:
+### Compatibility status:
 
-| System                              | manufacturer | optional core       |
-|-------------------------------------|--------------|---------------------|
-| Nintendo Entertainment System       | Nintendo     | fceumm、mesen        |
-| Family Computer                     | Nintendo     | fceumm、mesen        |
-| Nintendo DS                         | Nintendo     | melonDS             |
-| Super Nintendo Entertainment System | Nintendo     | snes9x              |
-| Game Boy                            | Nintendo     | sameboy             |
-| Game Boy Color                      | Nintendo     | sameboy             |
-| Game Gear                           | Sega         | genesis plus gx     |
-| Master System                       | Sega         | genesis plus gx     |
-| Mega-CD                             | Sega         | genesis plus gx     |
-| Mega Drive/Genesis                  | Sega         | genesis plus gx     |
-| Saturn                              | Sega         | mednafen saturn     |
-| PICO                                | Sega         | genesis plus gx     |
-| SG-1000                             | Sega         | genesis plus gx     |
-| Play Station                        | Sony         | pcsx                |
-| Arcade                              | N/A          | mame2003-plus、fbneo |
-| PC Engine                           | NEC          | geargrafx           |
-| Flash                               | Adobe        | ruffle              |
+| System                    | Optional cores                    | Available |
+| ------------------------- | --------------------------------- | --------- |
+| Nintendo - NES/FC         | `Fceumm`、`Mesen`                 | ✅         |
+| Nintendo - SNES           | `Snes9x`、`BSNES`                 | ✅         |
+| Nintendo - GameBoy        | `SameBoy`、`VBA-M`                | ✅         |
+| Nintendo - GameBoyColor   | `SameBoy`、`VBA-M`                | ✅         |
+| Nintendo - GameBoyAdvance | `mGBA`、`VBA Next`、`VBA-M`       | ✅         |
+| Nintendo - Pokémon Mini   | `PokeMini`                        | ✅         |
+| Nintendo - DS             | `MelonDS`                         | ✅         |
+| Nintendo - 3DS            | `Citra`                           | ✅         |
+| Nintendo - N64            | `N/A`                             | ❌         |
+| Nintendo - GameCube/Wii   | `N/A`                             | ❌         |
+| Sega - Game Gear          | `Genesis Plus GX`                 | ✅         |
+| Sega - Master System      | `Genesis Plus GX`                 | ✅         |
+| Sega - Mega-CD            | `Genesis Plus GX`                 | ✅         |
+| Sega - Mega Drive/Genesis | `Genesis Plus GX`                 | ✅         |
+| Sega - Saturn             | `Beetle Saturn`、`Yabause`        | ✅         |
+| Sega - PICO               | `Genesis Plus GX`                 | ✅         |
+| Sega - SG-1000            | `Genesis Plus GX`                 | ✅         |
+| Sony - PlayStation        | `PCSX`                            | ✅         |
+| Sony - PlayStation2       | `N/A`                             | ❌         |
+| NEC - PC Engine           | `Geargrafx`                       | ✅         |
+| Atari - Atari 7800        | `ProSystem`                       | ✅         |
+| Microsoft - MSX           | `FMSX`                            | ✅         |
+| Microsoft - MSX2          | `FMSX`                            | ✅         |
+| Arcade                    | `MAME`、`FBNeo`、`MAME-2003-Plus` | ✅         |
 
 ## At last
 
