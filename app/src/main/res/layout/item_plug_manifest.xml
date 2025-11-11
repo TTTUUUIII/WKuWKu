@@ -62,7 +62,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="13sp"
                 android:ellipsize="end"
-                android:maxLines="3"
+                android:maxLines="5"
                 android:text="@{manifest.origin.summary}"
                 tools:text="Support arcade platforms." />
             <TextView
