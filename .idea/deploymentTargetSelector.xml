@@ -37,9 +37,6 @@
       <SelectionState runConfigName="plug-vbam">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="plug-mame2003plus">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="plug-vbanext">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
@@ -50,9 +47,6 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="plug-mesen">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="plug-beetlesaturn">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="plug-melonds">
@@ -77,6 +71,9 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="plug-mame">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="plug-mame2003plus">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

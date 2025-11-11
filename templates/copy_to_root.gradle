@@ -32,7 +32,7 @@ if (plugins.hasPlugin("com.android.application")) {
                                 into output
                             }
                         }
-                file(Paths.get(output.toString(), "manifest.txt")) <<  String.format("%-24s%-8s%-8d%s\n", name, versionName, versionCode, md5sums)
+                file(Paths.get(output.toString(), "files.txt")) <<  String.format("%-24s%-8s%-8d%s\n", name, versionName, versionCode, md5sums)
             }
         }
     }
