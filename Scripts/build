@@ -22,6 +22,7 @@ modules=(
   prosystem
   yabause
   beetlesaturn
+  mame
   mame2003plus
   genesisplusgx
 )

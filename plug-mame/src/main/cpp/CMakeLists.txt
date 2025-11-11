@@ -27,4 +27,5 @@ project("mame")
 # used in the AndroidManifest.xml file.
 include(../../../../common.cmake)
 
+add_compile_definitions(DEINIT_AFTER_UNLOAD=1)
 add_emulator(${CMAKE_PROJECT_NAME} "org/wkuwku/plug/mame/Mame")

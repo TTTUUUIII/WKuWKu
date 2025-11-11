@@ -25,6 +25,7 @@ for %%m in (
     prosystem
     yabause
     beetlesaturn
+    mame
     mame2003plus
     genesisplusgx
 ) do (

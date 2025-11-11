@@ -12,6 +12,6 @@
             android:value="wn123o&lt;wn123o@outlook.com&gt;" />
         <meta-data
             android:name="plugSummary"
-            android:value="Universal arcade platform emulator." />
+            android:value="MAME (Multiple Arcade Machine Emulator) is a free and open-source emulator designed to emulate the hardware of arcade games, later expanded to include video game consoles, old computers and other systems in software on modern personal computers and other platforms." />
     </application>
 </manifest>

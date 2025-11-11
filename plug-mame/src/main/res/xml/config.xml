@@ -12,251 +12,251 @@
         <item>chd</item>
     </content-extensions>
     <options>
-<!--        <option-->
-<!--            key="mame_thread_mode"-->
-<!--            defaultValue="enabled"-->
-<!--            title="Thread Mode">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_cheats_enable"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Cheats">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_throttle"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Throttle">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_boot_to_bios"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Boot to BIOS">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_boot_to_osd"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Boot to OSD">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_read_config"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Read Configuration">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_mame_paths_enable"-->
-<!--            defaultValue="disabled"-->
-<!--            title="MAME INI Paths">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_saves"-->
-<!--            defaultValue="game"-->
-<!--            title="Save State Naming">-->
-<!--            <allow-values>-->
-<!--                <value>game</value>-->
-<!--                <value>system</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_auto_save"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Auto Save/Load States">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_softlists_enable"-->
-<!--            defaultValue="enabled"-->
-<!--            title="Softlists">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_softlists_auto_media"-->
-<!--            defaultValue="enabled"-->
-<!--            title="Softlist Automatic Media Type">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame2003-plus_four_way_emulation"-->
-<!--            defaultValue="disabled"-->
-<!--            title="4-Way Joystick Emulation on 8-Way Joysticks">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_media_type"-->
-<!--            defaultValue="rom"-->
-<!--            title="Media Type">-->
-<!--            <allow-values>-->
-<!--                <value>cart</value>-->
-<!--                <value>cass</value>-->
-<!--                <value>cdrm</value>-->
-<!--                <value>flop</value>-->
-<!--                <value>hard</value>-->
-<!--                <value>prin</value>-->
-<!--                <value>rom</value>-->
-<!--                <value>serl</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_joystick_deadzone"-->
-<!--            defaultValue="0.15"-->
-<!--            title="Joystick Deadzone"-->
-<!--            inputType="numberDecimal" />-->
-<!--        <option-->
-<!--            key="mame_joystick_saturation"-->
-<!--            defaultValue="0.85"-->
-<!--            title="Joystick Saturation"-->
-<!--            inputType="numberDecimal" />-->
-<!--        <option-->
-<!--            key="mame_joystick_threshold"-->
-<!--            defaultValue="0.3"-->
-<!--            title="Joystick Threshold"-->
-<!--            inputType="numberDecimal" />-->
-<!--        <option-->
-<!--            key="mame_mame_4way_enable"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Joystick 4-way Simulation">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>4way</value>-->
-<!--                <value>strict</value>-->
-<!--                <value>qbert</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_buttons_profiles"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Profile Buttons Per Game">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_mouse_enable"-->
-<!--            defaultValue="enabled"-->
-<!--            title="Mouse">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_lightgun_mode"-->
-<!--            defaultValue="touchscreen"-->
-<!--            title="Lightgun Mode">-->
-<!--            <allow-values>-->
-<!--                <value>none</value>-->
-<!--                <value>lightgun</value>-->
-<!--                <value>touchscreen</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_lightgun_offscreen_mode"-->
-<!--            defaultValue="free"-->
-<!--            title="Lightgun Offscreen Position">-->
-<!--            <allow-values>-->
-<!--                <value>free</value>-->
-<!--                <value>fixed (top left)</value>-->
-<!--                <value>fixed (bottom right)</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_rotation_mode"-->
-<!--            defaultValue="libretro"-->
-<!--            title="Screen Rotation Mode">-->
-<!--            <allow-values>-->
-<!--                <value>libretro</value>-->
-<!--                <value>internal</value>-->
-<!--                <value>tate-rol</value>-->
-<!--                <value>tate-ror</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_alternate_renderer"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Alternate Renderer">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_altres"-->
-<!--            defaultValue="640x480"-->
-<!--            title="Alternate Renderer Resolution">-->
-<!--            <allow-values>-->
-<!--                <value>640x480</value>-->
-<!--                <value>640x360</value>-->
-<!--                <value>800x600</value>-->
-<!--                <value>800x450</value>-->
-<!--                <value>960x720</value>-->
-<!--                <value>960x540</value>-->
-<!--                <value>1024x768</value>-->
-<!--                <value>1024x576</value>-->
-<!--                <value>1280x960</value>-->
-<!--                <value>1280x720</value>-->
-<!--                <value>1600x1200</value>-->
-<!--                <value>1600x900</value>-->
-<!--                <value>1440x1080</value>-->
-<!--                <value>1920x1080</value>-->
-<!--                <value>1920x1440</value>-->
-<!--                <value>2560x1440</value>-->
-<!--                <value>2880x2160</value>-->
-<!--                <value>3840x2160</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
-<!--        <option-->
-<!--            key="mame_cpu_overclock"-->
-<!--            defaultValue="default"-->
-<!--            inputType="number"-->
-<!--            title="CPU Overclock" />-->
-<!--        <option-->
-<!--            key="mame_autoloadfastforward"-->
-<!--            defaultValue="disabled"-->
-<!--            title="Automatic Load Fast-Forward">-->
-<!--            <allow-values>-->
-<!--                <value>disabled</value>-->
-<!--                <value>enabled</value>-->
-<!--            </allow-values>-->
-<!--        </option>-->
+        <option
+            key="mame_thread_mode"
+            defaultValue="enabled"
+            title="Thread Mode">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_cheats_enable"
+            defaultValue="disabled"
+            title="Cheats">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_throttle"
+            defaultValue="disabled"
+            title="Throttle">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_boot_to_bios"
+            defaultValue="disabled"
+            title="Boot to BIOS">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_boot_to_osd"
+            defaultValue="disabled"
+            title="Boot to OSD">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_read_config"
+            defaultValue="disabled"
+            title="Read Configuration">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_mame_paths_enable"
+            defaultValue="disabled"
+            title="MAME INI Paths">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_saves"
+            defaultValue="game"
+            title="Save State Naming">
+            <allow-values>
+                <value>game</value>
+                <value>system</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_auto_save"
+            defaultValue="disabled"
+            title="Auto Save/Load States">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_softlists_enable"
+            defaultValue="enabled"
+            title="Softlists">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_softlists_auto_media"
+            defaultValue="enabled"
+            title="Softlist Automatic Media Type">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame2003-plus_four_way_emulation"
+            defaultValue="disabled"
+            title="4-Way Joystick Emulation on 8-Way Joysticks">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_media_type"
+            defaultValue="rom"
+            title="Media Type">
+            <allow-values>
+                <value>cart</value>
+                <value>cass</value>
+                <value>cdrm</value>
+                <value>flop</value>
+                <value>hard</value>
+                <value>prin</value>
+                <value>rom</value>
+                <value>serl</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_joystick_deadzone"
+            defaultValue="0.15"
+            title="Joystick Deadzone"
+            inputType="numberDecimal" />
+        <option
+            key="mame_joystick_saturation"
+            defaultValue="0.85"
+            title="Joystick Saturation"
+            inputType="numberDecimal" />
+        <option
+            key="mame_joystick_threshold"
+            defaultValue="0.3"
+            title="Joystick Threshold"
+            inputType="numberDecimal" />
+        <option
+            key="mame_mame_4way_enable"
+            defaultValue="disabled"
+            title="Joystick 4-way Simulation">
+            <allow-values>
+                <value>disabled</value>
+                <value>4way</value>
+                <value>strict</value>
+                <value>qbert</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_buttons_profiles"
+            defaultValue="disabled"
+            title="Profile Buttons Per Game">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_mouse_enable"
+            defaultValue="enabled"
+            title="Mouse">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_lightgun_mode"
+            defaultValue="touchscreen"
+            title="Lightgun Mode">
+            <allow-values>
+                <value>none</value>
+                <value>lightgun</value>
+                <value>touchscreen</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_lightgun_offscreen_mode"
+            defaultValue="free"
+            title="Lightgun Offscreen Position">
+            <allow-values>
+                <value>free</value>
+                <value>fixed (top left)</value>
+                <value>fixed (bottom right)</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_rotation_mode"
+            defaultValue="libretro"
+            title="Screen Rotation Mode">
+            <allow-values>
+                <value>libretro</value>
+                <value>internal</value>
+                <value>tate-rol</value>
+                <value>tate-ror</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_alternate_renderer"
+            defaultValue="disabled"
+            title="Alternate Renderer">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_altres"
+            defaultValue="640x480"
+            title="Alternate Renderer Resolution">
+            <allow-values>
+                <value>640x480</value>
+                <value>640x360</value>
+                <value>800x600</value>
+                <value>800x450</value>
+                <value>960x720</value>
+                <value>960x540</value>
+                <value>1024x768</value>
+                <value>1024x576</value>
+                <value>1280x960</value>
+                <value>1280x720</value>
+                <value>1600x1200</value>
+                <value>1600x900</value>
+                <value>1440x1080</value>
+                <value>1920x1080</value>
+                <value>1920x1440</value>
+                <value>2560x1440</value>
+                <value>2880x2160</value>
+                <value>3840x2160</value>
+            </allow-values>
+        </option>
+        <option
+            key="mame_cpu_overclock"
+            defaultValue="default"
+            inputType="number"
+            title="CPU Overclock" />
+        <option
+            key="mame_autoloadfastforward"
+            defaultValue="disabled"
+            title="Automatic Load Fast-Forward">
+            <allow-values>
+                <value>disabled</value>
+                <value>enabled</value>
+            </allow-values>
+        </option>
     </options>
 </em-config>

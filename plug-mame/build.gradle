@@ -8,7 +8,7 @@ android {
     defaultConfig {
         applicationId "org.wkuwku.plug.mame"
         versionCode 1
-        versionName "v1.0"
+        versionName "v1.0.0282"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
