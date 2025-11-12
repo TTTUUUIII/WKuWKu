@@ -2,7 +2,7 @@
 <em-config version="1.1">
     <systems>
         <system
-            name="Adobe Flash"
+            name="Flash"
             tag="flash"
             manufacturer="adobe" />
     </systems>
