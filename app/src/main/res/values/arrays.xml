@@ -67,7 +67,7 @@
 
     <string-array name="video_filter_entries">
         <item>None</item>
-        <item>CRT</item>
+        <item>Retro CRT</item>
     </string-array>
     <string-array name="video_filter_values">
         <item>0</item>
