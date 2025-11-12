@@ -66,7 +66,7 @@ public class CheckConfigWorker extends Worker {
                             .submit();
                 }
             }
-            String url = appConfig.getDrawerHeroUrl();
+            final String url = appConfig.drawerState.getHereImgUrl();
             if (url != null) {
                 File file = getFile(IMAGE_DIRECTORY, FileUtils.getName(url));
                 if (!file.exists()) {
@@ -75,6 +75,10 @@ public class CheckConfigWorker extends Worker {
                     SettingsManager.putString(SettingsManager.DRAWER_HERO_IMAGE_PATH, file.getAbsolutePath());
                     logger.i("Updated drawer hero image!");
                 }
+            }
+            final String subtitle = appConfig.drawerState.getSubtitle();
+            if (subtitle != null) {
+                SettingsManager.putString(SettingsManager.DRAWER_SUBTITLE, subtitle);
             }
         } catch (Exception e) {
             e.printStackTrace(System.err);

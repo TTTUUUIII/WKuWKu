@@ -1,5 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">WKuWKu</string>
+    <string name="drawer_default_subtitle" translatable="false">Let\'s stay happy!</string>
     <string name="start" translatable="false">START</string>
     <string name="select" translatable="false">SELECT</string>
     <string name="a" translatable="false">A</string>
@@ -83,7 +84,6 @@
     <string name="copying_files">Copying files</string>
     <string name="emoji_rocket" translatable="false">🚀</string>
     <string name="reverse_landscape">Reverse landscape</string>
-    <string name="app_desc" translatable="false">Let\'s stay happy!</string>
     <string name="key_macro">Key macro</string>
     <string name="about">About</string>
     <string name="m2" translatable="false">M2</string>

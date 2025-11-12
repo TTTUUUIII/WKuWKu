@@ -21,8 +21,7 @@ public class AppConfig {
     private int mVersionCode;
     private String mVersionName;
     private String mMD5Sum;
-    private String mDrawerHeroUrl;
-
+    public final DrawerState drawerState = new DrawerState();
     private AppConfig() {}
 
     public int getVersionCode() {
@@ -37,11 +36,6 @@ public class AppConfig {
         return mMD5Sum == null ? "" : mMD5Sum;
     }
 
-    @Nullable
-    public String getDrawerHeroUrl() {
-        return mDrawerHeroUrl;
-    }
-
     @NonNull
     @Override
     public String toString() {
@@ -49,7 +43,7 @@ public class AppConfig {
                 ", mVersionCode=" + mVersionCode +
                 ", mVersionName='" + mVersionName + '\'' +
                 ", mMD5Sum='" + mMD5Sum + '\'' +
-                ", mDrawerHeroUrl='" + mDrawerHeroUrl + '\'' +
+                ", drawerState ='" + drawerState + '\'' +
                 '}';
     }
 
@@ -69,7 +63,8 @@ public class AppConfig {
                             config.mMD5Sum = xmlPullParser.getAttributeValue(null, "md5sum");
                             break;
                         case "drawer":
-                            config.mDrawerHeroUrl = WEB_URL + xmlPullParser.getAttributeValue(null, "heroPath");
+                            config.drawerState.setHereImgUrl(WEB_URL + xmlPullParser.getAttributeValue(null, "heroPath"));
+                            config.drawerState.setSubtitle(xmlPullParser.getAttributeValue(null, "subtitle"));
                             break;
                         default:
                     }
