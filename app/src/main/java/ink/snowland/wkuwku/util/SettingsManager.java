@@ -15,6 +15,7 @@ import java.util.Set;
 
 public final class SettingsManager {
     public static final String DRAWER_HERO_IMAGE_PATH = "drawer_hero";
+    public static final String DRAWER_SUBTITLE = "drawer_subtitle";
     public static final String PERFORMANCE_MODE = "app_performance_mode";
     public static final String NAVIGATION_ANIMATION = "app_nav_transition_anim";
     private SettingsManager() {}

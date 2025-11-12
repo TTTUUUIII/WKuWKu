@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -86,7 +87,7 @@ public class MainActivity extends BaseActivity {
         binding.drawerLayout.addDrawerListener(mActionBarDrawerToggle);
         binding.navigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         mActionBarDrawerToggle.syncState();
-        updateDrawerHeroImage();
+        updateDrawerState();
         assert fragment != null;
         mNavController = fragment.getNavController();
         mNavController.addOnDestinationChangedListener((navController, navDestination, bundle) -> mActionBarDrawerToggle.setDrawerIndicatorEnabled(navController.getPreviousBackStackEntry() == null));
@@ -147,8 +148,13 @@ public class MainActivity extends BaseActivity {
         return true;
     }
 
-    private void updateDrawerHeroImage() {
-        ImageView view = binding.navigationView.getHeaderView(0).findViewById(R.id.hero_image_view);
+    private void updateDrawerState() {
+
+        View drawer = binding.navigationView.getHeaderView(0);
+
+        TextView textView = drawer.findViewById(R.id.drawer_subtitle);
+        textView.setText(SettingsManager.getString(SettingsManager.DRAWER_SUBTITLE, getString(R.string.drawer_default_subtitle)));
+        ImageView view = drawer.findViewById(R.id.drawer_hero);
         File file = new File(SettingsManager.getString(SettingsManager.DRAWER_HERO_IMAGE_PATH, "not_exists_file.png"));
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             Glide.with(this)
@@ -202,7 +208,8 @@ public class MainActivity extends BaseActivity {
                 binding.emojiWorkshopView.setOptions(mEmojiWorkshopOptions);
                 break;
             case SettingsManager.DRAWER_HERO_IMAGE_PATH:
-                updateDrawerHeroImage();
+            case SettingsManager.DRAWER_SUBTITLE:
+                updateDrawerState();
             default:
         }
     }

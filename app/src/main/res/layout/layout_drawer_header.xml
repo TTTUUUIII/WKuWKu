@@ -4,7 +4,7 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <ImageView
-        android:id="@+id/hero_image_view"
+        android:id="@+id/drawer_hero"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:scaleType="centerCrop"
@@ -27,6 +27,7 @@
             android:layout_height="wrap_content"
             android:text="@string/app_name" />
         <TextView
+            android:id="@+id/drawer_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
@@ -35,6 +36,6 @@
             android:fontFamily="@font/rubik_bubbles_regular"
             android:textAppearance="?attr/textAppearanceSubtitle2"
             android:textColor="@color/material_on_surface_emphasis_medium"
-            android:text="@string/app_desc" />
+            android:text="@string/drawer_default_subtitle" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
