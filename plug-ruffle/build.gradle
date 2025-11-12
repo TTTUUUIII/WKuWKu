@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "org.wkuwku.plug.ruffle"
-        minSdk rootProject.ext.versions.minSdkVersion
+        minSdk 26
         targetSdk rootProject.ext.versions.targetSdkVersion
         versionCode 3
         versionName "v1.2"
