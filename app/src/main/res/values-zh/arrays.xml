@@ -23,6 +23,6 @@
     </string-array>
     <string-array name="video_filter_entries">
         <item>无</item>
-        <item>CRT</item>
+        <item>复古CRT</item>
     </string-array>
 </resources>
