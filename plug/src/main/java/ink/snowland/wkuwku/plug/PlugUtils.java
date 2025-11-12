@@ -59,7 +59,7 @@ public class PlugUtils {
         }
         boolean noError = install(context, manifest);
         if (!noError) {
-            delete(installDir);
+            FileUtils.delete(installDir);
         }
         return  noError ? manifest : null;
     }
@@ -97,7 +97,8 @@ public class PlugUtils {
             sCache.remove(manifest.packageName);
         }
         File file = new File(manifest.installPath);
-        return !file.exists() || delete(file);
+        FileUtils.delete(file);
+        return true;
     }
 
     public static boolean isInstanced(@NonNull PlugManifest manifest) {
@@ -111,17 +112,6 @@ public class PlugUtils {
         if (packageInfo == null || packageInfo.applicationInfo == null) return null;
         packageInfo.applicationInfo.publicSourceDir = plugPath;
         return packageManager.getApplicationIcon(packageInfo.applicationInfo);
-    }
-
-    private static boolean delete(File file) {
-        if (file.isDirectory()) {
-            File[] files = file.listFiles();
-            if (files == null) return file.delete();
-            for (File child : files) {
-                delete(child);
-            }
-        }
-        return file.delete();
     }
 
     public static @Nullable PlugManifest readManifest(@NonNull Context context, @NonNull File plug) {
