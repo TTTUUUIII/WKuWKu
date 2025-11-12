@@ -1,5 +1,8 @@
 package ink.snowland.wkuwku.widget;
+
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.view.LayoutInflater;
@@ -65,7 +68,7 @@ public class GameEditDialog {
 
     private OnConfirmCallback mCallback;
 
-    public void show(@NonNull OnConfirmCallback callback, @NonNull Game base) {
+    private void show(@NonNull OnConfirmCallback callback, @NonNull Game base) {
         if (mDialog.isShowing()) return;
         mGame = base.clone();
         binding.buttonQrCode.setVisibility(View.GONE);
@@ -81,7 +84,7 @@ public class GameEditDialog {
         mDialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(v -> checkAndConfirm());
     }
 
-    public void show(@NonNull OnConfirmCallback callback) {
+    private void show(@NonNull OnConfirmCallback callback) {
         if (mDialog.isShowing()) return;
         mGame = new Game();
         mGame.region = "US";
@@ -120,7 +123,7 @@ public class GameEditDialog {
         if (system != null) {
             mGame.system = system.tag;
         }
-                if (checkValid()) {
+        if (checkValid()) {
             mCallback.onConfirm(mGame, mUri);
             mDialog.dismiss();
         }
@@ -211,6 +214,15 @@ public class GameEditDialog {
             passed = false;
         }
         return passed;
+    }
+
+    public static void createAndShow(@NonNull BaseActivity activity, @NonNull OnConfirmCallback callback, @Nullable Game base) {
+        final GameEditDialog dialog = new GameEditDialog(activity);
+        if (base == null) {
+            dialog.show(callback);
+        } else {
+            dialog.show(callback, base);
+        }
     }
 
     public interface OnConfirmCallback {

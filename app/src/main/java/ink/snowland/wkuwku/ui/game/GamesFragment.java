@@ -33,9 +33,8 @@ import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
 
 public class GamesFragment extends BaseFragment implements View.OnClickListener {
-    private FragmentGameBinding binding;
     private GamesViewModel mViewModel;
-    private final UiGameViewAdapter mAdapter = new UiGameViewAdapter();
+    private final GameViewAdapter mAdapter = new GameViewAdapter();
     private GameDetailDialog mGameDetailDialog;
 
     @Override
@@ -43,18 +42,17 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(GamesViewModel.class);
         mViewModel.getAll()
-                .observe(this, games -> {
+                .observe(this, games ->
                     mAdapter.submitList(games.stream()
                             .map(UiGameState::from)
-                            .collect(Collectors.toList()));
-                });
+                            .collect(Collectors.toList())));
         mGameDetailDialog = new GameDetailDialog(parentActivity);
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        binding = FragmentGameBinding.inflate(inflater);
+        FragmentGameBinding binding = FragmentGameBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.fab.setOnClickListener(this);
@@ -69,7 +67,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.fab) {
-            showAddGameDialog();
+            GameEditDialog.createAndShow(parentActivity, mViewModel::addGame, null);
         }
     }
     @Override
@@ -90,7 +88,10 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                 game.state = Game.STATE_DELETED;
                 mViewModel.update(game);
             } else if (itemId == R.id.action_edit) {
-                showEditDialog(game);
+                GameEditDialog.createAndShow(parentActivity, (newGame, uri) -> {
+                    newGame.lastModifiedTime = System.currentTimeMillis();
+                    mViewModel.update(newGame);
+                }, game);
             } else if (itemId == R.id.action_detail) {
                 showDetailDialog(game);
             }
@@ -103,18 +104,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         mGameDetailDialog.show(game);
     }
 
-    private void showEditDialog(@NonNull Game base) {
-        new GameEditDialog(parentActivity).show((game, uri) -> {
-            game.lastModifiedTime = System.currentTimeMillis();
-            mViewModel.update(game);
-        }, base);
-    }
-
-    private void showAddGameDialog() {
-        new GameEditDialog(parentActivity)
-                .show(mViewModel::addGame);
-    }
-
     private void launch(@NonNull Game game) {
         NavController navController = NavHostFragment.findNavController(this);
         Bundle args = new Bundle();
@@ -123,22 +112,22 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
 
 
-    private class UiGameViewHolder extends RecyclerView.ViewHolder {
-        private final ItemGameBinding binding;
-        public UiGameViewHolder(@NonNull ItemGameBinding binding) {
+    private class GameViewHolder extends RecyclerView.ViewHolder {
+        private final ItemGameBinding itemBinding;
+        public GameViewHolder(@NonNull ItemGameBinding binding) {
             super(binding.getRoot());
-            this.binding = binding;
+            itemBinding = binding;
         }
 
         public void bind(UiGameState state) {
-            binding.setViewData(state);
-            binding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
-            binding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
+            itemBinding.setViewData(state);
+            itemBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
+            itemBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
         }
     }
 
-    private class UiGameViewAdapter extends ListAdapter<UiGameState, UiGameViewHolder> {
-        protected UiGameViewAdapter() {
+    private class GameViewAdapter extends ListAdapter<UiGameState, GameViewHolder> {
+        protected GameViewAdapter() {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull UiGameState oldItem, @NonNull UiGameState newItem) {
@@ -154,12 +143,13 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
 
         @NonNull
         @Override
-        public UiGameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return new UiGameViewHolder(ItemGameBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        public GameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+            return new GameViewHolder(ItemGameBinding.inflate(inflater, parent, false));
         }
 
         @Override
-        public void onBindViewHolder(@NonNull UiGameViewHolder holder, int position) {
+        public void onBindViewHolder(@NonNull GameViewHolder holder, int position) {
             holder.bind(getItem(position));
         }
 
@@ -171,8 +161,9 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                 queryBy = query.substring(0, index);
                 queryText = query.substring(index + 1);
             }
-            final List<UiGameState> list = getCurrentList();
-            for (UiGameState it : list) {
+            final List<UiGameState> currentList = getCurrentList();
+            for (int position = 0; position < currentList.size(); ++position) {
+                UiGameState it = currentList.get(position);
                 final String text;
                 if (queryBy.equals("pub") || queryBy.equals("publisher")) {
                     text = it.origin.publisher.toLowerCase(Locale.US);
@@ -180,7 +171,10 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                     text = it.origin.title.toLowerCase(Locale.US);
                 }
                 boolean hidden = !queryText.isEmpty() && !text.contains(queryText);
-                it.setHidden(hidden);
+                if(it.isHidden() != hidden) {
+                    it.setHidden(hidden);
+                    notifyItemChanged(position);
+                }
             }
         }
     }
