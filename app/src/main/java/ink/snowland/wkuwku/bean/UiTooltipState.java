@@ -47,7 +47,7 @@ public class UiTooltipState extends BaseObservable {
     public void show(@NonNull String content, long duration) {
         setText(content);
         if (duration == LENGTH_SHORT) {
-            duration = 800;
+            duration = 1000;
         } else if (duration == LENGTH_LONG) {
             duration = 1500;
         }

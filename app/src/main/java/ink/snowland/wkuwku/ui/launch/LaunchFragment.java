@@ -574,9 +574,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 FileUtils.delete(tmp);
                 mTooltip.show(parentActivity, R.string.screenshot_saved, UiTooltipState.LENGTH_SHORT);
             } else if (err == ERR_NOT_SUPPORTED){
-                mTooltip.show(parentActivity, R.string.feat_not_supported, UiTooltipState.LENGTH_LONG);
+                showSnackbar(R.string.feat_not_supported, Snackbar.LENGTH_SHORT);
             } else {
-                mTooltip.show(parentActivity, R.string.operation_failed, UiTooltipState.LENGTH_LONG);
+                showSnackbar(R.string.operation_failed, Snackbar.LENGTH_SHORT);
             }
         });
     }
@@ -770,7 +770,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onMessage(@NonNull EmMessageExt message) {
         if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
-            mTooltip.show(message.msg, message.duration);
+            run(() -> showSnackbar(message.msg, Snackbar.LENGTH_SHORT));
         }
     }
 
@@ -805,7 +805,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private void loadStateAt(int index, boolean ui) {
         int error = mViewModel.loadStateAt(index);
         if (ui && error == ERR_NOT_SUPPORTED) {
-            mTooltip.show(parentActivity, R.string.feat_not_supported, UiTooltipState.LENGTH_LONG);
+            showSnackbar(R.string.feat_not_supported, Snackbar.LENGTH_LONG);
         }
     }
 
@@ -815,7 +815,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             if (error == NO_ERR) {
                 mTooltip.show(getString(R.string.fmt_state_saved, mViewModel.getSnapshotsCount()), UiTooltipState.LENGTH_SHORT);
             } else if (error == ERR_NOT_SUPPORTED) {
-                mTooltip.show(parentActivity, R.string.feat_not_supported, UiTooltipState.LENGTH_SHORT);
+                showSnackbar(R.string.feat_not_supported, Snackbar.LENGTH_LONG);
             }
         }
     }

@@ -14,27 +14,6 @@
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/emulator" />
             <option value="$PROJECT_DIR$/plug" />
-            <option value="$PROJECT_DIR$/plug-beetlesaturn" />
-            <option value="$PROJECT_DIR$/plug-bsnes" />
-            <option value="$PROJECT_DIR$/plug-citra" />
-            <option value="$PROJECT_DIR$/plug-desmume" />
-            <option value="$PROJECT_DIR$/plug-fbneo" />
-            <option value="$PROJECT_DIR$/plug-fmsx" />
-            <option value="$PROJECT_DIR$/plug-geargrafx" />
-            <option value="$PROJECT_DIR$/plug-genesisplusgx" />
-            <option value="$PROJECT_DIR$/plug-mame2003plus" />
-            <option value="$PROJECT_DIR$/plug-melonds" />
-            <option value="$PROJECT_DIR$/plug-mesen" />
-            <option value="$PROJECT_DIR$/plug-mgba" />
-            <option value="$PROJECT_DIR$/plug-pcsx" />
-            <option value="$PROJECT_DIR$/plug-pokemini" />
-            <option value="$PROJECT_DIR$/plug-prosystem" />
-            <option value="$PROJECT_DIR$/plug-ruffle" />
-            <option value="$PROJECT_DIR$/plug-sameboy" />
-            <option value="$PROJECT_DIR$/plug-snes9x" />
-            <option value="$PROJECT_DIR$/plug-vbam" />
-            <option value="$PROJECT_DIR$/plug-vbanext" />
-            <option value="$PROJECT_DIR$/plug-yabause" />
           </set>
         </option>
       </GradleProjectSettings>

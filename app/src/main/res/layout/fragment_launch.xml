@@ -33,6 +33,7 @@
             android:textStyle="bold"
             android:text="@{tooltipState.text}"
             android:textColor="@color/hit_text"
+            android:fontFamily="@font/bitcount_grid_double_variable_font"
             app:layout_constraintStart_toStartOf="@id/surface_view"
             app:layout_constraintBottom_toBottomOf="@id/surface_view"/>
         <LinearLayout
