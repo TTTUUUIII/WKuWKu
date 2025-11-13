@@ -217,13 +217,14 @@ static bool environment_cb(unsigned cmd, void *data) {
             return true;
         case RETRO_ENVIRONMENT_SET_HW_RENDER:
             hw_render_cb = reinterpret_cast<struct retro_hw_render_callback *>(data);
+            LOGI(TAG, "Request hardware render, context_type=%d", hw_render_cb->context_type);
             if (hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES2
                 || hw_render_cb->context_type == RETRO_HW_CONTEXT_OPENGLES3) {
                 hw_render_cb->get_proc_address = get_hw_proc_address;
                 hw_render_cb->get_current_framebuffer = get_hw_framebuffer;
-                LOGI(TAG, "Hardware render attached, type=%d", hw_render_cb->context_type);
                 return true;
             }
+            hw_render_cb = nullptr;
             break;
         case RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE:
             struct retro_rumble_interface *interface;
@@ -524,6 +525,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     video_width = 0;
     video_height = 0;
     video_rotation = ROTATION_0;
+    hw_render_cb = nullptr;
     free_frame_buffers();
     if (audio_buffer) {
         env->DeleteGlobalRef(audio_buffer);
