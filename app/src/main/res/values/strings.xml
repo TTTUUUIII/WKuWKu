@@ -134,8 +134,7 @@
     <string name="l3" translatable="false">L3</string>
     <string name="r3" translatable="false">R3</string>
     <string name="load" translatable="false">LOAD</string>
-    <string name="fmt_state_saved">State#%d saved!</string>
-    <string name="fmt_state_loaded">State#%d loaded!</string>
+    <string name="fmt_state_saved" translatable="false">Sate State: %d</string>
     <string name="load_state_failed">State load failed!</string>
     <string name="played_just_now">Just played</string>
     <string name="fmt_played_days_ago">Played at %d days ago</string>
@@ -156,7 +155,7 @@
     <string name="blacklist_auto_load_state">Blacklist: Auto load state</string>
     <string name="summary_black_auto_load_state">Auto load state is unstable on some cores, add this list to disable it</string>
     <string name="publisher">Pub</string>
-    <string name="screenshot_saved">Screenshot saved</string>
+    <string name="screenshot_saved" translatable="false">Save Screenshot</string>
     <string name="theme">Theme</string>
     <string name="player_1">Player 1</string>
     <string name="player_2">Player 2</string>
