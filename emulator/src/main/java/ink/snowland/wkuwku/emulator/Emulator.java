@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import ink.snowland.wkuwku.annotations.JNICallback;
 import ink.snowland.wkuwku.common.EmConfig;
 import ink.snowland.wkuwku.common.EmMessageExt;
 import ink.snowland.wkuwku.common.EmOption;
@@ -141,11 +142,13 @@ public abstract class Emulator implements IEmulator {
         }
     }
 
+    @JNICallback
     @Override
     public boolean onNativeRumbleState(int port, int effect, int strength) {
         return true;
     }
 
+    @JNICallback
     @Override
     public boolean onNativeEnvironment(int cmd, Object data) {
         boolean supported = false;
@@ -194,6 +197,7 @@ public abstract class Emulator implements IEmulator {
         return supported;
     }
 
+    @JNICallback
     @Override
     public void onNativeVideoSizeChanged(int vw, int vh, int rotation) {
         OnEmulatorV2EventListener listener = mListener.get();
@@ -202,6 +206,7 @@ public abstract class Emulator implements IEmulator {
         }
     }
 
+    @JNICallback
     @Override
     public int onNativeAudioBuffer(short[] data, int frames) {
         if (mAudioTrack == null) {
@@ -215,6 +220,7 @@ public abstract class Emulator implements IEmulator {
         return frames;
     }
 
+    @JNICallback
     @Override
     public int onNativePollInput(int port, int device, int index, int id) {
         OnEmulatorV2EventListener listener = mListener.get();
