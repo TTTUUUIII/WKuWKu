@@ -42,8 +42,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     room {
         schemaDirectory "$projectDir/schemas"
@@ -55,28 +55,27 @@ android {
 dependencies {
     implementation libs.preference
     def navigation_version = "2.8.9"
-    def room_version = "2.7.1"
-    def camera_version = "1.3.0"
+    def camera_version = "1.5.2"
     def work_version = "2.10.1"
     implementation(project(':emulator'))
     implementation(project(":plug"))
     implementation(project(":common"))
-    implementation "com.github.bumptech.glide:glide:4.16.0"
-    implementation "androidx.navigation:navigation-fragment:$navigation_version"
-    implementation "androidx.navigation:navigation-ui:$navigation_version"
+    implementation libs.glide
+    implementation libs.androidx.navigation.fragment
+    implementation libs.androidx.navigation.ui
     implementation libs.room.runtime
     annotationProcessor libs.room.compiler
     implementation libs.room.rxjava3
     implementation libs.rxandroid
-    implementation "androidx.preference:preference-ktx:1.2.0"
+    implementation libs.androidx.preference.ktx
     implementation libs.barcode.scanning
-    implementation "androidx.camera:camera-core:$camera_version"
-    implementation "androidx.camera:camera-camera2:$camera_version"
-    implementation "androidx.camera:camera-view:$camera_version"
-    implementation "androidx.camera:camera-lifecycle:$camera_version"
-    implementation 'org.apache.commons:commons-compress:1.27.1'
-    implementation 'org.tukaani:xz:1.9'
-    implementation "androidx.work:work-runtime:$work_version"
+    implementation libs.androidx.camera.core
+    implementation libs.androidx.camera.camera2
+    implementation libs.androidx.camera.view
+    implementation libs.androidx.camera.lifecycle
+    implementation libs.commons.compress
+    implementation libs.xz
+    implementation libs.androidx.work.runtime
 //    implementation "androidx.core:core-splashscreen:1.0.0"
 //    implementation "com.google.code.gson:gson:2.13.1"
     implementation libs.appcompat

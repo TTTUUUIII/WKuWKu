@@ -174,4 +174,5 @@
     <string name="nav_animation">导航动画</string>
     <string name="restart_app_confirmation">确定要重启应用吗？ \n\n警告：这会终止所有正在进行的后台任务！</string>
     <string name="video_filter">滤镜</string>
+    <string name="app_crashed">应用崩溃</string>
 </resources>
