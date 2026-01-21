@@ -17,6 +17,12 @@ android {
                 arguments "-DANDROID_STL=c++_shared"
             }
         }
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
     }
 
     buildTypes {

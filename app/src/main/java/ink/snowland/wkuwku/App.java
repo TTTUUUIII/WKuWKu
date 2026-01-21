@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
+import ink.snowland.wkuwku.activity.UncaughtExceptionActivity;
 import ink.snowland.wkuwku.db.AppDatabase;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.HotkeysManager;
@@ -36,17 +37,9 @@ public class App extends Application {
         PlugManager.initialize(getApplicationContext());
         ResourceManager.initialize(getApplicationContext());
         NotificationManager.initialize(getApplicationContext());
-        Thread.setDefaultUncaughtExceptionHandler(mUncaughtExceptionHandler);
+        Thread.setDefaultUncaughtExceptionHandler(UncaughtExceptionActivity.createHandler(getApplicationContext()));
         checkRemoteConfig();
     }
-
-    private final Thread.UncaughtExceptionHandler mUncaughtExceptionHandler = (thread, throwable) -> {
-        try (PrintWriter writer = new PrintWriter(FileManager.getFile("crash", System.currentTimeMillis() + ".log"))) {
-            throwable.printStackTrace(writer);
-        } catch (IOException ignored) {
-        }
-        Process.killProcess(Process.myPid());
-    };
 
     private void checkRemoteConfig() {
         WorkManager workManager = WorkManager.getInstance(this);

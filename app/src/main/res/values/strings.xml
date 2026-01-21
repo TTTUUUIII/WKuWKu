@@ -200,4 +200,5 @@
     <string name="nav_animation">Navigation animation</string>
     <string name="restart_app_confirmation">Are you sure reboot this app now? \n\nWarning: If there are background tasks, they will be terminated!</string>
     <string name="video_filter">Filter</string>
+    <string name="app_crashed">App crashed</string>
 </resources>
