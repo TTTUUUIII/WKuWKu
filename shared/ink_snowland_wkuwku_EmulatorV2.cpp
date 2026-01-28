@@ -4,7 +4,6 @@
 #include <fstream>
 #include <sys/resource.h>
 #include <unordered_map>
-#include <queue>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
 #include "GLRenderer.h"
@@ -27,8 +26,7 @@ static std::shared_ptr<GLRenderer> renderer = nullptr;
 static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
-static buffer_t *framebuffers[2];
-static std::atomic<int> draw_index = 0;
+static std::unique_ptr<framebuffer_t> framebuffer;
 static rotation_t video_rotation = ROTATION_0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
@@ -108,20 +106,9 @@ static void alloc_frame_buffers() {
         bytes_per_pixels = 2;
     }
     retro_get_system_av_info(&av_info);
-    framebuffers[0] = new buffer_t(
-            av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
-    framebuffers[1] = new buffer_t(
-            av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels);
-    draw_index.store(0);
-    LOGD(TAG, "Alloc frame buffers %zu bytes * 2.", framebuffers[0]->capacity);
-}
-
-static void free_frame_buffers() {
-    delete framebuffers[0];
-    delete framebuffers[1];
-    framebuffers[0] = nullptr;
-    framebuffers[1] = nullptr;
-    LOGD(TAG, "Free frame buffers.");
+    size_t size_in_bytes = av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels;
+    framebuffer = std::make_unique<framebuffer_t>(size_in_bytes, 3);
+    LOGD(TAG, "Alloc frame buffers %zu bytes * 3.", size_in_bytes);
 }
 
 static void fill_frame_buffer(const void *data, unsigned width, unsigned height, size_t pitch) {
@@ -130,18 +117,18 @@ static void fill_frame_buffer(const void *data, unsigned width, unsigned height,
         bytes_per_pixel = 4;
     }
 
-    int write_index = 1 - draw_index.load();
+    int idx = framebuffer->acquire_write_idx();
     if (width * bytes_per_pixel == pitch) {
-        memcpy(framebuffers[write_index]->data, data, height * pitch);
+        memcpy(framebuffer->data_ptr(idx), data, height * pitch);
     } else {
         for (int i = 0; i < height; ++i) {
-            memcpy((void *) (static_cast<const char *>(framebuffers[write_index]->data) +
+            memcpy((void *) (static_cast<const char *>(framebuffer->data_ptr(idx)) +
                              i * width * bytes_per_pixel),
                    static_cast<const char *>(data) + i * pitch,
                    width * bytes_per_pixel);
         }
     }
-    draw_index.store(write_index);
+    framebuffer->submit_buffer(idx);
 }
 
 static void notify_video_size_changed() {
@@ -526,7 +513,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     video_height = 0;
     video_rotation = ROTATION_0;
     hw_render_cb = nullptr;
-    free_frame_buffers();
+    framebuffer = nullptr;
     if (audio_buffer) {
         env->DeleteGlobalRef(audio_buffer);
         audio_buffer = nullptr;
@@ -653,15 +640,17 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
                                           video_width * 4);
             }
         } else {
-            if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
-                no_error = stbi_write_png(file_path, video_width, video_height, 4,
-                                          framebuffers[draw_index]->data,
-                                          video_width * 4);
-            } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(framebuffers[draw_index]->data,
-                                                                    video_width * video_height * 2);
-                no_error = stbi_write_png(file_path, video_width, video_height, 3, buffer->data,
-                                          video_width * 3);
+            std::unique_ptr<buffer_t> data_ptr = framebuffer->copy_pixels();
+            if (data_ptr) {
+                if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
+                    no_error = stbi_write_png(file_path, video_width, video_height, 4,
+                                              data_ptr->data,
+                                              video_width * 4);
+                } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
+                    std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(data_ptr->data,video_width * video_height * 2);
+                    no_error = stbi_write_png(file_path, video_width, video_height, 3, buffer->data,
+                                              video_width * 3);
+                }
             }
         }
         env->ReleaseStringUTFChars(path, file_path);
@@ -863,10 +852,12 @@ static void on_draw_frame() {
                        video_height,
                        hw_texture);
         } else {
-            int index = draw_index.load();
-            texture(video_width,
-                    video_height,
-                    framebuffers[index]->data);
+            int idx = framebuffer->acquire_read_idx();
+            if (idx != -1) {
+                texture(video_width,
+                        video_height,
+                        framebuffer->data_ptr(idx));
+            }
         }
         renderer->swap_buffers();
     }
