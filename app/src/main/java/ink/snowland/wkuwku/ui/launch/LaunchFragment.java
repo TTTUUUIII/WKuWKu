@@ -520,8 +520,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             onExit();
         } else {
             Controller controller = mControllerSources.get(0 /*VirtualController*/);
-            if (controller instanceof VirtualController) {
-                VirtualController vc = (VirtualController) controller;
+            if (controller instanceof VirtualController vc) {
                 vc.vibrator();
             }
             if (viewId == R.id.button_savestate) {

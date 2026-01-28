@@ -1,10 +1,13 @@
 package ink.snowland.wkuwku.ui.settings;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.View;
+import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
@@ -28,6 +31,7 @@ import ink.snowland.wkuwku.widget.HotkeysDialog;
 public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener {
 
     private static final String ACTION_CUSTOM_HOTKEYS = "action_custom_hotkeys";
+    private static final String NUM_OF_FRAMEBUFFERS = "video.framebuffer_count";
     private BaseActivity mParentActivity;
     private HotkeysDialog mHotkeysDialog;
 
@@ -92,6 +96,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
         Preference preference = findPreference(ACTION_CUSTOM_HOTKEYS);
         if (preference != null) {
             preference.setOnPreferenceClickListener(this);
+        }
+        preference = findPreference(NUM_OF_FRAMEBUFFERS);
+        if (preference instanceof EditTextPreference editTextPreference) {
+            editTextPreference.setOnBindEditTextListener(editText -> editText.setInputType(InputType.TYPE_CLASS_NUMBER));
         }
     }
 
