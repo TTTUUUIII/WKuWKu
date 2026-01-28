@@ -107,8 +107,9 @@ static void alloc_frame_buffers() {
     }
     retro_get_system_av_info(&av_info);
     size_t size_in_bytes = av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels;
-    framebuffer = std::make_unique<framebuffer_t>(size_in_bytes, 3);
-    LOGD(TAG, "Alloc frame buffers %zu bytes * 3.", size_in_bytes);
+    int num_of_buffers = std::clamp(get_prop(PROP_FRAMEBUFFER_COUNT, 5), 3, 10);
+    framebuffer = std::make_unique<framebuffer_t>(size_in_bytes, num_of_buffers);
+    LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes, num_of_buffers);
 }
 
 static void fill_frame_buffer(const void *data, unsigned width, unsigned height, size_t pitch) {
@@ -619,6 +620,9 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
             props[prop] = as_string(env, (jstring) val);
+            break;
+        case PROP_FRAMEBUFFER_COUNT:
+            props[prop] = as_int(env, val);
             break;
         default:;
     }

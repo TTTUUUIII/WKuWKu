@@ -25,6 +25,7 @@ public interface IEmulator extends RetroDefine {
     int PROP_LOW_LATENCY_AUDIO_ENABLE           = 103;
     int PROP_AUDIO_UNDERRUN_OPTIMIZATION        = 104;
     int PROP_VIDEO_FILTER                       = 105;
+    int PROP_NUM_OF_FRAMEBUFFERS                = 106;
 
     int FEAT_SAVE_STATE                         = 1000;
     int FEAT_LOAD_STATE                         = 1001;

@@ -36,6 +36,7 @@ public class LaunchViewModel extends BaseViewModel {
     private static final String AUDIO_LOW_LATENCY_MODE = "app_audio_low_latency_mode";
     private static final String AUDIO_API = "app_audio_api";
     private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
+    private static final String NUM_OF_FRAMEBUFFERS = "video.framebuffer_count";
     public static final int MAX_COUNT_OF_SNAPSHOT = 5;
     private IEmulator mEmulator;
     private final List<byte[]> mSnapshots = new ArrayList<>();
@@ -96,6 +97,8 @@ public class LaunchViewModel extends BaseViewModel {
             } else {
                 mEmulator.setProp(PROP_OBOE_ENABLE, false);
             }
+            int numOfBuffers = NumberUtils.parseInt(SettingsManager.getString(NUM_OF_FRAMEBUFFERS, getString(R.string.default_num_of_buffers)), Integer.parseInt(getString(R.string.default_num_of_buffers)));
+            mEmulator.setProp(PROP_NUM_OF_FRAMEBUFFERS, numOfBuffers);
             if (mEmulator.start(mCurrentGame.filepath)) {
                 loadAllStates();
                 mPlaying = true;

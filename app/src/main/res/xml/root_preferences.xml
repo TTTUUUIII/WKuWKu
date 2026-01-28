@@ -26,6 +26,12 @@
             app:summary="@string/keep_screen_on_when_gaming"
             app:title="@string/keep_screen_on"
             app:key="app_keep_screen_on" />
+        <EditTextPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="@string/default_num_of_buffers"
+            app:useSimpleSummaryProvider="true"
+            app:title="@string/num_of_buffers"
+            app:key="video.framebuffer_count" />
     </PreferenceCategory>
 
     <PreferenceCategory

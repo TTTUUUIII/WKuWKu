@@ -201,4 +201,6 @@
     <string name="restart_app_confirmation">Are you sure reboot this app now? \n\nWarning: If there are background tasks, they will be terminated!</string>
     <string name="video_filter">Filter</string>
     <string name="app_crashed">App crashed</string>
+    <string name="default_num_of_buffers" translatable="false">5</string>
+    <string name="num_of_buffers">Num of buffers</string>
 </resources>

@@ -39,6 +39,7 @@
 #define PROP_LOW_LATENCY_AUDIO_ENABLE          103
 #define PROP_AUDIO_UNDERRUN_OPTIMIZATION       104
 #define PROP_VIDEO_FILTER                      105
+#define PROP_FRAMEBUFFER_COUNT                 106
 
 enum rotation_t {
     ROTATION_0,
