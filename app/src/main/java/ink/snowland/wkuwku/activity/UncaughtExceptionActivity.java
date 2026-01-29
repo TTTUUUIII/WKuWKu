@@ -2,11 +2,13 @@ package ink.snowland.wkuwku.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -38,7 +40,8 @@ public class UncaughtExceptionActivity extends AppCompatActivity {
             Soc:            %s
             Supported ABIs: %s
             Locale:         %s
-            Display:        %dx%d (dpi %d)
+            Screen size:    %dx%d (dpi %d)
+            Screen rate:    %f
             Date:           %s
             
             Stack trace:
@@ -74,8 +77,8 @@ public class UncaughtExceptionActivity extends AppCompatActivity {
         startActivity(Intent.createChooser(intent, null));
     }
 
-    public static Thread.UncaughtExceptionHandler createHandler(Context applicationContext) {
-        return new UncaughtExceptionHandler(applicationContext);
+    public static void installForCurrent(Context applicationContext) {
+        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler(applicationContext));
     }
 
     private String getCrashInfo() {
@@ -87,6 +90,8 @@ public class UncaughtExceptionActivity extends AppCompatActivity {
             soc = String.format(Locale.US, "%s (by %s)", Build.SOC_MODEL, Build.SOC_MANUFACTURER);
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss", Locale.US);
+        DisplayManager displayManager = (DisplayManager) getSystemService(DISPLAY_SERVICE);
+        Display display = displayManager.getDisplay(Display.DEFAULT_DISPLAY);
         return String.format(Locale.US, DEVICE_INFO,
                 getPackageName(),
                 BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE,
@@ -98,6 +103,7 @@ public class UncaughtExceptionActivity extends AppCompatActivity {
                 Arrays.toString(Build.SUPPORTED_ABIS),
                 Locale.getDefault(),
                 displayMetrics.widthPixels, displayMetrics.heightPixels, displayMetrics.densityDpi,
+                display.getRefreshRate(),
                 dateFormat.format(System.currentTimeMillis()),
                 Log.getStackTraceString(thr)
                 );

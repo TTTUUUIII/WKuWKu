@@ -82,11 +82,10 @@ public:
 
     int acquire_read_idx() {
         std::lock_guard<std::mutex> lock(mtx);
-        if(cur_read_idx != -1) {
-            free_idxs.push(cur_read_idx);
-            cur_read_idx = -1;
-        }
         if(!full_idxs.empty()) {
+            if(cur_read_idx != -1) {
+                free_idxs.push(cur_read_idx);
+            }
             cur_read_idx = full_idxs.front();
             full_idxs.pop();
         }

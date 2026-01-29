@@ -299,7 +299,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(@NonNull SurfaceHolder holder) {
-                    emulator.attachSurface(holder.getSurface());
+                    emulator.attachSurface(parentActivity, holder.getSurface());
                 }
 
                 @Override
