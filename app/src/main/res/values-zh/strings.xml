@@ -178,4 +178,5 @@
     <string name="num_of_buffers">缓冲区数量</string>
     <string name="debug">调试</string>
     <string name="show_renderer_rate">显示渲染帧率</string>
+    <string name="show_renderer_rate_summary">显示渲染器的帧率</string>
 </resources>
