@@ -107,7 +107,7 @@ static void alloc_frame_buffers() {
     }
     retro_get_system_av_info(&av_info);
     size_t size_in_bytes = av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels;
-    int num_of_buffers = std::clamp(get_prop(PROP_FRAMEBUFFER_COUNT, 5), 3, 10);
+    int num_of_buffers = std::clamp(get_prop(PROP_FRAMEBUFFER_COUNT, 3), 3, 10);
     framebuffer = std::make_unique<framebuffer_t>(size_in_bytes, num_of_buffers);
     LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes, num_of_buffers);
 }
@@ -817,6 +817,7 @@ static void entry_main_loop() {
         hw_render_cb->context_reset();
     }
     util::timestamp_t prev_time_millis = util::system_current_milliseconds();
+    int prev_frame_rate = 0;
     for (;;) {
         std::shared_ptr<message_t> msg = obtain_message();
         if (current_state == STATE_RUNNING) {
@@ -830,10 +831,14 @@ static void entry_main_loop() {
             frame_time_helper.reset();
         }
         util::timestamp_t now = util::system_current_milliseconds();
-        if(get_prop(PROP_REPORT_RENDERER_RATE, false) && now - prev_time_millis >= 1000) {
+        int cur_frame_rate = frame_time_helper.frame_rate();
+        if(get_prop(PROP_REPORT_RENDERER_RATE, false)
+            && now - prev_time_millis >= 1000
+            && prev_frame_rate != cur_frame_rate) {
             ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.dump_cb_method,
-                                    DUMP_KEY_RENDERER_RATE, new_int(ctx.env, frame_time_helper.frame_rate()));
+                                    DUMP_KEY_RENDERER_RATE, new_int(ctx.env, cur_frame_rate));
             prev_time_millis = now;
+            prev_frame_rate = cur_frame_rate;
         }
         if (handle_message(msg)) continue;
         if (msg->what == MSG_KILL) {
