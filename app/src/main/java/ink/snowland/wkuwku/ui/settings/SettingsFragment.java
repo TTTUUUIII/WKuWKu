@@ -39,7 +39,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mParentActivity = (BaseActivity) requireActivity();
-        mParentActivity.setActionbarTitle(R.string.app_settings);
+        mParentActivity.setActionbarTitle(R.string.settings);
         mHotkeysDialog = new HotkeysDialog(mParentActivity);
         mParentActivity.setSearchEnable(false);
     }
