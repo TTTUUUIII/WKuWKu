@@ -36,7 +36,8 @@
             app:iconSpaceReserved="false"
             app:key="video.show_renderer_rate"
             app:defaultValue="false"
-            app:title="@string/show_renderer_rate"/>
+            app:title="@string/show_renderer_rate"
+            app:summary="@string/show_renderer_rate_summary"/>
     </PreferenceCategory>
 
     <PreferenceCategory

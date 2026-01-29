@@ -205,4 +205,5 @@
     <string name="num_of_buffers">Num of buffers</string>
     <string name="debug">Debug</string>
     <string name="show_renderer_rate">Show renderer rate</string>
+    <string name="show_renderer_rate_summary">Show the current renderer rate</string>
 </resources>
