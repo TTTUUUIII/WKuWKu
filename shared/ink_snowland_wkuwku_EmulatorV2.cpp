@@ -876,8 +876,8 @@ static void on_draw_frame() {
             }
         }
         renderer->swap_buffers();
+        frame_time_helper.next_frame();
     }
-    frame_time_helper.next_frame();
 }
 
 static void on_surface_destroy() {

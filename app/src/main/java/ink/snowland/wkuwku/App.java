@@ -37,7 +37,7 @@ public class App extends Application {
         PlugManager.initialize(getApplicationContext());
         ResourceManager.initialize(getApplicationContext());
         NotificationManager.initialize(getApplicationContext());
-        Thread.setDefaultUncaughtExceptionHandler(UncaughtExceptionActivity.createHandler(getApplicationContext()));
+        UncaughtExceptionActivity.installForCurrent(getApplicationContext());
         checkRemoteConfig();
     }
 
