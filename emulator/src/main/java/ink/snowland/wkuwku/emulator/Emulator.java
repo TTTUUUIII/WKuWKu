@@ -231,6 +231,14 @@ public abstract class Emulator implements IEmulator {
     }
 
     @Override
+    public void onNativeDumpInfo(int k, Object v) {
+        OnEmulatorV2EventListener listener = mListener.get();
+        if (listener != null) {
+            listener.onDumpInfo(k, v);
+        }
+    }
+
+    @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
         return false;
     }

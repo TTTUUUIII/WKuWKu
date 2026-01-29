@@ -26,6 +26,7 @@ public interface IEmulator extends RetroDefine {
     int PROP_AUDIO_UNDERRUN_OPTIMIZATION        = 104;
     int PROP_VIDEO_FILTER                       = 105;
     int PROP_NUM_OF_FRAMEBUFFERS                = 106;
+    int PROP_SHOW_RENDERER_RATE                 = 107;
 
     int FEAT_SAVE_STATE                         = 1000;
     int FEAT_LOAD_STATE                         = 1001;
@@ -33,6 +34,8 @@ public interface IEmulator extends RetroDefine {
 
     int FILTER_NONE                             = 0;
     int FILTER_CRT                              = 1;
+
+    int DUMP_KEY_RENDERER_RATE                  = 0;
 
     boolean hasFeature(int feat);
     void setProp(int what, Object data);
@@ -69,4 +72,5 @@ public interface IEmulator extends RetroDefine {
     void onNativeVideoSizeChanged(int vw, int vh, int rotation);
     int onNativeAudioBuffer(final short[] data, int frames);
     int onNativePollInput(int port, int device, int index, int id);
+    void onNativeDumpInfo(int k, Object v);
 }

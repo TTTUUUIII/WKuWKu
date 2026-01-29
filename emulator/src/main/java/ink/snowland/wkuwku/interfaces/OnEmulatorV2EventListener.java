@@ -6,4 +6,5 @@ public interface OnEmulatorV2EventListener {
     void onVideoSizeChanged(int vw, int vh, int rotation);
     int onPollInputState(int port, int device, int index, int id);
     void onMessage(EmMessageExt msg);
+    void onDumpInfo(int k, Object v);
 }

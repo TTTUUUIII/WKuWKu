@@ -40,6 +40,9 @@
 #define PROP_AUDIO_UNDERRUN_OPTIMIZATION       104
 #define PROP_VIDEO_FILTER                      105
 #define PROP_FRAMEBUFFER_COUNT                 106
+#define PROP_REPORT_RENDERER_RATE              107
+
+#define DUMP_KEY_RENDERER_RATE       0
 
 enum rotation_t {
     ROTATION_0,
@@ -64,6 +67,7 @@ typedef struct {
     jmethodID video_size_cb_method;
     jmethodID input_cb_method;
     jmethodID rumble_cb_method;
+    jmethodID dump_cb_method;
     jfieldID variable_value_field;
     jfieldID variable_entry_key_field;
     jfieldID variable_entry_value_field;

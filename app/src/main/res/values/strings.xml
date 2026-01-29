@@ -203,4 +203,6 @@
     <string name="app_crashed">App crashed</string>
     <string name="default_num_of_buffers" translatable="false">5</string>
     <string name="num_of_buffers">Num of buffers</string>
+    <string name="debug">Debug</string>
+    <string name="show_renderer_rate">Show renderer rate</string>
 </resources>
