@@ -230,6 +230,7 @@ public abstract class Emulator implements IEmulator {
         return 0;
     }
 
+    @JNICallback
     @Override
     public void onNativeDumpInfo(int k, Object v) {
         OnEmulatorV2EventListener listener = mListener.get();
@@ -237,7 +238,6 @@ public abstract class Emulator implements IEmulator {
             listener.onDumpInfo(k, v);
         }
     }
-
     @Override
     public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
         return false;
