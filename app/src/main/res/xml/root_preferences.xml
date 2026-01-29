@@ -32,6 +32,11 @@
             app:useSimpleSummaryProvider="true"
             app:title="@string/num_of_buffers"
             app:key="video.framebuffer_count" />
+        <SwitchPreferenceCompat
+            app:iconSpaceReserved="false"
+            app:key="video.show_renderer_rate"
+            app:defaultValue="false"
+            app:title="@string/show_renderer_rate"/>
     </PreferenceCategory>
 
     <PreferenceCategory

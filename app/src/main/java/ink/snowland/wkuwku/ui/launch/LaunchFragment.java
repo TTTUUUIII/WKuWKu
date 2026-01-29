@@ -145,8 +145,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentLaunchBinding.inflate(getLayoutInflater());
+        binding.setViewModel(mViewModel);
+        binding.setLifecycleOwner(this);
         attachToEmulator();
-        binding.pendingIndicator.setDataModel(mViewModel);
         if (mVideoRatioType == TYPE_FULLSCREEN) {
             binding.surfaceView.fullScreen();
         } else if (mVideoRatioType == TYPE_KEEP_FULLSCREEN) {
@@ -770,6 +771,13 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     public void onMessage(@NonNull EmMessageExt message) {
         if (message.type == EmMessageExt.MESSAGE_TARGET_OSD) {
             run(() -> showSnackbar(message.msg, Snackbar.LENGTH_SHORT));
+        }
+    }
+
+    @Override
+    public void onDumpInfo(int k, Object v) {
+        if (k == DUMP_KEY_RENDERER_RATE) {
+            mViewModel.updateRendererRate((int)v);
         }
     }
 

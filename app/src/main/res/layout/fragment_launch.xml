@@ -15,7 +15,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ui.launch.LaunchFragment">
-
         <ink.snowland.wkuwku.view.GSurfaceView
             android:id="@+id/surface_view"
             android:layout_width="match_parent"
@@ -25,6 +24,17 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="FPS:60"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:text="@{viewModel.rendererRateText}"
+            android:textColor="@color/hit_text"
+            android:fontFamily="@font/bitcount_grid_double_variable_font"
+            app:layout_constraintTop_toTopOf="@id/surface_view"
+            app:layout_constraintEnd_toEndOf="@id/surface_view"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -263,6 +273,7 @@
         </androidx.coordinatorlayout.widget.CoordinatorLayout>
         <include
             android:id="@+id/pending_indicator"
+            app:dataModel="@{viewModel}"
             layout="@layout/layout_loading_indicator" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

@@ -176,4 +176,6 @@
     <string name="video_filter">滤镜</string>
     <string name="app_crashed">应用崩溃</string>
     <string name="num_of_buffers">缓冲区数量</string>
+    <string name="debug">调试</string>
+    <string name="show_renderer_rate">显示渲染帧率</string>
 </resources>

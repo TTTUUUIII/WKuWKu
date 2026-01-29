@@ -6,14 +6,13 @@
 #include <unordered_map>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 #include "GLRenderer.h"
 #include "GLUtils.h"
 #include "AudioOutputStream.h"
+#include "Util.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
-
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
-#include "stb_image_write.h"
 
 #define TAG "EmulatorV2"
 
@@ -37,6 +36,7 @@ static std::queue<std::shared_ptr<message_t>> message_queue;
 static std::unordered_map<int32_t, std::any> props;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
+static util::FrameTimeHelper frame_time_helper;
 
 static em_context_t ctx{};
 static std::unique_ptr<GLContext> shared_context;
@@ -452,6 +452,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         if (!hw_render_cb) {
             alloc_frame_buffers();
         }
+        frame_time_helper.reset();
         std::thread main_thread(entry_main_loop);
         main_thread.detach();
     } else {
@@ -611,6 +612,7 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case PROP_OBOE_ENABLED:
         case PROP_LOW_LATENCY_AUDIO_ENABLE:
         case PROP_AUDIO_UNDERRUN_OPTIMIZATION:
+        case PROP_REPORT_RENDERER_RATE:
             props[prop] = as_bool(env, val);
             break;
         case PROP_VIDEO_FILTER:
@@ -736,7 +738,9 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
     ctx.environment_method = env->GetMethodID(clazz, "onNativeEnvironment",
                                               "(ILjava/lang/Object;)Z");
     ctx.input_cb_method = env->GetMethodID(clazz, "onNativePollInput", "(IIII)I");
+    ctx.dump_cb_method = env->GetMethodID(clazz, "onNativeDumpInfo", "(ILjava/lang/Object;)V");
     ctx.rumble_cb_method = env->GetMethodID(clazz, "onNativeRumbleState", "(III)Z");
+
     env->RegisterNatives(clazz, methods, ARRAY_SIZE(methods));
     if (env->ExceptionCheck()) {
         env->ExceptionDescribe();
@@ -812,6 +816,7 @@ static void entry_main_loop() {
         }
         hw_render_cb->context_reset();
     }
+    util::timestamp_t prev_time_millis = util::system_current_milliseconds();
     for (;;) {
         std::shared_ptr<message_t> msg = obtain_message();
         if (current_state == STATE_RUNNING) {
@@ -822,6 +827,13 @@ static void entry_main_loop() {
                 return current_state != STATE_PAUSED
                        || !message_queue.empty();
             });
+            frame_time_helper.reset();
+        }
+        util::timestamp_t now = util::system_current_milliseconds();
+        if(get_prop(PROP_REPORT_RENDERER_RATE, false) && now - prev_time_millis >= 1000) {
+            ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.dump_cb_method,
+                                    DUMP_KEY_RENDERER_RATE, new_int(ctx.env, frame_time_helper.frame_rate()));
+            prev_time_millis = now;
         }
         if (handle_message(msg)) continue;
         if (msg->what == MSG_KILL) {
@@ -865,6 +877,7 @@ static void on_draw_frame() {
         }
         renderer->swap_buffers();
     }
+    frame_time_helper.next_frame();
 }
 
 static void on_surface_destroy() {

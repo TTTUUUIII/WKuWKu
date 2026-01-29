@@ -9,6 +9,8 @@ import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import org.wkuwku.util.NumberUtils;
 
@@ -30,6 +32,7 @@ import ink.snowland.wkuwku.common.Errors;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.SettingsManager;
+import kotlinx.coroutines.flow.MutableStateFlow;
 
 public class LaunchViewModel extends BaseViewModel {
     private static final int MIN_INTERVAL_FOR_SAVE_LOAD_STATE = 1100;
@@ -37,6 +40,7 @@ public class LaunchViewModel extends BaseViewModel {
     private static final String AUDIO_API = "app_audio_api";
     private static final String AUDIO_UNDERRUN_OPTIMIZATION = "app_audio_underrun_optimization";
     private static final String NUM_OF_FRAMEBUFFERS = "video.framebuffer_count";
+    private static final String SHOW_RENDERER_RATE = "video.show_renderer_rate";
     public static final int MAX_COUNT_OF_SNAPSHOT = 5;
     private IEmulator mEmulator;
     private final List<byte[]> mSnapshots = new ArrayList<>();
@@ -44,6 +48,7 @@ public class LaunchViewModel extends BaseViewModel {
     private boolean mPlaying = false;
     private long mPrevSaveStateUptimeMillis;
     private long mPrevLoadStateUptimeMillis;
+    private final MutableLiveData<String> mRendererRateText = new MutableLiveData<>();
     public final BooleanOption virtualControllerOption;
     public final BooleanOption topControlMenuOption;
     public final BooleanOption saveStateWhenExitOption;
@@ -69,6 +74,14 @@ public class LaunchViewModel extends BaseViewModel {
                 true
 
         );
+    }
+
+    public LiveData<String> getRendererRateText() {
+        return mRendererRateText;
+    }
+
+    public void updateRendererRate(int rate) {
+        mRendererRateText.postValue(String.format(Locale.US, "FPS: %d", rate));
     }
 
     public void selectEmulator(@NonNull Game game) {
@@ -99,6 +112,7 @@ public class LaunchViewModel extends BaseViewModel {
             }
             int numOfBuffers = NumberUtils.parseInt(SettingsManager.getString(NUM_OF_FRAMEBUFFERS, getString(R.string.default_num_of_buffers)), Integer.parseInt(getString(R.string.default_num_of_buffers)));
             mEmulator.setProp(PROP_NUM_OF_FRAMEBUFFERS, numOfBuffers);
+            mEmulator.setProp(PROP_SHOW_RENDERER_RATE, SettingsManager.getBoolean(SHOW_RENDERER_RATE));
             if (mEmulator.start(mCurrentGame.filepath)) {
                 loadAllStates();
                 mPlaying = true;
