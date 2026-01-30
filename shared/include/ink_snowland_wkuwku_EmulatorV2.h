@@ -11,18 +11,15 @@
 #include <EGL/egl.h>
 #include <jni.h>
 #include <string>
-#include <future>
-#include "Buffer.h"
 #include "Log.h"
 #include "Utils.h"
 
 #define UNUSED(_p0)  (void)(_p0)
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
-#define STATE_INVALID                       0
-#define STATE_IDLE                          1
-#define STATE_RUNNING                       2
-#define STATE_PAUSED                        3
+enum class em_state_t {
+    INVALID, IDLE, RUNNING, PAUSED
+};
 
 #define MSG_KILL                            (-1)
 #define MSG_SET_SERIALIZE_DATA              1
@@ -43,7 +40,7 @@
 
 #define DUMP_KEY_RENDERER_RATE       0
 
-enum rotation_t {
+enum class rotation_t {
     ROTATION_0,
     ROTATION_90,
     ROTATION_180,

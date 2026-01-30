@@ -20,13 +20,13 @@ static std::mutex mtx;
 static std::condition_variable looper_cv;
 static retro_system_info system_info{};
 static retro_system_av_info system_av_info{};
-static std::atomic<unsigned> current_state = STATE_INVALID;
+static std::atomic<em_state_t> current_state = em_state_t::INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
 static std::unique_ptr<framebuffer_t> framebuffer;
-static rotation_t video_rotation = ROTATION_0;
+static rotation_t video_rotation = rotation_t::ROTATION_0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
 static int8_t video_effect = FILTER_NONE;
@@ -81,7 +81,7 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 }
 
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
-    if (current_state != STATE_RUNNING) return;
+    if (current_state != em_state_t::RUNNING) return;
     if (!hw_render_cb && data) {
         if (pixel_format == RETRO_PIXEL_FORMAT_XRGB8888) {
             XRGB8888_PATCH((void *) data, height * pitch);
@@ -145,7 +145,7 @@ static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun
 }
 
 static size_t audio_cb(const int16_t *data, size_t frames) {
-    if (data && current_state == STATE_RUNNING) {
+    if (data && current_state == em_state_t::RUNNING) {
         if (audio_stream_out) {
             return audio_stream_out->write(data, (int) frames, 20 * kNanosPerMillisecond);
         } else {
@@ -416,14 +416,14 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         ctx.emulator_obj = env->NewGlobalRef(thiz);
     }
     ctx.env = env;
-    if (current_state == STATE_INVALID) {
+    if (current_state == em_state_t::INVALID) {
         retro_set_environment(environment_cb);
         retro_init();
         retro_set_video_refresh(video_cb);
         retro_set_audio_sample_batch(audio_cb);
         retro_set_input_state(input_cb);
         retro_set_input_poll(input_poll_cb);
-        current_state = STATE_IDLE;
+        current_state = em_state_t::IDLE;
     }
     const char *rom_path = env->GetStringUTFChars(path, JNI_FALSE);
     struct retro_game_info info{rom_path, nullptr, 0, nullptr};
@@ -447,7 +447,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     }
     if (no_error) {
         retro_get_system_av_info(&system_av_info);
-        current_state = STATE_RUNNING;
+        current_state = em_state_t::RUNNING;
         if (props.get_or_else(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
         }
@@ -467,8 +467,8 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
 static void em_pause(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
-    if (current_state == STATE_RUNNING) {
-        current_state = STATE_PAUSED;
+    if (current_state == em_state_t::RUNNING) {
+        current_state = em_state_t::PAUSED;
         if (audio_stream_out) {
             audio_stream_out->request_pause();
         }
@@ -481,8 +481,8 @@ static void em_pause(JNIEnv *env, jobject thiz) {
 static void em_resume(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
-    if (current_state == STATE_PAUSED) {
-        current_state = STATE_RUNNING;
+    if (current_state == em_state_t::PAUSED) {
+        current_state = em_state_t::RUNNING;
         if (audio_stream_out) {
             audio_stream_out->request_start();
         }
@@ -502,7 +502,7 @@ static void em_reset(JNIEnv *env, jobject thiz) {
 static void em_stop(JNIEnv *env, jobject thiz) {
     UNUSED(env);
     UNUSED(thiz);
-    current_state = STATE_IDLE;
+    current_state = em_state_t::IDLE;
     LOGI(TAG, "Killing main loop...");
     send_empty_message(MSG_KILL).wait();
     ctx.env = env;
@@ -515,7 +515,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     close_audio_stream();
     video_width = 0;
     video_height = 0;
-    video_rotation = ROTATION_0;
+    video_rotation = rotation_t::ROTATION_0;
     hw_render_cb = nullptr;
     framebuffer = nullptr;
     if (audio_buffer) {
@@ -633,7 +633,7 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
 static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     UNUSED(thiz);
     bool no_error = false;
-    if (current_state == STATE_RUNNING || current_state == STATE_PAUSED) {
+    if (current_state == em_state_t::RUNNING || current_state == em_state_t::PAUSED) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (hw_render_cb) {
             result_t result = send_empty_message(MSG_READ_PIXELS).get();
@@ -771,14 +771,13 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     }
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
-//#ifndef MAIN_CLASS
-//    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
-//#else
-//    clazz = env->FindClass(MAIN_CLASS);
-//#endif
-//    env->UnregisterNatives(clazz);
-    if (SwappyGL_isEnabled())
-        SwappyGL_destroy();
+    SwappyGL_destroy();
+#ifndef MAIN_CLASS
+    clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
+#else
+    clazz = env->FindClass(MAIN_CLASS);
+#endif
+    env->UnregisterNatives(clazz);
     ctx.jvm = nullptr;
 }
 
@@ -820,12 +819,12 @@ static void entry_of_main_loop() {
     util::timestamp_t prev_time_millis = util::system_current_milliseconds();
     int prev_frame_rate = 0;
     for (;;) {
-        if (current_state == STATE_RUNNING) {
+        if (current_state == em_state_t::RUNNING) {
             retro_run();
-        } else if (current_state == STATE_PAUSED && message_queue.empty()) {
+        } else if (current_state == em_state_t::PAUSED && message_queue.empty()) {
             std::unique_lock<std::mutex> lock(mtx);
             looper_cv.wait(lock, []() {
-                return current_state != STATE_PAUSED
+                return current_state != em_state_t::PAUSED
                        || !message_queue.empty();
             });
             frame_time_helper.reset();
@@ -864,11 +863,11 @@ static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
     begin_texture(video_effect, pixel_format,
                   static_cast<int>(system_av_info.geometry.max_width),
                   static_cast<int>(system_av_info.geometry.max_height),
-                  video_rotation, !hw_render_cb);
+                  static_cast<int>(video_rotation), !hw_render_cb);
 }
 
 static void on_draw_frame() {
-    if (current_state == STATE_RUNNING) {
+    if (current_state == em_state_t::RUNNING) {
         if (shared_context) {
             texture_hw(video_width,
                        video_height,
