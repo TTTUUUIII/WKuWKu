@@ -35,11 +35,13 @@ static const char* fragment_shader_source = R"(#version 300 es
     uniform sampler2D texture1;
     out vec4 FragColor;
 
-    vec4 applyGrayscaleFilter(vec4 color) {
+    vec4 applyGrayscaleFilter() {
+        vec4 color = texture(texture1, TexCoord);
         return vec4(vec3((color.r + color.g + color.b) / 3.0), color.a);
     }
 
-    vec4 applyCRTFilter(vec4 color) {
+    vec4 applyCRTFilter() {
+        vec4 color = texture(texture1, TexCoord);
         vec3 rgb = pow(color.rgb, vec3(2.2));
         float scanline = mod(gl_FragCoord.y, 2.0) < 1.0 ? 0.75 : 1.0;
         float strip = mod(gl_FragCoord.x, 3.0);
@@ -52,13 +54,12 @@ static const char* fragment_shader_source = R"(#version 300 es
     }
 
     void main() {
-        vec4 color = texture(texture1, vec2(TexCoord.x, TexCoord.y));
         if (vf == VF_CRT) {
-            FragColor = applyCRTFilter(color);
+            FragColor = applyCRTFilter();
         } else if (vf == VF_GRAYSCALE) {
-            FragColor = applyGrayscaleFilter(color);
+            FragColor = applyGrayscaleFilter();
         } else {
-            FragColor = color;
+            FragColor = texture(texture1, TexCoord);
         }
     }
 )";
