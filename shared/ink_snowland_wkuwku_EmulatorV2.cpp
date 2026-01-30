@@ -29,7 +29,7 @@ static std::unique_ptr<framebuffer_t> framebuffer;
 static rotation_t video_rotation = rotation_t::ROTATION_0;
 static uint16_t video_width = 0;
 static uint16_t video_height = 0;
-static int8_t video_effect = FILTER_NONE;
+static uint8_t video_effect = FILTER_NONE;
 static retro_pixel_format origin_pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static message_queue_t message_queue;

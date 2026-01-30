@@ -24,5 +24,6 @@
     <string-array name="video_filter_entries">
         <item>无</item>
         <item>复古CRT</item>
+        <item>黑白</item>
     </string-array>
 </resources>
