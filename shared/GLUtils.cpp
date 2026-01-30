@@ -26,13 +26,18 @@ static const char* vertex_shader_source = R"(#version 300 es
 static const char* fragment_shader_source = R"(#version 300 es
     precision mediump float;
 
-    const int VF_NONE   = 0;
-    const int VF_CRT    = 1;
+    const int VF_NONE           = 0;
+    const int VF_CRT            = 1;
+    const int VF_GRAYSCALE      = 2;
 
     in vec2 TexCoord;
     uniform int vf;
     uniform sampler2D texture1;
     out vec4 FragColor;
+
+    vec4 applyGrayscaleFilter(vec4 color) {
+        return vec4(vec3((color.r + color.g + color.b) / 3.0), color.a);
+    }
 
     vec4 applyCRTFilter(vec4 color) {
         vec3 rgb = pow(color.rgb, vec3(2.2));
@@ -50,6 +55,8 @@ static const char* fragment_shader_source = R"(#version 300 es
         vec4 color = texture(texture1, vec2(TexCoord.x, TexCoord.y));
         if (vf == VF_CRT) {
             FragColor = applyCRTFilter(color);
+        } else if (vf == VF_GRAYSCALE) {
+            FragColor = applyGrayscaleFilter(color);
         } else {
             FragColor = color;
         }
@@ -87,11 +94,11 @@ static glm::mat4 model;
 static retro_pixel_format pixel_format;
 static bool flip_y = false;
 static int max_width, max_height, rotation;
-static int8_t video_filter;
+static uint8_t video_filter;
 static int base_width, base_height;
 static draw_env_t env{};
 
-void begin_texture(int8_t vf /*video filter*/,
+void begin_texture(uint8_t vf /*video filter*/,
                    retro_pixel_format format,
                    int mw /*max width*/,
                    int mh /*max height*/,

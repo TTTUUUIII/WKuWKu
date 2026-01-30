@@ -34,6 +34,7 @@ public interface IEmulator extends RetroDefine {
 
     int FILTER_NONE                             = 0;
     int FILTER_CRT                              = 1;
+    int FILTER_GRAYSCALE                        = 2;
 
     int DUMP_KEY_RENDERER_RATE                  = 0;
 
