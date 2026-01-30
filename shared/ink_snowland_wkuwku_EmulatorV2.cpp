@@ -3,15 +3,15 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <sys/resource.h>
-#include <unordered_map>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "stb_image_write.h"
 #include "GLRenderer.h"
 #include "GLUtils.h"
 #include "AudioOutputStream.h"
-#include "Util.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
 #define TAG "EmulatorV2"
@@ -32,11 +32,11 @@ static uint16_t video_height = 0;
 static int8_t video_effect = FILTER_NONE;
 static retro_pixel_format origin_pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
-static std::queue<std::shared_ptr<message_t>> message_queue;
-static std::unordered_map<int32_t, std::any> props;
+static message_queue_t message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
 static bool env_attached = false;
-static util::FrameTimeHelper frame_time_helper;
+static util::frame_time_helper_t frame_time_helper;
+static util::properties_t props;
 
 static em_context_t ctx{};
 static std::unique_ptr<GLContext> shared_context;
@@ -106,10 +106,12 @@ static void alloc_frame_buffers() {
         bytes_per_pixels = 2;
     }
     retro_get_system_av_info(&av_info);
-    size_t size_in_bytes = av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels;
-    int num_of_buffers = std::clamp(get_prop(PROP_FRAMEBUFFER_COUNT, 3), 3, 10);
+    size_t size_in_bytes =
+            av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels;
+    int num_of_buffers = std::clamp(props.get_or_else(PROP_FRAMEBUFFER_COUNT, 3), 3, 10);
     framebuffer = std::make_unique<framebuffer_t>(size_in_bytes, num_of_buffers);
-    LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes, num_of_buffers);
+    LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes,
+         num_of_buffers);
 }
 
 static void fill_frame_buffer(const void *data, unsigned width, unsigned height, size_t pitch) {
@@ -147,8 +149,10 @@ static size_t audio_cb(const int16_t *data, size_t frames) {
         if (audio_stream_out) {
             return audio_stream_out->write(data, (int) frames, 20 * kNanosPerMillisecond);
         } else {
-            if (ctx.env->GetArrayLength(audio_buffer) < frames * 2) {
-                ctx.env->DeleteGlobalRef(audio_buffer);
+            if (!audio_buffer || ctx.env->GetArrayLength(audio_buffer) < frames * 2) {
+                if (audio_buffer) {
+                    ctx.env->DeleteGlobalRef(audio_buffer);
+                }
                 audio_buffer = (jshortArray) ctx.env->NewGlobalRef(
                         ctx.env->NewShortArray((int) frames * 2));
             }
@@ -226,7 +230,7 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
-            const std::string &path = get_prop(static_cast<int>(cmd), std::string());
+            const std::string &path = props.get_or_else(static_cast<int>(cmd), std::string());
             if (!path.empty()) {
                 *(const char **) data = path.c_str();
                 return true;
@@ -444,16 +448,14 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     if (no_error) {
         retro_get_system_av_info(&system_av_info);
         current_state = STATE_RUNNING;
-        if (get_prop(PROP_OBOE_ENABLED, true)) {
+        if (props.get_or_else(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
-        } else {
-            audio_buffer = (jshortArray) env->NewGlobalRef(env->NewShortArray(0));
         }
         if (!hw_render_cb) {
             alloc_frame_buffers();
         }
         frame_time_helper.reset();
-        std::thread main_thread(entry_main_loop);
+        std::thread main_thread(entry_of_main_loop);
         main_thread.detach();
     } else {
         LOGE(TAG, "Unable load the game, file=%s", rom_path);
@@ -502,14 +504,14 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     UNUSED(thiz);
     current_state = STATE_IDLE;
     LOGI(TAG, "Killing main loop...");
-    send_message(MSG_KILL, nullptr)->get_future().get();
+    send_empty_message(MSG_KILL).wait();
     ctx.env = env;
     retro_unload_game();
 #ifdef DEINIT_AFTER_UNLOAD
     retro_deinit();
     current_state = STATE_INVALID;
 #endif
-    clear_message();
+    message_queue.clear();
     close_audio_stream();
     video_width = 0;
     video_height = 0;
@@ -558,13 +560,11 @@ static jobject em_get_system_info(JNIEnv *env, jobject thiz) {
 
 static jbyteArray em_get_serialize_data(JNIEnv *env, jobject thiz) {
     UNUSED(thiz);
-    std::shared_ptr<std::promise<result_t>> promise = send_message(MSG_GET_SERIALIZE_DATA, nullptr);
-    const result_t &result = promise->get_future().get();
+    const result_t &result = send_empty_message(MSG_GET_SERIALIZE_DATA).get();
     if (result.state == NO_ERROR) {
-        auto buffer = std::any_cast<std::shared_ptr<buffer_t>>(result.data);
-        jbyteArray data = env->NewByteArray((jint) buffer->capacity);
-        env->SetByteArrayRegion(data, 0, (jint) buffer->capacity,
-                                reinterpret_cast<jbyte *>(buffer->data));
+        jbyteArray data = env->NewByteArray((jint) result.data->capacity);
+        env->SetByteArrayRegion(data, 0, (jint) result.data->capacity,
+                                reinterpret_cast<jbyte *>(result.data->data));
         return data;
     } else {
         LOGE(TAG, "Failed to get serialize data.");
@@ -613,7 +613,7 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case PROP_LOW_LATENCY_AUDIO_ENABLE:
         case PROP_AUDIO_UNDERRUN_OPTIMIZATION:
         case PROP_REPORT_RENDERER_RATE:
-            props[prop] = as_bool(env, val);
+            props.set(prop, as_bool(env, val));
             break;
         case PROP_VIDEO_FILTER:
             video_effect = static_cast<int8_t>(as_int(env, val));
@@ -621,10 +621,10 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
-            props[prop] = as_string(env, (jstring) val);
+            props.set(prop, as_string(env, (jstring) val));
             break;
         case PROP_FRAMEBUFFER_COUNT:
-            props[prop] = as_int(env, val);
+            props.set(prop, as_int(env, val));
             break;
         default:;
     }
@@ -636,13 +636,10 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     if (current_state == STATE_RUNNING || current_state == STATE_PAUSED) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         if (hw_render_cb) {
-            std::shared_ptr<std::promise<result_t>> promise = send_message(MSG_READ_PIXELS,
-                                                                           nullptr);
-            result_t result = promise->get_future().get();
+            result_t result = send_empty_message(MSG_READ_PIXELS).get();
             if (result.state == NO_ERROR) {
-                auto pixels = std::any_cast<std::shared_ptr<buffer_t>>(result.data);
                 no_error = stbi_write_png(file_path, video_width, video_height, 4,
-                                          pixels->data,
+                                          result.data->data,
                                           video_width * 4);
             }
         } else {
@@ -653,7 +650,9 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
                                               data_ptr->data,
                                               video_width * 4);
                 } else if (pixel_format == RETRO_PIXEL_FORMAT_RGB565) {
-                    std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(data_ptr->data,video_width * video_height * 2);
+                    std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(data_ptr->data,
+                                                                        video_width * video_height *
+                                                                        2);
                     no_error = stbi_write_png(file_path, video_width, video_height, 3, buffer->data,
                                               video_width * 3);
                 }
@@ -671,7 +670,9 @@ static void em_set_controller_port_device(JNIEnv *env, jobject thiz, jint port, 
 }
 
 static void em_dispatch_keyboard_event(JNIEnv *env, jobject thiz, jobject event) {
-
+    UNUSED(env);
+    UNUSED(thiz);
+    UNUSED(event);
 }
 
 static const JNINativeMethod methods[] = {
@@ -781,7 +782,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     ctx.jvm = nullptr;
 }
 
-static void entry_main_loop() {
+static void entry_of_main_loop() {
     if (!attach_env()) {
         LOGE(TAG, "Unable start main thread, attach env failed!");
         return;
@@ -819,10 +820,9 @@ static void entry_main_loop() {
     util::timestamp_t prev_time_millis = util::system_current_milliseconds();
     int prev_frame_rate = 0;
     for (;;) {
-        std::shared_ptr<message_t> msg = obtain_message();
         if (current_state == STATE_RUNNING) {
             retro_run();
-        } else if (current_state == STATE_PAUSED && !msg) {
+        } else if (current_state == STATE_PAUSED && message_queue.empty()) {
             std::unique_lock<std::mutex> lock(mtx);
             looper_cv.wait(lock, []() {
                 return current_state != STATE_PAUSED
@@ -832,7 +832,7 @@ static void entry_main_loop() {
         }
         util::timestamp_t now = util::system_current_milliseconds();
         int cur_frame_rate = frame_time_helper.frame_rate();
-        if(get_prop(PROP_REPORT_RENDERER_RATE, false)
+        if (props.get_or_else(PROP_REPORT_RENDERER_RATE, false)
             && now - prev_time_millis >= 1000
             && prev_frame_rate != cur_frame_rate) {
             ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.dump_cb_method,
@@ -840,6 +840,7 @@ static void entry_main_loop() {
             prev_time_millis = now;
             prev_frame_rate = cur_frame_rate;
         }
+        std::shared_ptr<message_t> msg = message_queue.pop();
         if (handle_message(msg)) continue;
         if (msg->what == MSG_KILL) {
             if (hw_render_cb) {
@@ -849,7 +850,7 @@ static void entry_main_loop() {
                 glDeleteTextures(1, &hw_texture);
                 shared_context = nullptr;
             }
-            msg->promise->set_value({NO_ERROR, nullptr});
+            msg->promise->set_value(result_t::ok());
             break;
         }
     }
@@ -927,10 +928,10 @@ static void open_audio_stream() {
     audio_stream_out->set_sample_rate(static_cast<uint16_t>(system_av_info.timing.sample_rate));
     audio_stream_out->set_sharing_mode(oboe::SharingMode::Shared);
     audio_stream_out->set_channel_count(oboe::ChannelCount::Stereo);
-    if (get_prop(PROP_LOW_LATENCY_AUDIO_ENABLE, true)) {
+    if (props.get_or_else(PROP_LOW_LATENCY_AUDIO_ENABLE, true)) {
         audio_stream_out->set_performance_mode(oboe::PerformanceMode::LowLatency);
     }
-    if (get_prop(PROP_AUDIO_UNDERRUN_OPTIMIZATION, true)) {
+    if (props.get_or_else(PROP_AUDIO_UNDERRUN_OPTIMIZATION, true)) {
         audio_stream_out->set_check_underrun(true);
     }
     audio_stream_out->request_open();
@@ -941,17 +942,14 @@ static void close_audio_stream() {
     audio_stream_out = nullptr;
 }
 
-static std::shared_ptr<std::promise<result_t>> send_message(int what, const std::any &usr) {
-    std::shared_ptr<std::promise<result_t>> promise = std::make_shared<std::promise<result_t>>();
-    message_queue.push(std::make_shared<message_t>(what, promise, usr));
+static std::future<result_t> send_message(int what, const std::shared_ptr<buffer_t>& usr) {
+    std::future<result_t> pending = message_queue.send(what, usr);
     looper_cv.notify_one();
-    return promise;
+    return pending;
 }
 
-static void send_empty_message(int what) {
-    std::lock_guard<std::mutex> lock(mtx);
-    message_queue.push(std::make_shared<message_t>(what, nullptr, nullptr));
-    looper_cv.notify_one();
+static std::future<result_t> send_empty_message(int what) {
+    return send_message(what, nullptr);
 }
 
 static void XRGB8888_PATCH(void *data, size_t len) {
@@ -993,13 +991,14 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
         case MSG_START_RENDERER:
             renderer->set_shared_context(shared_context);
             renderer->request_start();
+            msg->promise->set_value(result_t::ok());
             break;
         case MSG_SET_SERIALIZE_DATA:
             size = retro_serialize_size();
-            buffer = std::any_cast<std::shared_ptr<buffer_t>>(msg->usr);
-            if (size > 0 && size == buffer->capacity) {
-                retro_unserialize(buffer->data, size);
+            if (size > 0 && size == msg->usr->capacity) {
+                retro_unserialize(msg->usr->data, size);
             }
+            msg->promise->set_value(result_t::ok());
             break;
         case MSG_GET_SERIALIZE_DATA:
             size = retro_serialize_size();
@@ -1007,21 +1006,20 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
                 buffer = std::make_shared<buffer_t>(size);
                 no_error = retro_serialize(buffer->data, buffer->capacity);
                 if (no_error) {
-                    msg->promise->set_value({NO_ERROR, buffer});
+                    msg->promise->set_value(result_t::ok(buffer));
                 }
             }
-            if (!no_error) {
-                msg->promise->set_value({ERROR, nullptr});
-            }
+            if (!no_error) msg->promise->set_value(result_t::err());
             break;
         case MSG_RESET_EMULATOR:
             retro_reset();
+            msg->promise->set_value(result_t::ok());
             break;
         case MSG_READ_PIXELS:
             buffer = std::make_shared<buffer_t>(video_width * video_height * 4);
             glBindFramebuffer(GL_FRAMEBUFFER, hw_fbo);
             glReadPixels(0, 0, video_width, video_height, GL_RGBA, GL_UNSIGNED_BYTE, buffer->data);
-            msg->promise->set_value({NO_ERROR, buffer});
+            msg->promise->set_value(result_t::ok(buffer));
             break;
         default:
             handled = false;
@@ -1029,32 +1027,10 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
     return handled;
 }
 
-static std::shared_ptr<message_t> obtain_message() {
-    std::lock_guard<std::mutex> lock(mtx);
-    if (message_queue.empty()) return nullptr;
-    std::shared_ptr<message_t> result = std::move(message_queue.front());
-    message_queue.pop();
-    return result;
-}
-
-static void clear_message() {
-    std::lock_guard<std::mutex> lock(mtx);
-    while (!message_queue.empty())
-        message_queue.pop();
-}
-
 static void set_thread_priority(int priority) {
     pid_t tid = gettid();
     setpriority(PRIO_PROCESS, tid, priority);
     LOGI(TAG, "Set thread priority tid=%d, priority=%d", tid, priority);
-}
-
-template<typename T>
-static T get_prop(int32_t prop, const T &default_value) {
-    if (props.count(prop)) {
-        return std::any_cast<T>(props[prop]);
-    }
-    return default_value;
 }
 
 static jobject new_int(JNIEnv *env, int32_t value) {

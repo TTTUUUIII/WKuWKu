@@ -11,7 +11,7 @@ set(COMMON_SOURCE
         ${MY_DIR}/GLUtils.cpp
         ${MY_DIR}/AudioOutputStream.cpp
         ${MY_DIR}/include/Buffer.h
-        ${MY_DIR}/Util.cpp
+        ${MY_DIR}/Utils.cpp
         ${MY_DIR}/ink_snowland_wkuwku_EmulatorV2.cpp
 )
 
