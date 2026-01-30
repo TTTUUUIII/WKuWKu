@@ -32,7 +32,7 @@ GLRenderer::GLRenderer(JNIEnv *env, jobject activity, jobject surface) {
              static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
     }
     shared_context = EGL_NO_CONTEXT;
-    state = PREPARED;
+    state = renderer_state_t::PREPARED;
 }
 
 GLRenderer::~GLRenderer() = default;
@@ -43,7 +43,7 @@ void GLRenderer::adjust_viewport(uint16_t w, uint16_t h) {
 }
 
 bool GLRenderer::request_start() {
-    if (state != PREPARED) return false;
+    if (state != renderer_state_t::PREPARED) return false;
     gl_thread = std::thread([this]() {
         gl_thread_running = true;
         LOGI(TAG, "GLThread started, tid=%d", gettid());
@@ -53,15 +53,15 @@ bool GLRenderer::request_start() {
         uint16_t current_vw = vw, current_vh = vh;
         callback->on_surface_create(context->get_surface(), context->get_surface());
         for (;;) {
-            if (state == RUNNING) {
+            if (state == renderer_state_t::RUNNING) {
                 if (current_vw != vw || current_vh != vh) {
                     glViewport(0, 0, vw, vh);
                     current_vw = vw;
                     current_vh = vh;
                 }
                 callback->on_draw_frame();
-            } else if (state == PAUSED) {
-                state.wait(PAUSED);
+            } else if (state == renderer_state_t::PAUSED) {
+                state.wait(renderer_state_t::PAUSED);
             } else {
                 break;
             }
@@ -72,14 +72,14 @@ bool GLRenderer::request_start() {
         gl_thread_running.notify_one();
         LOGI(TAG, "GLThread exited, tid=%d", gettid());
     });
-    state = RUNNING;
+    state = renderer_state_t::RUNNING;
     gl_thread.detach();
     return true;
 }
 
 void GLRenderer::release() {
-    if (state == INVALID) return;
-    state = INVALID;
+    if (state == renderer_state_t::INVALID) return;
+    state = renderer_state_t::INVALID;
     state.notify_one();
     gl_thread_running.wait(true);
     callback = nullptr;
@@ -87,7 +87,7 @@ void GLRenderer::release() {
 }
 
 void GLRenderer::swap_buffers() {
-    if (state != RUNNING) return;
+    if (state != renderer_state_t::RUNNING) return;
     if (SwappyGL_isEnabled()) {
         SwappyGL_swap(context->get_display(), context->get_surface());
     } else {
@@ -100,20 +100,20 @@ void GLRenderer::set_renderer_callback(std::unique_ptr<renderer_callback_t<EGLDi
 }
 
 void GLRenderer::request_pause() {
-    if (state == RUNNING) {
-        state = PAUSED;
+    if (state == renderer_state_t::RUNNING) {
+        state = renderer_state_t::PAUSED;
     }
 }
 
 void GLRenderer::request_resume() {
-    if (state == PAUSED) {
-        state = RUNNING;
+    if (state == renderer_state_t::PAUSED) {
+        state = renderer_state_t::RUNNING;
         state.notify_one();
     }
 }
 
 void GLRenderer::set_shared_context(const std::unique_ptr<GLContext>& ctx) {
-    if (state == PREPARED) {
+    if (state == renderer_state_t::PREPARED) {
         if (ctx) {
             shared_context = ctx->get_context();
         }

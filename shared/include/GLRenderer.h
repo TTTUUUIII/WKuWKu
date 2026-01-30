@@ -11,7 +11,7 @@
 #include <android/native_window_jni.h>
 #include "GLContext.h"
 
-enum renderer_state_t {
+enum class renderer_state_t {
     INVALID,
     PREPARED,
     RUNNING,
@@ -39,7 +39,7 @@ private:
     uint16_t vw, vh;
     std::thread gl_thread;
     std::atomic<bool> gl_thread_running = false;
-    std::atomic<renderer_state_t> state = INVALID;
+    std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
     std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> callback;
 
 public:
