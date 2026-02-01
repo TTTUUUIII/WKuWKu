@@ -509,7 +509,7 @@ static void em_stop(JNIEnv *env, jobject thiz) {
     retro_unload_game();
 #ifdef DEINIT_AFTER_UNLOAD
     retro_deinit();
-    current_state = STATE_INVALID;
+    current_state = em_state_t::INVALID;
 #endif
     message_queue.clear();
     close_audio_stream();
