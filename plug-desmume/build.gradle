@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId "ink.snowland.wkuwku.plug.desmume"
-        versionCode 3
-        versionName "v2.2"
+        versionCode 4
+        versionName "v2.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
