@@ -25,7 +25,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class PlugManager {
     private static final String UPGRADE_LIST = "plug_upgrade_list";
-    private static final Logger sLogger = new Logger("Plug", "PlugManager");
+    private static final Logger sLogger = new Logger("PlugManager");
     private static Context sApplicationContext;
 
     public static void initialize(Context applicationContext) {
