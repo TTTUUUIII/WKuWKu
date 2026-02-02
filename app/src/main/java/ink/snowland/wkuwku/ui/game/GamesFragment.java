@@ -5,10 +5,12 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,15 +29,20 @@ import ink.snowland.wkuwku.bean.UiGameState;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentGameBinding;
 import ink.snowland.wkuwku.databinding.ItemGameBinding;
+import ink.snowland.wkuwku.databinding.ItemGameGridBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
+import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
 
 public class GamesFragment extends BaseFragment implements View.OnClickListener {
     private GamesViewModel mViewModel;
+    private FragmentGameBinding binding;
     private final GameViewAdapter mAdapter = new GameViewAdapter();
     private GameDetailDialog mGameDetailDialog;
+    private static final String USE_GRID_LAYOUT = "games_fragment.use_grid_layout";
+    private boolean mUseGridLayout = SettingsManager.getBoolean(USE_GRID_LAYOUT, false);
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,14 +59,15 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        FragmentGameBinding binding = FragmentGameBinding.inflate(inflater);
-        binding.recyclerView.setAdapter(mAdapter);
-        binding.recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        binding = FragmentGameBinding.inflate(inflater);
+        updateLayoutManager();
         binding.fab.setOnClickListener(this);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
-        binding.pendingIndicator.setDataModel(mViewModel);
-        binding.pendingIndicator.setLifecycleOwner(this);
+        binding.toggleLayout.setOnClickListener(v -> {
+            mUseGridLayout = !mUseGridLayout;
+            updateLayoutManager();
+        });
         return binding.getRoot();
     }
 
@@ -74,6 +82,21 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     public boolean onQueryTextChange(String newText) {
         mAdapter.filter(newText.toLowerCase(Locale.US).trim());
         return true;
+    }
+
+    private void updateLayoutManager() {
+        final RecyclerView.LayoutManager lm;
+        System.out.println("mUseGridLayout: " + mUseGridLayout);
+        if (mUseGridLayout) {
+            lm = new GridLayoutManager(requireContext(), 2);
+        } else {
+            lm = new LinearLayoutManager(requireContext());
+        }
+        binding.recyclerView.setLayoutManager(lm);
+        binding.recyclerView.setAdapter(mAdapter);
+        if (mUseGridLayout != SettingsManager.getBoolean(USE_GRID_LAYOUT, false)) {
+            SettingsManager.putBoolean(USE_GRID_LAYOUT, mUseGridLayout);
+        }
     }
 
     private void showMorePopupMenu(@NonNull Game game, @NonNull View view) {
@@ -113,16 +136,25 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
 
 
     private class GameViewHolder extends RecyclerView.ViewHolder {
-        private final ItemGameBinding itemBinding;
-        public GameViewHolder(@NonNull ItemGameBinding binding) {
+        private final ViewDataBinding itemBinding;
+        public GameViewHolder(@NonNull ViewDataBinding binding) {
             super(binding.getRoot());
             itemBinding = binding;
         }
 
         public void bind(UiGameState state) {
-            itemBinding.setViewData(state);
-            itemBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
-            itemBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
+            if (itemBinding instanceof ItemGameBinding itemGameBinding) {
+                itemGameBinding.setViewData(state);
+                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
+                itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
+            } else if (itemBinding instanceof ItemGameGridBinding itemGameBinding) {
+
+                itemGameBinding.setViewData(state);
+                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
+                itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
+            } else  {
+                /*Never come here.*/
+            }
         }
     }
 
@@ -145,12 +177,20 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         @Override
         public GameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+            if (viewType == 1) {
+                return new GameViewHolder(ItemGameGridBinding.inflate(inflater, parent, false));
+            }
             return new GameViewHolder(ItemGameBinding.inflate(inflater, parent, false));
         }
 
         @Override
         public void onBindViewHolder(@NonNull GameViewHolder holder, int position) {
             holder.bind(getItem(position));
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            return mUseGridLayout ? 1 : 0;
         }
 
         public void filter(@NonNull String query) {
