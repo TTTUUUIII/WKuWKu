@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
@@ -26,7 +27,8 @@ import ink.snowland.wkuwku.util.SettingsManager;
 public abstract class BaseFragment extends Fragment implements InputManager.InputDeviceListener,
         BaseActivity.OnInputEventListener,
         BaseActivity.OnTouchEventListener,
-        SearchView.OnQueryTextListener {
+        SearchView.OnQueryTextListener,
+        BaseActivity.OnMenuItemSelectedListener {
     protected BaseActivity parentActivity;
     protected Handler handler;
     private NavOptions mNavAnimOptions;
@@ -47,6 +49,7 @@ public abstract class BaseFragment extends Fragment implements InputManager.Inpu
     @Override
     public void onResume() {
         super.onResume();
+        parentActivity.setOnMenuSelectedListener(this);
         parentActivity.addOnInputEventListener(this);
         parentActivity.addInputDeviceListener(this);
         parentActivity.addOnTouchEventListener(this);
@@ -60,6 +63,11 @@ public abstract class BaseFragment extends Fragment implements InputManager.Inpu
         parentActivity.removeInputDeviceListener(this);
         parentActivity.removeOnTouchEventListener(this);
         parentActivity.setQueryTextListener(null);
+    }
+
+    @Override
+    public boolean onMenuItemSelected(MenuItem menuItem) {
+        return false;
     }
 
     @Override
@@ -105,6 +113,10 @@ public abstract class BaseFragment extends Fragment implements InputManager.Inpu
         } else {
             return null;
         }
+    }
+
+    protected void setUseGridListLayoutType(boolean isGridLayoutType) {
+        parentActivity.setUseGridListLayoutType(isGridLayoutType);
     }
 
     @Override

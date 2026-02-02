@@ -178,4 +178,9 @@
     <string name="debug">调试</string>
     <string name="show_renderer_rate">显示渲染帧率</string>
     <string name="show_renderer_rate_summary">显示渲染器的帧率</string>
+    <string name="list_layout">列表布局</string>
+    <string name="unknown">未知</string>
+    <string name="label_system">系统：</string>
+    <string name="label_pub">发行商：</string>
+    <string name="label_reg">区域：</string>
 </resources>

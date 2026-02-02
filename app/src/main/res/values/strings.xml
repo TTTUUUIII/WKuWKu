@@ -205,4 +205,10 @@
     <string name="debug">Debug</string>
     <string name="show_renderer_rate">Show renderer rate</string>
     <string name="show_renderer_rate_summary">Show the current renderer rate</string>
+    <string name="list_layout">List layout</string>
+    <string name="unknown">Unknown</string>
+    <string name="label_system">Sys: </string>
+    <string name="label_pub">Pub: </string>
+    <string name="label_reg">Reg: </string>
+    <string name="no_cover" translatable="false">No Cover</string>
 </resources>

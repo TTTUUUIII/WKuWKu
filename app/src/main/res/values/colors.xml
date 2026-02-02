@@ -3,6 +3,10 @@
     <color name="ic_launcher_background">#FE8E37</color>
     <color name="modal_mask">#7BFFFFFF</color>
     <color name="black">#FF000000</color>
+    <color name="black_alpha_400">#66000000</color>
+    <color name="black_alpha_500">#80000000</color>
+    <color name="black_alpha_700">#B2000000</color>
+    <color name="black_alpha_800">#C8000000</color>
     <color name="white">#F7F7F7</color>
     <color name="white_alpha_800">#C8F7F7F7</color>
     <color name="white_alpha_400">#66F7F7F7</color>

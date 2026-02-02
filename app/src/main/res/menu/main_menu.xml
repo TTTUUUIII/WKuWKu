@@ -8,4 +8,9 @@
         android:title="@string/search"
         app:showAsAction="collapseActionView|ifRoom"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
+    <item
+        android:id="@+id/menu_toggle_list_layout_type"
+        android:icon="@drawable/ic_grid_view"
+        android:title="@string/list_layout"
+        app:showAsAction="collapseActionView|ifRoom" />
 </menu>
