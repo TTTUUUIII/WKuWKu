@@ -76,6 +76,20 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        parentActivity.setSearchEnable(true);
+        parentActivity.setDisplayListLayoutToggleButton(true);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        parentActivity.setSearchEnable(false);
+        parentActivity.setDisplayListLayoutToggleButton(false);
+    }
+
+    @Override
     public void onClick(View v) {
         int viewId = v.getId();
         if (viewId == R.id.fab) {
