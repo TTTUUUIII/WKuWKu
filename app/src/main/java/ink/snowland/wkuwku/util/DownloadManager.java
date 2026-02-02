@@ -40,7 +40,7 @@ public class DownloadManager {
     public static final int SESSION_STATE_COMPLETED     = 3;
     public static final int SESSION_STATE_FAILED        = 4;
 
-    private final static Logger logger = new Logger("Utils", "DownloadManager");
+    private final static Logger logger = new Logger("DownloadManager");
     private final static ThreadPoolExecutor executor = new ThreadPoolExecutor(
             1,
             3,

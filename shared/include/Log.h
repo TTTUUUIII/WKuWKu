@@ -7,7 +7,7 @@
 #include <android/log.h>
 
 #ifndef LOG_TAG
-#define LOG_TAG "EmulatorV2(Native)"
+#define LOG_TAG "WkuWKu@Native"
 #endif
 #ifdef NDEBUG
 #define LOGD(_tag, _fmt, ...) ((void)0)

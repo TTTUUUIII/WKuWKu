@@ -20,7 +20,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class FileUtils {
-    private static final Logger logger = new Logger("Utils", "FileUtils");
+    private static final Logger logger = new Logger("FileUtils");
     private FileUtils() {}
 
     public static String getName(String path) {

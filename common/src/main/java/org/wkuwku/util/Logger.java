@@ -3,37 +3,39 @@ package org.wkuwku.util;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class Logger {
-    private String format = "[%s] %s";
-    private final String group;
-    private final String file;
+    private static final String TAG = "WkuWku";
+    private final String mFormat;
+    private final String mLabel;
 
-    public Logger(String group, String file) {
-        this.group = group;
-        this.file = file;
-        if (file.isEmpty()) {
-            format = "%s%s";
+    public Logger(@Nullable String label) {
+        mLabel = label;
+        if (label == null || label.isEmpty()) {
+            mFormat = "%s%s";
+        } else {
+            mFormat = "[%s] %s";
         }
     }
 
-    public Logger(String group) {
-        this(group, "");
+    public Logger(Object obj) {
+        this(obj.getClass().getSimpleName());
     }
 
     public void d(@NonNull String fmt, Object...args) {
-        Log.d(group, String.format(format, file, String.format(fmt, args)));
+        Log.d(TAG, String.format(mFormat, mLabel, String.format(fmt, args)));
     }
 
     public void e(@NonNull String fmt, Object...args) {
-        Log.e(group, String.format(format, file, String.format(fmt, args)));
+        Log.e(TAG, String.format(mFormat, mLabel, String.format(fmt, args)));
     }
 
     public void i(@NonNull String fmt, Object...args) {
-        Log.i(group, String.format(format, file, String.format(fmt, args)));
+        Log.i(TAG, String.format(mFormat, mLabel, String.format(fmt, args)));
     }
 
     public void w(@NonNull String fmt, Object...args) {
-        Log.w(group, String.format(format, file, String.format(fmt, args)));
+        Log.w(TAG, String.format(mFormat, mLabel, String.format(fmt, args)));
     }
 }

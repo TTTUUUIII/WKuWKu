@@ -17,10 +17,6 @@
 #define UNUSED(_p0)  (void)(_p0)
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
 
-enum class em_state_t {
-    INVALID, IDLE, RUNNING, PAUSED
-};
-
 #define MSG_KILL                            (-1)
 #define MSG_SET_SERIALIZE_DATA              1
 #define MSG_GET_SERIALIZE_DATA              2
@@ -40,12 +36,24 @@ enum class em_state_t {
 
 #define DUMP_KEY_RENDERER_RATE       0
 
+enum class em_state_t {
+    INVALID, IDLE, RUNNING, PAUSED
+};
+
 enum class rotation_t {
     ROTATION_0,
     ROTATION_90,
     ROTATION_180,
     ROTATION_270
 };
+
+typedef struct {
+    rotation_t rota;
+    uint16_t width;
+    uint16_t height;
+    uint8_t effect;
+    retro_pixel_format format;
+} video_metadata_t;
 
 typedef struct {
     JavaVM *jvm;

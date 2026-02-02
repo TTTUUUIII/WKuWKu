@@ -33,7 +33,7 @@ public abstract class Emulator implements IEmulator {
     protected final EmConfig config;
     private final Map<String, EmOption> mOptions = new HashMap<>();
     protected final SparseArray<Object> props = new SparseArray<>();
-    protected final Logger logger = new Logger("EmulatorV2", getClass().getSimpleName());
+    protected final Logger logger = new Logger(this);
     private AudioTrack mAudioTrack = null;
     private WeakReference<OnEmulatorV2EventListener> mListener = new WeakReference<>(null);
 

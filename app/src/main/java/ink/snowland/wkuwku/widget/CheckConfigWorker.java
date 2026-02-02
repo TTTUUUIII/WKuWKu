@@ -30,7 +30,7 @@ import ink.snowland.wkuwku.util.NotificationManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 
 public class CheckConfigWorker extends Worker {
-    private static final Logger logger = new Logger("App", "CheckAppConfigWorker");
+    private static final Logger logger = new Logger("CheckAppConfigWorker");
 
     private static final String VERSION_NOTIFICATION = "app_new_version_notification";
     public CheckConfigWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {

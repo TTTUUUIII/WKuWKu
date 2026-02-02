@@ -109,7 +109,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private boolean mKeepScreenOn;
     private boolean mAutoLoadState;
     private boolean mAutoLoadDisabled;
-    private final Logger mLogger = new Logger("App", "LaunchFragment");
+    private final Logger mLogger = new Logger("LaunchFragment");
     private final SparseArray<Controller> mControllerRoutes = new SparseArray<>();
     private int mP1ControllerId;
     private int mP2ControllerId;

@@ -70,7 +70,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
     private static final int AVAILABLE_SCREEN = 1;
 
     private static final Set<String> sNeedRebootList = new ArraySet<>();
-    private static final Logger sLogger = new Logger("Plug", "PlugFragment");
+    private static final Logger sLogger = new Logger("PlugFragment");
 
     private FragmentPlugBinding binding;
 
