@@ -8,30 +8,10 @@
             type="ink.snowland.wkuwku.ui.game.GamesViewModel" />
         <import type="android.view.View" />
     </data>
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ui.game.GamesFragment">
-        <com.google.android.material.appbar.AppBarLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="?attr/colorPrimaryContainer">
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="15dp"
-                app:layout_scrollFlags="scroll|enterAlwaysCollapsed">
-                <Button
-                    android:id="@+id/toggle_layout"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_grid_view"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
-            </androidx.constraintlayout.widget.ConstraintLayout>
-        </com.google.android.material.appbar.AppBarLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
@@ -58,5 +38,5 @@
             android:textSize="18sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    </FrameLayout>
 </layout>

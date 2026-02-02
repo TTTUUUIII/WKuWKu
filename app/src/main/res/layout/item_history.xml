@@ -2,20 +2,21 @@
 <layout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:background="?attr/colorSurfaceContainerHigh"
     xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
-            name="game"
-            type="ink.snowland.wkuwku.db.entity.Game" />
+            name="gameState"
+            type="ink.snowland.wkuwku.bean.UiGameState" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
     </data>
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="4dp">
+            android:padding="4dp"
+            app:hidden="@{gameState.hidden}">
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Material3.CardView.Elevated"
+                app:cardElevation="0dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
                 <androidx.constraintlayout.widget.ConstraintLayout
@@ -27,6 +28,7 @@
                         android:layout_height="150dp"
                         android:layout_gravity="center_vertical"
                         android:scaleType="centerCrop"
+                        android:contentDescription="@null"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintBottom_toTopOf="@+id/history_detail"
                         app:layout_constraintStart_toStartOf="parent"
@@ -51,7 +53,7 @@
                             android:textStyle="bold"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="@{game.title}"
+                            android:text="@{gameState.origin.title}"
                             tools:text="Super Mario Bros." />
 
                         <TextView
@@ -69,6 +71,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:translationY="24dp"
+                        android:layout_marginEnd="8dp"
                         app:icon="@drawable/ic_play_arrow"
                         app:layout_constraintBottom_toBottomOf="@+id/screen_shot"
                         app:layout_constraintEnd_toEndOf="parent" />

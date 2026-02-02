@@ -103,8 +103,13 @@ public class MainActivity extends BaseActivity {
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        MenuItem searchItem = menu.findItem(R.id.menu_search);
-        searchItem.setVisible(isSupportedSearch());
+        MenuItem item = menu.findItem(R.id.menu_search);
+        item.setVisible(isSupportedSearch());
+        item = menu.findItem(R.id.menu_toggle_list_layout_type);
+        item.setVisible(isDisplayListLayoutToggleButton());
+        if (item.isVisible()) {
+            item.setIcon(isUseGridListLayoutType() ? R.drawable.ic_format_list_bulleted : R.drawable.ic_grid_view);
+        }
         return true;
     }
 

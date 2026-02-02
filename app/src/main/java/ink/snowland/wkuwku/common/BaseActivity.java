@@ -11,6 +11,7 @@ import android.os.PowerManager;
 import android.util.ArraySet;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -67,7 +68,10 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private InputManager mInputManager;
     private Snackbar mSnackbar;
     private boolean mSupportedSearch = true;
+    private boolean mIsGridListLayout = false;
+    private boolean mDisplayListLayoutToggleButton = false;
     private WeakReference<SearchView.OnQueryTextListener> mQueryTextListenerRef = new WeakReference<>(null);
+    private WeakReference<OnMenuItemSelectedListener> mMenuEventListenerRef = new WeakReference<>(null);
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -168,6 +172,15 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         return super.onKeyUp(keyCode, event);
     }
 
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        OnMenuItemSelectedListener listener = mMenuEventListenerRef.get();
+        if (listener != null) {
+            return listener.onMenuItemSelected(item);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
     private int mL2ButtonAction = KeyEvent.ACTION_UP;
     private int mR2ButtonAction = KeyEvent.ACTION_UP;
     @Override
@@ -220,11 +233,37 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         return mSupportedSearch;
     }
 
+    protected boolean isDisplayListLayoutToggleButton() {
+        return mDisplayListLayoutToggleButton;
+    }
+
+    protected boolean isUseGridListLayoutType() {
+        return mIsGridListLayout;
+    }
+
     public void setSearchEnable(boolean enable) {
         if (mSupportedSearch != enable) {
             mSupportedSearch = enable;
             invalidateOptionsMenu();
         }
+    }
+
+    public void setDisplayListLayoutToggleButton(boolean enable) {
+        if (mDisplayListLayoutToggleButton != enable) {
+            mDisplayListLayoutToggleButton = enable;
+            invalidateOptionsMenu();
+        }
+    }
+
+    public void setUseGridListLayoutType(boolean isGridLayoutType) {
+        if (mIsGridListLayout != isGridLayoutType) {
+            mIsGridListLayout = isGridLayoutType;
+            invalidateOptionsMenu();
+        }
+    }
+
+    public void setOnMenuSelectedListener(OnMenuItemSelectedListener listener) {
+        mMenuEventListenerRef = new WeakReference<>(listener);
     }
 
     public void onSettingChanged(@NonNull String key) {
@@ -479,5 +518,9 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
 
     public interface OnTouchEventListener {
         boolean dispatchTouchEvent(MotionEvent ev);
+    }
+
+    public interface OnMenuItemSelectedListener {
+        boolean onMenuItemSelected(MenuItem menuItem);
     }
 }

@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -15,11 +16,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
 
+import com.bumptech.glide.Glide;
+
+import java.io.File;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
@@ -64,10 +71,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         binding.fab.setOnClickListener(this);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
-        binding.toggleLayout.setOnClickListener(v -> {
-            mUseGridLayout = !mUseGridLayout;
-            updateLayoutManager();
-        });
+        setUseGridListLayoutType(mUseGridLayout);
         return binding.getRoot();
     }
 
@@ -84,11 +88,24 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         return true;
     }
 
+    @Override
+    public boolean onMenuItemSelected(MenuItem menuItem) {
+        if (menuItem.getItemId() == R.id.menu_toggle_list_layout_type) {
+            mUseGridLayout = !mUseGridLayout;
+            updateLayoutManager();
+            setUseGridListLayoutType(mUseGridLayout);
+            return true;
+        }
+        return super.onMenuItemSelected(menuItem);
+    }
+
     private void updateLayoutManager() {
         final RecyclerView.LayoutManager lm;
-        System.out.println("mUseGridLayout: " + mUseGridLayout);
         if (mUseGridLayout) {
-            lm = new GridLayoutManager(requireContext(), 2);
+            DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+            float screenWidthInPx = displayMetrics.widthPixels;
+            float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, displayMetrics);
+            lm = new GridLayoutManager(requireContext(), (int) Math.max(1, screenWidthInPx / itemWidthInPx));
         } else {
             lm = new LinearLayoutManager(requireContext());
         }
@@ -148,14 +165,27 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                 itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
                 itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
             } else if (itemBinding instanceof ItemGameGridBinding itemGameBinding) {
-
                 itemGameBinding.setViewData(state);
                 itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
                 itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
-            } else  {
-                /*Never come here.*/
+                File cover = findGameCoverFile(state.origin);
+                if (cover != null) {
+                    Glide.with(itemGameBinding.cover)
+                            .load(cover)
+                            .into(itemGameBinding.cover);
+                }
+                itemGameBinding.defaultCover.setVisibility(cover == null ? View.VISIBLE : View.GONE);
             }
         }
+    }
+
+    private File findGameCoverFile(Game game) {
+        File dir = new File(game.filepath).getParentFile();
+        File cover = new File(dir, "cover.jpg");
+        if (cover.exists()) return cover;
+        cover = new File(dir, "cover.png");
+        if (cover.exists()) return cover;
+        return null;
     }
 
     private class GameViewAdapter extends ListAdapter<UiGameState, GameViewHolder> {
