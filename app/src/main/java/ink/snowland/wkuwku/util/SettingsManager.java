@@ -52,6 +52,12 @@ public final class SettingsManager {
         return sSettings.getInt(key, defaultValue);
     }
 
+    public static void putInt(@NonNull String key, int v) {
+        sSettings.edit()
+                .putInt(key, v)
+                .apply();
+    }
+
     public static String getString(@NonNull String key, @Nullable String defaultValue) {
         return sSettings.getString(key, defaultValue);
     }
