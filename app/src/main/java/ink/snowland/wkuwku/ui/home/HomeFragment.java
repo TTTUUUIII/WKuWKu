@@ -40,8 +40,6 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
         public void onPageSelected(int position) {
             super.onPageSelected(position);
             parentActivity.setActionbarTitle(mPagerAdapter.getTitleRes(position));
-            parentActivity.setSearchEnable(position == 0);
-            parentActivity.setDisplayListLayoutToggleButton(position == 0);
             binding.prev.setEnabled(position != 0);
             binding.next.setEnabled(position != 2);
             int itemId = binding.bottomNavView.getSelectedItemId();
