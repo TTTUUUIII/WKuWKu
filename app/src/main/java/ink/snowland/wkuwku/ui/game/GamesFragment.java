@@ -1,6 +1,5 @@
 package ink.snowland.wkuwku.ui.game;
 
-import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -124,6 +123,8 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             final String text;
             if (queryBy.equals("pub") || queryBy.equals("publisher")) {
                 text = it.publisher.toLowerCase(Locale.US);
+            } else if (queryBy.equals("sys") || queryBy.equals("system")) {
+                text = it.system;
             } else {
                 text = it.title.toLowerCase(Locale.US);
             }

@@ -132,6 +132,8 @@ public class HistoryFragment extends BaseFragment {
             final String text;
             if (queryBy.equals("pub") || queryBy.equals("publisher")) {
                 text = it.publisher.toLowerCase(Locale.US);
+            } else if (queryBy.equals("sys") || queryBy.equals("system")) {
+                text = it.system;
             } else {
                 text = it.title.toLowerCase(Locale.US);
             }
