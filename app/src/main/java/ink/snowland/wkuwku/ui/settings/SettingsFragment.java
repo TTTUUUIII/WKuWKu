@@ -3,7 +3,6 @@ package ink.snowland.wkuwku.ui.settings;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.View;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

@@ -1,49 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <data>
+
         <variable
             name="option"
             type="ink.snowland.wkuwku.common.EmOption" />
     </data>
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingVertical="4dp">
+
         <LinearLayout
-            android:layout_weight="1"
+            android:id="@+id/linearLayout2"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
             android:layout_gravity="center_vertical"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/textInputLayout"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
             <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="@{option.title}"
-                android:textStyle="bold"
                 android:textSize="13sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:textStyle="bold" />
+
             <TextView
-                android:text="@{option.key}"
-                android:textStyle="italic"
-                android:textSize="13sp"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="@{option.key}"
+                android:textSize="13sp"
+                android:textStyle="italic" />
         </LinearLayout>
+
         <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="0dp"
+            android:id="@+id/textInputLayout"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:enabled="@{option.enable}"
-            android:layout_weight="1">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/linearLayout2"
+            app:layout_constraintTop_toTopOf="parent">
+
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                 android:id="@+id/auto_complete"
-                android:inputType="none"
-                android:hint="@string/value"
-                android:textSize="13sp"
-                android:layout_margin="0dp"
-                android:text="@={option.val}"
+                style="@style/Theme.WKuWKu.AutoCompleteTextView.OutlinedBox"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                android:layout_margin="0dp"
+                android:hint="@string/value"
+                android:inputType="none"
+                android:text="@={option.val}"
+                android:textSize="13sp" />
         </com.google.android.material.textfield.TextInputLayout>
-    </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

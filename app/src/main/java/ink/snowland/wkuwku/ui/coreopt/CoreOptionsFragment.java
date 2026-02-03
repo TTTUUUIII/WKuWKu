@@ -17,8 +17,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
@@ -39,7 +41,7 @@ public class CoreOptionsFragment extends BaseFragment {
     private FragmentCoreoptBinding binding;
     private IEmulator mEmulator;
     private final ViewAdapter mAdapter = new ViewAdapter();
-    private List<EmOption> mCurrentOptions;
+    private List<EmOption> mFullList;
     private CoreOptionsViewModel mViewModel;
 
     @Override
@@ -80,8 +82,8 @@ public class CoreOptionsFragment extends BaseFragment {
             saveCurrentEmulatorOptions();
             mEmulator = emulator;
             SettingsManager.putString(SELECTED_CORE, mEmulator.getProp(IEmulator.PROP_ALIAS, String.class));
-            mCurrentOptions = mViewModel.getEmulatorOptions(mEmulator);
-            if (mCurrentOptions == null) {
+            mFullList = mViewModel.getEmulatorOptions(mEmulator);
+            if (mFullList == null) {
                 List<EmOption> options = mEmulator.getOptions().stream()
                         .sorted()
                         .collect(Collectors.toList());
@@ -90,20 +92,47 @@ public class CoreOptionsFragment extends BaseFragment {
                     if (val.isEmpty()) continue;
                     option.val = val;
                 }
-                mCurrentOptions = options;
+                mFullList = options;
                 mViewModel.putEmulatorOptions(mEmulator, options);
             }
-            mAdapter.submitList(mCurrentOptions);
+            submitFilteredList(null);
         }
         mViewModel.setPendingIndicator(false);
     }
 
     private void saveCurrentEmulatorOptions() {
-        if (mCurrentOptions == null || mEmulator == null) return;
-        for (EmOption option : mCurrentOptions) {
+        if (mFullList == null || mEmulator == null) return;
+        for (EmOption option : mFullList) {
             if (!option.enable) continue;
             SettingsManager.putString(option.key, option.val);
         }
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        submitFilteredList(newText.toLowerCase(Locale.US).trim());
+        return true;
+    }
+
+    public void submitFilteredList(@Nullable String queryText) {
+        if (queryText == null) {
+            queryText = "";
+        }
+        List<EmOption> newList = new ArrayList<>();
+        for (int position = 0; position < mFullList.size(); ++position) {
+            EmOption option = mFullList.get(position);
+            String title = option.title;
+            if (title == null) {
+                title = "";
+            }
+            title = title.toLowerCase(Locale.US);
+            if (!queryText.isEmpty() && (!title.contains(queryText) || !option.key.contains(queryText))) {
+                continue;
+            }
+            System.out.println("add： " + option.title);
+            newList.add(option);
+        }
+        mAdapter.submitList(newList);
     }
 
     private class ViewHolder extends RecyclerView.ViewHolder {
@@ -116,8 +145,7 @@ public class CoreOptionsFragment extends BaseFragment {
         }
 
         public void bind(@NonNull EmOption option) {
-            if (_binding instanceof ItemCoreOptionBinding) {
-                ItemCoreOptionBinding itemBinding = (ItemCoreOptionBinding) _binding;
+            if (_binding instanceof ItemCoreOptionBinding itemBinding) {
                 itemBinding.setOption(option);
                 switch (option.inputType) {
                     case EmOption.NUMBER:
@@ -132,7 +160,7 @@ public class CoreOptionsFragment extends BaseFragment {
                 }
             } else {
                 ItemCoreEnumOptionBinding itemBinding = (ItemCoreEnumOptionBinding) _binding;
-                NoFilterArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(parentActivity, R.layout.layout_simple_text, option.allowVals);
+                NoFilterArrayAdapter<String> adapter = new NoFilterArrayAdapter<String>(parentActivity, R.layout.layout_simple_text, option.allowVals);
                 itemBinding.autoComplete.setAdapter(adapter);
                 itemBinding.setOption(option);
             }

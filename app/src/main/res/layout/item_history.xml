@@ -5,15 +5,14 @@
     xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
-            name="gameState"
-            type="ink.snowland.wkuwku.bean.UiGameState" />
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
     </data>
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="4dp"
-            app:hidden="@{gameState.hidden}">
+            android:padding="4dp">
             <com.google.android.material.card.MaterialCardView
                 style="@style/Widget.Material3.CardView.Elevated"
                 app:cardElevation="0dp"
@@ -53,7 +52,7 @@
                             android:textStyle="bold"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="@{gameState.origin.title}"
+                            android:text="@{game.title}"
                             tools:text="Super Mario Bros." />
 
                         <TextView

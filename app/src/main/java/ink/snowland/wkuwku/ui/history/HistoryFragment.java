@@ -25,11 +25,11 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.RequestOptions;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Locale;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.bean.UiGameState;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentHistoryBinding;
 import ink.snowland.wkuwku.databinding.ItemHistoryBinding;
@@ -47,6 +47,7 @@ public class HistoryFragment extends BaseFragment {
     private Disposable mDisposable;
     private final GameViewAdapter mAdapter = new GameViewAdapter();
     private GameDetailDialog mDetailDialog;
+    private List<Game> mFullList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -55,9 +56,8 @@ public class HistoryFragment extends BaseFragment {
         mDisposable = mViewModel.getHistory().subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(games -> {
-                    mAdapter.submitList(games.stream()
-                            .map(UiGameState::from)
-                            .collect(Collectors.toList()));
+                    mFullList = games;
+                    submitFilteredList(null);
                 });
         mDetailDialog = new GameDetailDialog(parentActivity);
     }
@@ -110,6 +110,38 @@ public class HistoryFragment extends BaseFragment {
         popupMenu.show();
     }
 
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        submitFilteredList(newText.toLowerCase(Locale.US).trim());
+        return true;
+    }
+
+    private void submitFilteredList(@Nullable String query) {
+        if (query == null) {
+            query = "";
+        }
+        int index = query.indexOf(":");
+        String queryBy = "title";
+        String queryText = query;
+        if (index != -1) {
+            queryBy = query.substring(0, index);
+            queryText = query.substring(index + 1);
+        }
+        final List<Game> newList = new ArrayList<>();
+        for (int position = 0; position < mFullList.size(); ++position) {
+            Game it = mFullList.get(position);
+            final String text;
+            if (queryBy.equals("pub") || queryBy.equals("publisher")) {
+                text = it.publisher.toLowerCase(Locale.US);
+            } else {
+                text = it.title.toLowerCase(Locale.US);
+            }
+            if (!queryText.isEmpty() && !text.contains(queryText)) continue;
+            newList.add(it);
+        }
+        mAdapter.submitList(newList);
+    }
+
     private void showDetailDialog(@NonNull Game game) {
         mDetailDialog.show(game);
     }
@@ -123,17 +155,17 @@ public class HistoryFragment extends BaseFragment {
         }
 
         @SuppressLint("SetTextI18n")
-        public void bind(@NonNull UiGameState gameState) {
-            itemBinding.setGameState(gameState);
-            itemBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(v, gameState.origin));
+        public void bind(@NonNull Game data) {
+            itemBinding.setGame(data);
+            itemBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(v, data));
             RequestOptions options = new RequestOptions()
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true);
             Glide.with(itemBinding.getRoot())
                     .setDefaultRequestOptions(options)
-                    .load(FileManager.getFile(FileManager.IMAGE_DIRECTORY, gameState.origin.id + ".png"))
+                    .load(FileManager.getFile(FileManager.IMAGE_DIRECTORY, data.id + ".png"))
                     .into(itemBinding.screenShot);
-            long elapsedRealtimeMillis = System.currentTimeMillis() - gameState.origin.lastPlayedTime;
+            long elapsedRealtimeMillis = System.currentTimeMillis() - data.lastPlayedTime;
             long elapsedSeconds = (long) (elapsedRealtimeMillis / 1e3);
             if (elapsedSeconds > 24 * 60 * 60) {
                 itemBinding.lastPlayedTime.setText(getString(R.string.fmt_played_days_ago, elapsedSeconds / 86400));
@@ -144,22 +176,22 @@ public class HistoryFragment extends BaseFragment {
             } else {
                 itemBinding.lastPlayedTime.setText(R.string.played_just_now);
             }
-            itemBinding.play.setOnClickListener(v -> launch(gameState.origin));
+            itemBinding.play.setOnClickListener(v -> launch(data));
         }
     }
 
-    private class GameViewAdapter extends ListAdapter<UiGameState, GameViewHolder> {
+    private class GameViewAdapter extends ListAdapter<Game, GameViewHolder> {
 
         protected GameViewAdapter() {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull UiGameState oldItem, @NonNull UiGameState newItem) {
-                    return oldItem.origin.id == newItem.origin.id;
+                public boolean areItemsTheSame(@NonNull Game oldItem, @NonNull Game newItem) {
+                    return oldItem.id == newItem.id;
                 }
 
                 @Override
-                public boolean areContentsTheSame(@NonNull UiGameState oldItem, @NonNull UiGameState newItem) {
-                    return oldItem.isHidden() == newItem.isHidden() && oldItem.origin.equals(newItem.origin);
+                public boolean areContentsTheSame(@NonNull Game oldItem, @NonNull Game newItem) {
+                    return oldItem.equals(newItem);
                 }
             });
         }
@@ -177,36 +209,11 @@ public class HistoryFragment extends BaseFragment {
         }
 
         @Override
-        public void submitList(@Nullable List<UiGameState> list) {
+        public void submitList(@Nullable List<Game> list) {
             super.submitList(list);
             if (list != null) {
                 mViewModel.setEmptyListIndicator(list.isEmpty());
             }
         }
-
-//        public void filter(@NonNull String query) {
-//            int index = query.indexOf(":");
-//            String queryBy = "title";
-//            String queryText = query;
-//            if (index != -1) {
-//                queryBy = query.substring(0, index);
-//                queryText = query.substring(index + 1);
-//            }
-//            final List<UiGameState> currentList = getCurrentList();
-//            for (int position = 0; position < currentList.size(); ++position) {
-//                UiGameState it = currentList.get(position);
-//                final String text;
-//                if (queryBy.equals("pub") || queryBy.equals("publisher")) {
-//                    text = it.origin.publisher.toLowerCase(Locale.US);
-//                } else {
-//                    text = it.origin.title.toLowerCase(Locale.US);
-//                }
-//                boolean hidden = !queryText.isEmpty() && !text.contains(queryText);
-//                if(it.isHidden() != hidden) {
-//                    it.setHidden(hidden);
-//                    notifyItemChanged(position);
-//                }
-//            }
-//        }
     }
 }
