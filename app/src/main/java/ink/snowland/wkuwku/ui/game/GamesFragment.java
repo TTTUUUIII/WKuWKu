@@ -5,8 +5,8 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.databinding.ViewDataBinding;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -23,8 +23,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+
+import org.wkuwku.util.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ import ink.snowland.wkuwku.databinding.ItemGameBinding;
 import ink.snowland.wkuwku.databinding.ItemGameGridBinding;
 import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
+import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
@@ -58,7 +62,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         mViewModel.getAll()
                 .observe(this, games -> {
                     mFullList = games;
-                    submitFilteredList(null);
+                    onFilterList(null);
                 });
         mGameDetailDialog = new GameDetailDialog(parentActivity);
     }
@@ -96,14 +100,15 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
     @Override
     public boolean onQueryTextChange(String newText) {
-        submitFilteredList(newText.toLowerCase(Locale.US).trim());
+        onFilterList(newText);
         return true;
     }
 
-    public void submitFilteredList(@Nullable String query) {
+    public void onFilterList(@Nullable String query) {
         if (query == null) {
             query = "";
         }
+        query = query.toLowerCase(Locale.US).trim();
         int index = query.indexOf(":");
         String queryBy = "title";
         String queryText = query;
@@ -112,8 +117,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             queryText = query.substring(index + 1);
         }
         final List<Game> newList = new ArrayList<>();
-        for (int position = 0; position < mFullList.size(); ++position) {
-            Game it = mFullList.get(position);
+        for (Game it: mFullList) {
             final String text;
             if (queryBy.equals("pub") || queryBy.equals("publisher")) {
                 text = it.publisher.toLowerCase(Locale.US);
@@ -124,6 +128,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             newList.add(it);
         }
         mAdapter.submitList(newList);
+        mViewModel.setEmptyListIndicator(newList.isEmpty());
     }
 
     @Override
@@ -154,11 +159,12 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         }
     }
 
-    private void showMorePopupMenu(@NonNull Game game, @NonNull View view) {
-        PopupMenu popupMenu = new PopupMenu(view.getContext(), view);
+    private void showPopupMenu(int position, @NonNull View anchor) {
+        PopupMenu popupMenu = new PopupMenu(anchor.getContext(), anchor);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             popupMenu.setForceShowIcon(true);
         }
+        Game game = mAdapter.getCurrentList().get(position);
         popupMenu.getMenuInflater().inflate(R.menu.game_more_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
@@ -172,10 +178,42 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                 }, game);
             } else if (itemId == R.id.action_detail) {
                 showDetailDialog(game);
+            } else if (itemId == R.id.action_choose_cover) {
+                chooseCover(game, position);
             }
             return true;
         });
         popupMenu.show();
+    }
+
+    private void chooseCover(@NonNull Game game, int position) {
+        parentActivity.openDocument("image/*", uri -> {
+            DocumentFile coverFile = DocumentFile.fromSingleUri(parentActivity, uri);
+            if (coverFile == null || !coverFile.isFile() || coverFile.getName() == null) return;
+            String fileName = coverFile.getName();
+            if (!fileName.endsWith(".png") && !fileName.endsWith(".jpg")) {
+                Toast.makeText(parentActivity, R.string.unsupported_img_format, Toast.LENGTH_LONG).show();
+                return;
+            }
+            File parent  = new File(game.filepath).getParentFile();
+            String coverName = "cover" + FileUtils.getExtensionName(coverFile.getName());
+            if (FileManager.isDirectory(FileManager.ROM_DIRECTORY, parent)) {
+                parent = FileManager.getFile(FileManager.ROM_DIRECTORY, game.title);
+                if (parent.mkdir()) {
+                    File oldFile = new File(game.filepath);
+                    File newFile = new File(parent, oldFile.getName());
+                    FileUtils.copy(oldFile, newFile);
+                    FileUtils.asyncDelete(oldFile);
+                    game.filepath = newFile.getAbsolutePath();
+                    FileUtils.copy(parentActivity, uri, new File(parent, coverName));
+                    mViewModel.update(game);
+                    mAdapter.notifyItemChanged(position);
+                }
+            } else {
+                FileUtils.copy(parentActivity, uri, new File(parent, coverName));
+                mAdapter.notifyItemChanged(position);
+            }
+        });
     }
 
     private void showDetailDialog(@NonNull Game game) {
@@ -197,14 +235,15 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             itemBinding = binding;
         }
 
-        public void bind(Game game) {
+        public void bind(int position) {
+            Game game = mAdapter.getCurrentList().get(position);
             if (itemBinding instanceof ItemGameBinding itemGameBinding) {
                 itemGameBinding.setGame(game);
-                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(game, v));
+                itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(position, v));
                 itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(game));
             } else if (itemBinding instanceof ItemGameGridBinding itemGameBinding) {
                 itemGameBinding.setGame(game);
-                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(game, v));
+                itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(position, v));
                 itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(game));
                 File cover = findGameCoverFile(game);
                 if (cover != null) {
@@ -253,7 +292,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
 
         @Override
         public void onBindViewHolder(@NonNull GameViewHolder holder, int position) {
-            holder.bind(getItem(position));
+            holder.bind(position);
         }
 
         @Override

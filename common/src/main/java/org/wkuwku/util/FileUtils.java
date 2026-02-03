@@ -1,5 +1,8 @@
 package org.wkuwku.util;
 
+import android.content.Context;
+import android.net.Uri;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -40,6 +43,14 @@ public class FileUtils {
             }
         }
         return name;
+    }
+
+    public static String getExtensionName(String fileName) {
+        int index = fileName.lastIndexOf(".");
+        if (index != -1) {
+            return fileName.substring(index);
+        }
+        return "";
     }
 
     public static boolean equals(@NonNull File f1, @NonNull File f2) {
@@ -136,6 +147,25 @@ public class FileUtils {
                 })
                 .doFinally(from::close)
                 .subscribe();
+    }
+
+    public static boolean copy(Context context, Uri uri, File to) {
+        try (InputStream from = context.getContentResolver().openInputStream(uri)){
+            return copy(from, to);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+        return false;
+    }
+
+    public static boolean copy(File file1, File file2) {
+        try (FileInputStream from = new FileInputStream(file1);
+             FileOutputStream to = new FileOutputStream(file2)){
+            return copy(from, to);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+        }
+        return false;
     }
 
     public static boolean copy(InputStream from, File file) {

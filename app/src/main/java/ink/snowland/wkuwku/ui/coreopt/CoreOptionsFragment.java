@@ -95,7 +95,7 @@ public class CoreOptionsFragment extends BaseFragment {
                 mFullList = options;
                 mViewModel.putEmulatorOptions(mEmulator, options);
             }
-            submitFilteredList(null);
+            onFilterList(null);
         }
         mViewModel.setPendingIndicator(false);
     }
@@ -110,11 +110,11 @@ public class CoreOptionsFragment extends BaseFragment {
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        submitFilteredList(newText.toLowerCase(Locale.US).trim());
+        onFilterList(newText.toLowerCase(Locale.US).trim());
         return true;
     }
 
-    public void submitFilteredList(@Nullable String queryText) {
+    public void onFilterList(@Nullable String queryText) {
         if (queryText == null) {
             queryText = "";
         }

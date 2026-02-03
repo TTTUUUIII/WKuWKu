@@ -37,6 +37,11 @@ public class FileManager {
         return sApplicationContext.getExternalFilesDir(type);
     }
 
+    public static boolean isDirectory(@NonNull String type, @Nullable File file) {
+        if (file == null) return false;
+        return type.equals(file.getName());
+    }
+
     public static File getPlugDirectory() {
         return sApplicationContext.getDir("plug", Context.MODE_PRIVATE);
     }

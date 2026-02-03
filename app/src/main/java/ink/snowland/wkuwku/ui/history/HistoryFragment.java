@@ -57,7 +57,7 @@ public class HistoryFragment extends BaseFragment {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(games -> {
                     mFullList = games;
-                    submitFilteredList(null);
+                    onFilterList(null);
                 });
         mDetailDialog = new GameDetailDialog(parentActivity);
     }
@@ -112,11 +112,11 @@ public class HistoryFragment extends BaseFragment {
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        submitFilteredList(newText.toLowerCase(Locale.US).trim());
+        onFilterList(newText.toLowerCase(Locale.US).trim());
         return true;
     }
 
-    private void submitFilteredList(@Nullable String query) {
+    private void onFilterList(@Nullable String query) {
         if (query == null) {
             query = "";
         }
@@ -128,8 +128,7 @@ public class HistoryFragment extends BaseFragment {
             queryText = query.substring(index + 1);
         }
         final List<Game> newList = new ArrayList<>();
-        for (int position = 0; position < mFullList.size(); ++position) {
-            Game it = mFullList.get(position);
+        for (Game it: mFullList) {
             final String text;
             if (queryBy.equals("pub") || queryBy.equals("publisher")) {
                 text = it.publisher.toLowerCase(Locale.US);
@@ -140,6 +139,7 @@ public class HistoryFragment extends BaseFragment {
             newList.add(it);
         }
         mAdapter.submitList(newList);
+        mViewModel.setEmptyListIndicator(newList.isEmpty());
     }
 
     private void showDetailDialog(@NonNull Game game) {
