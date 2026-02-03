@@ -4,17 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools">
     <data>
         <variable
-            name="viewData"
-            type="ink.snowland.wkuwku.bean.UiGameState" />
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
         <import type="android.view.View" />
-        <import type="ink.snowland.wkuwku.db.entity.Game" />
         <import type="ink.snowland.wkuwku.util.FlagUtils" />
     </data>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:hidden="@{viewData.hidden}"
         android:orientation="vertical">
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,7 +32,7 @@
                     android:textStyle="bold"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:text="@{viewData.origin.title}"
+                    android:text="@{game.title}"
                     tools:text="Super Mario Bros." />
                 <TextView
                     android:layout_gravity="bottom"
@@ -42,8 +40,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="Nintendo"
-                    android:visibility="@{viewData.origin.publisher == null || viewData.origin.publisher.isEmpty() ? View.GONE : View.VISIBLE}"
-                    android:text="@{viewData.origin.publisher}" />
+                    android:visibility="@{game.publisher == null || game.publisher.isEmpty() ? View.GONE : View.VISIBLE}"
+                    android:text="@{game.publisher}" />
             </LinearLayout>
             <Button
                 android:id="@+id/button_launch"

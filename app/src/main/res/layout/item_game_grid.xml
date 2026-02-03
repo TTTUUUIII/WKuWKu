@@ -6,14 +6,12 @@
     <data>
 
         <variable
-            name="viewData"
-            type="ink.snowland.wkuwku.bean.UiGameState" />
+            name="game"
+            type="ink.snowland.wkuwku.db.entity.Game" />
 
         <import type="ink.snowland.wkuwku.util.TimeUtils" />
 
         <import type="android.view.View" />
-
-        <import type="ink.snowland.wkuwku.db.entity.Game" />
 
         <import type="ink.snowland.wkuwku.util.FlagUtils" />
     </data>
@@ -21,8 +19,7 @@
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"
-        app:hidden="@{viewData.hidden}">
+        android:padding="8dp">
         <com.google.android.material.card.MaterialCardView
             style="@style/Widget.Material3.CardView.Outlined"
             app:cardCornerRadius="10dp"
@@ -31,11 +28,10 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:hidden="@{viewData.hidden}">
+                android:orientation="vertical">
                 <FrameLayout
-                    android:layout_width="200dp"
-                    android:layout_height="267dp"
+                    android:layout_width="170dp"
+                    android:layout_height="227dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
@@ -83,7 +79,7 @@
                         android:maxLines="1"
                         android:textStyle="bold"
                         android:gravity="center_vertical"
-                        android:text="@{viewData.origin.title}"
+                        android:text="@{game.title}"
                         android:textColor="@color/white"
                         tools:text="Super Mario Bros." />
                     <TextView
@@ -92,7 +88,8 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:gravity="center_vertical"
-                        android:text="@{@string/label_reg + FlagUtils.flag(viewData.origin.region)}"
+                        android:text="@{@string/label_reg + FlagUtils.flag(game.region)}"
+                        android:textSize="13sp"
                         android:textColor="@color/white"/>
                     <TextView
                         android:layout_width="wrap_content"
@@ -100,7 +97,8 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:gravity="center_vertical"
-                        android:text="@{@string/label_pub + (viewData.origin.publisher == null || viewData.origin.publisher.isEmpty() ? @string/unknown : viewData.origin.publisher)}"
+                        android:text="@{@string/label_pub + (game.publisher == null || game.publisher.isEmpty() ? @string/unknown : game.publisher)}"
+                        android:textSize="13sp"
                         android:textColor="@color/white"/>
                     <TextView
                         android:layout_width="wrap_content"
@@ -108,7 +106,8 @@
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:gravity="center_vertical"
-                        android:text="@{@string/label_system + viewData.origin.system}"
+                        android:text="@{@string/label_system + game.system}"
+                        android:textSize="13sp"
                         android:textColor="@color/white"/>
                 </LinearLayout>
                 <Button

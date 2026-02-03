@@ -27,12 +27,11 @@ import android.widget.PopupMenu;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.R;
-import ink.snowland.wkuwku.bean.UiGameState;
 import ink.snowland.wkuwku.common.BaseFragment;
 import ink.snowland.wkuwku.databinding.FragmentGameBinding;
 import ink.snowland.wkuwku.databinding.ItemGameBinding;
@@ -48,6 +47,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     private FragmentGameBinding binding;
     private final GameViewAdapter mAdapter = new GameViewAdapter();
     private GameDetailDialog mGameDetailDialog;
+    private List<Game> mFullList;
     private static final String USE_GRID_LAYOUT = "games_fragment.use_grid_layout";
     private boolean mUseGridLayout = SettingsManager.getBoolean(USE_GRID_LAYOUT, false);
 
@@ -56,10 +56,10 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         super.onCreate(savedInstanceState);
         mViewModel = new ViewModelProvider(this).get(GamesViewModel.class);
         mViewModel.getAll()
-                .observe(this, games ->
-                    mAdapter.submitList(games.stream()
-                            .map(UiGameState::from)
-                            .collect(Collectors.toList())));
+                .observe(this, games -> {
+                    mFullList = games;
+                    submitFilteredList(null);
+                });
         mGameDetailDialog = new GameDetailDialog(parentActivity);
     }
 
@@ -78,14 +78,12 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     @Override
     public void onResume() {
         super.onResume();
-        parentActivity.setSearchEnable(true);
         parentActivity.setDisplayListLayoutToggleButton(true);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        parentActivity.setSearchEnable(false);
         parentActivity.setDisplayListLayoutToggleButton(false);
     }
 
@@ -98,8 +96,34 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
     }
     @Override
     public boolean onQueryTextChange(String newText) {
-        mAdapter.filter(newText.toLowerCase(Locale.US).trim());
+        submitFilteredList(newText.toLowerCase(Locale.US).trim());
         return true;
+    }
+
+    public void submitFilteredList(@Nullable String query) {
+        if (query == null) {
+            query = "";
+        }
+        int index = query.indexOf(":");
+        String queryBy = "title";
+        String queryText = query;
+        if (index != -1) {
+            queryBy = query.substring(0, index);
+            queryText = query.substring(index + 1);
+        }
+        final List<Game> newList = new ArrayList<>();
+        for (int position = 0; position < mFullList.size(); ++position) {
+            Game it = mFullList.get(position);
+            final String text;
+            if (queryBy.equals("pub") || queryBy.equals("publisher")) {
+                text = it.publisher.toLowerCase(Locale.US);
+            } else {
+                text = it.title.toLowerCase(Locale.US);
+            }
+            if (!queryText.isEmpty() && !text.contains(queryText)) continue;
+            newList.add(it);
+        }
+        mAdapter.submitList(newList);
     }
 
     @Override
@@ -118,7 +142,7 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         if (mUseGridLayout) {
             DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
             float screenWidthInPx = displayMetrics.widthPixels;
-            float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 200, displayMetrics);
+            float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 170, displayMetrics);
             lm = new GridLayoutManager(requireContext(), (int) Math.max(1, screenWidthInPx / itemWidthInPx));
         } else {
             lm = new LinearLayoutManager(requireContext());
@@ -173,16 +197,16 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             itemBinding = binding;
         }
 
-        public void bind(UiGameState state) {
+        public void bind(Game game) {
             if (itemBinding instanceof ItemGameBinding itemGameBinding) {
-                itemGameBinding.setViewData(state);
-                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
-                itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
+                itemGameBinding.setGame(game);
+                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(game, v));
+                itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(game));
             } else if (itemBinding instanceof ItemGameGridBinding itemGameBinding) {
-                itemGameBinding.setViewData(state);
-                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(state.origin, v));
-                itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(state.origin));
-                File cover = findGameCoverFile(state.origin);
+                itemGameBinding.setGame(game);
+                itemGameBinding.buttonMore.setOnClickListener(v -> showMorePopupMenu(game, v));
+                itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(game));
+                File cover = findGameCoverFile(game);
                 if (cover != null) {
                     Glide.with(itemGameBinding.cover)
                             .load(cover)
@@ -202,17 +226,17 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         return null;
     }
 
-    private class GameViewAdapter extends ListAdapter<UiGameState, GameViewHolder> {
+    private class GameViewAdapter extends ListAdapter<Game, GameViewHolder> {
         protected GameViewAdapter() {
             super(new DiffUtil.ItemCallback<>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull UiGameState oldItem, @NonNull UiGameState newItem) {
-                    return oldItem.origin.id == newItem.origin.id;
+                public boolean areItemsTheSame(@NonNull Game oldItem, @NonNull Game newItem) {
+                    return oldItem.id == newItem.id;
                 }
 
                 @Override
-                public boolean areContentsTheSame(@NonNull UiGameState oldItem, @NonNull UiGameState newItem) {
-                    return oldItem.isHidden() == newItem.isHidden() && oldItem.origin.equals(newItem.origin);
+                public boolean areContentsTheSame(@NonNull Game oldItem, @NonNull Game newItem) {
+                    return oldItem.equals(newItem);
                 }
             });
         }
@@ -235,31 +259,6 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         @Override
         public int getItemViewType(int position) {
             return mUseGridLayout ? 1 : 0;
-        }
-
-        public void filter(@NonNull String query) {
-            int index = query.indexOf(":");
-            String queryBy = "title";
-            String queryText = query;
-            if (index != -1) {
-                queryBy = query.substring(0, index);
-                queryText = query.substring(index + 1);
-            }
-            final List<UiGameState> currentList = getCurrentList();
-            for (int position = 0; position < currentList.size(); ++position) {
-                UiGameState it = currentList.get(position);
-                final String text;
-                if (queryBy.equals("pub") || queryBy.equals("publisher")) {
-                    text = it.origin.publisher.toLowerCase(Locale.US);
-                } else {
-                    text = it.origin.title.toLowerCase(Locale.US);
-                }
-                boolean hidden = !queryText.isEmpty() && !text.contains(queryText);
-                if(it.isHidden() != hidden) {
-                    it.setHidden(hidden);
-                    notifyItemChanged(position);
-                }
-            }
         }
     }
 }
