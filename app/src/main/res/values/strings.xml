@@ -47,8 +47,6 @@
     <string name="video_options">Video Options</string>
     <string name="input_options">Input Options</string>
     <string name="video_ratio">Video ratio</string>
-    <string name="all_games">All games</string>
-    <string name="recent_played">Recent played</string>
     <string name="virbration_feedback">Vibration feedback</string>
     <string name="via_qr_code">Via QR code</string>
     <string name="invalid_url">Invalid url</string>
@@ -212,4 +210,6 @@
     <string name="no_cover" translatable="false">No Cover</string>
     <string name="choose_cover">Choose cover</string>
     <string name="unsupported_img_format">Image format not supported!</string>
+    <string name="games">Games</string>
+    <string name="recent">Recent</string>
 </resources>

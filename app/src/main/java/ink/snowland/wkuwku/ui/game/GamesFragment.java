@@ -1,5 +1,6 @@
 package ink.snowland.wkuwku.ui.game;
 
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -11,6 +12,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
@@ -45,6 +47,7 @@ import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
 import ink.snowland.wkuwku.widget.GameEditDialog;
+import ink.snowland.wkuwku.widget.SimpleGridItemDecoration;
 
 public class GamesFragment extends BaseFragment implements View.OnClickListener {
     private GamesViewModel mViewModel;
@@ -142,17 +145,25 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         return super.onMenuItemSelected(menuItem);
     }
 
+    private RecyclerView.ItemDecoration mDecor;
     private void updateLayoutManager() {
         final RecyclerView.LayoutManager lm;
+        if (mDecor != null) {
+            binding.recyclerView.removeItemDecoration(mDecor);
+        }
         if (mUseGridLayout) {
             DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
             float screenWidthInPx = displayMetrics.widthPixels;
-            float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 170, displayMetrics);
-            lm = new GridLayoutManager(requireContext(), (int) Math.max(1, screenWidthInPx / itemWidthInPx));
+            int itemWidthInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 170, displayMetrics);
+            int spanCount = (int) Math.max(1, screenWidthInPx / itemWidthInPx);
+            lm = new GridLayoutManager(requireContext(), spanCount);
+            mDecor = new SimpleGridItemDecoration(itemWidthInPx, spanCount, displayMetrics.widthPixels);
         } else {
             lm = new LinearLayoutManager(requireContext());
+            mDecor = new DividerItemDecoration(parentActivity, DividerItemDecoration.VERTICAL);
         }
         binding.recyclerView.setLayoutManager(lm);
+        binding.recyclerView.addItemDecoration(mDecor);
         binding.recyclerView.setAdapter(mAdapter);
         if (mUseGridLayout != SettingsManager.getBoolean(USE_GRID_LAYOUT, false)) {
             SettingsManager.putBoolean(USE_GRID_LAYOUT, mUseGridLayout);

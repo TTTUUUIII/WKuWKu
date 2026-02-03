@@ -37,6 +37,7 @@ import ink.snowland.wkuwku.db.entity.Game;
 import ink.snowland.wkuwku.ui.launch.LaunchFragment;
 import ink.snowland.wkuwku.util.FileManager;
 import ink.snowland.wkuwku.widget.GameDetailDialog;
+import ink.snowland.wkuwku.widget.SimpleGridItemDecoration;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
@@ -67,17 +68,16 @@ public class HistoryFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         FragmentHistoryBinding binding = FragmentHistoryBinding.inflate(inflater);
         binding.recyclerView.setAdapter(mAdapter);
-        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, getGridSpanCount()));
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float screenWidthInPx = displayMetrics.widthPixels;
+        int itemWidthInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 170, displayMetrics);
+        int spanCount = (int) Math.max(1, screenWidthInPx / itemWidthInPx);
+        binding.recyclerView.setLayoutManager(new GridLayoutManager(parentActivity, spanCount));
+        SimpleGridItemDecoration decor = new SimpleGridItemDecoration(itemWidthInPx, spanCount, displayMetrics.widthPixels);
+        binding.recyclerView.addItemDecoration(decor);
         binding.setViewModel(mViewModel);
         binding.setLifecycleOwner(this);
         return binding.getRoot();
-    }
-
-    private int getGridSpanCount() {
-        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-        float screenWidthInPx = displayMetrics.widthPixels;
-        float itemWidthInPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 170, displayMetrics);
-        return (int) Math.max(1, screenWidthInPx / itemWidthInPx);
     }
 
     @Override

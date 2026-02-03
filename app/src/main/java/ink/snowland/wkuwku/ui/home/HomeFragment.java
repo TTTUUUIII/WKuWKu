@@ -74,13 +74,13 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
                     .subscribe();
         }
         Configuration configuration = getResources().getConfiguration();
-        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-                && configuration.touchscreen == Configuration.TOUCHSCREEN_NOTOUCH) {
+        if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             binding.bottomNavView.setVisibility(View.GONE);
-            binding.next.setVisibility(View.VISIBLE);
-            binding.prev.setVisibility(View.VISIBLE);
-            binding.next.setOnClickListener(this);
-            binding.prev.setOnClickListener(this);
+            if (configuration.touchscreen == Configuration.TOUCHSCREEN_NOTOUCH) {binding.next.setVisibility(View.VISIBLE);
+                binding.prev.setVisibility(View.VISIBLE);
+                binding.next.setOnClickListener(this);
+                binding.prev.setOnClickListener(this);
+            }
         }
         /*Disable default padding*/
         ViewCompat.setOnApplyWindowInsetsListener(binding.bottomNavView, null);
@@ -163,8 +163,8 @@ public class HomeFragment extends BaseFragment implements NavigationBarView.OnIt
 
         public int getTitleRes(int position) {
             switch (position) {
-                case 0: return R.string.all_games;
-                case 1: return R.string.recent_played;
+                case 0: return R.string.games;
+                case 1: return R.string.recent;
                 case 2: return R.string.core_options;
                 default:
                     throw new InvalidParameterException();
