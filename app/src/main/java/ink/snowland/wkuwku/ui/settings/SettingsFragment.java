@@ -6,17 +6,20 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.MultiSelectListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceCategory;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceScreen;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 import ink.snowland.wkuwku.EmulatorManager;
@@ -27,7 +30,9 @@ import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.HotkeysDialog;
 
-public class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener {
+public class SettingsFragment extends PreferenceFragmentCompat implements
+        Preference.OnPreferenceClickListener,
+        SearchView.OnQueryTextListener {
 
     private static final String ACTION_CUSTOM_HOTKEYS = "action_custom_hotkeys";
     private static final String NUM_OF_FRAMEBUFFERS = "video.framebuffer_count";
@@ -111,6 +116,19 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
                 preference.setVisible(true);
             }
         }
+        mParentActivity.setSearchEnable(true);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mParentActivity.setQueryTextListener(this);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mParentActivity.setQueryTextListener(null);
     }
 
     @Override
@@ -127,5 +145,39 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Prefer
 
     private void showHotkeysDialog() {
         mHotkeysDialog.show();
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return true;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        onFilterList(newText);
+        return true;
+    }
+
+    private void onFilterList(@Nullable String text) {
+        if (text == null) return;
+        text = text.toLowerCase(Locale.US).trim();
+        PreferenceScreen preferenceScreen = getPreferenceScreen();
+        for (int i = 0; i < preferenceScreen.getPreferenceCount(); ++i) {
+            Preference preference = preferenceScreen.getPreference(i);
+            doFilter(text, preference);
+        }
+    }
+
+    private void doFilter(@NonNull String text, @NonNull Preference preference) {
+        if (preference instanceof PreferenceCategory category) {
+            for (int i = 0; i < category.getPreferenceCount(); ++i) {
+                doFilter(text, category.getPreference(i));
+            }
+        } else {
+            if (preference.getTitle() != null) {
+                String title = preference.getTitle().toString().toLowerCase(Locale.US);
+                preference.setVisible(title.contains(text));
+            }
+        }
     }
 }

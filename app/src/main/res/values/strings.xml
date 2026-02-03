@@ -96,7 +96,6 @@
     <string name="unzipping_files">Unzipping files</string>
     <string name="fmt_game_already_exists">%s already exists in list</string>
     <string name="could_not_find_valid_rom_file">Could not found valid rom file!</string>
-    <string name="move_to_trash">Move to trash</string>
     <string name="unsupported_archive_format">Sorry, this compression format is not currently supported.</string>
     <string name="fmt_file_already_exists">%s already exists.</string>
     <string name="file_already_exists">File already exists.</string>
@@ -211,4 +210,6 @@
     <string name="label_pub">Pub:&#160;</string>
     <string name="label_reg">Reg:&#160;</string>
     <string name="no_cover" translatable="false">No Cover</string>
+    <string name="choose_cover">Choose cover</string>
+    <string name="unsupported_img_format">Image format not supported!</string>
 </resources>
