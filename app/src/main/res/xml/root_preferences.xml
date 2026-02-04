@@ -150,7 +150,16 @@
 
     <PreferenceCategory
         app:iconSpaceReserved="false"
-        app:key="core_preference_category"
-        app:title="@string/core_preference">
+        app:title="@string/advanced_options">
+        <Preference
+            app:iconSpaceReserved="false"
+            app:key="adv.system_launcher"
+            app:title="@string/default_launcher"
+            app:summary="@string/default_launcher_summary" />
     </PreferenceCategory>
+
+    <PreferenceCategory
+        app:iconSpaceReserved="false"
+        app:key="core_preference_category"
+        app:title="@string/core_preference" />
 </PreferenceScreen>

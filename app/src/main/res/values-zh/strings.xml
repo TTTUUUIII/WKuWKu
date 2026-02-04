@@ -184,4 +184,7 @@
     <string name="unsupported_img_format">图像格式不支持！</string>
     <string name="games">游戏库</string>
     <string name="recent">最近的</string>
+    <string name="advanced_options">高级选项</string>
+    <string name="default_launcher">默认启动器</string>
+    <string name="default_launcher_summary">设置为系统默认启动器</string>
 </resources>
