@@ -8,9 +8,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class SimpleGridItemDecoration extends RecyclerView.ItemDecoration {
-    private int mItemWidthInPx;
-    private int mSpanCount;
-    private int mTotalWidth;
+    private final int mItemWidthInPx;
+    private final int mSpanCount;
+    private final int mTotalWidth;
 
     public SimpleGridItemDecoration(int itemWidthInPx, int spanCount, int totalWidth) {
         mItemWidthInPx = itemWidthInPx;

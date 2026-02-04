@@ -349,7 +349,7 @@ public class PlugFragment extends BaseFragment implements TabLayout.OnTabSelecte
                     DownloadManager.Session session = DownloadManager.getSession(resState.origin.url);
                     if (session != null) {
                         _binding.installButton.setEnabled(false);
-                        session.doOnProgressUpdate((progress, max) -> resState.setText(getString(R.string.fmt_downloading, (float) progress / max * 100)))
+                        session.doOnProgressUpdate((progress, max) -> resState.setText(getStringSafe(R.string.fmt_downloading, (float) progress / max * 100)))
                                 .doOnError(error -> {
                                     resState.setInstallable(true);
                                     resState.setText(plug == null ? getStringSafe(R.string.install) : getStringSafe(R.string.upgrade));
