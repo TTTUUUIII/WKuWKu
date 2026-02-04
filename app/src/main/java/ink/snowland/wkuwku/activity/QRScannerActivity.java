@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -19,9 +20,6 @@ import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.OnApplyWindowInsetsListener;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -48,9 +46,15 @@ public class QRScannerActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityQrscannerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        binding.buttonCancel.setOnClickListener(v -> {
-            cancel();
-        });
+        binding.buttonCancel.setOnClickListener(v -> cancel());
+    }
+
+    @NonNull
+    @Override
+    public WindowInsetsCompat onApplyWindowInsets(@NonNull View v, @NonNull WindowInsetsCompat insets) {
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) binding.buttonCancel.getLayoutParams();
+        lp.setMargins(lp.leftMargin, insets.getInsets(WindowInsetsCompat.Type.statusBars()).top, lp.rightMargin, lp.bottomMargin);
+        return super.onApplyWindowInsets(v, insets);
     }
 
     @Override

@@ -11,7 +11,7 @@
         tools:context=".activity.MainActivity"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="?attr/colorBackground">
@@ -35,6 +35,7 @@
                     android:layout_width="match_parent"
                     android:minHeight="?attr/actionBarSize"
                     android:elevation="4dp"
+                    app:layout_scrollFlags="scroll|enterAlwaysCollapsed"
                     style="@style/Widget.Material3.Toolbar"
                     app:popupTheme="@style/ThemeOverlay.Material3.DynamicColors.Light"
                     android:layout_height="?attr/actionBarSize" />
@@ -42,16 +43,17 @@
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/nav_host_fragment"
                 android:name="androidx.navigation.fragment.NavHostFragment"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_below="@id/app_bar_layout"
                 app:navGraph="@navigation/app_navigation"
                 app:defaultNavHost="true"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/app_bar_layout" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
         <com.google.android.material.navigation.NavigationView
             android:id="@+id/navigation_view"
