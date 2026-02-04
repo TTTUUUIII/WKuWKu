@@ -212,4 +212,7 @@
     <string name="unsupported_img_format">Image format not supported!</string>
     <string name="games">Games</string>
     <string name="recent">Recent</string>
+    <string name="advanced_options">Advanced options</string>
+    <string name="default_launcher">Default launcher</string>
+    <string name="default_launcher_summary">As the system\'s default launcher</string>
 </resources>

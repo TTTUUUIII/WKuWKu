@@ -1,6 +1,8 @@
 package ink.snowland.wkuwku.ui.settings;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.InputType;
 import android.view.View;
 
@@ -35,6 +37,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         SearchView.OnQueryTextListener {
 
     private static final String ACTION_CUSTOM_HOTKEYS = "action_custom_hotkeys";
+    private static final String ACTION_CHOOSE_SYSTEM_LAUNCH = "adv.system_launcher";
     private static final String NUM_OF_FRAMEBUFFERS = "video.framebuffer_count";
     private BaseActivity mParentActivity;
     private HotkeysDialog mHotkeysDialog;
@@ -101,6 +104,10 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         if (preference != null) {
             preference.setOnPreferenceClickListener(this);
         }
+        preference = findPreference(ACTION_CHOOSE_SYSTEM_LAUNCH);
+        if (preference != null) {
+            preference.setOnPreferenceClickListener(this);
+        }
         preference = findPreference(NUM_OF_FRAMEBUFFERS);
         if (preference instanceof EditTextPreference editTextPreference) {
             editTextPreference.setOnBindEditTextListener(editText -> editText.setInputType(InputType.TYPE_CLASS_NUMBER));
@@ -137,6 +144,9 @@ public class SettingsFragment extends PreferenceFragmentCompat implements
         String key = preference.getKey();
         if (ACTION_CUSTOM_HOTKEYS.equals(key)) {
             showHotkeysDialog();
+        } else if (ACTION_CHOOSE_SYSTEM_LAUNCH.equals(key)) {
+            Intent intent = new Intent(Settings.ACTION_HOME_SETTINGS);
+            startActivity(intent);
         } else {
             handled = false;
         }
