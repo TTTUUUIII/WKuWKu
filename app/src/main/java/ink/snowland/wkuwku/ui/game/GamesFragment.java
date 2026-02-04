@@ -128,7 +128,9 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             } else {
                 text = it.title.toLowerCase(Locale.US);
             }
-            if (!queryText.isEmpty() && !text.contains(queryText)) continue;
+            if (!queryText.isEmpty() && !text.contains(queryText)) {
+                continue;
+            }
             newList.add(it);
         }
         mAdapter.submitList(newList);

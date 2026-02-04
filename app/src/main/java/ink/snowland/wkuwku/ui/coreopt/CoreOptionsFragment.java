@@ -110,7 +110,7 @@ public class CoreOptionsFragment extends BaseFragment {
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        onFilterList(newText.toLowerCase(Locale.US).trim());
+        onFilterList(newText);
         return true;
     }
 
@@ -118,6 +118,7 @@ public class CoreOptionsFragment extends BaseFragment {
         if (queryText == null) {
             queryText = "";
         }
+        queryText = queryText.toLowerCase(Locale.US).trim();
         List<EmOption> newList = new ArrayList<>();
         for (int position = 0; position < mFullList.size(); ++position) {
             EmOption option = mFullList.get(position);
@@ -126,10 +127,11 @@ public class CoreOptionsFragment extends BaseFragment {
                 title = "";
             }
             title = title.toLowerCase(Locale.US);
-            if (!queryText.isEmpty() && (!title.contains(queryText) || !option.key.contains(queryText))) {
+            if (!queryText.isEmpty()
+                    && !title.contains(queryText)
+                    && !option.key.contains(queryText)) {
                 continue;
             }
-            System.out.println("add： " + option.title);
             newList.add(option);
         }
         mAdapter.submitList(newList);
