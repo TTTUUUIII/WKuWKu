@@ -29,6 +29,7 @@
         <EditTextPreference
             app:iconSpaceReserved="false"
             app:defaultValue="@string/default_num_of_buffers"
+            app:enabled="false"
             app:useSimpleSummaryProvider="true"
             app:title="@string/num_of_buffers"
             app:key="video.framebuffer_count" />
