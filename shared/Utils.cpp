@@ -4,12 +4,19 @@
 
 #include "Utils.h"
 #include <chrono>
+#include <sys/resource.h>
 
 namespace util {
 
     timestamp_t system_current_milliseconds() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::steady_clock::now().time_since_epoch()).count();
+    }
+
+    pid_t set_thread_priority(int priority) {
+        pid_t tid = gettid();
+        setpriority(PRIO_PROCESS, tid, priority);
+        return tid;
     }
 
     void frame_time_helper_t::reset() {

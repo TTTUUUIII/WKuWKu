@@ -15,10 +15,15 @@
 #define NO_ERROR                            0
 #define ERROR                               1
 
+#define THREAD_PRIORITY_DISPLAY             (-4)
+#define THREAD_PRIORITY_AUDIO               (-16)
+
 namespace util {
     typedef long long timestamp_t;
 
     long long system_current_milliseconds();
+
+    pid_t set_thread_priority(int);
 
     class frame_time_helper_t {
     private:
@@ -32,6 +37,7 @@ namespace util {
         void next_frame();
         int frame_rate();
     };
+
 
     class properties_t {
     private:
