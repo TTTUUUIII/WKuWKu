@@ -9,7 +9,12 @@
 #include <thread>
 #include <unistd.h>
 #include <android/native_window_jni.h>
+#include <libretro.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "GLContext.h"
+#include "Buffer.h"
 
 enum class renderer_state_t {
     INVALID,
@@ -18,46 +23,125 @@ enum class renderer_state_t {
     PAUSED
 };
 
-template<typename T, typename R>
-struct renderer_callback_t{
-    std::function<void(T, R)> on_surface_create;
-    std::function<void()> on_draw_frame;
-    std::function<void()> on_surface_destroy;
-
-    renderer_callback_t(std::function<void(T, R)> _on_create,
-                        std::function<void()> _on_draw,
-                        std::function<void()> _on_destroy):
-    on_surface_create(std::move(_on_create)), on_draw_frame(std::move(_on_draw)), on_surface_destroy(std::move(_on_destroy)){}
+enum class rotation_t {
+    ROTATION_0,
+    ROTATION_90,
+    ROTATION_180,
+    ROTATION_270
 };
 
+enum class effect_t {
+    NONE,
+    CTR,
+    GRAYSCALE
+};
+
+struct video_config_t {
+    rotation_t rota;
+    int width, height;
+    int max_width, max_height;
+    uint16_t num_of_views;
+    effect_t effect;
+    retro_pixel_format format;
+
+    explicit video_config_t() : rota(rotation_t::ROTATION_0),
+                                width(0), height(0),
+                                max_width(0), max_height(0),
+                                num_of_views(3),
+                                effect(effect_t::NONE),
+                                format(RETRO_PIXEL_FORMAT_RGB565) {
+
+    }
+};
+
+class swap_chain_t {
+private:
+    std::mutex mtx;
+    std::vector<buffer_t> buffers;
+    std::queue<int> free_idxs;
+    std::queue<int> full_idxs;
+    int cur_read_idx = -1;
+public:
+    explicit swap_chain_t(int size_in_bytes, int count);
+
+    int acquire_write_idx();
+
+    void submit(int idx);
+
+    void* data_ptr(int idx);
+
+    std::unique_ptr<buffer_t> read_pixels() {
+        std::lock_guard<std::mutex> lock(mtx);
+        if(cur_read_idx != -1) {
+            buffer_t& fb = buffers[cur_read_idx];
+            std::unique_ptr<buffer_t> data_ptr = std::make_unique<buffer_t>(fb.capacity);
+            memcpy(data_ptr->data, fb.data, fb.capacity);
+            return std::move(data_ptr);
+        }
+        return nullptr;
+    }
+
+    int acquire_read_idx() {
+        std::lock_guard<std::mutex> lock(mtx);
+        if(!full_idxs.empty()) {
+            if(cur_read_idx != -1) {
+                free_idxs.push(cur_read_idx);
+            }
+            cur_read_idx = full_idxs.front();
+            full_idxs.pop();
+        }
+        return cur_read_idx;
+    }
+
+    virtual ~swap_chain_t() {
+        std::lock_guard<std::mutex> lock(mtx);
+        while(!full_idxs.empty()) full_idxs.pop();
+        while(!free_idxs.empty()) free_idxs.pop();
+        cur_read_idx = -1;
+        buffers.clear();
+    }
+};
 
 class GLRenderer {
 private:
     ANativeWindow *window;
-    EGLContext shared_context;
+    std::shared_ptr<GLContext> shared_context;
+    GLuint shared_texture{};
     std::unique_ptr<GLContext> context;
-    uint16_t vw, vh;
+    std::unique_ptr<swap_chain_t> swap_chain;
+    std::shared_ptr<video_config_t> config;
+    float cur_aspect_ratio;
+    glm::mat4 model;
+    GLuint PID{}, VAO{}, VBO{}, EBO{}, Tex0{};
+    int ww, wh;
     std::thread gl_thread;
     std::atomic<bool> gl_thread_running = false;
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
-    std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> callback;
-
+    void create_swap_chain();
+    void gl_begin();
+    void gl_draw();
+    void gl_end();
+    void gl_set_mat4(const char*, const glm::mat4&) const;
+    void gl_set_i(const char*, const int &) const;
+    void gl_update_texcoords();
+    void gl_swap_buffers();
 public:
     explicit GLRenderer(JNIEnv *env, jobject activity, jobject surface);
 
     ~GLRenderer();
-
-    void adjust_viewport(uint16_t w, uint16_t h);
-
-    void swap_buffers();
-
-    void set_renderer_callback(std::unique_ptr<renderer_callback_t<EGLDisplay, EGLSurface>> _cb);
+    void resize_viewport(uint32_t w, uint32_t h);
 
     bool request_start();
+
     void request_pause();
+
     void request_resume();
 
-    void set_shared_context(const std::unique_ptr<GLContext>& ctx);
+    void submit(const void *, unsigned, unsigned, size_t);
+    void attach_context(std::shared_ptr<GLContext> ctx);
+    void attach_texture(GLuint tex);
+    void set_config(std::shared_ptr<video_config_t>);
+    std::unique_ptr<buffer_t> read_pixels();
 
     void release();
 };

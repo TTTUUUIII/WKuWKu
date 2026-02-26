@@ -24,9 +24,6 @@
 #define MSG_START_RENDERER                  4
 #define MSG_READ_PIXELS                     5
 
-#define THREAD_PRIORITY_DISPLAY             (-4)
-#define THREAD_PRIORITY_AUDIO               (-16)
-
 #define PROP_OBOE_ENABLED                      102
 #define PROP_LOW_LATENCY_AUDIO_ENABLE          103
 #define PROP_AUDIO_UNDERRUN_OPTIMIZATION       104
@@ -39,21 +36,6 @@
 enum class em_state_t {
     INVALID, IDLE, RUNNING, PAUSED
 };
-
-enum class rotation_t {
-    ROTATION_0,
-    ROTATION_90,
-    ROTATION_180,
-    ROTATION_270
-};
-
-typedef struct {
-    rotation_t rota;
-    uint16_t width;
-    uint16_t height;
-    uint8_t effect;
-    retro_pixel_format format;
-} video_metadata_t;
 
 typedef struct {
     JavaVM *jvm;
@@ -93,10 +75,6 @@ static void on_draw_frame();
 
 static void on_surface_destroy();
 
-static void alloc_frame_buffers();
-
-static void fill_frame_buffer(const void *, unsigned, unsigned, size_t);
-
 static void notify_video_size_changed();
 
 static bool attach_env();
@@ -116,8 +94,6 @@ static std::future<result_t> send_empty_message(int);
 static std::future<result_t> send_message(int, const std::shared_ptr<buffer_t>&);
 
 static bool handle_message(const std::shared_ptr<message_t> &);
-
-static void set_thread_priority(int);
 
 /*JNI utils*/
 static jobject new_int(JNIEnv *, int32_t);

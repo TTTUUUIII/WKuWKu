@@ -2,7 +2,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fstream>
-#include <sys/resource.h>
 #include <swappy/swappyGL_extra.h>
 #include <swappy/swappyGL.h>
 
@@ -20,17 +19,12 @@ static std::mutex mtx;
 static std::condition_variable looper_cv;
 static retro_system_info system_info{};
 static retro_system_av_info system_av_info{};
-static video_metadata_t video_meta{rotation_t::ROTATION_0,
-                               0,
-                               0,
-                               FILTER_NONE,
-                               RETRO_PIXEL_FORMAT_RGB565};
+static std::shared_ptr<video_config_t> video_config;
 static std::atomic<em_state_t> current_state = em_state_t::INVALID;
 static std::shared_ptr<GLRenderer> renderer = nullptr;
 static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
-static std::unique_ptr<framebuffer_t> framebuffer;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static message_queue_t message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
@@ -39,7 +33,7 @@ static util::properties_t props;
 static bool env_attached = false;
 
 static em_context_t ctx{};
-static std::unique_ptr<GLContext> shared_context;
+static std::shared_ptr<GLContext> shared_context;
 static jobject variable_object;
 static jobject variable_entry_object;
 static struct retro_keyboard_callback *keyboard_cb;
@@ -83,63 +77,28 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (current_state != em_state_t::RUNNING) return;
     if (!hw_render_cb && data) {
-        if (video_meta.format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        if (video_config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
             XRGB8888_PATCH((void *) data, height * pitch);
         } else if (pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
             XRGB1555_TO_RGB565((void *) data, height * pitch);
         }
-        fill_frame_buffer(data, width, height, pitch);
-    }
-    if (video_meta.width != width || video_meta.height != height) {
-        video_meta.width = width;
-        video_meta.height = height;
-        notify_video_size_changed();
-    }
-}
-
-static void alloc_frame_buffers() {
-    retro_system_av_info av_info{};
-    uint16_t bytes_per_pixels;
-    if (video_meta.format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        bytes_per_pixels = 4;
-    } else {
-        bytes_per_pixels = 2;
-    }
-    retro_get_system_av_info(&av_info);
-    size_t size_in_bytes =
-            av_info.geometry.max_width * av_info.geometry.max_height * bytes_per_pixels;
-    int num_of_buffers = std::clamp(props.get_or_else(PROP_FRAMEBUFFER_COUNT, 3), 3, 10);
-    framebuffer = std::make_unique<framebuffer_t>(size_in_bytes, num_of_buffers);
-    LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes,
-         num_of_buffers);
-}
-
-static void fill_frame_buffer(const void *data, unsigned width, unsigned height, size_t pitch) {
-    uint8_t bytes_per_pixel = 2;
-    if (video_meta.format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        bytes_per_pixel = 4;
-    }
-
-    int idx = framebuffer->acquire_write_idx();
-    if (width * bytes_per_pixel == pitch) {
-        memcpy(framebuffer->data_ptr(idx), data, height * pitch);
-    } else {
-        for (int i = 0; i < height; ++i) {
-            memcpy((void *) (static_cast<const char *>(framebuffer->data_ptr(idx)) +
-                             i * width * bytes_per_pixel),
-                   static_cast<const char *>(data) + i * pitch,
-                   width * bytes_per_pixel);
+        if (renderer) {
+            renderer->submit(data, width, height, pitch);
         }
     }
-    framebuffer->submit_buffer(idx);
+    if (video_config->width != width || video_config->height != height) {
+        video_config->width = static_cast<int>(width);
+        video_config->height = static_cast<int>(height);
+        notify_video_size_changed();
+    }
 }
 
 static void notify_video_size_changed() {
     ctx.env->CallVoidMethod(ctx.emulator_obj,
                             ctx.video_size_cb_method,
-                            video_meta.width,
-                            video_meta.height,
-                            video_meta.rota);
+                            video_config->width,
+                            video_config->height,
+                            video_config->rota);
 }
 
 static void audio_buffer_state_cb(bool active, unsigned occupancy, bool underrun_likely) {
@@ -202,7 +161,7 @@ static bool environment_cb(unsigned cmd, void *data) {
             *(unsigned *) data = RETRO_HW_CONTEXT_OPENGLES3;
             return true;
         case RETRO_ENVIRONMENT_SET_ROTATION:
-            video_meta.rota = *static_cast<rotation_t *>(data);
+            video_config->rota = *static_cast<rotation_t *>(data);
             return true;
         case RETRO_ENVIRONMENT_SET_AUDIO_BUFFER_STATUS_CALLBACK:
             if (data) {
@@ -299,9 +258,9 @@ static bool environment_cb(unsigned cmd, void *data) {
         case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
             pixel_format = *((retro_pixel_format *) data);
             if (pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
-                video_meta.format = RETRO_PIXEL_FORMAT_RGB565;
+                video_config->format = RETRO_PIXEL_FORMAT_RGB565;
             } else {
-                video_meta.format = pixel_format;
+                video_config->format = pixel_format;
             }
             return true;
         case RETRO_ENVIRONMENT_SET_KEYBOARD_CALLBACK:
@@ -395,17 +354,13 @@ static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     UNUSED(thiz);
     renderer = std::make_unique<GLRenderer>(env, activity, surface);
-    renderer->set_renderer_callback(std::make_unique<renderer_callback_t<EGLDisplay, EGLSurface >>(
-            on_surface_create,
-            on_draw_frame,
-            on_surface_destroy));
     send_empty_message(MSG_START_RENDERER);
 }
 
 static void em_adjust_surface(JNIEnv *env, jobject thiz, jint vw, int vh) {
     UNUSED(env);
     UNUSED(thiz);
-    renderer->adjust_viewport(vw, vh);
+    renderer->resize_viewport(vw, vh);
 }
 
 static void em_detach_surface(JNIEnv *env, jobject thiz) {
@@ -419,6 +374,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         ctx.emulator_obj = env->NewGlobalRef(thiz);
     }
     ctx.env = env;
+    video_config = std::make_shared<video_config_t>();
     if (current_state == em_state_t::INVALID) {
         retro_set_environment(environment_cb);
         retro_init();
@@ -450,12 +406,13 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
     }
     if (no_error) {
         retro_get_system_av_info(&system_av_info);
+        video_config->max_width = static_cast<int>(system_av_info.geometry.max_width);
+        video_config->max_height = static_cast<int>(system_av_info.geometry.max_height);
+        video_config->effect = static_cast<effect_t>(props.get_or_else(PROP_VIDEO_FILTER,
+                                                                             static_cast<int>(effect_t::NONE)));
         current_state = em_state_t::RUNNING;
         if (props.get_or_else(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
-        }
-        if (!hw_render_cb) {
-            alloc_frame_buffers();
         }
         frame_time_helper.reset();
         std::thread main_thread(entry_of_main_loop);
@@ -516,11 +473,11 @@ static void em_stop(JNIEnv *env, jobject thiz) {
 #endif
     message_queue.clear();
     close_audio_stream();
-    video_meta.width = 0;
-    video_meta.height = 0;
-    video_meta.rota = rotation_t::ROTATION_0;
+    video_config->width = 0;
+    video_config->height = 0;
+    video_config->rota = rotation_t::ROTATION_0;
     hw_render_cb = nullptr;
-    framebuffer = nullptr;
+    video_config = nullptr;
     if (audio_buffer) {
         env->DeleteGlobalRef(audio_buffer);
         audio_buffer = nullptr;
@@ -618,15 +575,13 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case PROP_REPORT_RENDERER_RATE:
             props.set(prop, as_bool(env, val));
             break;
-        case PROP_VIDEO_FILTER:
-            video_meta.effect = static_cast<int8_t>(as_int(env, val));
-            break;
         case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
             props.set(prop, as_string(env, (jstring) val));
             break;
         case PROP_FRAMEBUFFER_COUNT:
+        case PROP_VIDEO_FILTER:
             props.set(prop, as_int(env, val));
             break;
         default:;
@@ -642,30 +597,30 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
             result_t result = send_empty_message(MSG_READ_PIXELS).get();
             if (result.state == NO_ERROR) {
                 no_error = stbi_write_png(file_path,
-                                          video_meta.width,
-                                          video_meta.height, 4,
+                                          video_config->width,
+                                          video_config->height, 4,
                                           result.data->data,
-                                          video_meta.width * 4);
+                                          video_config->width * 4);
             }
         } else {
-            std::unique_ptr<buffer_t> data_ptr = framebuffer->copy_pixels();
+            std::unique_ptr<buffer_t> data_ptr = renderer->read_pixels();
             if (data_ptr) {
-                if (video_meta.format == RETRO_PIXEL_FORMAT_XRGB8888) {
+                if (video_config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
                     no_error = stbi_write_png(file_path,
-                                              video_meta.width,
-                                              video_meta.height, 4,
+                                              video_config->width,
+                                              video_config->height, 4,
                                               data_ptr->data,
-                                              video_meta.width * 4);
-                } else if (video_meta.format == RETRO_PIXEL_FORMAT_RGB565) {
+                                              video_config->width * 4);
+                } else if (video_config->format == RETRO_PIXEL_FORMAT_RGB565) {
                     std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(data_ptr->data,
-                                                                        video_meta.width *
-                                                                        video_meta.height *
+                                                                        video_config->width *
+                                                                        video_config->height *
                                                                         2);
                     no_error = stbi_write_png(file_path,
-                                              video_meta.width,
-                                              video_meta.height, 3,
+                                              video_config->width,
+                                              video_config->height, 3,
                                               buffer->data,
-                                              video_meta.width * 3);
+                                              video_config->width * 3);
                 }
             }
         }
@@ -797,19 +752,18 @@ static void entry_of_main_loop() {
         LOGE(TAG, "Unable start main thread, attach env failed!");
         return;
     }
-    set_thread_priority(THREAD_PRIORITY_AUDIO);
+    pid_t tid = util::set_thread_priority(THREAD_PRIORITY_AUDIO);
+    LOGI(TAG, "Set thread priority tid=%d, priority=THREAD_PRIORITY_AUDIO", tid);
     if (hw_render_cb) {
-        struct retro_system_av_info av_info{};
-        retro_get_system_av_info(&av_info);
-        int max_width = static_cast<int>(av_info.geometry.max_width);
-        int max_height = static_cast<int>(av_info.geometry.max_height);
-        shared_context = std::make_unique<GLContext>(max_width, max_height);
+        shared_context = std::make_shared<GLContext>(video_config->max_width,
+                                                     video_config->max_height);
         shared_context->make();
         glGenTextures(1, &hw_texture);
         glBindTexture(GL_TEXTURE_2D, hw_texture);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, max_width, max_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, video_config->max_width, video_config->max_height,
+                     0, GL_RGBA, GL_UNSIGNED_BYTE,
                      nullptr);
 
         glGenFramebuffers(1, &hw_fbo);
@@ -817,7 +771,8 @@ static void entry_of_main_loop() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hw_texture, 0);
         glGenRenderbuffers(1, &hw_rbo);
         glBindRenderbuffer(GL_RENDERBUFFER, hw_rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, max_width, max_height);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, video_config->max_width,
+                              video_config->max_height);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
                                   hw_rbo);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -865,39 +820,6 @@ static void entry_of_main_loop() {
         }
     }
     detach_env();
-}
-
-static void on_surface_create(EGLDisplay dyp, EGLSurface sr) {
-    UNUSED(dyp);
-    UNUSED(sr);
-    set_thread_priority(THREAD_PRIORITY_DISPLAY);
-    begin_texture(video_meta.effect, video_meta.format,
-                  static_cast<int>(system_av_info.geometry.max_width),
-                  static_cast<int>(system_av_info.geometry.max_height),
-                  static_cast<int>(video_meta.rota), !hw_render_cb);
-}
-
-static void on_draw_frame() {
-    if (current_state == em_state_t::RUNNING) {
-        if (shared_context) {
-            texture_hw(video_meta.width,
-                       video_meta.height,
-                       hw_texture);
-        } else {
-            int idx = framebuffer->acquire_read_idx();
-            if (idx != -1) {
-                texture(video_meta.width,
-                        video_meta.height,
-                        framebuffer->data_ptr(idx));
-            }
-        }
-        renderer->swap_buffers();
-        frame_time_helper.next_frame();
-    }
-}
-
-static void on_surface_destroy() {
-    end_texture();
 }
 
 static retro_proc_address_t get_hw_proc_address(const char *sym) {
@@ -982,7 +904,7 @@ static std::unique_ptr<buffer_t> RGB565_TO_RGB888(void *pixels, size_t len) {
     std::unique_ptr<buffer_t> buffer = std::make_unique<buffer_t>(len / 2 * 3);
     auto dest = static_cast<uint8_t *>(buffer->data);
     auto *data = reinterpret_cast<uint16_t *>(pixels);
-    for (int i = 0; i < video_meta.width * video_meta.height; ++i) {
+    for (int i = 0; i < video_config->width * video_config->height; ++i) {
         uint16_t pixel = data[i];
         dest[i * 3 + 0] = ((pixel >> 11) & 0x1F) << 3;
         dest[i * 3 + 1] = ((pixel >> 5) & 0x3F) << 2;
@@ -999,7 +921,9 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
     std::shared_ptr<buffer_t> buffer;
     switch (msg->what) {
         case MSG_START_RENDERER:
-            renderer->set_shared_context(shared_context);
+            renderer->attach_context(shared_context);
+            renderer->attach_texture(hw_texture);
+            renderer->set_config(video_config);
             renderer->request_start();
             msg->promise->set_value(result_t::ok());
             break;
@@ -1026,9 +950,9 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
             msg->promise->set_value(result_t::ok());
             break;
         case MSG_READ_PIXELS:
-            buffer = std::make_shared<buffer_t>(video_meta.width * video_meta.height * 4);
+            buffer = std::make_shared<buffer_t>(video_config->width * video_config->height * 4);
             glBindFramebuffer(GL_FRAMEBUFFER, hw_fbo);
-            glReadPixels(0, 0, video_meta.width, video_meta.height, GL_RGBA, GL_UNSIGNED_BYTE,
+            glReadPixels(0, 0, video_config->width, video_config->height, GL_RGBA, GL_UNSIGNED_BYTE,
                          buffer->data);
             msg->promise->set_value(result_t::ok(buffer));
             break;
@@ -1036,12 +960,6 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
             handled = false;
     }
     return handled;
-}
-
-static void set_thread_priority(int priority) {
-    pid_t tid = gettid();
-    setpriority(PRIO_PROCESS, tid, priority);
-    LOGI(TAG, "Set thread priority tid=%d, priority=%d", tid, priority);
 }
 
 static jobject new_int(JNIEnv *env, int32_t value) {
