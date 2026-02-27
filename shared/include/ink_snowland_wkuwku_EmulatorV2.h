@@ -30,11 +30,18 @@
 #define PROP_VIDEO_FILTER                      105
 #define PROP_FRAMEBUFFER_COUNT                 106
 #define PROP_REPORT_RENDERER_RATE              107
+#define PROP_GRAPHICS_API                      108
 
 #define DUMP_KEY_RENDERER_RATE       0
 
+const int OPENGL_ES_API     = 0;
+const int VULKAN_API        = 1;
+
 enum class em_state_t {
-    INVALID, IDLE, RUNNING, PAUSED
+    INVALID,
+    IDLE,
+    RUNNING,
+    PAUSED
 };
 
 typedef struct {

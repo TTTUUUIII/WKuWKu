@@ -13,53 +13,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Renderer.h"
 #include "GLContext.h"
+#include "Utils.h"
 #include "Buffer.h"
-
-enum class renderer_state_t {
-    INVALID,
-    PREPARED,
-    RUNNING,
-    PAUSED
-};
-
-enum class rotation_t {
-    ROTATION_0,
-    ROTATION_90,
-    ROTATION_180,
-    ROTATION_270
-};
-
-enum class effect_t {
-    NONE,
-    CTR,
-    GRAYSCALE
-};
-
-struct image_t {
-    int width;
-    int height;
-    int comp;
-    std::unique_ptr<buffer_t> data_ptr;
-};
-
-struct video_config_t {
-    rotation_t rota;
-    int width, height;
-    int max_width, max_height;
-    uint16_t num_of_views;
-    effect_t effect;
-    retro_pixel_format format;
-
-    explicit video_config_t() : rota(rotation_t::ROTATION_0),
-                                width(0), height(0),
-                                max_width(0), max_height(0),
-                                num_of_views(3),
-                                effect(effect_t::NONE),
-                                format(RETRO_PIXEL_FORMAT_RGB565) {
-
-    }
-};
 
 class swap_chain_t {
 private:
@@ -109,14 +66,13 @@ public:
     }
 };
 
-class GLRenderer {
+class GLRenderer: public Renderer {
 private:
     ANativeWindow *window;
     std::shared_ptr<GLContext> shared_context;
     GLuint shared_texture{};
     std::unique_ptr<GLContext> context;
     std::unique_ptr<swap_chain_t> swap_chain;
-    std::shared_ptr<video_config_t> config;
     float cur_aspect_ratio;
     glm::mat4 model;
     GLuint PID{}, VAO{}, VBO{}, EBO{}, Tex0{};
@@ -126,6 +82,7 @@ private:
     std::atomic<bool> read_pixels_flag = false;
     std::unique_ptr<image_t> pixels;
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
+    util::frame_time_helper_t frame_time_helper{};
     void create_swap_chain();
     void gl_begin();
     void gl_draw();
@@ -137,23 +94,16 @@ private:
     void gl_read_pixels();
 public:
     explicit GLRenderer(JNIEnv *env, jobject activity, jobject surface);
-
-    ~GLRenderer();
-    void resize_viewport(uint32_t w, uint32_t h);
-
-    bool request_start();
-
-    void request_pause();
-
-    void request_resume();
-
-    void submit(const void *, unsigned, unsigned, size_t);
     void attach_context(std::shared_ptr<GLContext> ctx);
     void attach_texture(GLuint tex);
-    void set_config(std::shared_ptr<video_config_t>);
-    std::unique_ptr<image_t> read_pixels();
-
-    void release();
+    void resize_viewport(uint32_t w, uint32_t h) override;
+    bool request_start() override;
+    void request_pause() override;
+    void request_resume() override;
+    void submit(const void *, unsigned, unsigned, size_t) override;
+    std::unique_ptr<image_t> read_pixels() override;
+    int get_frame_rate() override;
+    void release() override;
 };
 
 

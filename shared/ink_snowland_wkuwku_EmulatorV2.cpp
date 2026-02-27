@@ -9,6 +9,7 @@
 
 #include "stb_image_write.h"
 #include "GLRenderer.h"
+#include "VkRenderer.h"
 #include "GLUtils.h"
 #include "AudioOutputStream.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
@@ -21,14 +22,14 @@ static retro_system_info system_info{};
 static retro_system_av_info system_av_info{};
 static std::shared_ptr<video_config_t> video_config;
 static std::atomic<em_state_t> current_state = em_state_t::INVALID;
-static std::shared_ptr<GLRenderer> renderer = nullptr;
+static std::shared_ptr<Renderer> renderer = nullptr;
+static bool use_vulkan_api = false;
 static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static message_queue_t message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
-static util::frame_time_helper_t frame_time_helper;
 static util::properties_t props;
 static bool env_attached = false;
 
@@ -409,12 +410,11 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         video_config->max_width = static_cast<int>(system_av_info.geometry.max_width);
         video_config->max_height = static_cast<int>(system_av_info.geometry.max_height);
         video_config->effect = static_cast<effect_t>(props.get_or_else(PROP_VIDEO_FILTER,
-                                                                             static_cast<int>(effect_t::NONE)));
+                                                                       static_cast<int>(effect_t::NONE)));
         current_state = em_state_t::RUNNING;
         if (props.get_or_else(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
         }
-        frame_time_helper.reset();
         std::thread main_thread(entry_of_main_loop);
         main_thread.detach();
     } else {
@@ -579,6 +579,9 @@ static void em_set_prop(JNIEnv *env, jobject thiz, jint prop, jobject val) {
         case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
         case RETRO_ENVIRONMENT_GET_CORE_ASSETS_DIRECTORY:
             props.set(prop, as_string(env, (jstring) val));
+            break;
+        case PROP_GRAPHICS_API:
+            use_vulkan_api = as_int(env, val) == VULKAN_API;
             break;
         case PROP_FRAMEBUFFER_COUNT:
         case PROP_VIDEO_FILTER:
@@ -772,17 +775,16 @@ static void entry_of_main_loop() {
                 return current_state != em_state_t::PAUSED
                        || !message_queue.empty();
             });
-            frame_time_helper.reset();
         }
-        util::timestamp_t now = util::system_current_milliseconds();
-        int cur_frame_rate = frame_time_helper.frame_rate();
-        if (props.get_or_else(PROP_REPORT_RENDERER_RATE, false)
-            && now - prev_time_millis >= 1000
-            && prev_frame_rate != cur_frame_rate) {
-            ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.dump_cb_method,
-                                    DUMP_KEY_RENDERER_RATE, new_int(ctx.env, cur_frame_rate));
-            prev_time_millis = now;
-            prev_frame_rate = cur_frame_rate;
+        if (props.get_or_else(PROP_REPORT_RENDERER_RATE, false) && renderer) {
+            util::timestamp_t now = util::system_current_milliseconds();
+            int cur_frame_rate = renderer->get_frame_rate();
+            if (now - prev_time_millis >= 1000 && prev_frame_rate != cur_frame_rate) {
+                ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.dump_cb_method,
+                                        DUMP_KEY_RENDERER_RATE, new_int(ctx.env, cur_frame_rate));
+                prev_time_millis = now;
+                prev_frame_rate = cur_frame_rate;
+            }
         }
         std::shared_ptr<message_t> msg = message_queue.pop();
         if (handle_message(msg)) continue;
@@ -900,8 +902,13 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
     std::shared_ptr<buffer_t> buffer;
     switch (msg->what) {
         case MSG_START_RENDERER:
-            renderer->attach_context(shared_context);
-            renderer->attach_texture(hw_texture);
+            if (use_vulkan_api) {
+                std::shared_ptr<VkRenderer> it = std::static_pointer_cast<VkRenderer>(renderer);
+            } else {
+                std::shared_ptr<GLRenderer> it = std::static_pointer_cast<GLRenderer>(renderer);
+                it->attach_context(shared_context);
+                it->attach_texture(hw_texture);
+            }
             renderer->set_config(video_config);
             renderer->request_start();
             msg->promise->set_value(result_t::ok());
@@ -941,7 +948,7 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
     return handled;
 }
 
-static jobject new_int(JNIEnv *env, int32_t value) {
+static jobject new_int(JNIEnv *env, int value) {
     jclass clazz = env->FindClass("java/lang/Integer");
     jmethodID method = env->GetMethodID(clazz, "<init>", "(I)V");
     return env->NewObject(clazz, method, value);

@@ -37,6 +37,7 @@ target_link_libraries(
         retro
         EGL
         GLESv3
+        vulkan
         oboe::oboe
         games-frame-pacing::swappy_static
 )

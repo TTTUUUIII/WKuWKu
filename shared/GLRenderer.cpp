@@ -111,8 +111,6 @@ GLRenderer::GLRenderer(JNIEnv *env, jobject activity, jobject surface) {
     state = renderer_state_t::PREPARED;
 }
 
-GLRenderer::~GLRenderer() = default;
-
 void GLRenderer::resize_viewport(uint32_t w, uint32_t h) {
     ww = static_cast<int>(w);
     wh = static_cast<int>(h);
@@ -243,10 +241,6 @@ void GLRenderer::attach_texture(const GLuint tex) {
     shared_texture = tex;
 }
 
-void GLRenderer::set_config(std::shared_ptr<video_config_t> _config) {
-    config = std::move(_config);
-}
-
 void GLRenderer::create_swap_chain() {
     uint16_t bytes_per_pixels;
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
@@ -259,6 +253,11 @@ void GLRenderer::create_swap_chain() {
     swap_chain = std::make_unique<swap_chain_t>(size_in_bytes, config->num_of_views);
     LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes,
          config->num_of_views);
+}
+
+int GLRenderer::get_frame_rate() {
+    if (state != renderer_state_t::RUNNING) return 0;
+    return frame_time_helper.frame_rate();
 }
 
 void GLRenderer::gl_begin() {
@@ -381,6 +380,7 @@ void GLRenderer::gl_draw() {
         }
     }
     gl_swap_buffers();
+    frame_time_helper.next_frame();
 }
 
 void GLRenderer::gl_end() {

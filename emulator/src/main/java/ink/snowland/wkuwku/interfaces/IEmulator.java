@@ -27,6 +27,7 @@ public interface IEmulator extends RetroDefine {
     int PROP_VIDEO_FILTER                       = 105;
     int PROP_NUM_OF_FRAMEBUFFERS                = 106;
     int PROP_SHOW_RENDERER_RATE                 = 107;
+    int PROP_GRAPHICS_API                       = 108;
 
     int FEAT_SAVE_STATE                         = 1000;
     int FEAT_LOAD_STATE                         = 1001;
@@ -35,6 +36,9 @@ public interface IEmulator extends RetroDefine {
     int FILTER_NONE                             = 0;
     int FILTER_CRT                              = 1;
     int FILTER_GRAYSCALE                        = 2;
+
+    int OPENGL_ES                               = 0;
+    int VULKAN                                  = 1;
 
     int DUMP_KEY_RENDERER_RATE                  = 0;
 
