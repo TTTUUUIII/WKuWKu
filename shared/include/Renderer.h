@@ -7,6 +7,9 @@
 #include <iostream>
 #include <libretro.h>
 #include "Buffer.h"
+
+#define kNanosPerMillisecond    1000000L
+
 enum class renderer_state_t {
     INVALID,
     PREPARED,

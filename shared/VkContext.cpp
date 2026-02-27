@@ -2,23 +2,14 @@
 // Created by 86187 on 2026/2/6.
 //
 
-#include <chrono>
 #include "VkContext.h"
-#include "Log.h"
-
-static const char* TAG = "VkContext";
 
 VkContext::VkContext(ANativeWindow *_window): window(_window) {
     create_instance();
     create_surface();
-    create_logic_device();
-    create_swap_chain();
 }
 
 VkContext::~VkContext() {
-    vkDeviceWaitIdle(dev);
-    vkDestroySwapchainKHR(dev, swap_chain, nullptr);
-    vkDestroyDevice(dev, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
 }
@@ -145,7 +136,7 @@ void VkContext::create_instance() {
     }
 }
 
-void VkContext::create_logic_device() {
+void VkContext::create_logic_device(const std::vector<const char*>& enabled_extensions, VkDevice &dev) {
     /*Create logic device*/
     GPU = find_GPU();
     if (GPU == nullptr) {
@@ -162,20 +153,15 @@ void VkContext::create_logic_device() {
     VkDeviceCreateInfo deviceCreateInfo{};
     VkPhysicalDeviceFeatures deviceFeatures{};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
-    const std::vector<const char*> enabledDeviceLayerNames = {
-
-    };
-    const std::vector<const char*> enabledDeviceExtensionNames = {
-            VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
+    const std::vector<const char*> enabledDeviceLayerNames = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
     deviceCreateInfo.queueCreateInfoCount = 1;
     deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
     deviceCreateInfo.enabledLayerCount = enabledDeviceLayerNames.size();
     deviceCreateInfo.ppEnabledLayerNames = enabledDeviceLayerNames.data();
-    deviceCreateInfo.enabledExtensionCount = enabledDeviceExtensionNames.size();
-    deviceCreateInfo.ppEnabledExtensionNames = enabledDeviceExtensionNames.data();
+    deviceCreateInfo.enabledExtensionCount = enabled_extensions.size();
+    deviceCreateInfo.ppEnabledExtensionNames = enabled_extensions.data();
     if (vkCreateDevice(GPU, &deviceCreateInfo, nullptr, &dev) != VK_SUCCESS) {
         throw std::runtime_error("Unable to create vkDevice!");
     }
@@ -183,7 +169,7 @@ void VkContext::create_logic_device() {
     vkGetDeviceQueue(dev, present_queue_info.index, 0, &present_queue_info.queue);
 }
 
-void VkContext::create_swap_chain() {
+void VkContext::create_swap_chain(VkDevice &dev, VkSwapchainKHR &chain) {
     /*Create swap chain*/
     choose_swap_chain_format();
     VkSwapchainCreateInfoKHR swapchainCreateInfo{};
@@ -203,7 +189,7 @@ void VkContext::create_swap_chain() {
     swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchainCreateInfo.clipped = VK_TRUE;
     swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
-    if (vkCreateSwapchainKHR(dev, &swapchainCreateInfo, nullptr, &swap_chain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(dev, &swapchainCreateInfo, nullptr, &chain) != VK_SUCCESS) {
         throw std::runtime_error("Unable to create vkSwapChainKHR!");
     }
 }
@@ -223,16 +209,8 @@ swap_chain_format_t VkContext::get_swap_chain_format() {
     return swap_chain_format;
 }
 
-VkDevice VkContext::get_device() {
-    return dev;
-}
-
 VkPhysicalDevice VkContext::get_physical_device() {
     return GPU;
-}
-
-VkSwapchainKHR VkContext::get_swap_chain() {
-    return swap_chain;
 }
 
 queue_info_t VkContext::get_queue_info(const queue_type_t& type) {

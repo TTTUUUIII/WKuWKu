@@ -84,28 +84,11 @@ static const unsigned indices[] = {
         1, 2, 3
 };
 
-static const long kNanosPerMillisecond = 1000000L;
-
 GLRenderer::GLRenderer(JNIEnv *env, jobject activity, jobject surface) {
     window = ANativeWindow_fromSurface(env, surface);
     ww = ANativeWindow_getWidth(window);
     wh = ANativeWindow_getHeight(window);
-    if (activity != nullptr && !SwappyGL_isEnabled()) {
-        SwappyGL_init(env, activity);
-        int count = SwappyGL_getSupportedRefreshPeriodsNS(nullptr, 0);
-        uint64_t all_swap_ns[count];
-        SwappyGL_getSupportedRefreshPeriodsNS(all_swap_ns, count);
-        uint64_t min_swap_ns = all_swap_ns[0];
-        for (int i = 1; i < count; ++i) {
-            min_swap_ns = std::min(all_swap_ns[i], min_swap_ns);
-        }
-        SwappyGL_setSwapIntervalNS(min_swap_ns);
-        SwappyGL_setAutoSwapInterval(true);
-        SwappyGL_setAutoPipelineMode(true);
-        SwappyGL_setWindow(window);
-        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
-             static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
-    }
+    enable_swappy(env, activity);
     shared_context = nullptr;
     cur_aspect_ratio = 0.f;
     state = renderer_state_t::PREPARED;
@@ -169,6 +152,7 @@ void GLRenderer::release() {
     state = renderer_state_t::INVALID;
     state.notify_one();
     gl_thread_running.wait(true);
+    SwappyGL_destroy();
     ANativeWindow_release(window);
     swap_chain = nullptr;
     config = nullptr;
@@ -295,7 +279,7 @@ void GLRenderer::gl_begin() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    model = glm::mat4();
+    glm::mat4 model = glm::mat4();
     model = glm::rotate(model, glm::radians((float) config->rota * 90.f), glm::vec3(0.f, 0.f, 1.f));
     gl_set_mat4("model", model);
     gl_set_i("vf", static_cast<int>(config->effect));
@@ -438,6 +422,26 @@ void GLRenderer::gl_read_pixels() {
     glReadPixels(0, 0, ww, wh, GL_RGBA, GL_UNSIGNED_BYTE,
                  buffer->data);
     pixels->data_ptr = std::move(buffer);
+}
+
+void GLRenderer::enable_swappy(JNIEnv *env, jobject activity) {
+    if (!activity) return;
+    SwappyGL_init(env, activity);
+    int count = SwappyGL_getSupportedRefreshPeriodsNS(nullptr, 0);
+    uint64_t all_swap_ns[count];
+    SwappyGL_getSupportedRefreshPeriodsNS(all_swap_ns, count);
+    uint64_t min_swap_ns = all_swap_ns[0];
+    for (int i = 1; i < count; ++i) {
+        min_swap_ns = std::min(all_swap_ns[i], min_swap_ns);
+    }
+    SwappyGL_setSwapIntervalNS(min_swap_ns);
+    SwappyGL_setAutoSwapInterval(true);
+    SwappyGL_setAutoPipelineMode(true);
+    SwappyGL_setWindow(window);
+    if (SwappyGL_isEnabled()) {
+        LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
+             static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
+    }
 }
 
 swap_chain_t::swap_chain_t(int size_in_bytes, int count) {

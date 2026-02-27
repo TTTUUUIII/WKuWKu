@@ -74,7 +74,6 @@ private:
     std::unique_ptr<GLContext> context;
     std::unique_ptr<swap_chain_t> swap_chain;
     float cur_aspect_ratio;
-    glm::mat4 model;
     GLuint PID{}, VAO{}, VBO{}, EBO{}, Tex0{};
     int ww, wh;
     std::thread gl_thread;
@@ -84,6 +83,7 @@ private:
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
     util::frame_time_helper_t frame_time_helper{};
     void create_swap_chain();
+    void enable_swappy(JNIEnv*, jobject);
     void gl_begin();
     void gl_draw();
     void gl_end();
