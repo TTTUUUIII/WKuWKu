@@ -2,8 +2,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fstream>
-#include <swappy/swappyGL_extra.h>
-#include <swappy/swappyGL.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
@@ -76,16 +74,14 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 }
 
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
-    if (current_state != em_state_t::RUNNING) return;
+    if (!renderer || current_state != em_state_t::RUNNING) return;
     if (!hw_render_cb && data) {
         if (video_config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
             XRGB8888_PATCH((void *) data, height * pitch);
         } else if (pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
             XRGB1555_TO_RGB565((void *) data, height * pitch);
         }
-        if (renderer) {
-            renderer->submit(data, width, height, pitch);
-        }
+        renderer->submit(data, width, height, pitch);
     }
     if (video_config->width != width || video_config->height != height) {
         video_config->width = static_cast<int>(width);
@@ -354,7 +350,11 @@ static bool environment_cb(unsigned cmd, void *data) {
 static void
 em_attach_surface(JNIEnv *env, jobject thiz, _Nullable jobject activity, jobject surface) {
     UNUSED(thiz);
-    renderer = std::make_unique<GLRenderer>(env, activity, surface);
+    if (use_vulkan_api) {
+        renderer = std::make_shared<VkRenderer>(env, activity, surface);
+    } else {
+        renderer = std::make_shared<GLRenderer>(env, activity, surface);
+    }
     send_empty_message(MSG_START_RENDERER);
 }
 
@@ -719,7 +719,6 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     }
     env->DeleteGlobalRef(variable_object);
     env->DeleteGlobalRef(variable_entry_object);
-    SwappyGL_destroy();
 #ifndef MAIN_CLASS
     clazz = env->FindClass("ink/snowland/wkuwku/emulator/Fceumm");
 #else

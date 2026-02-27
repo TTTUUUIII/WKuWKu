@@ -6,10 +6,13 @@
 #define WKUWKU_VULKAN_VKRENDERER_H
 #include <jni.h>
 #include <thread>
+#include <set>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "VkShader.h"
 #include "Renderer.h"
 #include "VkContext.h"
+#include "Utils.h"
 
 class VkRenderer: public Renderer {
 private:
@@ -19,25 +22,27 @@ private:
     std::thread vk_thread;
     std::atomic<bool> vk_thread_running = false;
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
-    VkDevice device;
+    bool use_swappy = false;
+    util::frame_time_helper_t frame_time_helper;
+    VkDevice device{};
     VkPhysicalDevice phy_device;
-    swap_chain_format_t format;
-    VkRenderPass render_pass;
-    VkDescriptorSetLayout descriptor_layout;
-    VkDescriptorPool descriptor_pool;
+    swap_chain_format_t format{};
+    VkRenderPass render_pass{};
+    VkDescriptorSetLayout descriptor_layout{};
+    VkDescriptorPool descriptor_pool{};
     std::vector<VkDescriptorSet> descriptor_sets;
-    VkPipelineLayout pipeline_layout;
-    VkPipeline pipeline;
-    VkCommandPool command_pool;
-    VkImage tex;
-    VkImageView tex_view;
-    VkDeviceMemory tex_mem;
-    VkSampler tex_sampler;
-    VkSwapchainKHR swap_chain;
-    queue_info_t graphics_queue_info;
-    queue_info_t present_queue_info;
-    VkBuffer VBO, EBO;
-    VkDeviceMemory VBO_mem, EBO_mem;
+    VkPipelineLayout pipeline_layout{};
+    VkPipeline pipeline{};
+    VkCommandPool command_pool{};
+    VkImage tex{};
+    VkImageView tex_view{};
+    VkDeviceMemory tex_mem{};
+    VkSampler tex_sampler{};
+    VkSwapchainKHR swap_chain{};
+    queue_info_t graphics_queue_info{};
+    queue_info_t present_queue_info{};
+    VkBuffer VBO{}, EBO{};
+    VkDeviceMemory VBO_mem{}, EBO_mem{};
     std::vector<VkBuffer> UBOs;
     std::vector<VkDeviceMemory> UBO_mems;
     std::vector<VkImageView> image_views;
@@ -47,14 +52,15 @@ private:
     std::vector<VkSemaphore> render_finished_semaphores;
     std::vector<VkFence> in_flight_fences;
     std::shared_ptr<video_config_t> config;
+    std::set<std::string> required_extensions{};
     uint32_t cur_frame = 0;
-    void create_swap_chain_views();
+    void create_image_views();
+    void create_framebuffers();
     void create_render_pass();
     void create_layout_descriptor();
     void create_descriptor_pool();
     void create_descriptor_sets();
     void create_graphics_pipeline();
-    void create_framebuffers();
     void create_command_pool();
     void create_command_buffers();
     void create_texture();
@@ -62,6 +68,8 @@ private:
     void create_buffers();
     void create_sync_objects();
     void create_buffer(VkDeviceSize, VkBufferUsageFlags, VkMemoryPropertyFlags, VkBuffer&, VkDeviceMemory&);
+    void recreate_swap_chain();
+    void clean_swap_chain();
     void copy_buffer(VkBuffer /*src*/, VkBuffer /*dst*/, VkDeviceSize /*size*/);
     void copy_image_buffer(VkBuffer /*buffer*/, VkImage /*image*/, uint32_t /*width*/, uint32_t /*height*/);
     uint32_t find_mem_type(uint32_t filter, VkMemoryPropertyFlags properties);
@@ -75,15 +83,18 @@ private:
     void on_begin();
     void on_draw();
     void on_end();
+    void choose_device_extensions();
+    void init_swappy(JNIEnv*, jobject);
+    void enable_swappy();
 public:
-    explicit VkRenderer(JNIEnv *env, jobject activity, jobject surface);
-    ~VkRenderer();
+    explicit VkRenderer(JNIEnv */*env*/, jobject /*activity*/, jobject /*surface*/);
     void resize_viewport(uint32_t w, uint32_t h) override;
     bool request_start() override;
     void request_pause() override;
     void request_resume() override;
     void submit(const void *, unsigned, unsigned, size_t) override;
     std::unique_ptr<image_t> read_pixels() override;
+    int get_frame_rate() override;
     void release() override;
 };
 
