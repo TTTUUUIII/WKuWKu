@@ -593,36 +593,15 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
     bool no_error = false;
     if (current_state == em_state_t::RUNNING || current_state == em_state_t::PAUSED) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
-        if (hw_render_cb) {
-            result_t result = send_empty_message(MSG_READ_PIXELS).get();
-            if (result.state == NO_ERROR) {
-                no_error = stbi_write_png(file_path,
-                                          video_config->width,
-                                          video_config->height, 4,
-                                          result.data->data,
-                                          video_config->width * 4);
-            }
-        } else {
-            std::unique_ptr<buffer_t> data_ptr = renderer->read_pixels();
-            if (data_ptr) {
-                if (video_config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
-                    no_error = stbi_write_png(file_path,
-                                              video_config->width,
-                                              video_config->height, 4,
-                                              data_ptr->data,
-                                              video_config->width * 4);
-                } else if (video_config->format == RETRO_PIXEL_FORMAT_RGB565) {
-                    std::unique_ptr<buffer_t> buffer = RGB565_TO_RGB888(data_ptr->data,
-                                                                        video_config->width *
-                                                                        video_config->height *
-                                                                        2);
-                    no_error = stbi_write_png(file_path,
-                                              video_config->width,
-                                              video_config->height, 3,
-                                              buffer->data,
-                                              video_config->width * 3);
-                }
-            }
+        std::unique_ptr<image_t> pixels = renderer->read_pixels();
+        if (pixels) {
+            stbi_flip_vertically_on_write(1);
+            no_error = stbi_write_png(file_path,
+                                      pixels->width,
+                                      pixels->height, pixels->comp,
+                                      pixels->data_ptr->data,
+                                      pixels->width * pixels->comp);
+            stbi_flip_vertically_on_write(0);
         }
         env->ReleaseStringUTFChars(path, file_path);
     }
