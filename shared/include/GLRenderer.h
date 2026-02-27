@@ -36,6 +36,13 @@ enum class effect_t {
     GRAYSCALE
 };
 
+struct image_t {
+    int width;
+    int height;
+    int comp;
+    std::unique_ptr<buffer_t> data_ptr;
+};
+
 struct video_config_t {
     rotation_t rota;
     int width, height;
@@ -116,6 +123,8 @@ private:
     int ww, wh;
     std::thread gl_thread;
     std::atomic<bool> gl_thread_running = false;
+    std::atomic<bool> read_pixels_flag = false;
+    std::unique_ptr<image_t> pixels;
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
     void create_swap_chain();
     void gl_begin();
@@ -125,6 +134,7 @@ private:
     void gl_set_i(const char*, const int &) const;
     void gl_update_texcoords();
     void gl_swap_buffers();
+    void gl_read_pixels();
 public:
     explicit GLRenderer(JNIEnv *env, jobject activity, jobject surface);
 
@@ -141,7 +151,7 @@ public:
     void attach_context(std::shared_ptr<GLContext> ctx);
     void attach_texture(GLuint tex);
     void set_config(std::shared_ptr<video_config_t>);
-    std::unique_ptr<buffer_t> read_pixels();
+    std::unique_ptr<image_t> read_pixels();
 
     void release();
 };

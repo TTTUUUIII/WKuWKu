@@ -143,9 +143,15 @@ bool GLRenderer::request_start() {
                     cur_wh = wh;
                 }
                 gl_draw();
+                if (read_pixels_flag) {
+                    gl_read_pixels();
+                    read_pixels_flag.store(false);
+                    read_pixels_flag.notify_one();
+                }
             } else if (state == renderer_state_t::PAUSED) {
                 state.wait(renderer_state_t::PAUSED);
-            } else {
+            }
+            if (state == renderer_state_t::INVALID) {
                 break;
             }
         }
@@ -220,9 +226,17 @@ void GLRenderer::submit(const void *data, unsigned width, unsigned height, size_
     swap_chain->submit(idx);
 }
 
-std::unique_ptr<buffer_t> GLRenderer::read_pixels() {
-    if (shared_context || !swap_chain) return nullptr;
-    return swap_chain->read_pixels();
+std::unique_ptr<image_t> GLRenderer::read_pixels() {
+    if (state == renderer_state_t::RUNNING) {
+        read_pixels_flag.store(true);
+        read_pixels_flag.wait(true);
+    } else if (state == renderer_state_t::PAUSED) {
+        request_resume();
+        read_pixels_flag.store(true);
+        read_pixels_flag.wait(true);
+        request_pause();
+    }
+    return std::move(pixels);
 }
 
 void GLRenderer::attach_texture(const GLuint tex) {
@@ -415,6 +429,17 @@ void GLRenderer::gl_update_texcoords() {
     }
 }
 
+void GLRenderer::gl_read_pixels() {
+    pixels = std::make_unique<image_t>();
+    pixels->width = ww;
+    pixels->height = wh;
+    pixels->comp = 4;
+    std::unique_ptr<buffer_t> buffer = std::make_unique<buffer_t>(ww * wh * 4);
+    glReadPixels(0, 0, ww, wh, GL_RGBA, GL_UNSIGNED_BYTE,
+                 buffer->data);
+    pixels->data_ptr = std::move(buffer);
+}
+
 swap_chain_t::swap_chain_t(int size_in_bytes, int count) {
     for (int i = 0; i < count; ++i) {
         buffers.emplace_back(size_in_bytes);
@@ -425,7 +450,7 @@ swap_chain_t::swap_chain_t(int size_in_bytes, int count) {
 int swap_chain_t::acquire_write_idx() {
     std::lock_guard<std::mutex> lock(mtx);
     int write_idx = -1;
-    if(!free_idxs.empty()) {
+    if (!free_idxs.empty()) {
         write_idx = free_idxs.front();
         free_idxs.pop();
     } else {
@@ -436,13 +461,13 @@ int swap_chain_t::acquire_write_idx() {
 }
 
 void swap_chain_t::submit(int idx) {
-    if(idx == -1) return;
+    if (idx == -1) return;
     std::lock_guard<std::mutex> lock(mtx);
     full_idxs.push(idx);
 }
 
 void *swap_chain_t::data_ptr(int idx) {
-    if(idx == -1) {
+    if (idx == -1) {
         return nullptr;
     }
     return buffers[idx].data;
