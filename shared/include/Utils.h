@@ -30,10 +30,9 @@ namespace util {
         const float SMOOTHING_FACTOR = .03f;
         const float MILLISECONDS_PER_SECOND = 1000.f;
         std::mutex mtx;
-        timestamp_t prev_frame_time;
-        float smoothed_frame_time;
+        timestamp_t prev_frame_time = 0;
+        float smoothed_frame_time = 0;
     public:
-        void reset();
         void next_frame();
         int frame_rate();
     };

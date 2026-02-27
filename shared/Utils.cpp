@@ -19,12 +19,6 @@ namespace util {
         return tid;
     }
 
-    void frame_time_helper_t::reset() {
-        std::lock_guard<std::mutex> lock(mtx);
-        prev_frame_time = 0;
-        smoothed_frame_time = 0;
-    }
-
     int frame_time_helper_t::frame_rate() {
         if (smoothed_frame_time == 0) return 0;
         std::lock_guard<std::mutex> lock(mtx);

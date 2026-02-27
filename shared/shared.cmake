@@ -8,6 +8,8 @@ find_package(oboe REQUIRED CONFIG)
 set(COMMON_SOURCE
         ${MY_DIR}/GLContext.cpp
         ${MY_DIR}/GLRenderer.cpp
+        ${MY_DIR}/VkContext.cpp
+        ${MY_DIR}/VkRenderer.cpp
         ${MY_DIR}/GLUtils.cpp
         ${MY_DIR}/AudioOutputStream.cpp
         ${MY_DIR}/include/Buffer.h
@@ -29,6 +31,7 @@ target_link_libraries(${_name}
         android
         EGL
         GLESv3
+        vulkan
         oboe::oboe
         games-frame-pacing::swappy_static
         log)
