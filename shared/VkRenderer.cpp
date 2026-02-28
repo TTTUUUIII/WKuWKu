@@ -2,6 +2,7 @@
 // Created by wn123 on 2026-02-14.
 //
 
+#include "vk_shaders_spv.h"
 #include "VkRenderer.h"
 #include <swappy/swappyVk.h>
 #include "Log.h"
@@ -27,30 +28,26 @@ struct UBO {
 VkRenderer::VkRenderer(JNIEnv *env, jobject activity, jobject surface) {
     window = ANativeWindow_fromSurface(env, surface);
     context = std::make_unique<VkContext>(window);
-    phy_device = context->get_physical_device();
     std::vector<const char *> extensions_names;
-    init_swappy(env, activity);
-    choose_device_extensions();
+    GPU = context->get_GPU();
+    choose_device_extensions(activity);
     for (const auto &it: required_extensions) {
         extensions_names.emplace_back(it.c_str());
     }
     context->create_logic_device(extensions_names, device);
     graphics_queue_info = context->get_queue_info(queue_type_t::GRAPHICS);
     present_queue_info = context->get_queue_info(queue_type_t::PRESENT);
-    context->create_swap_chain(device, swap_chain);
-    format = context->get_swap_chain_format();
-    enable_swappy();
+    context->create_swap_chain(device, swap_chain, format);
+
+    enable_swappy(env, activity, true);
     create_image_views();
     create_render_pass();
     create_layout_descriptor();
     create_graphics_pipeline();
     create_framebuffers();
     create_command_pool();
-    create_texture();
-    create_texture_sampler();
     create_buffers();
     create_descriptor_pool();
-    create_descriptor_sets();
     create_command_buffers();
     create_sync_objects();
     state = renderer_state_t::PREPARED;
@@ -112,10 +109,6 @@ void VkRenderer::release() {
     vkDestroyBuffer(device, EBO, nullptr);
     vkFreeMemory(device, VBO_mem, nullptr);
     vkFreeMemory(device, EBO_mem, nullptr);
-    vkDestroyImage(device, tex, nullptr);
-    vkFreeMemory(device, tex_mem, nullptr);
-    vkDestroyImageView(device, tex_view, nullptr);
-    vkDestroySampler(device, tex_sampler, nullptr);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, UBOs[i], nullptr);
         vkFreeMemory(device, UBO_mems[i], nullptr);
@@ -125,7 +118,6 @@ void VkRenderer::release() {
     vkDestroyPipeline(device, pipeline, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
     vkDestroyRenderPass(device, render_pass, nullptr);
-    vkDestroyDescriptorSetLayout(device, descriptor_layout, nullptr);
     clean_swap_chain();
     vkDestroyDevice(device, nullptr);
     context = nullptr;
@@ -421,43 +413,37 @@ void VkRenderer::create_command_buffers() {
 }
 
 void VkRenderer::create_texture() {
-    uint8_t bytes_per_pixel = 2;
+
+    uint32_t bytes_per_pixel;
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
+    } else {
+        bytes_per_pixel = 2;
     }
+
     VkDeviceSize imageSize = config->max_width * config->max_height * bytes_per_pixel;
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                  stagingBuffer, stagingBufferMemory);
-//    void* data;
-//    vkMapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
-//    memcpy(data, pixels, static_cast<size_t>(imageSize));
-//    vkUnmapMemory(device, stagingBufferMemory);
-//    stbi_image_free(pixels);
-
-    create_image(config->max_width, config->max_height, VK_FORMAT_R8G8B8A8_SRGB,
+        create_buffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      tex_staging_buffer.buf, tex_staging_buffer.mem);
+        vkMapMemory(device, tex_staging_buffer.mem, 0, imageSize, 0,
+                    &tex_staging_buffer.data);
+    }
+    VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+    if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
+        imageFormat = VK_FORMAT_R5G6B5_UNORM_PACK16;
+    }
+    create_image(config->max_width, config->max_height, imageFormat,
                  VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, tex, tex_mem);
-
-    transition_layout(tex, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED,
-                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copy_image_buffer(stagingBuffer, tex, static_cast<uint32_t>(config->max_width),
-                      static_cast<uint32_t>(config->max_height));
-    transition_layout(tex, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    vkDestroyBuffer(device, stagingBuffer, nullptr);
-    vkFreeMemory(device, stagingBufferMemory, nullptr);
-
     /*Texture image view*/
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = tex;
     viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+    viewInfo.format = imageFormat;
     viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     viewInfo.subresourceRange.baseMipLevel = 0;
     viewInfo.subresourceRange.levelCount = 1;
@@ -471,20 +457,20 @@ void VkRenderer::create_texture() {
 void VkRenderer::create_texture_sampler() {
     VkSamplerCreateInfo samplerInfo{};
     samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerInfo.magFilter = VK_FILTER_LINEAR;
-    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.magFilter = VK_FILTER_NEAREST;
+    samplerInfo.minFilter = VK_FILTER_NEAREST;
     samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     VkPhysicalDeviceProperties properties{};
-    vkGetPhysicalDeviceProperties(phy_device, &properties);
-    samplerInfo.anisotropyEnable = VK_TRUE;
-    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+    vkGetPhysicalDeviceProperties(GPU, &properties);
+    samplerInfo.anisotropyEnable = VK_FALSE;
+//    samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_FALSE;
     samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
     samplerInfo.mipLodBias = 0.0f;
     samplerInfo.minLod = 0.0f;
     samplerInfo.maxLod = 0.0f;
@@ -637,7 +623,7 @@ VkRenderer::create_buffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryP
 
 uint32_t VkRenderer::find_mem_type(uint32_t filter_type, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(phy_device, &memProperties);
+    vkGetPhysicalDeviceMemoryProperties(GPU, &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if (filter_type & (1 << i) &&
             (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -686,10 +672,9 @@ void VkRenderer::create_image(uint32_t w, uint32_t h, VkFormat fmt, VkImageTilin
     vkBindImageMemory(device, img, img_mem, 0);
 }
 
-void VkRenderer::transition_layout(VkImage img, VkFormat format, VkImageLayout old_layout,
+void VkRenderer::transition_layout(VkCommandBuffer command_buffer, VkImage img, VkFormat format,
+                                   VkImageLayout old_layout,
                                    VkImageLayout new_layout) {
-    VkCommandBuffer command_buffer;
-    begin_single_time_commands(command_buffer);
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = old_layout;
@@ -730,7 +715,6 @@ void VkRenderer::transition_layout(VkImage img, VkFormat format, VkImageLayout o
             0, nullptr,
             1, &barrier
     );
-    end_single_time_commands(command_buffer);
 }
 
 void VkRenderer::begin_single_time_commands(VkCommandBuffer &command_buffer) {
@@ -764,6 +748,9 @@ void VkRenderer::end_single_time_commands(VkCommandBuffer command_buffer) {
 }
 
 void VkRenderer::on_begin() {
+    create_texture();
+    create_texture_sampler();
+    create_descriptor_sets();
     cur_frame = 0;
 }
 
@@ -771,10 +758,9 @@ void VkRenderer::on_draw() {
     uint32_t idx;
     vkWaitForFences(device, 1, &in_flight_fences[cur_frame], VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1, &in_flight_fences[cur_frame]);
-    VkResult result = vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX,
-                                            image_available_semaphores[cur_frame],
-                                            VK_NULL_HANDLE, &idx);
-    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    if (vkAcquireNextImageKHR(device, swap_chain, UINT64_MAX,
+                              image_available_semaphores[cur_frame],
+                              VK_NULL_HANDLE, &idx) == VK_ERROR_OUT_OF_DATE_KHR) {
         recreate_swap_chain();
         return;
     }
@@ -812,19 +798,30 @@ void VkRenderer::on_draw() {
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &idx;
     presentInfo.pResults = nullptr; // Optional
-    SwappyVk_queuePresent(present_queue_info.queue, &presentInfo);
+    if (swappy_enabled) {
+        SwappyVk_queuePresent(present_queue_info.queue, &presentInfo);
+    } else {
+        vkQueuePresentKHR(present_queue_info.queue, &presentInfo);
+    }
     cur_frame = (cur_frame + 1) % MAX_FRAMES_IN_FLIGHT;
     frame_time_helper.next_frame();
 }
 
 void VkRenderer::on_end() {
-
+    vkDestroyImage(device, tex, nullptr);
+    vkFreeMemory(device, tex_mem, nullptr);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        vkUnmapMemory(device, tex_staging_buffer.mem);
+        vkFreeMemory(device, tex_staging_buffer.mem, nullptr);
+        vkDestroyBuffer(device, tex_staging_buffer.buf, nullptr);
+    }
+    vkDestroyImageView(device, tex_view, nullptr);
+    vkDestroySampler(device, tex_sampler, nullptr);
 }
 
 void
-VkRenderer::copy_image_buffer(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
-    VkCommandBuffer command_buffer;
-    begin_single_time_commands(command_buffer);
+VkRenderer::copy_image_buffer(VkCommandBuffer command_buffer, VkBuffer buffer, VkImage image,
+                              uint32_t width, uint32_t height) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -849,7 +846,6 @@ VkRenderer::copy_image_buffer(VkBuffer buffer, VkImage image, uint32_t width, ui
             1,
             &region
     );
-    end_single_time_commands(command_buffer);
 }
 
 void VkRenderer::copy_buffer(VkBuffer src, VkBuffer dst, VkDeviceSize size) {
@@ -880,6 +876,7 @@ void VkRenderer::record_command_buffer(VkCommandBuffer command_buffer, u_int32_t
         throw std::runtime_error("Unable to submit VkCommandBuffer!");
     }
 
+    update_texture(command_buffer);
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = render_pass;
@@ -919,6 +916,23 @@ void VkRenderer::record_command_buffer(VkCommandBuffer command_buffer, u_int32_t
     }
 }
 
+void VkRenderer::update_texture(VkCommandBuffer command_buffer) {
+    if (!tex_updated) return;
+    VkFormat imageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+    if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
+        imageFormat = VK_FORMAT_R5G6B5_UNORM_PACK16;
+    }
+    transition_layout(command_buffer, tex, imageFormat,
+                      VK_IMAGE_LAYOUT_UNDEFINED,
+                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copy_image_buffer(command_buffer, tex_staging_buffer.buf, tex,
+                      static_cast<uint32_t>(config->width),
+                      static_cast<uint32_t>(config->height));
+    transition_layout(command_buffer, tex, imageFormat, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+//    tex_updated.store(false);
+}
+
 void VkRenderer::create_image_views() {
     uint32_t count = 0;
     std::vector<VkImage> images;
@@ -954,7 +968,22 @@ void VkRenderer::resize_viewport(uint32_t w, uint32_t h) {
 }
 
 void VkRenderer::submit(const void *data, unsigned width, unsigned height, size_t pitch) {
-
+    if (state != renderer_state_t::RUNNING) return;
+    uint8_t bytes_per_pixel = 2;
+    if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
+        bytes_per_pixel = 4;
+    }
+    if (width * bytes_per_pixel == pitch) {
+        memcpy(tex_staging_buffer.data, data, height * pitch);
+    } else {
+        for (int i = 0; i < height; ++i) {
+            memcpy((void *) (static_cast<const char *>(tex_staging_buffer.data) +
+                             i * width * bytes_per_pixel),
+                   static_cast<const char *>(data) + i * pitch,
+                   width * bytes_per_pixel);
+        }
+    }
+    tex_updated.store(true);
 }
 
 int VkRenderer::get_frame_rate() {
@@ -965,46 +994,44 @@ std::unique_ptr<image_t> VkRenderer::read_pixels() {
     return nullptr;
 }
 
-void VkRenderer::choose_device_extensions() {
+void VkRenderer::choose_device_extensions(bool use_swappy) {
     required_extensions.insert(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     if (use_swappy) {
         uint32_t available_extension_count = 0;
         std::vector<VkExtensionProperties> available_extensions;
-        vkEnumerateDeviceExtensionProperties(phy_device, nullptr, &available_extension_count,
+        vkEnumerateDeviceExtensionProperties(GPU, nullptr, &available_extension_count,
                                              nullptr);
         available_extensions.resize(available_extension_count);
-        vkEnumerateDeviceExtensionProperties(phy_device, nullptr, &available_extension_count,
+        vkEnumerateDeviceExtensionProperties(GPU, nullptr, &available_extension_count,
                                              available_extensions.data());
         /*Frame pacing*/
         uint32_t count = 0;
-        std::vector<char *> extensions;
-        SwappyVk_determineDeviceExtensions(phy_device, available_extension_count,
+        char **extensions;
+        SwappyVk_determineDeviceExtensions(GPU, available_extension_count,
                                            available_extensions.data(), &count, nullptr);
-        extensions.resize(count);
-        std::vector<std::vector<char>> names(count,
-                                             std::vector<char>(VK_MAX_EXTENSION_NAME_SIZE + 1));
+        extensions = (char **) malloc(count * sizeof(char *));
+        char *names = (char *) malloc(count * (VK_MAX_EXTENSION_NAME_SIZE + 1));
         for (uint32_t i = 0; i < count; i++) {
-            extensions[i] = names[i].data();
+            extensions[i] = &names[i * (VK_MAX_EXTENSION_NAME_SIZE + 1)];
         }
-        SwappyVk_determineDeviceExtensions(phy_device, available_extension_count,
-                                           available_extensions.data(), &count, extensions.data());
+        SwappyVk_determineDeviceExtensions(GPU, available_extension_count,
+                                           available_extensions.data(), &count, extensions);
         for (uint32_t i = 0; i < count; i++) {
             required_extensions.insert(extensions[i]);
         }
+        free(names);
+        free(extensions);
     }
 }
 
-void VkRenderer::init_swappy(JNIEnv *env, jobject activity) {
-    if (!activity) return;
-    uint64_t refresh_duration;
-    SwappyVk_setQueueFamilyIndex(device, present_queue_info.queue, present_queue_info.index);
-    SwappyVk_initAndGetRefreshCycleDuration(env, activity, phy_device, device, swap_chain,
-                                            &refresh_duration);
-    use_swappy = true;
-}
-
-void VkRenderer::enable_swappy() {
-    if (!use_swappy) return;
+void VkRenderer::enable_swappy(JNIEnv *env, jobject activity, bool init_first) {
+    if (init_first) {
+        if (!activity) return;
+        uint64_t refresh_duration;
+        SwappyVk_setQueueFamilyIndex(device, present_queue_info.queue, present_queue_info.index);
+        SwappyVk_initAndGetRefreshCycleDuration(env, activity, GPU, device, swap_chain,
+                                                &refresh_duration);
+    }
     int count = SwappyVk_getSupportedRefreshPeriodsNS(nullptr, 0, swap_chain);
     uint64_t all_swap_ns[count];
     SwappyVk_getSupportedRefreshPeriodsNS(all_swap_ns, count, swap_chain);
@@ -1016,19 +1043,22 @@ void VkRenderer::enable_swappy() {
     SwappyVk_setAutoSwapInterval(true);
     SwappyVk_setAutoPipelineMode(true);
     SwappyVk_setWindow(device, swap_chain, window);
-    bool no_error = false;
-    if (SwappyVk_isEnabled(swap_chain, &no_error) && no_error) {
+    if (SwappyVk_isEnabled(swap_chain, &swappy_enabled) && swappy_enabled) {
         LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
              static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
+    } else {
+        swappy_enabled = false;
     }
 }
 
 void VkRenderer::recreate_swap_chain() {
     LOGD(TAG, "recreate_swap_chain called!");
+    vkDeviceWaitIdle(device);
     clean_swap_chain();
-    context->create_swap_chain(device, swap_chain);
-    format = context->get_swap_chain_format();
-    enable_swappy();
+    context->create_swap_chain(device, swap_chain, format);
+    if (swappy_enabled) {
+        enable_swappy(nullptr, nullptr, false);
+    }
     create_image_views();
     create_framebuffers();
 }

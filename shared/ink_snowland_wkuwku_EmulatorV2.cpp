@@ -21,7 +21,7 @@ static retro_system_av_info system_av_info{};
 static std::shared_ptr<video_config_t> video_config;
 static std::atomic<em_state_t> current_state = em_state_t::INVALID;
 static std::shared_ptr<Renderer> renderer = nullptr;
-static bool use_vulkan_api = false;
+static bool use_vulkan_api = true;
 static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;

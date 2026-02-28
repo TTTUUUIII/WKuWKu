@@ -9,10 +9,15 @@
 #include <set>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "VkShader.h"
 #include "Renderer.h"
 #include "VkContext.h"
 #include "Utils.h"
+
+struct staging_buffer_t {
+    VkBuffer buf;
+    VkDeviceMemory mem;
+    void* data;
+};
 
 class VkRenderer: public Renderer {
 private:
@@ -22,10 +27,10 @@ private:
     std::thread vk_thread;
     std::atomic<bool> vk_thread_running = false;
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
-    bool use_swappy = false;
+    bool swappy_enabled = false;
     util::frame_time_helper_t frame_time_helper;
     VkDevice device{};
-    VkPhysicalDevice phy_device;
+    VkPhysicalDevice GPU;
     swap_chain_format_t format{};
     VkRenderPass render_pass{};
     VkDescriptorSetLayout descriptor_layout{};
@@ -38,6 +43,8 @@ private:
     VkImageView tex_view{};
     VkDeviceMemory tex_mem{};
     VkSampler tex_sampler{};
+    staging_buffer_t tex_staging_buffer{};
+    std::atomic<bool> tex_updated = false;
     VkSwapchainKHR swap_chain{};
     queue_info_t graphics_queue_info{};
     queue_info_t present_queue_info{};
@@ -51,7 +58,6 @@ private:
     std::vector<VkSemaphore> image_available_semaphores;
     std::vector<VkSemaphore> render_finished_semaphores;
     std::vector<VkFence> in_flight_fences;
-    std::shared_ptr<video_config_t> config;
     std::set<std::string> required_extensions{};
     uint32_t cur_frame = 0;
     void create_image_views();
@@ -71,11 +77,12 @@ private:
     void recreate_swap_chain();
     void clean_swap_chain();
     void copy_buffer(VkBuffer /*src*/, VkBuffer /*dst*/, VkDeviceSize /*size*/);
-    void copy_image_buffer(VkBuffer /*buffer*/, VkImage /*image*/, uint32_t /*width*/, uint32_t /*height*/);
+    void copy_image_buffer(VkCommandBuffer, VkBuffer /*buffer*/, VkImage /*image*/, uint32_t /*width*/, uint32_t /*height*/);
+    void update_texture(VkCommandBuffer);
     uint32_t find_mem_type(uint32_t filter, VkMemoryPropertyFlags properties);
     VkShaderModule create_shader_mode(const u_int8_t* bytes, size_t size_in_bytes);
     void create_image(uint32_t, uint32_t, VkFormat, VkImageTiling, VkImageUsageFlags, VkMemoryPropertyFlags, VkImage&, VkDeviceMemory&);
-    void transition_layout(VkImage, VkFormat, VkImageLayout /*old_layout*/, VkImageLayout /*new_layout*/);
+    void transition_layout(VkCommandBuffer, VkImage, VkFormat, VkImageLayout /*old_layout*/, VkImageLayout /*new_layout*/);
     void begin_single_time_commands(VkCommandBuffer&);
     void end_single_time_commands(VkCommandBuffer);
     void update_uniform_buffer();
@@ -83,9 +90,8 @@ private:
     void on_begin();
     void on_draw();
     void on_end();
-    void choose_device_extensions();
-    void init_swappy(JNIEnv*, jobject);
-    void enable_swappy();
+    void choose_device_extensions(bool /*use_swappy*/);
+    void enable_swappy(JNIEnv* env, jobject activity, bool /*init_first*/);
 public:
     explicit VkRenderer(JNIEnv */*env*/, jobject /*activity*/, jobject /*surface*/);
     void resize_viewport(uint32_t w, uint32_t h) override;

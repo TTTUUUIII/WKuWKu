@@ -38,7 +38,6 @@ private:
     VkInstance instance{};
     VkSurfaceKHR surface{};
     VkPhysicalDevice GPU{};
-    swap_chain_format_t swap_chain_format{};
     swap_chain_details_t swap_chain_details{};
     queue_info_t graphics_queue_info{};
     queue_info_t present_queue_info{};
@@ -53,9 +52,8 @@ public:
     explicit VkContext(ANativeWindow* _window);
     virtual ~VkContext();
     void create_logic_device(const std::vector<const char*>& /*required_extensions*/, VkDevice &);
-    void create_swap_chain(VkDevice &dev, VkSwapchainKHR &);
-    swap_chain_format_t get_swap_chain_format();
-    VkPhysicalDevice get_physical_device();
+    void create_swap_chain(VkDevice &dev, VkSwapchainKHR &, swap_chain_format_t&);
+    VkPhysicalDevice get_GPU();
     queue_info_t get_queue_info(const queue_type_t& type);
 };
 
