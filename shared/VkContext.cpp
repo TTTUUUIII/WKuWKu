@@ -7,6 +7,7 @@
 VkContext::VkContext(ANativeWindow *_window): window(_window) {
     create_instance();
     create_surface();
+    GPU = find_GPU();
 }
 
 VkContext::~VkContext() {
@@ -75,35 +76,36 @@ void VkContext::query_swap_chain_details(VkPhysicalDevice gpu) {
 }
 
 swap_chain_format_t VkContext::choose_swap_chain_format() {
+    swap_chain_format_t format{};
     /*Choose surface format*/
     auto fmt = std::find_if(swap_chain_details.formats.begin(), swap_chain_details.formats.end(), [](const VkSurfaceFormatKHR& it){
         return it.format == VK_FORMAT_B8G8R8A8_SRGB && it.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
     });
-    swap_chain_format.image_format = fmt != swap_chain_details.formats.end() ? *fmt : swap_chain_details.formats[0];
+    format.image_format = fmt != swap_chain_details.formats.end() ? *fmt : swap_chain_details.formats[0];
 
     /*Choose present mode*/
     auto mod = std::find_if(swap_chain_details.modes.begin(), swap_chain_details.modes.end(), [](const VkPresentModeKHR& it) {
         return it == VK_PRESENT_MODE_MAILBOX_KHR;
     });
-    swap_chain_format.mode = mod != swap_chain_details.modes.end() ? *mod : VK_PRESENT_MODE_FIFO_KHR;
+    format.mode = mod != swap_chain_details.modes.end() ? *mod : VK_PRESENT_MODE_FIFO_KHR;
 
     /*Choose extent*/
     if (swap_chain_details.capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-        swap_chain_format.extent = swap_chain_details.capabilities.currentExtent;
+        format.extent = swap_chain_details.capabilities.currentExtent;
     } else {
         const uint32_t width = ANativeWindow_getWidth(window);
         const uint32_t height = ANativeWindow_getHeight(window);
-        swap_chain_format.extent = {};
-        swap_chain_format.extent.width = std::clamp(width, swap_chain_details.capabilities.minImageExtent.width, swap_chain_details.capabilities.maxImageExtent.width);
-        swap_chain_format.extent.height = std::clamp(height, swap_chain_details.capabilities.minImageExtent.height, swap_chain_details.capabilities.maxImageExtent.height);
+        format.extent = {};
+        format.extent.width = std::clamp(width, swap_chain_details.capabilities.minImageExtent.width, swap_chain_details.capabilities.maxImageExtent.width);
+        format.extent.height = std::clamp(height, swap_chain_details.capabilities.minImageExtent.height, swap_chain_details.capabilities.maxImageExtent.height);
     }
 
     /*Choose min image count*/
-    swap_chain_format.min_image_count = swap_chain_details.capabilities.minImageCount + 1;
-    if (swap_chain_details.capabilities.maxImageCount > 0 && swap_chain_format.min_image_count > swap_chain_details.capabilities.maxImageCount) {
-        swap_chain_format.min_image_count = swap_chain_details.capabilities.maxImageCount;
+    format.min_image_count = swap_chain_details.capabilities.minImageCount + 1;
+    if (swap_chain_details.capabilities.maxImageCount > 0 && format.min_image_count > swap_chain_details.capabilities.maxImageCount) {
+        format.min_image_count = swap_chain_details.capabilities.maxImageCount;
     }
-    return swap_chain_format;
+    return format;
 }
 
 void VkContext::create_instance() {
@@ -138,7 +140,6 @@ void VkContext::create_instance() {
 
 void VkContext::create_logic_device(const std::vector<const char*>& enabled_extensions, VkDevice &dev) {
     /*Create logic device*/
-    GPU = find_GPU();
     if (GPU == nullptr) {
         throw std::runtime_error("GPU not found!");
     }
@@ -152,7 +153,7 @@ void VkContext::create_logic_device(const std::vector<const char*>& enabled_exte
 
     VkDeviceCreateInfo deviceCreateInfo{};
     VkPhysicalDeviceFeatures deviceFeatures{};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
+//    deviceFeatures.samplerAnisotropy = VK_TRUE;
     const std::vector<const char*> enabledDeviceLayerNames = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
@@ -169,27 +170,27 @@ void VkContext::create_logic_device(const std::vector<const char*>& enabled_exte
     vkGetDeviceQueue(dev, present_queue_info.index, 0, &present_queue_info.queue);
 }
 
-void VkContext::create_swap_chain(VkDevice &dev, VkSwapchainKHR &chain) {
+void VkContext::create_swap_chain(VkDevice &dev, VkSwapchainKHR &chain, swap_chain_format_t& format) {
     /*Create swap chain*/
-    choose_swap_chain_format();
-    VkSwapchainCreateInfoKHR swapchainCreateInfo{};
-    swapchainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchainCreateInfo.surface = surface;
-    swapchainCreateInfo.presentMode = swap_chain_format.mode;
-    swapchainCreateInfo.minImageCount = swap_chain_format.min_image_count;
-    swapchainCreateInfo.imageFormat = swap_chain_format.image_format.format;
-    swapchainCreateInfo.imageColorSpace = swap_chain_format.image_format.colorSpace;
-    swapchainCreateInfo.imageExtent = swap_chain_format.extent;
-    swapchainCreateInfo.imageArrayLayers = 1;
-    swapchainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapchainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    swapchainCreateInfo.queueFamilyIndexCount = 0;
-    swapchainCreateInfo.pQueueFamilyIndices = nullptr;
-    swapchainCreateInfo.preTransform = swap_chain_details.capabilities.currentTransform;
-    swapchainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchainCreateInfo.clipped = VK_TRUE;
-    swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
-    if (vkCreateSwapchainKHR(dev, &swapchainCreateInfo, nullptr, &chain) != VK_SUCCESS) {
+    format = choose_swap_chain_format();
+    VkSwapchainCreateInfoKHR createInfo{};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface = surface;
+    createInfo.presentMode = format.mode;
+    createInfo.minImageCount = format.min_image_count;
+    createInfo.imageFormat = format.image_format.format;
+    createInfo.imageColorSpace = format.image_format.colorSpace;
+    createInfo.imageExtent = format.extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.queueFamilyIndexCount = 0;
+    createInfo.pQueueFamilyIndices = nullptr;
+    createInfo.preTransform = swap_chain_details.capabilities.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.clipped = VK_TRUE;
+    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    if (vkCreateSwapchainKHR(dev, &createInfo, nullptr, &chain) != VK_SUCCESS) {
         throw std::runtime_error("Unable to create vkSwapChainKHR!");
     }
 }
@@ -205,11 +206,7 @@ void VkContext::create_surface() {
     }
 }
 
-swap_chain_format_t VkContext::get_swap_chain_format() {
-    return swap_chain_format;
-}
-
-VkPhysicalDevice VkContext::get_physical_device() {
+VkPhysicalDevice VkContext::get_GPU() {
     return GPU;
 }
 
