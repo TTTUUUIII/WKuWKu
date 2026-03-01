@@ -8,7 +8,6 @@
 #include "stb_image_write.h"
 #include "GLRenderer.h"
 #include "VkRenderer.h"
-#include "GLUtils.h"
 #include "AudioOutputStream.h"
 #include "ink_snowland_wkuwku_EmulatorV2.h"
 
@@ -21,14 +20,14 @@ static retro_system_av_info system_av_info{};
 static std::shared_ptr<video_config_t> video_config;
 static std::atomic<em_state_t> current_state = em_state_t::INVALID;
 static std::shared_ptr<Renderer> renderer = nullptr;
-static bool use_vulkan_api = true;
+static bool use_vulkan_api = false;
 static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
 static message_queue_t message_queue;
 static std::shared_ptr<AudioOutputStream> audio_stream_out;
-static util::properties_t props;
+static utils::properties_t props;
 static bool env_attached = false;
 
 static em_context_t ctx{};
@@ -598,7 +597,9 @@ static jboolean em_capture_screen(JNIEnv *env, jobject thiz, jstring path) {
         const char *file_path = env->GetStringUTFChars(path, JNI_FALSE);
         std::unique_ptr<image_t> pixels = renderer->read_pixels();
         if (pixels) {
-            stbi_flip_vertically_on_write(1);
+            if (!use_vulkan_api) {
+                stbi_flip_vertically_on_write(1);
+            }
             no_error = stbi_write_png(file_path,
                                       pixels->width,
                                       pixels->height, pixels->comp,
@@ -733,7 +734,7 @@ static void entry_of_main_loop() {
         LOGE(TAG, "Unable start main thread, attach env failed!");
         return;
     }
-    pid_t tid = util::set_thread_priority(THREAD_PRIORITY_AUDIO);
+    pid_t tid = utils::set_thread_priority(THREAD_PRIORITY_AUDIO);
     LOGI(TAG, "Set thread priority tid=%d, priority=THREAD_PRIORITY_AUDIO", tid);
     if (hw_render_cb) {
         shared_context = std::make_shared<GLContext>(video_config->max_width,
@@ -763,7 +764,7 @@ static void entry_of_main_loop() {
         }
         hw_render_cb->context_reset();
     }
-    util::timestamp_t prev_time_millis = util::system_current_milliseconds();
+    utils::timestamp_t prev_time_millis = utils::system_current_milliseconds();
     int prev_frame_rate = 0;
     for (;;) {
         if (current_state == em_state_t::RUNNING) {
@@ -776,7 +777,7 @@ static void entry_of_main_loop() {
             });
         }
         if (props.get_or_else(PROP_REPORT_RENDERER_RATE, false) && renderer) {
-            util::timestamp_t now = util::system_current_milliseconds();
+            utils::timestamp_t now = utils::system_current_milliseconds();
             int cur_frame_rate = renderer->get_frame_rate();
             if (now - prev_time_millis >= 1000 && prev_frame_rate != cur_frame_rate) {
                 ctx.env->CallVoidMethod(ctx.emulator_obj, ctx.dump_cb_method,

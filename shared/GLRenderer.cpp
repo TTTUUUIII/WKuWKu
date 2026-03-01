@@ -368,11 +368,11 @@ void GLRenderer::gl_draw() {
 }
 
 void GLRenderer::gl_end() {
-    glDeleteProgram(PID);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
     glDeleteTextures(1, &Tex0);
+    glDeleteProgram(PID);
 }
 
 void GLRenderer::gl_set_mat4(const char *sym, const glm::mat4 &mat) const {

@@ -9,7 +9,7 @@
 #include <vulkan/vulkan_android.h>
 #include <android/native_window_jni.h>
 
-struct swap_chain_details_t {
+struct surface_details_t {
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> modes;
@@ -38,13 +38,13 @@ private:
     VkInstance instance{};
     VkSurfaceKHR surface{};
     VkPhysicalDevice GPU{};
-    swap_chain_details_t swap_chain_details{};
+    surface_details_t surface_details{};
     queue_info_t graphics_queue_info{};
     queue_info_t present_queue_info{};
-    VkPhysicalDevice find_GPU();
+    VkPhysicalDevice choose_device();
     bool is_suitable(VkPhysicalDevice gpu);
-    bool find_queue_families(VkPhysicalDevice gpu);
-    void query_swap_chain_details(VkPhysicalDevice gpu);
+    bool choose_queue_families(VkPhysicalDevice gpu);
+    void query_surface_details(VkPhysicalDevice gpu);
     swap_chain_format_t choose_swap_chain_format();
     void create_instance();
     void create_surface();
@@ -53,7 +53,8 @@ public:
     virtual ~VkContext();
     void create_logic_device(const std::vector<const char*>& /*required_extensions*/, VkDevice &);
     void create_swap_chain(VkDevice &dev, VkSwapchainKHR &, swap_chain_format_t&);
-    VkPhysicalDevice get_GPU();
+    VkPhysicalDevice get_device();
+    VkSurfaceTransformFlagBitsKHR get_surface_transform();
     queue_info_t get_queue_info(const queue_type_t& type);
 };
 
