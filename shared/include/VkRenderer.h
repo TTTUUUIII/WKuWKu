@@ -44,7 +44,7 @@ private:
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
     bool swappy_enabled = false;
     float cur_aspect_ratio;
-    uint32_t next_image_idx;
+    uint32_t next_image_idx{};
     utils::frame_time_helper_t frame_time_helper;
     VkDevice device{};
     VkPhysicalDevice GPU;

@@ -35,7 +35,7 @@ struct uniform_obj_t {
 
 VkRenderer::VkRenderer(JNIEnv *env, jobject activity, jobject surface) {
     window = ANativeWindow_fromSurface(env, surface);
-    context = std::make_unique<VkContext>(window);
+    context = std::make_unique<VkContext>("VkRenderer", window);
     std::vector<const char *> extensions_names;
     GPU = context->get_device();
     choose_device_extensions(activity);
@@ -45,7 +45,7 @@ VkRenderer::VkRenderer(JNIEnv *env, jobject activity, jobject surface) {
     context->create_logic_device(extensions_names, device);
     graphics_queue_info = context->get_queue_info(queue_type_t::GRAPHICS);
     present_queue_info = context->get_queue_info(queue_type_t::PRESENT);
-    context->create_swap_chain(device, swap_chain, format);
+    context->create_swap_chain(device, swap_chain, format, VK_NULL_HANDLE);
 
     enable_swappy(env, activity);
     create_image_views();
@@ -1126,11 +1126,14 @@ void VkRenderer::enable_swappy(JNIEnv *env, jobject activity) {
 
 void VkRenderer::recreate_swap_chain() {
     vkDeviceWaitIdle(device);
+    VkSwapchainKHR new_chain;
+    context->create_swap_chain(device, new_chain, format, swap_chain);
     clean_swap_chain();
-    context->create_swap_chain(device, swap_chain, format);
+    swap_chain = new_chain;
     enable_swappy(nullptr, nullptr);
     create_image_views();
     create_framebuffers();
+    LOGW(TAG, "Swapchain recreated!");
 }
 
 void VkRenderer::clean_swap_chain() {

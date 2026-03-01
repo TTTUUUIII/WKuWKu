@@ -4,7 +4,9 @@
 
 #include "VkContext.h"
 
-VkContext::VkContext(ANativeWindow *_window): window(_window) {
+#include <utility>
+
+VkContext::VkContext(std::string _name, ANativeWindow *_window): window(_window), name(std::move(_name)) {
     create_instance();
     create_surface();
     GPU = choose_device();
@@ -112,7 +114,7 @@ void VkContext::create_instance() {
     /*Create instance*/
     VkApplicationInfo applicationInfo{};
     applicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    applicationInfo.pApplicationName = "Hello Vulkan";
+    applicationInfo.pApplicationName = name.c_str();
     applicationInfo.pEngineName = "No Name";
     applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -170,7 +172,7 @@ void VkContext::create_logic_device(const std::vector<const char*>& enabled_exte
     vkGetDeviceQueue(dev, present_queue_info.index, 0, &present_queue_info.queue);
 }
 #include "Log.h"
-void VkContext::create_swap_chain(VkDevice &dev, VkSwapchainKHR &chain, swap_chain_format_t& format) {
+void VkContext::create_swap_chain(VkDevice &dev, VkSwapchainKHR &chain, swap_chain_format_t& format, const VkSwapchainKHR &old_chain) {
     /*Create swap chain*/
     format = choose_swap_chain_format();
     VkSwapchainCreateInfoKHR createInfo{};
@@ -189,7 +191,7 @@ void VkContext::create_swap_chain(VkDevice &dev, VkSwapchainKHR &chain, swap_cha
     createInfo.preTransform = surface_details.capabilities.currentTransform;
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.clipped = VK_TRUE;
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    createInfo.oldSwapchain = old_chain;
     if (vkCreateSwapchainKHR(dev, &createInfo, nullptr, &chain) != VK_SUCCESS) {
         throw std::runtime_error("Unable to create vkSwapChainKHR!");
     }
