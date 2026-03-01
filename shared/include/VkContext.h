@@ -34,6 +34,7 @@ enum class queue_type_t {
 
 class VkContext {
 private:
+    std::string name;
     ANativeWindow* window;
     VkInstance instance{};
     VkSurfaceKHR surface{};
@@ -49,10 +50,10 @@ private:
     void create_instance();
     void create_surface();
 public:
-    explicit VkContext(ANativeWindow* _window);
+    explicit VkContext(std::string, ANativeWindow* _window);
     virtual ~VkContext();
     void create_logic_device(const std::vector<const char*>& /*required_extensions*/, VkDevice &);
-    void create_swap_chain(VkDevice &dev, VkSwapchainKHR &, swap_chain_format_t&);
+    void create_swap_chain(VkDevice &dev, VkSwapchainKHR &, swap_chain_format_t&, const VkSwapchainKHR&);
     VkPhysicalDevice get_device();
     VkSurfaceTransformFlagBitsKHR get_surface_transform();
     queue_info_t get_queue_info(const queue_type_t& type);
