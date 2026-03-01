@@ -10,7 +10,6 @@ set(COMMON_SOURCE
         ${MY_DIR}/GLRenderer.cpp
         ${MY_DIR}/VkContext.cpp
         ${MY_DIR}/VkRenderer.cpp
-        ${MY_DIR}/GLUtils.cpp
         ${MY_DIR}/AudioOutputStream.cpp
         ${MY_DIR}/include/Buffer.h
         ${MY_DIR}/Utils.cpp

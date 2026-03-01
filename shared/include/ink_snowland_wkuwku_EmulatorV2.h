@@ -34,7 +34,7 @@
 
 #define DUMP_KEY_RENDERER_RATE       0
 
-const int OPENGL_ES_API     = 0;
+const int GLES_API     = 0;
 const int VULKAN_API        = 1;
 
 enum class em_state_t {
@@ -66,7 +66,7 @@ typedef struct {
     jfieldID variable_entry_value_field;
 } em_context_t;
 
-using namespace util::future;
+using namespace utils::future;
 
 static void entry_of_main_loop();
 

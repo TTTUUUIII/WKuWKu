@@ -100,6 +100,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String PLAYER_1_CONTROLLER_DESCRIPTOR = "player_1_controller_descriptor";
     private static final String PLAYER_2_CONTROLLER_DESCRIPTOR = "player_2_controller_descriptor";
+    private static final String GRAPHICS_API = "video.graphics_api";
     private FragmentLaunchBinding binding;
     private LaunchViewModel mViewModel;
     private Game mGame;
@@ -295,6 +296,12 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private void attachToEmulator() {
         IEmulator emulator = mViewModel.getEmulator();
         if (emulator != null) {
+            String apiName = SettingsManager.getString(GRAPHICS_API);
+            if ("vulkan".equals(apiName)) {
+                emulator.setProp(PROP_GRAPHICS_API, VULKAN);
+            } else {
+                emulator.setProp(PROP_GRAPHICS_API, GLES);
+            }
             emulator.setOnEventListener(this);
             binding.surfaceView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override

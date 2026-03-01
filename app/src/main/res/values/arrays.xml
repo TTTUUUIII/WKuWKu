@@ -75,4 +75,12 @@
         <item>1</item>
         <item>2</item>
     </string-array>
+    <string-array name="graphics_api_entries">
+        <item>GLES</item>
+        <item>Vulkan</item>
+    </string-array>
+    <string-array name="graphics_api_values">
+        <item>gles</item>
+        <item>vulkan</item>
+    </string-array>
 </resources>

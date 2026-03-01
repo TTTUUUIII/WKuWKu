@@ -18,7 +18,7 @@
 #define THREAD_PRIORITY_DISPLAY             (-4)
 #define THREAD_PRIORITY_AUDIO               (-16)
 
-namespace util {
+namespace utils {
     typedef long long timestamp_t;
 
     long long system_current_milliseconds();

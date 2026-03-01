@@ -81,7 +81,7 @@ private:
     std::atomic<bool> read_pixels_flag = false;
     std::unique_ptr<image_t> pixels;
     std::atomic<renderer_state_t> state = renderer_state_t::INVALID;
-    util::frame_time_helper_t frame_time_helper{};
+    utils::frame_time_helper_t frame_time_helper{};
     void create_swap_chain();
     void enable_swappy(JNIEnv*, jobject);
     void gl_begin();

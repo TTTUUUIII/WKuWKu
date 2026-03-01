@@ -6,7 +6,7 @@
 #include <chrono>
 #include <sys/resource.h>
 
-namespace util {
+namespace utils {
 
     timestamp_t system_current_milliseconds() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(

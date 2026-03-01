@@ -30,6 +30,7 @@
             app:iconSpaceReserved="false"
             app:defaultValue="@string/default_num_of_buffers"
             app:enabled="false"
+            app:isPreferenceVisible="false"
             app:useSimpleSummaryProvider="true"
             app:title="@string/num_of_buffers"
             app:key="video.framebuffer_count" />
@@ -39,6 +40,14 @@
             app:defaultValue="false"
             app:title="@string/show_renderer_rate"
             app:summary="@string/show_renderer_rate_summary"/>
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:key="video.graphics_api"
+            app:defaultValue="@string/default_graphics_api"
+            android:entries="@array/graphics_api_entries"
+            android:entryValues="@array/graphics_api_values"
+            app:title="@string/graphics_api"
+            app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
 
     <PreferenceCategory
