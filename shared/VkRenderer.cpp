@@ -30,6 +30,7 @@ static const uint16_t indices[] = {
 
 struct uniform_obj_t {
     glm::mat4 model;
+    uint32_t effect;
 };
 
 VkRenderer::VkRenderer(JNIEnv *env, jobject activity, jobject surface) {
@@ -895,6 +896,7 @@ void VkRenderer::update_uniform_buffer() {
     }
     deg += (360.f - static_cast<float>(config->rota) * 90.f);
     obj.model = glm::rotate(model, glm::radians(deg), glm::vec3(0.f, 0.f, 1.f));
+    obj.effect = static_cast<uint32_t>(config->effect);
     memcpy(UBOs[cur_frame]->data, &obj, sizeof(uniform_obj_t));
 }
 
