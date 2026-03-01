@@ -1,3 +1,9 @@
+@v0.4.21a
+[Feat] vulkan is now supported;
+[Feat] supports specify a cover for game;
+[Fix] some known issues.
+@end
+
 @v0.4.19a
 [Add] supported show frame rate;
 [Fix] video tearing.
