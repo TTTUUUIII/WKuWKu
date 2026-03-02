@@ -11,6 +11,7 @@
     <item
         android:id="@+id/menu_toggle_list_layout_type"
         android:icon="@drawable/ic_grid_view"
+        app:iconTint="?colorControlNormal"
         android:title="@string/list_layout"
         app:showAsAction="collapseActionView|ifRoom" />
 </menu>
