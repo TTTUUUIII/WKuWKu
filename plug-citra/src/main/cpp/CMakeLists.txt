@@ -38,6 +38,7 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
         android
         EGL
         GLESv3
+        vulkan
         oboe::oboe
         games-frame-pacing::swappy_static
         log)

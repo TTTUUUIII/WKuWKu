@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId "com.outlook.wn123o.melonds"
-        versionCode 3
-        versionName "v1.2"
+        versionCode 4
+        versionName "v1.4"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
