@@ -159,7 +159,7 @@
             </allow-values>
         </option>
         <option
-            defaultValue="Software"
+            defaultValue="Auto"
             key="swanstation_GPU_Renderer"
             title="GPU Renderer">
             <allow-values>
