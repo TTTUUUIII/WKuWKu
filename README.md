@@ -55,7 +55,7 @@ The project is currently in **development**, with many features not yet finalize
 | Sega - Saturn             | `Beetle Saturn`、`Yabause`        | ✅         |
 | Sega - PICO               | `Genesis Plus GX`                 | ✅         |
 | Sega - SG-1000            | `Genesis Plus GX`                 | ✅         |
-| Sony - PlayStation        | `PCSX`                            | ✅         |
+| Sony - PlayStation        | `PCSX`、`Swanstation`              | ✅         |
 | Sony - PlayStation2       | `N/A`                             | ❌         |
 | NEC - PC Engine           | `Geargrafx`                       | ✅         |
 | Atari - Atari 7800        | `ProSystem`                       | ✅         |
