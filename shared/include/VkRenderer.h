@@ -156,7 +156,7 @@ public:
 
     void request_resume() override;
 
-    void submit(const void *, unsigned, unsigned, size_t) override;
+    void render(const void *, unsigned, unsigned, size_t) override;
 
     std::unique_ptr<image_t> read_pixels() override;
 

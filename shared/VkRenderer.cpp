@@ -1016,7 +1016,7 @@ void VkRenderer::resize_viewport(uint32_t w, uint32_t h) {
     /*Do nothing*/
 }
 
-void VkRenderer::submit(const void *data, unsigned width, unsigned height, size_t pitch) {
+void VkRenderer::render(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (state != renderer_state_t::RUNNING) return;
     uint8_t bytes_per_pixel = 2;
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {

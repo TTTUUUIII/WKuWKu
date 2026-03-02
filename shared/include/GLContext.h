@@ -15,16 +15,24 @@ public:
     explicit GLContext(int width, int height);
     ~GLContext();
     void make();
+    void swap_buffers() const;
     [[nodiscard]] EGLDisplay get_display() const;
-    [[nodiscard]] EGLSurface get_surface() const;
     [[nodiscard]] EGLContext get_context() const;
+    [[nodiscard]] EGLSurface get_surface() const;
+    [[nodiscard]] GLuint get_offscreen_tex() const;
+    [[nodiscard]] GLuint get_offscreen_fbo() const;
 private:
+    const char* TAG = "GLContext";
+    bool offscreen;
     int width, height;
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
-    EGLint version_major = 0;
-    EGLint version_minor = 0;
+    EGLint version_major{};
+    EGLint version_minor{};
+    GLuint offscreen_tex{};
+    GLuint offscreen_fbo{};
+    GLuint offscreen_rbo{};
 };
 
 

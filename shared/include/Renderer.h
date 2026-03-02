@@ -66,7 +66,7 @@ public:
     virtual bool request_start() = 0;
     virtual void request_pause() = 0;
     virtual void request_resume() = 0;
-    virtual void submit(const void *, unsigned, unsigned, size_t) = 0;
+    virtual void render(const void *, unsigned, unsigned, size_t) = 0;
     virtual std::unique_ptr<image_t> read_pixels() = 0;
     virtual int get_frame_rate() = 0;
     virtual void release() = 0;

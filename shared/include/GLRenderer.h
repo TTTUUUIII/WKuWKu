@@ -69,8 +69,7 @@ public:
 class GLRenderer: public Renderer {
 private:
     ANativeWindow *window;
-    std::shared_ptr<GLContext> shared_context;
-    GLuint shared_texture{};
+    std::shared_ptr<GLContext> hw_context;
     std::unique_ptr<GLContext> context;
     std::unique_ptr<swap_chain_t> swap_chain;
     float cur_aspect_ratio;
@@ -94,13 +93,12 @@ private:
     void gl_read_pixels();
 public:
     explicit GLRenderer(JNIEnv *env, jobject activity, jobject surface);
-    void attach_context(std::shared_ptr<GLContext> ctx);
-    void attach_texture(GLuint tex);
+    void attach_context(const std::shared_ptr<GLContext>& ctx);
     void resize_viewport(uint32_t w, uint32_t h) override;
     bool request_start() override;
     void request_pause() override;
     void request_resume() override;
-    void submit(const void *, unsigned, unsigned, size_t) override;
+    void render(const void *, unsigned, unsigned, size_t) override;
     std::unique_ptr<image_t> read_pixels() override;
     int get_frame_rate() override;
     void release() override;
