@@ -68,7 +68,7 @@ typedef struct {
 
 using namespace utils::future;
 
-static void entry_of_main_loop();
+static void _main__();
 
 static std::unique_ptr<buffer_t> RGB565_TO_RGB888(void *, size_t /*len*/);
 

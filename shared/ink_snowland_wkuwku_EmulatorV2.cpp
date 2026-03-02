@@ -21,7 +21,6 @@ static std::shared_ptr<video_config_t> video_config;
 static std::atomic<em_state_t> current_state = em_state_t::INVALID;
 static std::shared_ptr<Renderer> renderer = nullptr;
 static bool use_vulkan_api = false;
-static GLuint hw_texture, hw_fbo, hw_rbo;
 static retro_hw_render_callback *hw_render_cb = nullptr;
 static jshortArray audio_buffer = nullptr;
 static retro_pixel_format pixel_format = RETRO_PIXEL_FORMAT_RGB565;
@@ -31,7 +30,7 @@ static utils::properties_t props;
 static bool env_attached = false;
 
 static em_context_t ctx{};
-static std::shared_ptr<GLContext> shared_context;
+static std::shared_ptr<GLContext> gl_hw_context;
 static jobject variable_object;
 static jobject variable_entry_object;
 static struct retro_keyboard_callback *keyboard_cb;
@@ -74,13 +73,19 @@ static void log_print_callback(enum retro_log_level level, const char *fmt, ...)
 
 static void video_cb(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (!renderer || current_state != em_state_t::RUNNING) return;
-    if (!hw_render_cb && data) {
-        if (video_config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
-            XRGB8888_PATCH((void *) data, height * pitch);
-        } else if (pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
-            XRGB1555_TO_RGB565((void *) data, height * pitch);
+    if (hw_render_cb) {
+        if (gl_hw_context && data == RETRO_HW_FRAME_BUFFER_VALID) {
+            gl_hw_context->swap_buffers();
         }
-        renderer->submit(data, width, height, pitch);
+    } else {
+        if (data) {
+            if (video_config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
+                XRGB8888_PATCH((void *) data, height * pitch);
+            } else if (pixel_format == RETRO_PIXEL_FORMAT_0RGB1555) {
+                XRGB1555_TO_RGB565((void *) data, height * pitch);
+            }
+            renderer->render(data, width, height, pitch);
+        }
     }
     if (video_config->width != width || video_config->height != height) {
         video_config->width = static_cast<int>(width);
@@ -412,7 +417,7 @@ static jboolean em_start(JNIEnv *env, jobject thiz, jstring path) {
         if (props.get_or_else(PROP_OBOE_ENABLED, true)) {
             open_audio_stream();
         }
-        std::thread main_thread(entry_of_main_loop);
+        std::thread main_thread(_main__);
         main_thread.detach();
     } else {
         LOGE(TAG, "Unable load the game, file=%s", rom_path);
@@ -727,7 +732,7 @@ JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {
     ctx.jvm = nullptr;
 }
 
-static void entry_of_main_loop() {
+static void _main__() {
     if (!attach_env()) {
         LOGE(TAG, "Unable start main thread, attach env failed!");
         return;
@@ -735,31 +740,9 @@ static void entry_of_main_loop() {
     pid_t tid = utils::set_thread_priority(THREAD_PRIORITY_AUDIO);
     LOGI(TAG, "Set thread priority tid=%d, priority=THREAD_PRIORITY_AUDIO", tid);
     if (hw_render_cb) {
-        shared_context = std::make_shared<GLContext>(video_config->max_width,
+        gl_hw_context = std::make_shared<GLContext>(video_config->max_width,
                                                      video_config->max_height);
-        shared_context->make();
-        glGenTextures(1, &hw_texture);
-        glBindTexture(GL_TEXTURE_2D, hw_texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, video_config->max_width, video_config->max_height,
-                     0, GL_RGBA, GL_UNSIGNED_BYTE,
-                     nullptr);
-
-        glGenFramebuffers(1, &hw_fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, hw_fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, hw_texture, 0);
-        glGenRenderbuffers(1, &hw_rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, hw_rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, video_config->max_width,
-                              video_config->max_height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                                  hw_rbo);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            __android_log_assert(
-                    "glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE", TAG,
-                    "Failed to create framebuffer!");
-        }
+        gl_hw_context->make();
         hw_render_cb->context_reset();
     }
     utils::timestamp_t prev_time_millis = utils::system_current_milliseconds();
@@ -789,11 +772,8 @@ static void entry_of_main_loop() {
         if (msg->what == MSG_KILL) {
             if (hw_render_cb) {
                 hw_render_cb->context_destroy();
-                glDeleteRenderbuffers(1, &hw_rbo);
-                glDeleteFramebuffers(1, &hw_fbo);
-                glDeleteTextures(1, &hw_texture);
-                shared_context = nullptr;
             }
+            gl_hw_context = nullptr;
             msg->promise->set_value(result_t::ok());
             break;
         }
@@ -806,7 +786,7 @@ static retro_proc_address_t get_hw_proc_address(const char *sym) {
 }
 
 static uintptr_t get_hw_framebuffer() {
-    return hw_fbo;
+    return gl_hw_context->get_offscreen_fbo();
 }
 
 static bool attach_env() {
@@ -904,8 +884,7 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
                 std::shared_ptr<VkRenderer> it = std::static_pointer_cast<VkRenderer>(renderer);
             } else {
                 std::shared_ptr<GLRenderer> it = std::static_pointer_cast<GLRenderer>(renderer);
-                it->attach_context(shared_context);
-                it->attach_texture(hw_texture);
+                it->attach_context(gl_hw_context);
             }
             renderer->set_config(video_config);
             renderer->request_start();
@@ -932,13 +911,6 @@ static bool handle_message(const std::shared_ptr<message_t> &msg) {
         case MSG_RESET_EMULATOR:
             retro_reset();
             msg->promise->set_value(result_t::ok());
-            break;
-        case MSG_READ_PIXELS:
-            buffer = std::make_shared<buffer_t>(video_config->width * video_config->height * 4);
-            glBindFramebuffer(GL_FRAMEBUFFER, hw_fbo);
-            glReadPixels(0, 0, video_config->width, video_config->height, GL_RGBA, GL_UNSIGNED_BYTE,
-                         buffer->data);
-            msg->promise->set_value(result_t::ok(buffer));
             break;
         default:
             handled = false;

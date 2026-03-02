@@ -2,10 +2,9 @@
 // Created by wn123 on 2025-06-24.
 //
 
+#include <utility>
 #include <swappy/swappyGL.h>
 #include <swappy/swappyGL_extra.h>
-
-#include <utility>
 #include "GLRenderer.h"
 #include "Log.h"
 
@@ -89,7 +88,7 @@ GLRenderer::GLRenderer(JNIEnv *env, jobject activity, jobject surface) {
     ww = ANativeWindow_getWidth(window);
     wh = ANativeWindow_getHeight(window);
     enable_swappy(env, activity);
-    shared_context = nullptr;
+    hw_context = nullptr;
     cur_aspect_ratio = 0.f;
     state = renderer_state_t::PREPARED;
 }
@@ -101,14 +100,14 @@ void GLRenderer::resize_viewport(uint32_t w, uint32_t h) {
 
 bool GLRenderer::request_start() {
     if (state != renderer_state_t::PREPARED) return false;
-    if (!shared_context) {
+    if (!hw_context) {
         create_swap_chain();
     }
     gl_thread = std::thread([this]() {
         gl_thread_running = true;
         LOGI(TAG, "GLThread started, tid=%d", gettid());
-        if (shared_context) {
-            context = std::make_unique<GLContext>(window, shared_context->get_context());
+        if (hw_context) {
+            context = std::make_unique<GLContext>(window, hw_context->get_context());
         } else {
             context = std::make_unique<GLContext>(window, EGL_NO_CONTEXT);
         }
@@ -163,7 +162,7 @@ void GLRenderer::gl_swap_buffers() {
     if (SwappyGL_isEnabled()) {
         SwappyGL_swap(context->get_display(), context->get_surface());
     } else {
-        eglSwapBuffers(context->get_display(), context->get_surface());
+        context->swap_buffers();
     }
 }
 
@@ -180,16 +179,16 @@ void GLRenderer::request_resume() {
     }
 }
 
-void GLRenderer::attach_context(std::shared_ptr<GLContext> ctx) {
+void GLRenderer::attach_context(const std::shared_ptr<GLContext>& ctx) {
     if (state == renderer_state_t::PREPARED) {
-        shared_context = std::move(ctx);
+        hw_context = ctx;
     } else {
         LOGE(TAG, "Unable set shared context at this time, gl thread already started!");
     }
 }
 
-void GLRenderer::submit(const void *data, unsigned width, unsigned height, size_t pitch) {
-    if (state != renderer_state_t::RUNNING || shared_context) return;
+void GLRenderer::render(const void *data, unsigned width, unsigned height, size_t pitch) {
+    if (state != renderer_state_t::RUNNING || hw_context) return;
     uint8_t bytes_per_pixel = 2;
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
@@ -219,10 +218,6 @@ std::unique_ptr<image_t> GLRenderer::read_pixels() {
         request_pause();
     }
     return std::move(pixels);
-}
-
-void GLRenderer::attach_texture(const GLuint tex) {
-    shared_texture = tex;
 }
 
 void GLRenderer::create_swap_chain() {
@@ -293,7 +288,7 @@ void GLRenderer::gl_begin() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexes) + sizeof(texcoords), nullptr, GL_STATIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertexes), vertexes);
     /*flip y*/
-    if (!shared_context) {
+    if (!hw_context) {
         texcoords[1] = 0.f;
         texcoords[3] = 0.f;
         texcoords[5] = 1.f;
@@ -330,12 +325,12 @@ void GLRenderer::gl_begin() {
 }
 
 void GLRenderer::gl_draw() {
-    if (shared_context) {
+    if (hw_context) {
         gl_update_texcoords();
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, shared_texture);
+        glBindTexture(GL_TEXTURE_2D, hw_context->get_offscreen_tex());
         glUseProgram(PID);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) 0);
@@ -394,7 +389,7 @@ void GLRenderer::gl_update_texcoords() {
     if (cur_aspect_ratio != aspect_ratio) {
         float u_max = static_cast<float>(config->width) / static_cast<float>(config->max_width);
         float v_max = static_cast<float>(config->height) / static_cast<float>(config->max_height);
-        if (!shared_context) {
+        if (!hw_context) {
             /*flip y*/
             texcoords[0] = u_max, texcoords[1] = 0.f;
             texcoords[2] = 0.f, texcoords[3] = 0.f;
