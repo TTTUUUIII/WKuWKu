@@ -427,10 +427,11 @@ void VkRenderer::create_texture() {
     }
 
     VkDeviceSize size_in_bytes = config->max_width * config->max_height * bytes_per_pixel;
-    tex_staging_buffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                       VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                       size_in_bytes);
+    tex_swap_chain = std::make_unique<vk_swap_chain_t>(device, GPU,
+                                                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                       size_in_bytes,
+                                                       MAX_FRAMES_IN_FLIGHT);
     VkFormat fmt = VK_FORMAT_R8G8B8A8_UNORM;
     if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
         fmt = VK_FORMAT_R5G6B5_UNORM_PACK16;
@@ -482,33 +483,28 @@ void VkRenderer::create_texture_sampler() {
 
 void VkRenderer::create_buffers() {
     /*VAO*/
-    VBO = create_buffer(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                        sizeof(vertexes) + sizeof(texcoords));
-    auto *data = reinterpret_cast<uint8_t *>(VBO->data);
+    VBO = std::make_shared<vk_buffer_t>(device, GPU,
+                                        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                        sizeof(vertexes) + sizeof(texcoords));
+    auto *data = reinterpret_cast<uint8_t *>(VBO->data());
     memcpy(data, vertexes, sizeof(vertexes));
     memcpy(data + sizeof(vertexes), texcoords, sizeof(texcoords));
 
     /*EBO*/
-    EBO = create_buffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                        sizeof(indices));
-    size_t size_in_bytes = sizeof(indices);
-    std::shared_ptr<vk_buffer_t> staging_buffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                                                size_in_bytes);
-    memcpy(staging_buffer->data, indices, sizeof(indices));
-    copy_buffer(*staging_buffer, 0, *EBO, 0, sizeof(indices));
+    EBO = std::make_shared<vk_buffer_t>(device, GPU,
+                                        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                        sizeof(indices));
+    memcpy(EBO->data(), indices, sizeof(indices));
 
     /*UBOs*/
-    size_in_bytes = sizeof(uniform_obj_t);
     UBOs.resize(MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        UBOs[i] = create_buffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                size_in_bytes);
+        UBOs[i] = std::make_shared<vk_buffer_t>(device, GPU,
+                                                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                sizeof(uniform_obj_t));
     }
 }
 
@@ -527,7 +523,7 @@ void VkRenderer::create_descriptor_sets() {
 
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = UBOs[i]->buffer;
+        bufferInfo.buffer = UBOs[i]->buffer();
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(uniform_obj_t);
 
@@ -590,47 +586,6 @@ VkShaderModule VkRenderer::create_shader_mode(const u_int8_t *bytes, size_t size
     return module;
 }
 
-std::shared_ptr<vk_buffer_t>
-VkRenderer::create_buffer(VkBufferUsageFlags usage, VkMemoryPropertyFlags flags,
-                          VkDeviceSize size) {
-    VkBuffer buf;
-    VkDeviceMemory mem;
-    VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    if (vkCreateBuffer(device, &bufferInfo, nullptr, &buf) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create vertex buffer!");
-    }
-
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(device, buf, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = find_mem_type(memRequirements.memoryTypeBits, flags);
-    if (vkAllocateMemory(device, &allocInfo, nullptr, &mem) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate vertex buffer memory!");
-    }
-    vkBindBufferMemory(device, buf, mem, 0);
-    return std::make_shared<vk_buffer_t>(device, buf, mem, size);
-}
-
-uint32_t VkRenderer::find_mem_type(uint32_t filter_type, VkMemoryPropertyFlags properties) {
-    VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(GPU, &memProperties);
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-        if (filter_type & (1 << i) &&
-            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-            return i;
-        }
-    }
-
-    throw std::runtime_error("failed to find suitable memory type!");
-}
-
 void VkRenderer::create_image(uint32_t w, uint32_t h, VkFormat fmt, VkImageTiling tiling,
                               VkImageUsageFlags usageFlags, VkMemoryPropertyFlags props,
                               VkImage &img, VkDeviceMemory &img_mem) {
@@ -660,7 +615,7 @@ void VkRenderer::create_image(uint32_t w, uint32_t h, VkFormat fmt, VkImageTilin
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = find_mem_type(memRequirements.memoryTypeBits, props);
+    allocInfo.memoryTypeIndex = vk_buffer_t::find_memory_type_index(GPU, memRequirements.memoryTypeBits, props);
 
     if (vkAllocateMemory(device, &allocInfo, nullptr, &img_mem) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");
@@ -669,9 +624,10 @@ void VkRenderer::create_image(uint32_t w, uint32_t h, VkFormat fmt, VkImageTilin
     vkBindImageMemory(device, img, img_mem, 0);
 }
 
-void VkRenderer::transition_image_layout(VkCommandBuffer command_buffer, VkImage img, VkFormat format,
-                                   VkImageLayout old_layout,
-                                   VkImageLayout new_layout) {
+void
+VkRenderer::transition_image_layout(VkCommandBuffer command_buffer, VkImage img, VkFormat format,
+                                    VkImageLayout old_layout,
+                                    VkImageLayout new_layout) {
     VkImageMemoryBarrier barrier{};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout = old_layout;
@@ -701,14 +657,14 @@ void VkRenderer::transition_image_layout(VkCommandBuffer command_buffer, VkImage
 
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    } else if(old_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
-                new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+    } else if (old_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
+               new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if(old_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
-                new_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+    } else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
+               new_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
@@ -819,10 +775,11 @@ void VkRenderer::on_end() {
     vkFreeMemory(device, tex_mem, nullptr);
     vkDestroyImageView(device, tex_view, nullptr);
     vkDestroySampler(device, tex_sampler, nullptr);
-    tex_staging_buffer = nullptr;
+    tex_swap_chain = nullptr;
 }
 
-void VkRenderer::download_image(const VkCommandBuffer& command_buffer, const VkImage& src, uint32_t width, uint32_t height, VkBuffer& dst) {
+void VkRenderer::download_image(VkCommandBuffer cmd, const VkImage src,
+                                uint32_t width, uint32_t height, VkBuffer dst) {
     VkBufferImageCopy region{};
     region.bufferOffset = 0;
     region.bufferRowLength = 0;
@@ -835,11 +792,12 @@ void VkRenderer::download_image(const VkCommandBuffer& command_buffer, const VkI
 
     region.imageOffset = {0, 0, 0};
     region.imageExtent = {width, height, 1};
-    vkCmdCopyImageToBuffer(command_buffer, src, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst, 1, &region);
+    vkCmdCopyImageToBuffer(cmd, src, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst, 1,
+                           &region);
 }
 
 void
-VkRenderer::upload_image(const VkCommandBuffer& command_buffer,
+VkRenderer::upload_image(VkCommandBuffer cmd,
                          VkBuffer src, VkImage dst,
                          uint32_t width, uint32_t height) {
     VkBufferImageCopy region{};
@@ -853,9 +811,9 @@ VkRenderer::upload_image(const VkCommandBuffer& command_buffer,
     region.imageSubresource.layerCount = 1;
 
     region.imageOffset = {0, 0, 0};
-    region.imageExtent = { width, height,1};
+    region.imageExtent = {width, height, 1};
     vkCmdCopyBufferToImage(
-            command_buffer,
+            cmd,
             src,
             dst,
             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -864,18 +822,18 @@ VkRenderer::upload_image(const VkCommandBuffer& command_buffer,
     );
 }
 
-void VkRenderer::copy_buffer(const vk_buffer_t &src, uint32_t src_offset,
-                             vk_buffer_t &dst,uint32_t dst_offset,
-                             VkDeviceSize len) {
-    VkCommandBuffer command_buffer;
-    begin_single_time_commands(command_buffer);
-    VkBufferCopy copyRegion{};
-    copyRegion.srcOffset = src_offset;
-    copyRegion.dstOffset = dst_offset;
-    copyRegion.size = len;
-    vkCmdCopyBuffer(command_buffer, src.buffer, dst.buffer, 1, &copyRegion);
-    end_single_time_commands(command_buffer);
-}
+//void VkRenderer::copy_buffer(vk_buffer_t& src, uint32_t src_offset,
+//                             vk_buffer_t& dst, uint32_t dst_offset,
+//                             VkDeviceSize len) {
+//    VkCommandBuffer command_buffer;
+//    begin_single_time_commands(command_buffer);
+//    VkBufferCopy copyRegion{};
+//    copyRegion.srcOffset = src_offset;
+//    copyRegion.dstOffset = dst_offset;
+//    copyRegion.size = len;
+//    vkCmdCopyBuffer(command_buffer, src.buffer(), dst.buffer(), 1, &copyRegion);
+//    end_single_time_commands(command_buffer);
+//}
 
 void VkRenderer::update_uniform_buffer() {
     uniform_obj_t obj{};
@@ -897,7 +855,7 @@ void VkRenderer::update_uniform_buffer() {
     deg += (360.f - static_cast<float>(config->rota) * 90.f);
     obj.model = glm::rotate(model, glm::radians(deg), glm::vec3(0.f, 0.f, 1.f));
     obj.effect = static_cast<uint32_t>(config->effect);
-    memcpy(UBOs[cur_frame]->data, &obj, sizeof(uniform_obj_t));
+    memcpy(UBOs[cur_frame]->data(), &obj, sizeof(uniform_obj_t));
 }
 
 void VkRenderer::update_texcoords() {
@@ -909,7 +867,7 @@ void VkRenderer::update_texcoords() {
         texcoords[2] = 0.f, texcoords[3] = v_max;
         texcoords[4] = 0.f, texcoords[5] = 0.f;
         texcoords[6] = u_max, texcoords[7] = 0.f;
-        auto *data = reinterpret_cast<uint8_t *>(VBO->data);
+        auto *data = reinterpret_cast<uint8_t *>(VBO->data());
         memcpy(data + sizeof(vertexes), texcoords, sizeof(texcoords));
         cur_aspect_ratio = aspect_ratio;
     }
@@ -952,10 +910,10 @@ void VkRenderer::record_command_buffer(VkCommandBuffer command_buffer, u_int32_t
     scissor.extent = format.extent;
     vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
-    VkBuffer vertexBuffers[] = {VBO->buffer};
+    VkBuffer vertexBuffers[] = {VBO->buffer()};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(command_buffer, 0, 1, vertexBuffers, offsets);
-    vkCmdBindIndexBuffer(command_buffer, EBO->buffer, 0, VK_INDEX_TYPE_UINT16);
+    vkCmdBindIndexBuffer(command_buffer, EBO->buffer(), 0, VK_INDEX_TYPE_UINT16);
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout, 0, 1,
                             &descriptor_sets[cur_frame], 0, nullptr);
     vkCmdDrawIndexed(command_buffer, 6, 1, 0, 0, 0);
@@ -966,21 +924,21 @@ void VkRenderer::record_command_buffer(VkCommandBuffer command_buffer, u_int32_t
 }
 
 void VkRenderer::update_texture(VkCommandBuffer command_buffer) {
-    if (!tex_staging_buffer_updated) return;
+    int idx = tex_swap_chain->acquire_read_idx();
+    if (idx == -1) return;
     VkFormat fmt = VK_FORMAT_R8G8B8A8_UNORM;
     if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
         fmt = VK_FORMAT_R5G6B5_UNORM_PACK16;
     }
     transition_image_layout(command_buffer, tex, fmt,
-                      VK_IMAGE_LAYOUT_UNDEFINED,
-                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    upload_image(command_buffer, tex_staging_buffer->buffer, tex,
-                      static_cast<uint32_t>(config->width),
-                      static_cast<uint32_t>(config->height));
+                            VK_IMAGE_LAYOUT_UNDEFINED,
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    upload_image(command_buffer, tex_swap_chain->get(idx)->buffer(), tex,
+                 static_cast<uint32_t>(config->width),
+                 static_cast<uint32_t>(config->height));
     transition_image_layout(command_buffer, tex, fmt, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     update_texcoords();
-    tex_staging_buffer_updated.store(false);
 }
 
 void VkRenderer::create_image_views() {
@@ -1018,21 +976,23 @@ void VkRenderer::resize_viewport(uint32_t w, uint32_t h) {
 
 void VkRenderer::render(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (state != renderer_state_t::RUNNING) return;
+    int idx = tex_swap_chain->acquire_write_idx();
+    if (idx == -1) return;
     uint8_t bytes_per_pixel = 2;
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
     }
     if (width * bytes_per_pixel == pitch) {
-        memcpy(tex_staging_buffer->data, data, height * pitch);
+        memcpy(tex_swap_chain->get(idx)->data(), data, height * pitch);
     } else {
         for (int i = 0; i < height; ++i) {
-            memcpy((void *) (static_cast<const char *>(tex_staging_buffer->data) +
+            memcpy((void *) (static_cast<const char *>(tex_swap_chain->get(idx)->data()) +
                              i * width * bytes_per_pixel),
                    static_cast<const char *>(data) + i * pitch,
                    width * bytes_per_pixel);
         }
     }
-    tex_staging_buffer_updated.store(true);
+    tex_swap_chain->submit(idx);
 }
 
 int VkRenderer::get_frame_rate() {
@@ -1044,26 +1004,27 @@ std::unique_ptr<image_t> VkRenderer::read_pixels() {
     VkImage image = images[next_image_idx];
     VkCommandBuffer cmd;
     VkDeviceSize size_in_bytes = format.extent.width * format.extent.height * 4;
-    std::shared_ptr<vk_buffer_t> staging_buffer = create_buffer(VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-                  size_in_bytes);
+    std::shared_ptr<vk_buffer_t> staging_buffer = std::make_shared<vk_buffer_t>(device, GPU,
+                                                                                VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                                                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                                                                                size_in_bytes);
     begin_single_time_commands(cmd);
     transition_image_layout(cmd, image,
-                      format.image_format.format,
-                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    download_image(cmd, image, format.extent.width, format.extent.height, staging_buffer->buffer);
+                            format.image_format.format,
+                            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    download_image(cmd, image, format.extent.width, format.extent.height, staging_buffer->buffer());
     transition_image_layout(cmd, image,
-                      format.image_format.format,
-                      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+                            format.image_format.format,
+                            VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
     end_single_time_commands(cmd);
     std::unique_ptr<image_t> it = std::make_unique<image_t>();
     it->width = static_cast<int>(format.extent.width);
     it->height = static_cast<int>(format.extent.height);
     it->comp = 4;
     it->data_ptr = std::make_unique<buffer_t>(size_in_bytes);
-    memcpy(it->data_ptr->data, staging_buffer->data, size_in_bytes);
+    memcpy(it->data_ptr->data, staging_buffer->data(), size_in_bytes);
     return it;
 }
 
@@ -1130,9 +1091,9 @@ void VkRenderer::recreate_swap_chain() {
     context->create_swap_chain(device, new_chain, format, swap_chain);
     clean_swap_chain();
     swap_chain = new_chain;
-    enable_swappy(nullptr, nullptr);
     create_image_views();
     create_framebuffers();
+    enable_swappy(nullptr, nullptr);
     LOGW(TAG, "Swapchain recreated!");
 }
 
@@ -1144,4 +1105,120 @@ void VkRenderer::clean_swap_chain() {
     }
     vkDestroySwapchainKHR(device, swap_chain, nullptr);
     swap_chain = VK_NULL_HANDLE;
+}
+
+vk_buffer_t::vk_buffer_t(VkDevice _dev,
+                         VkPhysicalDevice gpu,
+                         VkBufferUsageFlags usage,
+                         VkMemoryPropertyFlags flags,
+                         VkDeviceSize size) : dev(_dev) {
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    if (vkCreateBuffer(dev, &bufferInfo, nullptr, &buf) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create vertex buffer!");
+    }
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(dev, buf, &memRequirements);
+
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = find_memory_type_index(gpu, memRequirements.memoryTypeBits, flags);
+    if (vkAllocateMemory(dev, &allocInfo, nullptr, &mem) != VK_SUCCESS) {
+        throw std::runtime_error("Failed to allocate vertex buffer memory!");
+    }
+    vkBindBufferMemory(dev, buf, mem, 0);
+    vkMapMemory(dev, mem, 0, size, 0, &data_ptr);
+}
+
+vk_buffer_t::~vk_buffer_t() {
+    vkUnmapMemory(dev, mem);
+    vkFreeMemory(dev, mem, nullptr);
+    vkDestroyBuffer(dev, buf, nullptr);
+    data_ptr = nullptr;
+}
+
+void *vk_buffer_t::data() {
+    return data_ptr;
+}
+
+uint32_t
+vk_buffer_t::find_memory_type_index(VkPhysicalDevice gpu, uint32_t type_filter, VkMemoryPropertyFlags properties) {
+    VkPhysicalDeviceMemoryProperties memProperties;
+    vkGetPhysicalDeviceMemoryProperties(gpu, &memProperties);
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if (type_filter & (1 << i) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
+VkBuffer vk_buffer_t::buffer() const {
+    return buf;
+}
+
+vk_swap_chain_t::vk_swap_chain_t(VkDevice _dev,
+                                 VkPhysicalDevice gpu,
+                                 VkBufferUsageFlags usage,
+                                 VkMemoryPropertyFlags flags,
+                                 VkDeviceSize size,
+                                 uint32_t num_of_buffers) {
+    buffers.resize(num_of_buffers);
+    for (int i = 0; i < num_of_buffers; ++i) {
+        buffers[i] = std::make_shared<vk_buffer_t>(_dev, gpu, usage, flags, size);
+        free_idxs.push(i);
+    }
+}
+
+int vk_swap_chain_t::acquire_write_idx() {
+    std::lock_guard<std::mutex> lock(mtx);
+    int write_idx;
+    if (!free_idxs.empty()) {
+        write_idx = free_idxs.front();
+        free_idxs.pop();
+    } else {
+        write_idx = full_idxs.front();
+        full_idxs.pop();
+    }
+    return write_idx;
+}
+
+void vk_swap_chain_t::submit(int idx) {
+    if (idx == -1) return;
+    std::lock_guard<std::mutex> lock(mtx);
+    full_idxs.push(idx);
+}
+
+int vk_swap_chain_t::acquire_read_idx() {
+    std::lock_guard<std::mutex> lock(mtx);
+    if(!full_idxs.empty()) {
+        if(cur_read_idx != -1) {
+            free_idxs.push(cur_read_idx);
+        }
+        cur_read_idx = full_idxs.front();
+        full_idxs.pop();
+    }
+    return cur_read_idx;
+}
+
+vk_swap_chain_t::~vk_swap_chain_t() {
+    std::lock_guard<std::mutex> lock(mtx);
+    while(!full_idxs.empty()) full_idxs.pop();
+    while(!free_idxs.empty()) free_idxs.pop();
+    cur_read_idx = -1;
+    buffers.clear();
+}
+
+std::shared_ptr<vk_buffer_t> vk_swap_chain_t::get(int idx) {
+    if (idx == -1) {
+        return nullptr;
+    }
+    return buffers[idx];
 }
