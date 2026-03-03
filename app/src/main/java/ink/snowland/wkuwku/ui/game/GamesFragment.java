@@ -250,7 +250,9 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         }
 
         public void bind(int position) {
-            Game game = mAdapter.getCurrentList().get(position);
+            List<Game> currentList = mAdapter.getCurrentList();
+            if (position >= currentList.size()) return;
+            Game game = currentList.get(position);
             if (itemBinding instanceof ItemGameBinding itemGameBinding) {
                 itemGameBinding.setGame(game);
                 itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(position, v));

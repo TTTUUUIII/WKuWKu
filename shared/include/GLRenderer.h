@@ -34,36 +34,11 @@ public:
 
     void* data_ptr(int idx);
 
-    std::unique_ptr<buffer_t> read_pixels() {
-        std::lock_guard<std::mutex> lock(mtx);
-        if(cur_read_idx != -1) {
-            buffer_t& fb = buffers[cur_read_idx];
-            std::unique_ptr<buffer_t> data_ptr = std::make_unique<buffer_t>(fb.capacity);
-            memcpy(data_ptr->data, fb.data, fb.capacity);
-            return std::move(data_ptr);
-        }
-        return nullptr;
-    }
+    std::unique_ptr<buffer_t> read_pixels();
 
-    int acquire_read_idx() {
-        std::lock_guard<std::mutex> lock(mtx);
-        if(!full_idxs.empty()) {
-            if(cur_read_idx != -1) {
-                free_idxs.push(cur_read_idx);
-            }
-            cur_read_idx = full_idxs.front();
-            full_idxs.pop();
-        }
-        return cur_read_idx;
-    }
+    int acquire_read_idx();
 
-    virtual ~swap_chain_t() {
-        std::lock_guard<std::mutex> lock(mtx);
-        while(!full_idxs.empty()) full_idxs.pop();
-        while(!free_idxs.empty()) free_idxs.pop();
-        cur_read_idx = -1;
-        buffers.clear();
-    }
+    virtual ~swap_chain_t();
 };
 
 class GLRenderer: public Renderer {
