@@ -7,7 +7,7 @@
 
 GLContext::GLContext(ANativeWindow *window, EGLContext shared_context): offscreen(false) {
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    eglInitialize(display, &version_major, &version_minor);
+    eglInitialize(display, &version.major, &version.minor);
     const EGLint config_attrib_list[] = {
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
             EGL_RED_SIZE, 8,EGL_GREEN_SIZE, 8,EGL_BLUE_SIZE, 8,EGL_ALPHA_SIZE, 8,
@@ -29,7 +29,7 @@ GLContext::GLContext(ANativeWindow *window, EGLContext shared_context): offscree
 
 GLContext::GLContext(int _width, int _height): width(_width), height(_height), offscreen(true) {
     display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    eglInitialize(display, &version_major, &version_minor);
+    eglInitialize(display, &version.major, &version.minor);
     const EGLint config_attrib_list[] = {
             EGL_SURFACE_TYPE, EGL_PBUFFER_BIT,
             EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
@@ -84,10 +84,14 @@ void GLContext::make() {
         glBindTexture(GL_TEXTURE_2D, offscreen_tex);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                     0, GL_RGBA, GL_UNSIGNED_BYTE,
-                     nullptr);
-
+        gl_version_t ver = get_version();
+        if (ver.major >= 3) {
+            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
+        } else {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                         0, GL_RGBA, GL_UNSIGNED_BYTE,
+                         nullptr);
+        }
         glGenFramebuffers(1, &offscreen_fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, offscreen_fbo);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, offscreen_tex, 0);
@@ -115,4 +119,11 @@ GLuint GLContext::get_offscreen_fbo() const {
 
 void GLContext::swap_buffers() const {
     eglSwapBuffers(display, surface);
+}
+
+gl_version_t GLContext::get_version() {
+    gl_version_t ver{};
+    glGetIntegerv(GL_MAJOR_VERSION, &ver.major);
+    glGetIntegerv(GL_MINOR_VERSION, &ver.minor);
+    return ver;
 }

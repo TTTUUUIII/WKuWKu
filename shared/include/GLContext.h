@@ -9,6 +9,11 @@
 #include <GLES3/gl3.h>
 #include <android/native_window_jni.h>
 
+struct gl_version_t {
+    GLint major;
+    GLint minor;
+};
+
 class GLContext {
 public:
     explicit GLContext(ANativeWindow *window, EGLContext shared_context);
@@ -21,6 +26,7 @@ public:
     [[nodiscard]] EGLSurface get_surface() const;
     [[nodiscard]] GLuint get_offscreen_tex() const;
     [[nodiscard]] GLuint get_offscreen_fbo() const;
+    [[nodiscard]] static gl_version_t get_version() ;
 private:
     const char* TAG = "GLContext";
     bool offscreen;
@@ -28,8 +34,7 @@ private:
     EGLDisplay display;
     EGLSurface surface;
     EGLContext context;
-    EGLint version_major{};
-    EGLint version_minor{};
+    gl_version_t version{};
     GLuint offscreen_tex{};
     GLuint offscreen_fbo{};
     GLuint offscreen_rbo{};
