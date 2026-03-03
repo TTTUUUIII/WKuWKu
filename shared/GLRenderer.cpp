@@ -310,16 +310,21 @@ void GLRenderer::gl_begin() {
     glBindTexture(GL_TEXTURE_2D, Tex0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, config->max_width, config->max_height, 0, GL_RGB,
-                     GL_UNSIGNED_SHORT_5_6_5, nullptr);
-    } else if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, config->max_width, config->max_height, 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, nullptr);
+    const gl_version_t &ver = GLContext::get_version();
+    if (ver.major >= 3) {
+        GLenum internal_format_sized = GL_RGBA8;
+        if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
+            internal_format_sized = GL_RGB565;
+        }
+        glTexStorage2D(GL_TEXTURE_2D, 1, internal_format_sized, config->max_width, config->max_height);
     } else {
-        __android_log_assert(
-                "format != RETRO_PIXEL_FORMAT_RGB565 && format != RETRO_PIXEL_FORMAT_XRGB8888", TAG,
-                "Unsupported pixel format! %d", config->format);
+        GLint internal_format = GL_RGBA;
+        GLenum type = GL_UNSIGNED_BYTE;
+        if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
+            internal_format = GL_RGB;
+            type = GL_UNSIGNED_SHORT_5_6_5;
+        }
+        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, config->max_width, config->max_height, 0, internal_format, type, nullptr);
     }
     glBindTexture(GL_TEXTURE_2D, 0);
 }
