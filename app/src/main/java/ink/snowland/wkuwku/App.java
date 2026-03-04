@@ -1,7 +1,6 @@
 package ink.snowland.wkuwku;
 
 import android.app.Application;
-import android.os.Process;
 
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
@@ -9,8 +8,6 @@ import androidx.work.NetworkType;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
 import ink.snowland.wkuwku.activity.UncaughtExceptionActivity;

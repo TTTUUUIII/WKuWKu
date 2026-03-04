@@ -42,14 +42,12 @@
             style="@style/Theme.WKuWKu.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:iconTint="@color/info"
-            app:icon="@drawable/ic_reply" />
+            app:icon="@drawable/ic_replay" />
         <Button
             android:id="@+id/button_delete"
             style="@style/Theme.WKuWKu.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:iconTint="@color/error"
             app:icon="@drawable/ic_close" />
     </LinearLayout>
 </layout>

@@ -114,7 +114,7 @@
                 <TextView
                     android:id="@+id/error_text"
                     android:textStyle="bold"
-                    android:textColor="@color/error"
+                    android:textColor="?attr/colorError"
                     android:layout_weight="1"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content" />

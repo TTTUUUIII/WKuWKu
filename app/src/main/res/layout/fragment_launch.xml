@@ -31,7 +31,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:text="@{viewModel.rendererRateText}"
-            android:textColor="@color/hit_text"
+            android:textColor="?attr/colorHintText"
             android:fontFamily="@font/bitcount_grid_double_variable_font"
             app:layout_constraintTop_toTopOf="@id/surface_view"
             app:layout_constraintEnd_toEndOf="@id/surface_view"/>
@@ -42,7 +42,7 @@
             android:textSize="16sp"
             android:textStyle="bold"
             android:text="@{tooltipState.text}"
-            android:textColor="@color/hit_text"
+            android:textColor="?attr/colorHintText"
             android:fontFamily="@font/bitcount_grid_double_variable_font"
             app:layout_constraintStart_toStartOf="@id/surface_view"
             app:layout_constraintBottom_toBottomOf="@id/surface_view"/>

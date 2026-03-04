@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--Default night color-->
+    <color name="primary">@color/white</color>
+    <color name="on_primary">@color/black</color>
+    <color name="primary_container">#352F44</color>
+    <color name="on_primary_container">@color/primary</color>
+    <color name="secondary">@color/white</color>
+    <color name="on_secondary">@color/black</color>
+    <color name="secondary_container">@color/white</color>
+    <color name="on_secondary_container">@color/black</color>
+    <color name="surface">@color/primary_container</color>
+    <color name="surface_container">@color/primary_container</color>
+    <color name="surface_container_high">#393E46</color>
+    <color name="surface_inverse">@color/white</color>
+    <color name="on_surface_inverse">@color/black</color>
+    <color name="primary_inverse">@color/black</color>
+    <color name="background">@color/black</color>
+    <color name="on_background">@color/white_alpha_300</color>
+    <color name="hint_text">@color/primary</color>
+</resources>

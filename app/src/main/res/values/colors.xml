@@ -1,40 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#FE8E37</color>
     <color name="modal_mask">#7BFFFFFF</color>
     <color name="black">#FF000000</color>
     <color name="black_alpha_400">#66000000</color>
     <color name="black_alpha_500">#80000000</color>
     <color name="black_alpha_700">#B2000000</color>
     <color name="black_alpha_800">#C8000000</color>
-    <color name="white">#F7F7F7</color>
+    <color name="white">#FBF6F6</color>
     <color name="white_alpha_800">#C8F7F7F7</color>
     <color name="white_alpha_400">#66F7F7F7</color>
     <color name="white_alpha_300">#4CF7F7F7</color>
-    <color name="info">#3D90D7</color>
-    <color name="error">#E52020</color>
-    <color name="error_700">#E96262</color>
+    <color name="ic_launcher_background">#FE8E37</color>
 
-    <color name="hit_text">@color/container</color>
-
-    <!--light theme-->
-    <color name="primary">#FF6600</color>
-    <color name="container">#FFB38E</color>
-    <color name="surface">#FFECDB</color>
-    <color name="surface_container">@color/surface</color>
+    <!--Default light color-->
+    <color name="primary">#FF5A5A</color>
+    <color name="on_primary">@color/white</color>
+    <color name="primary_container">#F5E5E1</color>
+    <color name="on_primary_container">@color/primary</color>
+    <color name="secondary">@color/black</color>
+    <color name="on_secondary">@color/white</color>
+    <color name="secondary_container">#FFA6A6</color>
+    <color name="on_secondary_container">#FF7070</color>
+    <color name="surface">@color/primary_container</color>
+    <color name="surface_container">@color/primary_container</color>
+    <color name="surface_container_high">#F9F5F0</color>
+    <color name="surface_inverse">#352F44</color>
+    <color name="on_surface_inverse">@color/white</color>
+    <color name="primary_inverse">#FF9B82</color>
     <color name="background">@color/white</color>
-    <color name="on_background">#F4C5B0</color>
-    <color name="secondary_container">#EFB495</color>
-    <color name="text_color_light">#737373</color>
-    <color name="control_normal">#5f6368</color>
-
-    <!--dark theme-->
-    <color name="primary_dark">#F7F7F7</color>
-    <color name="container_dark">#352F44</color>
-    <color name="surface_dark">@color/container_dark</color>
-    <color name="surface_container_dark">@color/container_dark</color>
-    <color name="secondary_container_dark">@color/white_alpha_300</color>
-    <color name="background_dark">@color/black</color>
-    <color name="on_background_dark">@color/white_alpha_300</color>
-    <color name="control_normal_dark">@color/white_alpha_800</color>
+    <color name="on_background">#FFC3A1</color>
+    <color name="hint_text">@color/primary</color>
 </resources>
