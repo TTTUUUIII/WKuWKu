@@ -2,16 +2,23 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.WKuWKu" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
-        <item name="colorPrimary">@color/primary_dark</item>
-        <item name="colorPrimaryContainer">@color/container_dark</item>
-        <item name="colorSurface">@color/surface_dark</item>
-        <item name="colorSurfaceContainer">@color/surface_container_dark</item>
-        <item name="colorSurfaceContainerHigh">@color/surface_dark</item>
-        <item name="colorSecondaryContainer">@color/secondary_container_dark</item>
-        <item name="colorBackground">@color/background_dark</item>
-        <item name="colorOnBackground">@color/on_background_dark</item>
-        <item name="colorControlNormal">@color/control_normal_dark</item>
-        <item name="popupMenuBackground">@color/white_alpha_300</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorPrimaryContainer">@color/primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/on_primary_container</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="colorSecondaryContainer">@color/secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/on_secondary_container</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorSurfaceContainer">@color/surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_container_high</item>
+        <item name="colorSurfaceInverse">@color/surface_inverse</item>
+        <item name="colorOnSurfaceInverse">@color/on_surface_inverse</item>
+        <item name="colorPrimaryInverse">@color/primary_inverse</item>
+        <item name="colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+        <item name="colorHintText">@color/hint_text</item>
         <item name="preferenceTheme">@style/ThemeOverlay.WKuWKu.Preference</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>

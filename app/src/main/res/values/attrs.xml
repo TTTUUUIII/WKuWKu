@@ -39,4 +39,5 @@
 
     <attr name="colorBackground" format="color" />
     <attr name="colorOnBackground" format="color" />
+    <attr name="colorHintText" format="color" />
 </resources>
