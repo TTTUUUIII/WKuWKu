@@ -80,7 +80,7 @@
                 tools:text="Support arcade platforms." />
             <TextView
                 android:id="@+id/warning"
-                android:textColor="@color/error"
+                android:textColor="?attr/colorError"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
