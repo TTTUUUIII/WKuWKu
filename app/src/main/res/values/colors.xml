@@ -20,7 +20,7 @@
     <color name="secondary">@color/black</color>
     <color name="on_secondary">@color/white</color>
     <color name="secondary_container">#FFA6A6</color>
-    <color name="on_secondary_container">#FF7070</color>
+    <color name="on_secondary_container">#CC561E</color>
     <color name="surface">@color/primary_container</color>
     <color name="surface_container">@color/primary_container</color>
     <color name="surface_container_high">#F9F5F0</color>
