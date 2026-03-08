@@ -1,3 +1,8 @@
+@v0.4.22a
+[Opt] theme colors;
+[Fix] some known issues;
+@end
+
 @v0.4.21a
 [Feat] vulkan is now supported;
 [Feat] supports specify a cover for game;
