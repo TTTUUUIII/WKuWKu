@@ -30,4 +30,42 @@
     <color name="background">@color/white</color>
     <color name="on_background">#FFC3A1</color>
     <color name="hint_text">@color/primary</color>
+
+    <!-- Avocado color-->
+    <color name="avocado_primary">#4C5C2D</color>
+    <color name="avocado_on_primary">@color/white</color>
+    <color name="avocado_primary_container">#EBF4DD</color>
+    <color name="avocado_on_primary_container">@color/avocado_primary</color>
+    <color name="avocado_secondary">@color/black</color>
+    <color name="avocado_on_secondary">@color/white</color>
+    <color name="avocado_secondary_container">#B0CE88</color>
+    <color name="avocado_on_secondary_container">#043915</color>
+    <color name="avocado_surface">@color/avocado_primary_container</color>
+    <color name="avocado_surface_container">@color/avocado_primary_container</color>
+    <color name="avocado_surface_container_high">#E1E9C9</color>
+    <color name="avocado_surface_inverse">#352F44</color>
+    <color name="avocado_on_surface_inverse">@color/white</color>
+    <color name="avocado_primary_inverse">#6A7E3F</color>
+    <color name="avocado_background">@color/white</color>
+    <color name="avocado_on_background">#C6D870</color>
+    <color name="avocado_hint_text">@color/avocado_primary</color>
+
+    <!-- Ocean color-->
+    <color name="ocean_primary">#0C2C55</color>
+    <color name="ocean_on_primary">@color/white</color>
+    <color name="ocean_primary_container">#CBDCEB</color>
+    <color name="ocean_on_primary_container">@color/ocean_primary</color>
+    <color name="ocean_secondary">@color/black</color>
+    <color name="ocean_on_secondary">@color/white</color>
+    <color name="ocean_secondary_container">#9ACBD0</color>
+    <color name="ocean_on_secondary_container">#155E95</color>
+    <color name="ocean_surface">@color/ocean_primary_container</color>
+    <color name="ocean_surface_container">@color/ocean_primary_container</color>
+    <color name="ocean_surface_container_high">#C4E1E6</color>
+    <color name="ocean_surface_inverse">#352F44</color>
+    <color name="ocean_on_surface_inverse">@color/white</color>
+    <color name="ocean_primary_inverse">#3674B5</color>
+    <color name="ocean_background">@color/white</color>
+    <color name="ocean_on_background">#A3CCDA</color>
+    <color name="ocean_hint_text">@color/ocean_primary</color>
 </resources>

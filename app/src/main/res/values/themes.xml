@@ -23,6 +23,46 @@
         <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 
+    <style name="ThemeOverlay.WKuWKu.Avocado" parent="">
+        <item name="colorPrimary">@color/avocado_primary</item>
+        <item name="colorOnPrimary">@color/avocado_on_primary</item>
+        <item name="colorPrimaryContainer">@color/avocado_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/avocado_on_primary_container</item>
+        <item name="colorSecondary">@color/avocado_secondary</item>
+        <item name="colorOnSecondary">@color/avocado_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/avocado_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/avocado_on_secondary_container</item>
+        <item name="colorSurface">@color/avocado_surface</item>
+        <item name="colorSurfaceContainer">@color/avocado_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/avocado_surface_container_high</item>
+        <item name="colorSurfaceInverse">@color/avocado_surface_inverse</item>
+        <item name="colorOnSurfaceInverse">@color/avocado_on_surface_inverse</item>
+        <item name="colorPrimaryInverse">@color/avocado_primary_inverse</item>
+        <item name="colorBackground">@color/avocado_background</item>
+        <item name="colorOnBackground">@color/avocado_on_background</item>
+        <item name="colorHintText">@color/avocado_hint_text</item>
+    </style>
+
+    <style name="ThemeOverlay.WKuWKu.Ocean" parent="">
+        <item name="colorPrimary">@color/ocean_primary</item>
+        <item name="colorOnPrimary">@color/ocean_on_primary</item>
+        <item name="colorPrimaryContainer">@color/ocean_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/ocean_on_primary_container</item>
+        <item name="colorSecondary">@color/ocean_secondary</item>
+        <item name="colorOnSecondary">@color/ocean_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/ocean_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/ocean_on_secondary_container</item>
+        <item name="colorSurface">@color/ocean_surface</item>
+        <item name="colorSurfaceContainer">@color/ocean_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/ocean_surface_container_high</item>
+        <item name="colorSurfaceInverse">@color/ocean_surface_inverse</item>
+        <item name="colorOnSurfaceInverse">@color/ocean_on_surface_inverse</item>
+        <item name="colorPrimaryInverse">@color/ocean_primary_inverse</item>
+        <item name="colorBackground">@color/ocean_background</item>
+        <item name="colorOnBackground">@color/ocean_on_background</item>
+        <item name="colorHintText">@color/ocean_hint_text</item>
+    </style>
+    
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
     <style name="Theme.WKuWKu.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
         <item name="elevation">@null</item>

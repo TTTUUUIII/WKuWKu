@@ -26,4 +26,9 @@
         <item>复古CRT</item>
         <item>黑白</item>
     </string-array>
+    <string-array name="theme_overlays">
+        <item>无</item>
+        <item>牛油果</item>
+        <item>海洋</item>
+    </string-array>
 </resources>

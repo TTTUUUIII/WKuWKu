@@ -188,4 +188,5 @@
     <string name="default_launcher">默认启动器</string>
     <string name="default_launcher_summary">设置为系统默认启动器</string>
     <string name="graphics_api">图形接口</string>
+    <string name="theme_overlay">主题配色</string>
 </resources>
