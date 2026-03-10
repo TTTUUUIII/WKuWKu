@@ -54,6 +54,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         InputManager.InputDeviceListener,
         SearchView.OnQueryTextListener {
     private static final String APP_THEME = "app_theme";
+    private static final String THEME_OVERLAY = "theme.overlay";
     private ActivityResultLauncher<Intent> mQRCodeScannerLauncher;
     private ActivityResultLauncher<String[]> mOpenDocumentLauncher;
     private OnResultCallback<Uri> mOpenDocumentCallback;
@@ -77,7 +78,8 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        updateAppTheme();
+        updateTheme();
+        applyThemeOverlay();
         ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), this);
         mOpenDocumentLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
             if (mOpenDocumentCallback != null) {
@@ -268,7 +270,9 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
 
     public void onSettingChanged(@NonNull String key) {
         if (APP_THEME.equals(key)) {
-            updateAppTheme();
+            updateTheme();
+        } else if (THEME_OVERLAY.equals(key)) {
+            recreate();
         }
     }
 
@@ -280,14 +284,26 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         }
     }
 
-    private void updateAppTheme() {
-        String theme = SettingsManager.getString(APP_THEME, "system");
-        if (theme.equals("dark")) {
+    private void updateTheme() {
+        /*Update mode*/
+        String setting = SettingsManager.getString(APP_THEME, "system");
+        if (setting.equals("dark")) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-        } else if (theme.equals("light")) {
+        } else if (setting.equals("light")) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        }
+    }
+
+    private void applyThemeOverlay() {
+        String overlay = SettingsManager.getString(THEME_OVERLAY, "none");
+        if (overlay.equals("avocado")) {
+            getTheme()
+                    .applyStyle(R.style.ThemeOverlay_WKuWKu_Avocado, true);
+        } else if (overlay.equals("ocean")){
+            getTheme()
+                    .applyStyle(R.style.ThemeOverlay_WKuWKu_Ocean, true);
         }
     }
 

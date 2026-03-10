@@ -124,6 +124,14 @@
             app:key="app_theme"
             app:title="@string/theme"
             app:useSimpleSummaryProvider="true" />
+        <ListPreference
+            app:iconSpaceReserved="false"
+            app:defaultValue="none"
+            android:entries="@array/theme_overlays"
+            app:entryValues="@array/theme_overlays_values"
+            app:key="theme.overlay"
+            app:title="@string/theme_overlay"
+            app:useSimpleSummaryProvider="true" />
         <EditTextPreference
             app:iconSpaceReserved="false"
             app:defaultValue="🐢☺️⭐️"
