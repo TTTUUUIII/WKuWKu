@@ -217,4 +217,5 @@
     <string name="default_launcher_summary">As the system\'s default launcher</string>
     <string name="graphics_api">Graphics API</string>
     <string name="default_graphics_api" translatable="false">gles</string>
+    <string name="theme_overlay">Theme Overlay</string>
 </resources>
