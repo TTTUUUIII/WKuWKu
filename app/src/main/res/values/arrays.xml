@@ -84,13 +84,15 @@
         <item>vulkan</item>
     </string-array>
     <string-array name="theme_overlays">
-        <item>None</item>
+        <item>Default</item>
         <item>Avocado</item>
         <item>Ocean</item>
+        <item>Hazelnut</item>
     </string-array>
     <string-array name="theme_overlays_values">
         <item>none</item>
         <item>avocado</item>
         <item>ocean</item>
+        <item>hazelnut</item>
     </string-array>
 </resources>
