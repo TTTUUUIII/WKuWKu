@@ -27,8 +27,9 @@
         <item>黑白</item>
     </string-array>
     <string-array name="theme_overlays">
-        <item>无</item>
+        <item>默认</item>
         <item>牛油果</item>
         <item>海洋</item>
+        <item>榛子</item>
     </string-array>
 </resources>
