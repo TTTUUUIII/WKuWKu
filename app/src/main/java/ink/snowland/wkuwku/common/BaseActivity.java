@@ -304,6 +304,9 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         } else if (overlay.equals("ocean")){
             getTheme()
                     .applyStyle(R.style.ThemeOverlay_WKuWKu_Ocean, true);
+        } else if (overlay.equals("hazelnut")){
+            getTheme()
+                    .applyStyle(R.style.ThemeOverlay_WKuWKu_Hazelnut, true);
         }
     }
 

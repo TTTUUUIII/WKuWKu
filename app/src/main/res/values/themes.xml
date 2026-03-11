@@ -62,6 +62,26 @@
         <item name="colorOnBackground">@color/ocean_on_background</item>
         <item name="colorHintText">@color/ocean_hint_text</item>
     </style>
+
+    <style name="ThemeOverlay.WKuWKu.Hazelnut" parent="">
+        <item name="colorPrimary">@color/hazelnut_primary</item>
+        <item name="colorOnPrimary">@color/hazelnut_on_primary</item>
+        <item name="colorPrimaryContainer">@color/hazelnut_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/hazelnut_on_primary_container</item>
+        <item name="colorSecondary">@color/hazelnut_secondary</item>
+        <item name="colorOnSecondary">@color/hazelnut_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/hazelnut_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/hazelnut_on_secondary_container</item>
+        <item name="colorSurface">@color/hazelnut_surface</item>
+        <item name="colorSurfaceContainer">@color/hazelnut_surface_container</item>
+        <item name="colorSurfaceContainerHigh">@color/hazelnut_surface_container_high</item>
+        <item name="colorSurfaceInverse">@color/hazelnut_surface_inverse</item>
+        <item name="colorOnSurfaceInverse">@color/hazelnut_on_surface_inverse</item>
+        <item name="colorPrimaryInverse">@color/hazelnut_primary_inverse</item>
+        <item name="colorBackground">@color/hazelnut_background</item>
+        <item name="colorOnBackground">@color/hazelnut_on_background</item>
+        <item name="colorHintText">@color/hazelnut_hint_text</item>
+    </style>
     
     <style name="Theme.WKuWKu" parent="Base.Theme.WKuWKu" />
     <style name="Theme.WKuWKu.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">

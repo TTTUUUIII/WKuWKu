@@ -31,7 +31,7 @@
     <color name="on_background">#FFC3A1</color>
     <color name="hint_text">@color/primary</color>
 
-    <!-- Avocado color-->
+    <!-- Avocado -->
     <color name="avocado_primary">#4C5C2D</color>
     <color name="avocado_on_primary">@color/white</color>
     <color name="avocado_primary_container">#EBF4DD</color>
@@ -50,7 +50,7 @@
     <color name="avocado_on_background">#C6D870</color>
     <color name="avocado_hint_text">@color/avocado_primary</color>
 
-    <!-- Ocean color-->
+    <!-- Ocean -->
     <color name="ocean_primary">#0C2C55</color>
     <color name="ocean_on_primary">@color/white</color>
     <color name="ocean_primary_container">#CBDCEB</color>
@@ -68,4 +68,23 @@
     <color name="ocean_background">@color/white</color>
     <color name="ocean_on_background">#A3CCDA</color>
     <color name="ocean_hint_text">@color/ocean_primary</color>
+
+    <!--Hazelnut-->
+    <color name="hazelnut_primary">#8C5A3C</color>
+    <color name="hazelnut_on_primary">@color/white</color>
+    <color name="hazelnut_primary_container">#FFF8F0</color>
+    <color name="hazelnut_on_primary_container">@color/hazelnut_primary</color>
+    <color name="hazelnut_secondary">@color/black</color>
+    <color name="hazelnut_on_secondary">@color/white</color>
+    <color name="hazelnut_secondary_container">#ECE7D1</color>
+    <color name="hazelnut_on_secondary_container">#A18D6D</color>
+    <color name="hazelnut_surface">@color/hazelnut_primary_container</color>
+    <color name="hazelnut_surface_container">@color/hazelnut_primary_container</color>
+    <color name="hazelnut_surface_container_high">#F0ECE2</color>
+    <color name="hazelnut_surface_inverse">#352F44</color>
+    <color name="hazelnut_on_surface_inverse">@color/white</color>
+    <color name="hazelnut_primary_inverse">#4B2E2B</color>
+    <color name="hazelnut_background">@color/white</color>
+    <color name="hazelnut_on_background">#E6D8C3</color>
+    <color name="hazelnut_hint_text">@color/hazelnut_primary</color>
 </resources>
