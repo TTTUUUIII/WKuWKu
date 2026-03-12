@@ -224,8 +224,24 @@ public class VirtualController implements Controller, View.OnTouchListener {
         }
     }
 
+    @Override
+    public void rumble(int effect, int strength) {
+        if (mVibrator != null && mVibrator.hasVibrator()) {
+            strength = strength >> 8;
+            if (strength == 0) {
+                mVibrator.cancel();
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    mVibrator.vibrate(VibrationEffect.createOneShot(3000, strength));
+                } else {
+                    mVibrator.vibrate(3000);
+                }
+            }
+        }
+    }
+
     public final void vibrator() {
-        if (mVibrator == null) return;
+        if (mVibrator == null || !mVibrator.hasVibrator()) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
         } else {
