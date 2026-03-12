@@ -3,6 +3,7 @@ import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,8 +17,8 @@ import ink.snowland.wkuwku.databinding.LayoutSegaControllerBinding;
 public class SegaController extends VirtualController implements View.OnTouchListener {
     private LayoutSegaControllerBinding binding;
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
-    public SegaController(@NonNull Context context) {
-        super(context);
+    public SegaController(@NonNull Context context, boolean feedback) {
+        super(context, feedback);
     }
 
     @Nullable
@@ -67,8 +68,8 @@ public class SegaController extends VirtualController implements View.OnTouchLis
             return false;
         }
         setState(RETRO_DEVICE_JOYPAD, 0, id, state);
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            vibrator();
+        if (action == MotionEvent.ACTION_DOWN && needFeedback) {
+            v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
         }
         return false;
     }
