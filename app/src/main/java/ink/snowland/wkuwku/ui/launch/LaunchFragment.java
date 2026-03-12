@@ -782,6 +782,14 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     }
 
     @Override
+    public void onRumbleState(int port, int effect, int strength) {
+        Controller controller = mControllerRoutes.get(port);
+        if (controller != null) {
+            controller.rumble(effect, strength);
+        }
+    }
+
+    @Override
     public void onDumpInfo(int k, Object v) {
         if (k == DUMP_KEY_RENDERER_RATE) {
             mViewModel.updateRendererRate((int)v);

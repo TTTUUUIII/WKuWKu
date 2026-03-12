@@ -18,6 +18,7 @@ public interface Controller {
     String getDescriptor();
     short getState(int device, int index, int id);
     void setState(int device, int index, int id, int v);
+    default void rumble(int effect, int strength) {}
     default boolean dispatchKeyEvent(KeyEvent event) {
         return false;
     }

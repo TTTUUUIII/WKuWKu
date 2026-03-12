@@ -145,7 +145,12 @@ public abstract class Emulator implements IEmulator {
     @JNICallback
     @Override
     public boolean onNativeRumbleState(int port, int effect, int strength) {
-        return true;
+        OnEmulatorV2EventListener listener = mListener.get();
+        if (listener != null) {
+            listener.onRumbleState(port, effect, strength);
+            return true;
+        }
+        return false;
     }
 
     @JNICallback

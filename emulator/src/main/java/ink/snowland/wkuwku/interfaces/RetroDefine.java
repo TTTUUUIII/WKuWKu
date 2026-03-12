@@ -1566,4 +1566,7 @@ public interface RetroDefine {
     int RETRO_DEVICE_ID_POINTER_Y = 1;
     int RETRO_DEVICE_ID_POINTER_PRESSED = 2;
     int RETRO_DEVICE_ID_POINTER_COUNT = 3;
+
+    int RETRO_RUMBLE_STRONG = 0;
+    int RETRO_RUMBLE_WEAK = 1;
 }

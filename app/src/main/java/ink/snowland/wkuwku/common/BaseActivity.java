@@ -107,8 +107,10 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         for (int deviceId : deviceIds) {
             InputDevice device = mInputManager.getInputDevice(deviceId);
             if (device == null || device.isVirtual()) continue;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && device.isExternal()) {
-                mInputDevices.add(device);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if (device.isExternal()) {
+                    mInputDevices.add(device);
+                }
             } else {
                 mInputDevices.add(device);
             }

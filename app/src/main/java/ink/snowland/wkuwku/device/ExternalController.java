@@ -3,11 +3,16 @@ package ink.snowland.wkuwku.device;
 import static ink.snowland.wkuwku.interfaces.RetroDefine.*;
 
 import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.os.VibratorManager;
+import android.util.SparseArray;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import ink.snowland.wkuwku.common.Controller;
 
@@ -20,10 +25,26 @@ public class ExternalController implements Controller {
     private short mAxisY = 0;
     private short mAxisZ = 0;
     private short mAxisRZ = 0;
-    public ExternalController(int deviceId, String name, String descriptor) {
-        mName = name;
-        mDeviceId = deviceId;
-        mDescriptor = descriptor;
+    private SparseArray<Vibrator> mVibrators;
+    public ExternalController(@NonNull InputDevice device) {
+        mName = device.getName();
+        mDeviceId = device.getId();
+        mDescriptor = device.getDescriptor();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            VibratorManager vibratorManager = device.getVibratorManager();
+            int[] vibratorIds = vibratorManager.getVibratorIds();
+            if (vibratorIds.length > 0) {
+                mVibrators.put(RETRO_RUMBLE_STRONG, vibratorManager.getVibrator(vibratorIds[0]));
+                if (vibratorIds.length> 1) {
+                    mVibrators.put(RETRO_RUMBLE_WEAK, vibratorManager.getVibrator(vibratorIds[1]));
+                } else {
+                    mVibrators.put(RETRO_RUMBLE_WEAK, vibratorManager.getVibrator(vibratorIds[0]));
+                }
+            }
+        } else {
+            mVibrators.put(RETRO_RUMBLE_STRONG, device.getVibrator());
+            mVibrators.put(RETRO_RUMBLE_WEAK, device.getVibrator());
+        }
     }
 
     @Override
@@ -101,6 +122,23 @@ public class ExternalController implements Controller {
     @Override
     public boolean isVirtual() {
         return false;
+    }
+
+    @Override
+    public void rumble(int effect, int strength) {
+        Vibrator vibrator = mVibrators.get(effect);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            strength = strength >> 8;
+            if (strength == 0) {
+                vibrator.cancel();
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(3000, strength));
+                } else {
+                    vibrator.vibrate(3000);
+                }
+            }
+        }
     }
 
     @Override
@@ -221,6 +259,6 @@ public class ExternalController implements Controller {
     }
 
     public static Controller from(@NonNull InputDevice device) {
-        return new ExternalController(device.getId(), device.getName(), device.getDescriptor());
+        return new ExternalController(device);
     }
 }
