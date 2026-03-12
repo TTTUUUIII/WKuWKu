@@ -7,6 +7,7 @@ import android.content.Context;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,10 +18,8 @@ import androidx.annotation.Nullable;
 import ink.snowland.wkuwku.R;
 import ink.snowland.wkuwku.common.Controller;
 import ink.snowland.wkuwku.databinding.LayoutVirtualControllerBinding;
-import ink.snowland.wkuwku.util.SettingsManager;
 
 public class VirtualController implements Controller, View.OnTouchListener {
-    private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     private static final int JOYSTICK_TRIGGER_THRESHOLD = 50;
     public static final String NAME = "Virtual Controller";
     private short mButtonStates = 0;
@@ -30,16 +29,13 @@ public class VirtualController implements Controller, View.OnTouchListener {
     private short mAxisRZ = 0;
     private LayoutVirtualControllerBinding binding;
     private final View mView;
-    private Vibrator mVibrator;
+    protected final boolean needFeedback;
+    private final Vibrator mVibrator;
 
-    public VirtualController(@NonNull Context context) {
+    public VirtualController(@NonNull Context context, boolean feedback) {
         mView = onCreateView(LayoutInflater.from(context));
-        if (SettingsManager.getBoolean(VIBRATION_FEEDBACK, true)) {
-            mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-            if (!mVibrator.hasVibrator()) {
-                mVibrator = null;
-            }
-        }
+        needFeedback = feedback;
+        mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     @Nullable
@@ -67,12 +63,13 @@ public class VirtualController implements Controller, View.OnTouchListener {
     public boolean onTouch(View v, MotionEvent event) {
         v.performClick();
         int viewId = v.getId();
+        int action = event.getAction();
         int id;
         if (viewId == R.id.button_a_b) {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            if (action == MotionEvent.ACTION_DOWN) {
                 setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, KEY_DOWN);
                 setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B, KEY_DOWN);
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            } else if (action == MotionEvent.ACTION_UP) {
                 setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A, KEY_UP);
                 setState(RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B, KEY_UP);
             }
@@ -105,7 +102,6 @@ public class VirtualController implements Controller, View.OnTouchListener {
                 return false;
             }
             int state;
-            int action = event.getAction();
             if (action == MotionEvent.ACTION_DOWN) {
                 state = KEY_DOWN;
             } else if (action == MotionEvent.ACTION_UP) {
@@ -115,8 +111,8 @@ public class VirtualController implements Controller, View.OnTouchListener {
             }
             setState(RETRO_DEVICE_JOYPAD, 0, id, state);
         }
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            vibrator();
+        if (action == MotionEvent.ACTION_DOWN && needFeedback) {
+            v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
         }
         return false;
     }
@@ -237,15 +233,6 @@ public class VirtualController implements Controller, View.OnTouchListener {
                     mVibrator.vibrate(3000);
                 }
             }
-        }
-    }
-
-    public final void vibrator() {
-        if (mVibrator == null || !mVibrator.hasVibrator()) return;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            mVibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK));
-        } else {
-            mVibrator.vibrate(20);
         }
     }
 }

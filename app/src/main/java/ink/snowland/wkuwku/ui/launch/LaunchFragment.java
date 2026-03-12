@@ -29,6 +29,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Pair;
 import android.util.SparseArray;
+import android.view.HapticFeedbackConstants;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -100,9 +101,11 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private static final String BLACKLIST_AUTO_LOAD_STATE = "app_blacklist_auto_load_state";
     private static final String PLAYER_1_CONTROLLER_DESCRIPTOR = "player_1_controller_descriptor";
     private static final String PLAYER_2_CONTROLLER_DESCRIPTOR = "player_2_controller_descriptor";
+    private static final String VIBRATION_FEEDBACK = "app_input_vibration_feedback";
     private static final String GRAPHICS_API = "video.graphics_api";
     private FragmentLaunchBinding binding;
     private LaunchViewModel mViewModel;
+    private boolean mFeedbackWhenClick;
     private Game mGame;
     private final int mVideoRatioType = NumberUtils
             .parseInt(SettingsManager.getString("app_video_ratio", "0"),
@@ -123,6 +126,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mFeedbackWhenClick = SettingsManager.getBoolean(VIBRATION_FEEDBACK, true);
         mKeepScreenOn = SettingsManager.getBoolean(KEEP_SCREEN_ON, true);
         parentActivity.setStatusBarVisibility(false);
         parentActivity.setDrawerLockedMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -369,9 +373,9 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
     private void attachToController() {
         VirtualController virtualController;
         if (SettingsManager.equals(VIRTUAL_CONTROLLER_LAYOUT, "sega")) {
-            virtualController = new SegaController(parentActivity);
+            virtualController = new SegaController(parentActivity, mFeedbackWhenClick);
         } else {
-            virtualController = new VirtualController(parentActivity);
+            virtualController = new VirtualController(parentActivity, mFeedbackWhenClick);
         }
         binding.controllerRoot.addView(virtualController.getView());
         mControllerSources.add(virtualController);
@@ -527,32 +531,36 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mShouldResumeEmulator = false;
             onExit();
         } else {
-            Controller controller = mControllerSources.get(0 /*VirtualController*/);
-            if (controller instanceof VirtualController vc) {
-                vc.vibrator();
-            }
             if (viewId == R.id.button_savestate) {
                 saveCurrentState(true);
             } else if (viewId == R.id.button_screenshot) {
                 takeScreenshot();
             } else {
-                int index = -1;
-                if (viewId == R.id.button_load_last_state) {
-                    index = LaunchViewModel.MAX_COUNT_OF_SNAPSHOT - 1;
-                } else if (viewId == R.id.button_load_state4) {
-                    index = 3;
-                } else if (viewId == R.id.button_load_state3) {
-                    index = 2;
-                } else if (viewId == R.id.button_load_state2) {
-                    index = 1;
-                } else if (viewId == R.id.button_load_state1) {
-                    index = 0;
-                }
+                int index = getStateIndex(viewId);
                 if (index != -1) {
                     loadStateAt(index, true);
                 }
             }
+            if (mFeedbackWhenClick) {
+                v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
+            }
         }
+    }
+
+    private static int getStateIndex(int viewId) {
+        int index = -1;
+        if (viewId == R.id.button_load_last_state) {
+            index = LaunchViewModel.MAX_COUNT_OF_SNAPSHOT - 1;
+        } else if (viewId == R.id.button_load_state4) {
+            index = 3;
+        } else if (viewId == R.id.button_load_state3) {
+            index = 2;
+        } else if (viewId == R.id.button_load_state2) {
+            index = 1;
+        } else if (viewId == R.id.button_load_state1) {
+            index = 0;
+        }
+        return index;
     }
 
     private void takeScreenshot() {
