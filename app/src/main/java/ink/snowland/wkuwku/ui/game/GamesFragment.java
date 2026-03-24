@@ -173,12 +173,11 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
         }
     }
 
-    private void showPopupMenu(int position, @NonNull View anchor) {
+    private void showPopupMenu(Game game, @NonNull View anchor) {
         PopupMenu popupMenu = new PopupMenu(anchor.getContext(), anchor);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             popupMenu.setForceShowIcon(true);
         }
-        Game game = mAdapter.getCurrentList().get(position);
         popupMenu.getMenuInflater().inflate(R.menu.game_more_menu, popupMenu.getMenu());
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
@@ -193,14 +192,14 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             } else if (itemId == R.id.action_detail) {
                 showDetailDialog(game);
             } else if (itemId == R.id.action_choose_cover) {
-                chooseCover(game, position);
+                chooseCover(game);
             }
             return true;
         });
         popupMenu.show();
     }
 
-    private void chooseCover(@NonNull Game game, int position) {
+    private void chooseCover(@NonNull Game game) {
         parentActivity.openDocument("image/*", uri -> {
             DocumentFile coverFile = DocumentFile.fromSingleUri(parentActivity, uri);
             if (coverFile == null || !coverFile.isFile() || coverFile.getName() == null) return;
@@ -220,12 +219,12 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                     FileUtils.asyncDelete(oldFile);
                     game.filepath = newFile.getAbsolutePath();
                     FileUtils.copy(parentActivity, uri, new File(parent, coverName));
+                    mAdapter.notifyItemChanged(game);
                     mViewModel.update(game);
-                    mAdapter.notifyItemChanged(position);
                 }
             } else {
                 FileUtils.copy(parentActivity, uri, new File(parent, coverName));
-                mAdapter.notifyItemChanged(position);
+                mAdapter.notifyItemChanged(game);
             }
         });
     }
@@ -255,11 +254,11 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
             Game game = currentList.get(position);
             if (itemBinding instanceof ItemGameBinding itemGameBinding) {
                 itemGameBinding.setGame(game);
-                itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(position, v));
+                itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(game, v));
                 itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(game));
             } else if (itemBinding instanceof ItemGameGridBinding itemGameBinding) {
                 itemGameBinding.setGame(game);
-                itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(position, v));
+                itemGameBinding.buttonMore.setOnClickListener(v -> showPopupMenu(game, v));
                 itemGameBinding.buttonLaunch.setOnClickListener(v -> launch(game));
                 File cover = findGameCoverFile(game);
                 if (cover != null) {
@@ -294,6 +293,16 @@ public class GamesFragment extends BaseFragment implements View.OnClickListener 
                     return oldItem.equals(newItem);
                 }
             });
+        }
+
+        private void notifyItemChanged(Game game) {
+            List<Game> currentList = getCurrentList();
+            for (int i = 0; i < currentList.size(); ++i) {
+                if (currentList.get(i).filepath.equals(game.filepath)) {
+                    notifyItemChanged(i);
+                    break;
+                }
+            }
         }
 
         @NonNull
