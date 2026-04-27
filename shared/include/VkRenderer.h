@@ -31,35 +31,8 @@ public:
     static uint32_t find_memory_type_index(VkPhysicalDevice, uint32_t /*type_filter*/, VkMemoryPropertyFlags /*properties*/);
 };
 
-class vk_swap_chain_t {
-private:
-    std::mutex mtx;
-    std::vector<std::shared_ptr<vk_buffer_t>> buffers;
-    std::queue<int> free_idxs;
-    std::queue<int> full_idxs;
-    int cur_read_idx = -1;
-public:
-    explicit vk_swap_chain_t(VkDevice,
-                             VkPhysicalDevice,
-                             VkBufferUsageFlags,
-                             VkMemoryPropertyFlags,
-                             VkDeviceSize,
-                             uint32_t);
-
-    int acquire_write_idx();
-
-    void submit(int idx);
-
-    std::shared_ptr<vk_buffer_t> get(int idx);
-
-    int acquire_read_idx();
-
-    virtual ~vk_swap_chain_t();
-};
-
 class VkRenderer : public Renderer {
 private:
-    const int MAX_FRAMES_IN_FLIGHT = 3;
     std::unique_ptr<VkContext> context;
     ANativeWindow *window;
     std::thread vk_thread;
@@ -83,7 +56,8 @@ private:
     VkImageView tex_view{};
     VkDeviceMemory tex_mem{};
     VkSampler tex_sampler{};
-    std::unique_ptr<vk_swap_chain_t> tex_swap_chain;
+    std::unique_ptr<graphics_buffers_manager_t> graphics_buffers_manager;
+    std::vector<std::shared_ptr<vk_buffer_t>> graphics_buffers;
     VkSwapchainKHR swap_chain{};
     queue_info_t graphics_queue_info{};
     queue_info_t present_queue_info{};

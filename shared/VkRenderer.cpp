@@ -427,11 +427,14 @@ void VkRenderer::create_texture() {
     }
 
     VkDeviceSize size_in_bytes = config->max_width * config->max_height * bytes_per_pixel;
-    tex_swap_chain = std::make_unique<vk_swap_chain_t>(device, GPU,
-                                                       VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                                       size_in_bytes,
-                                                       MAX_FRAMES_IN_FLIGHT);
+    graphics_buffers_manager = std::make_unique<graphics_buffers_manager_t>(MAX_FRAMES_IN_FLIGHT);
+    graphics_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        graphics_buffers[i] = std::make_shared<vk_buffer_t>(device, GPU,
+                                                 VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                                 size_in_bytes);
+    }
     VkFormat fmt = VK_FORMAT_R8G8B8A8_UNORM;
     if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
         fmt = VK_FORMAT_R5G6B5_UNORM_PACK16;
@@ -775,7 +778,8 @@ void VkRenderer::on_end() {
     vkFreeMemory(device, tex_mem, nullptr);
     vkDestroyImageView(device, tex_view, nullptr);
     vkDestroySampler(device, tex_sampler, nullptr);
-    tex_swap_chain = nullptr;
+    graphics_buffers_manager = nullptr;
+    graphics_buffers.clear();
 }
 
 void VkRenderer::download_image(VkCommandBuffer cmd, const VkImage src,
@@ -924,7 +928,7 @@ void VkRenderer::record_command_buffer(VkCommandBuffer command_buffer, u_int32_t
 }
 
 void VkRenderer::update_texture(VkCommandBuffer command_buffer) {
-    int idx = tex_swap_chain->acquire_read_idx();
+    int idx = graphics_buffers_manager->acquire_read_idx();
     if (idx == -1) return;
     VkFormat fmt = VK_FORMAT_R8G8B8A8_UNORM;
     if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
@@ -933,7 +937,7 @@ void VkRenderer::update_texture(VkCommandBuffer command_buffer) {
     transition_image_layout(command_buffer, tex, fmt,
                             VK_IMAGE_LAYOUT_UNDEFINED,
                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    upload_image(command_buffer, tex_swap_chain->get(idx)->buffer(), tex,
+    upload_image(command_buffer, graphics_buffers[idx]->buffer(), tex,
                  static_cast<uint32_t>(config->width),
                  static_cast<uint32_t>(config->height));
     transition_image_layout(command_buffer, tex, fmt, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -976,23 +980,23 @@ void VkRenderer::resize_viewport(uint32_t w, uint32_t h) {
 
 void VkRenderer::render(const void *data, unsigned width, unsigned height, size_t pitch) {
     if (state != renderer_state_t::RUNNING) return;
-    int idx = tex_swap_chain->acquire_write_idx();
+    int idx = graphics_buffers_manager->acquire_write_idx();
     if (idx == -1) return;
     uint8_t bytes_per_pixel = 2;
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
     }
     if (width * bytes_per_pixel == pitch) {
-        memcpy(tex_swap_chain->get(idx)->data(), data, height * pitch);
+        memcpy(graphics_buffers[idx]->data(), data, height * pitch);
     } else {
         for (int i = 0; i < height; ++i) {
-            memcpy((void *) (static_cast<const char *>(tex_swap_chain->get(idx)->data()) +
+            memcpy((void *) (static_cast<const char *>(graphics_buffers[idx]->data()) +
                              i * width * bytes_per_pixel),
                    static_cast<const char *>(data) + i * pitch,
                    width * bytes_per_pixel);
         }
     }
-    tex_swap_chain->submit(idx);
+    graphics_buffers_manager->submit(idx);
 }
 
 int VkRenderer::get_frame_rate() {
@@ -1162,63 +1166,4 @@ vk_buffer_t::find_memory_type_index(VkPhysicalDevice gpu, uint32_t type_filter, 
 
 VkBuffer vk_buffer_t::buffer() const {
     return buf;
-}
-
-vk_swap_chain_t::vk_swap_chain_t(VkDevice _dev,
-                                 VkPhysicalDevice gpu,
-                                 VkBufferUsageFlags usage,
-                                 VkMemoryPropertyFlags flags,
-                                 VkDeviceSize size,
-                                 uint32_t num_of_buffers) {
-    buffers.resize(num_of_buffers);
-    for (int i = 0; i < num_of_buffers; ++i) {
-        buffers[i] = std::make_shared<vk_buffer_t>(_dev, gpu, usage, flags, size);
-        free_idxs.push(i);
-    }
-}
-
-int vk_swap_chain_t::acquire_write_idx() {
-    std::lock_guard<std::mutex> lock(mtx);
-    int write_idx;
-    if (!free_idxs.empty()) {
-        write_idx = free_idxs.front();
-        free_idxs.pop();
-    } else {
-        write_idx = full_idxs.front();
-        full_idxs.pop();
-    }
-    return write_idx;
-}
-
-void vk_swap_chain_t::submit(int idx) {
-    if (idx == -1) return;
-    std::lock_guard<std::mutex> lock(mtx);
-    full_idxs.push(idx);
-}
-
-int vk_swap_chain_t::acquire_read_idx() {
-    std::lock_guard<std::mutex> lock(mtx);
-    if(!full_idxs.empty()) {
-        if(cur_read_idx != -1) {
-            free_idxs.push(cur_read_idx);
-        }
-        cur_read_idx = full_idxs.front();
-        full_idxs.pop();
-    }
-    return cur_read_idx;
-}
-
-vk_swap_chain_t::~vk_swap_chain_t() {
-    std::lock_guard<std::mutex> lock(mtx);
-    while(!full_idxs.empty()) full_idxs.pop();
-    while(!free_idxs.empty()) free_idxs.pop();
-    cur_read_idx = -1;
-    buffers.clear();
-}
-
-std::shared_ptr<vk_buffer_t> vk_swap_chain_t::get(int idx) {
-    if (idx == -1) {
-        return nullptr;
-    }
-    return buffers[idx];
 }

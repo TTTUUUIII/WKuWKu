@@ -13,40 +13,17 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Renderer.h"
 #include "GLContext.h"
 #include "Utils.h"
 #include "Buffer.h"
-
-class swap_chain_t {
-private:
-    std::mutex mtx;
-    std::vector<buffer_t> buffers;
-    std::queue<int> free_idxs;
-    std::queue<int> full_idxs;
-    int cur_read_idx = -1;
-public:
-    explicit swap_chain_t(int size_in_bytes, int count);
-
-    int acquire_write_idx();
-
-    void submit(int idx);
-
-    void* data_ptr(int idx);
-
-    std::unique_ptr<buffer_t> read_pixels();
-
-    int acquire_read_idx();
-
-    virtual ~swap_chain_t();
-};
 
 class GLRenderer: public Renderer {
 private:
     ANativeWindow *window;
     std::shared_ptr<GLContext> hw_context;
     std::unique_ptr<GLContext> context;
-    std::unique_ptr<swap_chain_t> swap_chain;
+    std::unique_ptr<graphics_buffers_manager_t> graphics_buffers_manager;
+    std::vector<std::shared_ptr<buffer_t>> graphics_buffers;
     float cur_aspect_ratio;
     GLuint PID{}, VAO{}, VBO{}, EBO{}, Tex0{};
     int ww, wh;

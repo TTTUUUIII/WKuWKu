@@ -12,7 +12,7 @@
             <bios
                 name="disksys.rom"
                 md5="ca30b50f880eb660a320674ed365ef7a"
-                url="https://github.com/Abdess/retroarch_system/raw/libretro/Nintendo%20-%20Famicom%20Disk%20System/disksys.rom" />
+                url="https://res.wkuwku.org/wkuwku/bios/nintendo/disksys.rom" />
         </system>
     </systems>
     <content-extensions>
