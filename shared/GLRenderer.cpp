@@ -153,7 +153,8 @@ void GLRenderer::release() {
     gl_thread_running.wait(true);
     SwappyGL_destroy();
     ANativeWindow_release(window);
-    swap_chain = nullptr;
+    graphics_buffers_manager = nullptr;
+    graphics_buffers.clear();
     config = nullptr;
 }
 
@@ -179,7 +180,7 @@ void GLRenderer::request_resume() {
     }
 }
 
-void GLRenderer::attach_context(const std::shared_ptr<GLContext>& ctx) {
+void GLRenderer::attach_context(const std::shared_ptr<GLContext> &ctx) {
     if (state == renderer_state_t::PREPARED) {
         hw_context = ctx;
     } else {
@@ -193,18 +194,18 @@ void GLRenderer::render(const void *data, unsigned width, unsigned height, size_
     if (config->format == RETRO_PIXEL_FORMAT_XRGB8888) {
         bytes_per_pixel = 4;
     }
-    int idx = swap_chain->acquire_write_idx();
+    int idx = graphics_buffers_manager->acquire_write_idx();
     if (width * bytes_per_pixel == pitch) {
-        memcpy(swap_chain->data_ptr(idx), data, height * pitch);
+        memcpy(graphics_buffers[idx]->data, data, height * pitch);
     } else {
         for (int i = 0; i < height; ++i) {
-            memcpy((void *) (static_cast<const char *>(swap_chain->data_ptr(idx)) +
+            memcpy((void *) (static_cast<const char *>(graphics_buffers[idx]->data) +
                              i * width * bytes_per_pixel),
                    static_cast<const char *>(data) + i * pitch,
                    width * bytes_per_pixel);
         }
     }
-    swap_chain->submit(idx);
+    graphics_buffers_manager->submit(idx);
 }
 
 std::unique_ptr<image_t> GLRenderer::read_pixels() {
@@ -229,9 +230,12 @@ void GLRenderer::create_swap_chain() {
     }
     size_t size_in_bytes =
             config->max_width * config->max_height * bytes_per_pixels;
-    swap_chain = std::make_unique<swap_chain_t>(size_in_bytes, config->num_of_views);
-    LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, num_of_buffers=%d.", size_in_bytes,
-         config->num_of_views);
+    graphics_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+    for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        graphics_buffers[i] = std::make_shared<buffer_t>(size_in_bytes);
+        LOGD(TAG, "Alloc frame buffers. size_in_bytes=%zu, index=%d.", size_in_bytes, i);
+    }
+    graphics_buffers_manager = std::make_unique<graphics_buffers_manager_t>(MAX_FRAMES_IN_FLIGHT);
 }
 
 int GLRenderer::get_frame_rate() {
@@ -310,22 +314,11 @@ void GLRenderer::gl_begin() {
     glBindTexture(GL_TEXTURE_2D, Tex0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    const gl_version_t &ver = GLContext::get_version();
-    if (ver.major >= 3) {
-        GLenum internal_format_sized = GL_RGBA8;
-        if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
-            internal_format_sized = GL_RGB565;
-        }
-        glTexStorage2D(GL_TEXTURE_2D, 1, internal_format_sized, config->max_width, config->max_height);
-    } else {
-        GLint internal_format = GL_RGBA;
-        GLenum type = GL_UNSIGNED_BYTE;
-        if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
-            internal_format = GL_RGB;
-            type = GL_UNSIGNED_SHORT_5_6_5;
-        }
-        glTexImage2D(GL_TEXTURE_2D, 0, internal_format, config->max_width, config->max_height, 0, internal_format, type, nullptr);
+    GLenum internal_format_sized = GL_RGBA8;
+    if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
+        internal_format_sized = GL_RGB565;
     }
+    glTexStorage2D(GL_TEXTURE_2D, 1, internal_format_sized, config->max_width, config->max_height);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
@@ -334,15 +327,18 @@ void GLRenderer::gl_draw() {
         gl_update_texcoords();
         glClearColor(0.f, 0.f, 0.f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, hw_context->get_offscreen_tex());
+        std::shared_ptr<gl_framebuffer_t> framebuffer = hw_context->acquire_read_framebuffer();
+        if (framebuffer) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, framebuffer->tex);
+        }
         glUseProgram(PID);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (void *) 0);
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
     } else {
-        int idx = swap_chain->acquire_read_idx();
+        int idx = graphics_buffers_manager->acquire_read_idx();
         if (idx != -1) {
             gl_update_texcoords();
             glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -351,10 +347,10 @@ void GLRenderer::gl_draw() {
             glBindTexture(GL_TEXTURE_2D, Tex0);
             if (config->format == RETRO_PIXEL_FORMAT_RGB565) {
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, config->width, config->height, GL_RGB,
-                                GL_UNSIGNED_SHORT_5_6_5, swap_chain->data_ptr(idx));
+                                GL_UNSIGNED_SHORT_5_6_5, graphics_buffers[idx]->data);
             } else {
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, config->width, config->height, GL_RGBA,
-                                GL_UNSIGNED_BYTE, swap_chain->data_ptr(idx));
+                                GL_UNSIGNED_BYTE, graphics_buffers[idx]->data);
             }
             glUseProgram(PID);
             glBindVertexArray(VAO);
@@ -442,68 +438,4 @@ void GLRenderer::enable_swappy(JNIEnv *env, jobject activity) {
         LOGI(TAG, "Frame pacing enabled, Set preference to %d fps.",
              static_cast<int32_t>(1000 * kNanosPerMillisecond / min_swap_ns));
     }
-}
-
-swap_chain_t::swap_chain_t(int size_in_bytes, int count) {
-    for (int i = 0; i < count; ++i) {
-        buffers.emplace_back(size_in_bytes);
-        free_idxs.push(i);
-    }
-}
-
-int swap_chain_t::acquire_write_idx() {
-    std::lock_guard<std::mutex> lock(mtx);
-    int write_idx = -1;
-    if (!free_idxs.empty()) {
-        write_idx = free_idxs.front();
-        free_idxs.pop();
-    } else {
-        write_idx = full_idxs.front();
-        full_idxs.pop();
-    }
-    return write_idx;
-}
-
-void swap_chain_t::submit(int idx) {
-    if (idx == -1) return;
-    std::lock_guard<std::mutex> lock(mtx);
-    full_idxs.push(idx);
-}
-
-void *swap_chain_t::data_ptr(int idx) {
-    if (idx == -1) {
-        return nullptr;
-    }
-    return buffers[idx].data;
-}
-
-std::unique_ptr<buffer_t> swap_chain_t::read_pixels() {
-    std::lock_guard<std::mutex> lock(mtx);
-    if(cur_read_idx != -1) {
-        buffer_t& fb = buffers[cur_read_idx];
-        std::unique_ptr<buffer_t> data_ptr = std::make_unique<buffer_t>(fb.capacity);
-        memcpy(data_ptr->data, fb.data, fb.capacity);
-        return std::move(data_ptr);
-    }
-    return nullptr;
-}
-
-int swap_chain_t::acquire_read_idx() {
-    std::lock_guard<std::mutex> lock(mtx);
-    if(!full_idxs.empty()) {
-        if(cur_read_idx != -1) {
-            free_idxs.push(cur_read_idx);
-        }
-        cur_read_idx = full_idxs.front();
-        full_idxs.pop();
-    }
-    return cur_read_idx;
-}
-
-swap_chain_t::~swap_chain_t() {
-    std::lock_guard<std::mutex> lock(mtx);
-    while(!full_idxs.empty()) full_idxs.pop();
-    while(!free_idxs.empty()) free_idxs.pop();
-    cur_read_idx = -1;
-    buffers.clear();
 }

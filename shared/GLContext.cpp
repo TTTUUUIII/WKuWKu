@@ -54,15 +54,18 @@ GLContext::GLContext(int _width, int _height): width(_width), height(_height), o
 }
 
 GLContext::~GLContext() {
-    if (offscreen) {
-        glDeleteRenderbuffers(1, &offscreen_rbo);
-        glDeleteFramebuffers(1, &offscreen_fbo);
-        glDeleteTextures(1, &offscreen_tex);
+    for (auto & it: graphics_buffers) {
+        glDeleteRenderbuffers(1, &it->rbo);
+        glDeleteFramebuffers(1, &it->fbo);
+        glDeleteTextures(1, &it->tex);
     }
+    graphics_buffers.clear();
+    graphics_buffers_manager = nullptr;
     eglMakeCurrent(display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroySurface(display, surface);
     eglDestroyContext(display, context);
     eglTerminate(display);
+    cur_write_idx = -1;
 }
 
 EGLSurface GLContext::get_surface() const {
@@ -80,50 +83,54 @@ EGLContext GLContext::get_context() const {
 void GLContext::make() {
     eglMakeCurrent(display, surface, surface, context);
     if (offscreen) {
-        glGenTextures(1, &offscreen_tex);
-        glBindTexture(GL_TEXTURE_2D, offscreen_tex);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        gl_version_t ver = get_version();
-        if (ver.major >= 3) {
+        graphics_buffers_manager = std::make_unique<graphics_buffers_manager_t>(MAX_FRAMES_IN_FLIGHT);
+        graphics_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+            std::shared_ptr<gl_framebuffer_t> it = std::make_shared<gl_framebuffer_t>();
+            glGenTextures(1, &it->tex);
+            glBindTexture(GL_TEXTURE_2D, it->tex);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height);
-        } else {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
-                         0, GL_RGBA, GL_UNSIGNED_BYTE,
-                         nullptr);
-        }
-        glGenFramebuffers(1, &offscreen_fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, offscreen_fbo);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, offscreen_tex, 0);
-        glGenRenderbuffers(1, &offscreen_rbo);
-        glBindRenderbuffer(GL_RENDERBUFFER, offscreen_rbo);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width,
-                              height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
-                                  offscreen_rbo);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            __android_log_assert(
-                    "glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE", TAG,
-                    "Failed to create framebuffer!");
+//            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+//                         0, GL_RGBA, GL_UNSIGNED_BYTE,
+//                         nullptr);
+            glGenFramebuffers(1, &it->fbo);
+            glBindFramebuffer(GL_FRAMEBUFFER, it->fbo);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, it->tex, 0);
+            glGenRenderbuffers(1, &it->rbo);
+            glBindRenderbuffer(GL_RENDERBUFFER, it->rbo);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width,
+                                  height);
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER,
+                                      it->rbo);
+            if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+                __android_log_assert(
+                        "glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE", TAG,
+                        "Failed to create framebuffer!");
+            }
+            graphics_buffers[i] = it;
         }
     }
 }
 
-GLuint GLContext::get_offscreen_tex() const {
-    return offscreen_tex;
+std::shared_ptr<gl_framebuffer_t> GLContext::acquire_write_framebuffer() {
+    cur_write_idx = graphics_buffers_manager->acquire_write_idx();
+    if (cur_write_idx == -1) return nullptr;
+    return graphics_buffers[cur_write_idx];
 }
 
-GLuint GLContext::get_offscreen_fbo() const {
-    return offscreen_fbo;
+std::shared_ptr<gl_framebuffer_t> GLContext::acquire_read_framebuffer() const {
+    int idx = graphics_buffers_manager->acquire_read_idx();
+    if (idx == -1) return nullptr;
+    return graphics_buffers[idx];
 }
 
 void GLContext::swap_buffers() const {
     eglSwapBuffers(display, surface);
 }
 
-gl_version_t GLContext::get_version() {
-    gl_version_t ver{};
-    glGetIntegerv(GL_MAJOR_VERSION, &ver.major);
-    glGetIntegerv(GL_MINOR_VERSION, &ver.minor);
-    return ver;
+void GLContext::submit() {
+    if (cur_write_idx == -1) return;
+    graphics_buffers_manager->submit(cur_write_idx);
 }

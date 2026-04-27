@@ -76,6 +76,7 @@ static void video_cb(const void *data, unsigned width, unsigned height, size_t p
     if (hw_render_cb) {
         if (gl_hw_context && data == RETRO_HW_FRAME_BUFFER_VALID) {
             gl_hw_context->swap_buffers();
+            gl_hw_context->submit();
         }
     } else {
         if (data) {
@@ -741,7 +742,7 @@ static void _main__() {
     LOGI(TAG, "Set thread priority tid=%d, priority=THREAD_PRIORITY_AUDIO", tid);
     if (hw_render_cb) {
         gl_hw_context = std::make_shared<GLContext>(video_config->max_width,
-                                                     video_config->max_height);
+                                                    video_config->max_height);
         gl_hw_context->make();
         hw_render_cb->context_reset();
     }
@@ -786,7 +787,11 @@ static retro_proc_address_t get_hw_proc_address(const char *sym) {
 }
 
 static uintptr_t get_hw_framebuffer() {
-    return gl_hw_context->get_offscreen_fbo();
+    std::shared_ptr<gl_framebuffer_t> cur_framebuffer = gl_hw_context->acquire_write_framebuffer();
+    if (cur_framebuffer) {
+        return cur_framebuffer->fbo;
+    }
+    return 0;
 }
 
 static bool attach_env() {
