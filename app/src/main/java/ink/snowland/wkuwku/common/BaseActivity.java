@@ -56,7 +56,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     private static final String APP_THEME = "app_theme";
     private static final String THEME_OVERLAY = "theme.overlay";
     private ActivityResultLauncher<Intent> mQRCodeScannerLauncher;
-    private ActivityResultLauncher<String[]> mOpenDocumentLauncher;
+    private ActivityResultLauncher<String> mOpenDocumentLauncher;
     private OnResultCallback<Uri> mOpenDocumentCallback;
     private OnResultCallback<String> mOnQRScanResultCallback;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -81,7 +81,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
         updateTheme();
         applyThemeOverlay();
         ViewCompat.setOnApplyWindowInsetsListener(getWindow().getDecorView(), this);
-        mOpenDocumentLauncher = registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
+        mOpenDocumentLauncher = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (mOpenDocumentCallback != null) {
                 mOpenDocumentCallback.onResult(uri);
                 mOpenDocumentCallback = null;
@@ -487,7 +487,7 @@ public abstract class BaseActivity extends AppCompatActivity implements OnApplyW
     }
 
     public void openDocument(@NonNull String type, @NonNull OnResultCallback<Uri> callback) {
-        mOpenDocumentLauncher.launch(new String[]{type});
+        mOpenDocumentLauncher.launch(type);
         mOpenDocumentCallback = callback;
     }
 

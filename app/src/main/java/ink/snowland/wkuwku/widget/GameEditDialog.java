@@ -132,7 +132,7 @@ public class GameEditDialog {
     private void openDocument() {
         mParent.openDocument("*/*"/*"application/octet-stream"*/, uri -> {
             DocumentFile file = DocumentFile.fromSingleUri(mParent, uri);
-            if (file != null && file.exists() && file.isFile()) {
+            if (file != null && file.exists()) {
                 String filename = file.getName();
                 mGame.filepath = filename;
                 if (filename != null) {
@@ -141,6 +141,7 @@ public class GameEditDialog {
                         mGame.title = mGame.title.substring(0, mGame.title.lastIndexOf("."));
                     parseSystem(filename);
                 }
+                System.out.println("invalidateAll");
                 binding.invalidateAll();
                 mUri = uri;
             }
