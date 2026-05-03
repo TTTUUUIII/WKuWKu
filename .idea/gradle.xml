@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="GradleMigrationSettings" migrationVersion="1" />
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="testRunner" value="CHOOSE_PER_TEST" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleJvm" value="jbr-21" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
@@ -14,8 +12,6 @@
             <option value="$PROJECT_DIR$/common" />
             <option value="$PROJECT_DIR$/emulator" />
             <option value="$PROJECT_DIR$/plug" />
-<<<<<<< HEAD
-=======
             <option value="$PROJECT_DIR$/plug-beetlesaturn" />
             <option value="$PROJECT_DIR$/plug-bsnes" />
             <option value="$PROJECT_DIR$/plug-citra" />
@@ -24,6 +20,7 @@
             <option value="$PROJECT_DIR$/plug-fmsx" />
             <option value="$PROJECT_DIR$/plug-geargrafx" />
             <option value="$PROJECT_DIR$/plug-genesisplusgx" />
+            <option value="$PROJECT_DIR$/plug-mame" />
             <option value="$PROJECT_DIR$/plug-mame2003plus" />
             <option value="$PROJECT_DIR$/plug-melonds" />
             <option value="$PROJECT_DIR$/plug-mesen" />
@@ -38,7 +35,6 @@
             <option value="$PROJECT_DIR$/plug-vbam" />
             <option value="$PROJECT_DIR$/plug-vbanext" />
             <option value="$PROJECT_DIR$/plug-yabause" />
->>>>>>> 0272480 (Fix: bios url invalid.)
           </set>
         </option>
       </GradleProjectSettings>
