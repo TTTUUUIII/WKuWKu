@@ -1,9 +1,19 @@
 package ink.snowland.wkuwku.ui.launch;
 
-import static ink.snowland.wkuwku.util.FileManager.*;
-import static ink.snowland.wkuwku.interfaces.IEmulator.*;
-import static ink.snowland.wkuwku.common.Errors.*;
+import static ink.snowland.wkuwku.common.Errors.ERR;
+import static ink.snowland.wkuwku.common.Errors.ERR_NOT_SUPPORTED;
+import static ink.snowland.wkuwku.common.Errors.NO_ERR;
+import static ink.snowland.wkuwku.interfaces.IEmulator.DUMP_KEY_RENDERER_RATE;
+import static ink.snowland.wkuwku.interfaces.IEmulator.FEAT_LOAD_STATE;
+import static ink.snowland.wkuwku.interfaces.IEmulator.FEAT_SAVE_STATE;
+import static ink.snowland.wkuwku.interfaces.IEmulator.GLES;
+import static ink.snowland.wkuwku.interfaces.IEmulator.PROP_ALIAS;
+import static ink.snowland.wkuwku.interfaces.IEmulator.PROP_GRAPHICS_API;
+import static ink.snowland.wkuwku.interfaces.IEmulator.RETRO_DEVICE_POINTER;
+import static ink.snowland.wkuwku.interfaces.IEmulator.VULKAN;
 import static ink.snowland.wkuwku.ui.launch.LaunchViewModel.MAX_COUNT_OF_SNAPSHOT;
+import static ink.snowland.wkuwku.util.FileManager.SYSTEM_DIRECTORY;
+import static ink.snowland.wkuwku.util.FileManager.getFile;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
@@ -16,15 +26,6 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-
-import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
-
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Pair;
@@ -40,10 +41,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
+
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.snackbar.Snackbar;
 
 import org.wkuwku.interfaces.ActionListener;
+import org.wkuwku.util.FileUtils;
+import org.wkuwku.util.Logger;
 import org.wkuwku.util.NumberUtils;
 
 import java.io.File;
@@ -77,8 +88,6 @@ import ink.snowland.wkuwku.interfaces.IEmulator;
 import ink.snowland.wkuwku.interfaces.OnEmulatorV2EventListener;
 import ink.snowland.wkuwku.util.DownloadManager;
 import ink.snowland.wkuwku.util.FileManager;
-import org.wkuwku.util.FileUtils;
-import org.wkuwku.util.Logger;
 import ink.snowland.wkuwku.util.SettingsManager;
 import ink.snowland.wkuwku.widget.NoFilterArrayAdapter;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -219,20 +228,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
             mP1ControllerId = savedInstanceState.getInt("p1_controller_id");
             mP2ControllerId = savedInstanceState.getInt("p2_controller_id");
         }
-        ArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
-        List<String> sources = mControllerSources.stream()
-                .map(it -> String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()))
-                .collect(Collectors.toList());
-        adapter.addAll(sources);
-        binding.p1ControllerSelector.setAdapter(adapter);
-        adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
-        sources = mControllerSources.stream()
-                .filter(it -> !it.isVirtual())
-                .map(it -> String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()))
-                .collect(Collectors.toList());
-        adapter.addAll(sources);
-        binding.p2ControllerSelector.setAdapter(adapter);
-        attachToController();
+        initControllers();
     }
 
     @Override
@@ -370,7 +366,7 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
         }
     }
 
-    private void attachToController() {
+    private void initControllers() {
         VirtualController virtualController;
         if (SettingsManager.equals(VIRTUAL_CONTROLLER_LAYOUT, "sega")) {
             virtualController = new SegaController(parentActivity, mFeedbackWhenClick);
@@ -395,6 +391,19 @@ public class LaunchFragment extends BaseFragment implements View.OnClickListener
                 mControllerSources.add(controller);
             }
         }
+        ArrayAdapter<String> adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
+        List<String> sources = mControllerSources.stream()
+                .map(it -> String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()))
+                .collect(Collectors.toList());
+        adapter.addAll(sources);
+        binding.p1ControllerSelector.setAdapter(adapter);
+        adapter = new NoFilterArrayAdapter<>(requireContext(), R.layout.layout_simple_text, new ArrayList<>());
+        sources = mControllerSources.stream()
+                .filter(it -> !it.isVirtual())
+                .map(it -> String.format(Locale.US, "%d@%s", it.getDeviceId(), it.getName()))
+                .collect(Collectors.toList());
+        adapter.addAll(sources);
+        binding.p2ControllerSelector.setAdapter(adapter);
         updateControllerRoutes();
     }
 
