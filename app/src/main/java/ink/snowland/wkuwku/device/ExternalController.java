@@ -25,7 +25,7 @@ public class ExternalController implements Controller {
     private short mAxisY = 0;
     private short mAxisZ = 0;
     private short mAxisRZ = 0;
-    private SparseArray<Vibrator> mVibrators;
+    private final SparseArray<Vibrator> mVibrators = new SparseArray<>();
     public ExternalController(@NonNull InputDevice device) {
         mName = device.getName();
         mDeviceId = device.getId();
